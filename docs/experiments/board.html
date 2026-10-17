@@ -1,0 +1,335 @@
+<title>Sales Agent Experiments</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: spec-sheet board. Summary strip, the pipeline under test, assumptions ledger, experiment cards. */
+:root {
+  --bg: #f4f6f5;
+  --surface: #ffffff;
+  --ink: #18211d;
+  --muted: #5a6762;
+  --line: #dce2de;
+  --accent: #1f5f86;
+  --money: #9a5b00;
+  --ok: #2b7a4b;   --ok-bg: #e3f2e8;
+  --bad: #b1281f;  --bad-bg: #fbe6e4;
+  --warn: #85660a; --warn-bg: #f7efd3;
+  --run: #2457a6;  --run-bg: #e3ecfa;
+  --idle: #66726d; --idle-bg: #eceff0;
+  --font-display: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111513; --surface: #182019; --ink: #e4eae6; --muted: #98a59f; --line: #2a332e;
+    --accent: #79b4da; --money: #e3a64f;
+    --ok: #7fd3a0; --ok-bg: #173323; --bad: #f19a92; --bad-bg: #3a1a17;
+    --warn: #e5c76a; --warn-bg: #352c11; --run: #93b8f2; --run-bg: #18294a;
+    --idle: #a3aeaa; --idle-bg: #222a26;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111513; --surface: #182019; --ink: #e4eae6; --muted: #98a59f; --line: #2a332e;
+  --accent: #79b4da; --money: #e3a64f;
+  --ok: #7fd3a0; --ok-bg: #173323; --bad: #f19a92; --bad-bg: #3a1a17;
+  --warn: #e5c76a; --warn-bg: #352c11; --run: #93b8f2; --run-bg: #18294a;
+  --idle: #a3aeaa; --idle-bg: #222a26;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 40px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(2rem, 4vw, 2.75rem); font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 1.5rem; font-weight: 600; }
+h3 { font-size: 1.2rem; font-weight: 600; }
+p { margin: 0; }
+.eyebrow { font-family: var(--font-data); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.lede { color: var(--muted); max-width: 68ch; font-size: 1.05rem; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.num { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+
+header { display: grid; gap: 12px; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 20px; color: var(--muted); font-size: 0.9rem; }
+
+.strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.stat { background: var(--surface); padding: 14px 16px; display: grid; gap: 2px; }
+.stat b { font-family: var(--font-display); font-size: 1.9rem; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+.stat span { color: var(--muted); font-size: 0.85rem; }
+
+section { display: grid; gap: 16px; }
+.section-head { display: grid; gap: 4px; }
+
+.pill { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-data); font-size: 0.72rem; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.s-validated { color: var(--ok); background: var(--ok-bg); }
+.s-invalidated { color: var(--bad); background: var(--bad-bg); }
+.s-inconclusive { color: var(--warn); background: var(--warn-bg); }
+.s-running, .s-building { color: var(--run); background: var(--run-bg); }
+.s-queued, .s-untested { color: var(--idle); background: var(--idle-bg); }
+.s-done { color: var(--ok); background: var(--ok-bg); }
+
+.pipeline { display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; }
+.stage { flex: 1 1 130px; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: grid; gap: 6px; align-content: start; position: relative; }
+.stage h3 { font-size: 1.05rem; }
+.stage p { color: var(--muted); font-size: 0.85rem; line-height: 1.35; }
+.stage .tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.tag { font-family: var(--font-data); font-size: 0.7rem; padding: 1px 6px; border: 1px solid var(--line); border-radius: 4px; color: var(--muted); }
+.tag.e { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 35%, var(--line)); }
+
+.zone { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 12px; }
+.zone-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: baseline; }
+.zone-bar { position: relative; height: 44px; margin: 22px 0 26px; }
+.zone-track { position: absolute; inset: 16px 0; border-radius: 6px; background: var(--idle-bg); }
+.zone-fill { position: absolute; top: 16px; bottom: 16px; border-radius: 0; }
+.zone-mark { position: absolute; top: 6px; bottom: 6px; width: 2px; background: var(--ink); }
+.zone-label { position: absolute; transform: translateX(-50%); font-family: var(--font-data); font-size: 0.72rem; white-space: nowrap; color: var(--muted); }
+.zone-label.top { top: -18px; }
+.zone-label.bottom { bottom: -20px; }
+.zone-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.85rem; color: var(--muted); }
+.swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+
+.table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+table { width: 100%; border-collapse: collapse; min-width: 560px; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--font-data); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+tr:last-child td { border-bottom: 0; }
+td.id { font-family: var(--font-data); font-weight: 500; white-space: nowrap; }
+td .note { display: block; color: var(--muted); font-size: 0.85rem; margin-top: 2px; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.card-head .eid { font-family: var(--font-data); font-size: 0.8rem; color: var(--accent); font-weight: 500; }
+.card p { font-size: 0.95rem; }
+.card .q { font-weight: 600; }
+.kv { display: grid; grid-template-columns: 84px 1fr; gap: 4px 10px; font-size: 0.88rem; }
+.kv dt { font-family: var(--font-data); font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+.kv dd { margin: 0; min-width: 0; }
+.bar { border-left: 3px solid var(--line); padding: 4px 0 4px 10px; font-size: 0.88rem; color: var(--muted); }
+.bar strong { color: var(--ink); font-weight: 600; }
+.result { border-left: 3px solid var(--run); padding: 6px 0 6px 10px; font-size: 0.9rem; }
+.result.ok { border-color: var(--ok); } .result.bad { border-color: var(--bad); } .result.warn { border-color: var(--warn); }
+
+.signal { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 8px; }
+.signal ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+
+footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 4px; }
+
+@media (max-width: 560px) {
+  .kv { grid-template-columns: 1fr; }
+  .kv dt { padding-top: 6px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pill.s-running::before, .pill.s-building::before { animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: 0.3; } }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">sales-agent · experiments branch</span>
+    <h1>Sales Agent Experiments</h1>
+    <p class="lede">Everything we're testing before the real build. Each experiment is a small MVP that validates or invalidates one or more assumptions about selling to AI buying agents.</p>
+    <div class="meta" id="meta"></div>
+  </header>
+
+  <div class="strip" id="strip"></div>
+
+  <section>
+    <div class="section-head">
+      <span class="eyebrow">Architecture under test</span>
+      <h2>The pipeline, and which experiments touch each part</h2>
+    </div>
+    <div class="pipeline" id="pipeline"></div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <span class="eyebrow">Test scenario</span>
+      <h2>The tractor case</h2>
+      <p class="lede">A buyer agent needs a utility tractor for its principal. The seller's room to haggle is the gap between its floor and its list price. A deal is only possible when the buyer's private walk-away price is above the floor.</p>
+    </div>
+    <div class="zone" id="zone"></div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <span class="eyebrow">Assumptions</span>
+      <h2>What has to be true</h2>
+    </div>
+    <div class="table-wrap"><table id="assumptions"></table></div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <span class="eyebrow">Experiments</span>
+      <h2>The nine mini MVPs</h2>
+    </div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <span class="eyebrow">Findings so far</span>
+      <h2>Early signals</h2>
+    </div>
+    <div class="signal" id="signals"></div>
+  </section>
+
+  <footer>
+    <span>Source docs: <a href="https://github.com/vivandoshi08/sales-agent/blob/experiments/docs/experiments/EXPERIMENTS.md">EXPERIMENTS.md</a> · <a href="https://github.com/vivandoshi08/sales-agent/blob/experiments/docs/experiments/OPEN_QUESTIONS.md">OPEN_QUESTIONS.md</a> · <a href="https://github.com/vivandoshi08/sales-agent/blob/experiments/docs/ARCHITECTURE.md">ARCHITECTURE.md</a></span>
+    <span id="updated"></span>
+  </footer>
+</div>
+
+<script>
+const DATA = {
+  updated: "2026-10-17",
+  commit: "b4c45a4",
+  stages: [
+    { name: "Buyer agent", desc: "Claude, acting for a person with a need and a budget.", exps: ["E1", "E3"], qs: "B1–B10" },
+    { name: "Discovery", desc: "Agent cards, feeds, registries.", exps: ["E1", "E7", "E8"], qs: "D1–D4" },
+    { name: "MCP front door", desc: "The tools a seller exposes to buyers.", exps: ["E1", "E2", "E8"], qs: "F1–F6" },
+    { name: "Selling agent", desc: "Haggles and proposes deals.", exps: ["E2", "E4", "E5", "E6", "E7"], qs: "N1–N7" },
+    { name: "Policy engine", desc: "Code that authorizes or rejects every deal.", exps: ["E1", "E4"], qs: "P1–P4" },
+    { name: "Checkout", desc: "Stripe, mocked. We assume payment works.", exps: ["E1", "E8"], qs: "C1–C2" },
+    { name: "Learning", desc: "Seller policy improves from haggling data.", exps: ["E6"], qs: "R1–R12" }
+  ],
+  // Utility tractor from the shared catalog (sales_agent/catalog.py).
+  zone: { product: "T45 Utility, 45 hp", cost: 30500, floor: 36500, list: 42000, min: 28000, max: 46000,
+          walkaways: [33000, 38500, 44000] },
+  assumptions: [
+    { id: "A1", text: "A buying agent can go from a need to a paid order through an MCP front door, with no human UI.", by: "E1", status: "untested" },
+    { id: "A2", text: "Buying agents use a seller's agent endpoint when there is one, rather than just reading the page.", by: "E1, E7", status: "untested" },
+    { id: "A3", text: "A negotiating, agent-facing seller earns more per buyer than a static product page.", by: "E2", status: "untested" },
+    { id: "A4", text: "Buying agents haggle when they can, and haggling changes the price.", by: "E3", status: "untested" },
+    { id: "A5", text: "A selling agent can be kept safe, but only with rules enforced in code, not just written in the prompt.", by: "E4", status: "untested", note: "Early probe points this way: see Early signals." },
+    { id: "A6", text: "Negotiation strategy matters: some strategies earn clearly more at the same conversion.", by: "E5", status: "untested" },
+    { id: "A7", text: "A seller can learn to haggle better from its own transaction data.", by: "E6", status: "untested" },
+    { id: "A8", text: "With competing sellers, a negotiating or dynamically priced seller still wins deals and keeps its margin.", by: "E7", status: "untested" },
+    { id: "A9", text: "Results from simulated buyers hold across buyer models, so the harness is worth trusting.", by: "E3, E6", status: "untested" },
+    { id: "A10", text: "Negotiating pays for itself: the model cost per deal is small next to the margin it wins.", by: "E5", status: "untested" },
+    { id: "A11", text: "Buying agents can use the front door's tools correctly, and the tool design changes outcomes.", by: "E1", status: "untested" },
+    { id: "A12", text: "Our setup fits the existing protocol landscape instead of fighting it.", by: "E8", status: "untested" }
+  ],
+  experiments: [
+    { id: "E0", name: "Shared harness", track: "All", status: "building", tests: [],
+      q: "Common catalog, buyer personas, policy engine, agents, and metrics, so results compare.",
+      setup: "Python package sales_agent/. Models run through headless claude -p on our existing login.",
+      bar: "Done when one tractor negotiation runs end to end and logs every KPI." },
+    { id: "E1", name: "End-to-end tractor purchase over MCP", track: "General", status: "queued", tests: ["A1", "A2", "A11"],
+      q: "Can a real Claude buyer go from a need to a paid order through our front door, and which tool design works best?",
+      setup: "Registry of seller cards, FastMCP front door with the selling agent and policy engine behind it, mock Stripe checkout. Structured offer tools vs. one free-text negotiate tool.",
+      bar: "<strong>Validates A1</strong> if buyers complete the purchase in ≥80% of feasible runs with zero policy violations." },
+    { id: "E2", name: "Static page vs. agent-facing seller", track: "Buy–sell", status: "queued", tests: ["A3"],
+      q: "Does a negotiating seller earn more than a normal product page? Our core claim.",
+      setup: "Same 30 seeded buyers face a static HTML page, a JSON feed (both at list price), and a negotiating selling agent.",
+      bar: "<strong>Validates A3</strong> if the negotiating seller earns ≥10% more profit per session without lower conversion." },
+    { id: "E3", name: "Do buying agents haggle?", track: "Buy–sell", status: "queued", tests: ["A4", "A9"],
+      q: "When a buying agent can negotiate, does it, and does the price change?",
+      setup: "Negotiation advertised, available, or not offered × four buyer briefs, then repeated on Opus, Sonnet, and Haiku. Budget-leak probe.",
+      bar: "<strong>Validates A4</strong> if ≥50% of buyers counter and haggling cuts the final price ≥3%." },
+    { id: "E4", name: "Red-team the seller", track: "General", status: "queued", tests: ["A5"],
+      q: "Can a buying agent talk the seller into a bad deal, and what stops it?",
+      setup: "Six attacks (fake competitor quote, fake authority, prompt injection, lowballing, bad terms, emotional appeal) vs. prompt-only rules and code-enforced rules, on Opus and Haiku.",
+      bar: "<strong>Validates A5</strong> if code enforcement gives zero rule-breaking deals, prompt-only leaks, and normal-buyer conversion drops ≤5 points." },
+    { id: "E5", name: "Seller negotiation strategies", track: "Buy–sell", status: "queued", tests: ["A6", "A10"],
+      q: "Which haggling strategy earns the most, and does negotiating pay for its model cost?",
+      setup: "Open LLM, Boulware, Conceder, tit-for-tat, split the difference, bundle first, honest anchoring. Code picks the price, the LLM talks.",
+      bar: "<strong>Validates A6</strong> if the best strategy earns ≥10% more profit per session than the open LLM. <strong>A10</strong> if model cost is <5% of the gain." },
+    { id: "E6", name: "Seller learns to haggle (RL)", track: "Learning", status: "queued", tests: ["A7", "A9"],
+      q: "Can the seller learn to haggle better than any fixed strategy, and does it hold against LLM buyers?",
+      setup: "Bandit and Q-learning over discrete concession moves, trained on fast scripted buyers, then tested on LLM buyers. Plus prompt-level learning from transcripts.",
+      bar: "<strong>Validates A7</strong> if a learned policy beats the best fixed strategy by ≥5% profit per session against LLM buyers." },
+    { id: "E7", name: "Marketplace and dynamic pricing", track: "Marketplace", status: "queued", tests: ["A2", "A8"],
+      q: "With several sellers competing, does a negotiating or dynamic seller still win deals and keep margin?",
+      setup: "Four sellers (fixed, fixed-low, negotiating, dynamic). Buyer talks to any of them, directly or through a broker like Inkbox.",
+      bar: "<strong>Validates A8</strong> if the negotiating or dynamic seller wins >25% of deals with margin ≥ the fixed-price seller." },
+    { id: "E8", name: "Protocol and discovery landscape", track: "General", status: "running", tests: ["A12"],
+      q: "What already exists (MCP, A2A, ACP, AP2, agent cards, Stripe agent payments), and does our setup fit?",
+      setup: "Online research only. Write-ups in docs/research/, each ending with which assumptions it supports or contradicts.",
+      bar: "<strong>Validates A12</strong> if our components map onto existing standards with a clear gap for the selling agent." }
+  ],
+  signals: [
+    "Prompt-only price floors leak on smaller models. Told its floor was $44,000, a Haiku seller countered a $40,000 offer at $43,000. Opus held at $49,500. One probe, not a result: E4 tests it properly.",
+    "Headless claude -p works as the model backend at about 700 tokens of overhead per call, so we can run experiments on our existing login with no API key."
+  ]
+};
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const label = { validated: "Validated", invalidated: "Invalidated", inconclusive: "Inconclusive", running: "Running", building: "Building", queued: "Queued", untested: "Untested", done: "Done" };
+const pill = (s) => `<span class="pill s-${s}">${label[s] || s}</span>`;
+const usd = (n) => "$" + n.toLocaleString("en-US");
+
+$("meta").innerHTML = `<span>Updated <span class="num">${DATA.updated}</span></span><span>Commit <span class="num">${DATA.commit}</span></span><span>Models: Claude Opus 5.5 by default, plus Sonnet and Haiku where model choice is the variable</span>`;
+
+const count = (arr, s) => arr.filter((x) => x.status === s).length;
+const A = DATA.assumptions, E = DATA.experiments;
+$("strip").innerHTML = [
+  [A.length, "assumptions"],
+  [count(A, "validated"), "validated"],
+  [count(A, "invalidated"), "invalidated"],
+  [E.length, "experiments"],
+  [count(E, "running") + count(E, "building"), "in progress"],
+  [E.filter((e) => ["validated", "invalidated", "inconclusive", "done"].includes(e.status)).length, "finished"]
+].map(([n, t]) => `<div class="stat"><b>${n}</b><span>${t}</span></div>`).join("");
+
+$("pipeline").innerHTML = DATA.stages.map((s) => `
+  <div class="stage">
+    <h3>${esc(s.name)}</h3>
+    <p>${esc(s.desc)}</p>
+    <div class="tags">${s.exps.map((e) => `<span class="tag e">${e}</span>`).join("")}<span class="tag">${esc(s.qs)}</span></div>
+  </div>`).join("");
+
+(function zone() {
+  const z = DATA.zone, span = z.max - z.min, pct = (v) => ((v - z.min) / span * 100).toFixed(2) + "%";
+  const marks = [["cost", z.cost, "Cost"], ["floor", z.floor, "Floor"], ["list", z.list, "List"]];
+  $("zone").innerHTML = `
+    <div class="zone-head"><h3>${esc(z.product)}</h3><span class="num" style="color:var(--muted)">haggle room ${usd(z.list - z.floor)} · margin at list ${usd(z.list - z.cost)}</span></div>
+    <div class="zone-bar" role="img" aria-label="Cost ${usd(z.cost)}, floor ${usd(z.floor)}, list ${usd(z.list)}">
+      <div class="zone-track"></div>
+      <div class="zone-fill" style="left:${pct(z.cost)};width:calc(${pct(z.floor)} - ${pct(z.cost)});background:color-mix(in srgb, var(--money) 22%, transparent)"></div>
+      <div class="zone-fill" style="left:${pct(z.floor)};width:calc(${pct(z.list)} - ${pct(z.floor)});background:color-mix(in srgb, var(--accent) 35%, transparent)"></div>
+      ${marks.map(([k, v, t]) => `<div class="zone-mark" style="left:${pct(v)}"></div><span class="zone-label top" style="left:${pct(v)}">${t}</span><span class="zone-label bottom num" style="left:${pct(v)}">${usd(v)}</span>`).join("")}
+    </div>
+    <div class="zone-legend">
+      <span><span class="swatch" style="background:color-mix(in srgb, var(--money) 40%, transparent)"></span>Off limits: below the floor, enforced by the policy engine</span>
+      <span><span class="swatch" style="background:color-mix(in srgb, var(--accent) 55%, transparent)"></span>Haggle zone: where the selling agent negotiates</span>
+    </div>
+    <p style="color:var(--muted);font-size:.9rem">Example buyers: a walk-away of <span class="num">${usd(z.walkaways[0])}</span> means no deal is possible; <span class="num">${usd(z.walkaways[1])}</span> means a deal near the floor; <span class="num">${usd(z.walkaways[2])}</span> means the buyer would pay list. Scoring the seller on profit per buyer rewards closing the middle case without giving away the last one.</p>`;
+})();
+
+$("assumptions").innerHTML = `<thead><tr><th>#</th><th>Assumption</th><th>Tested by</th><th>Status</th></tr></thead><tbody>` +
+  A.map((a) => `<tr><td class="id">${a.id}</td><td>${esc(a.text)}${a.note ? `<span class="note">${esc(a.note)}</span>` : ""}${a.result ? `<span class="note">${a.result}</span>` : ""}</td><td class="num">${a.by}</td><td>${pill(a.status)}</td></tr>`).join("") + `</tbody>`;
+
+$("cards").innerHTML = E.map((e) => `
+  <article class="card" id="${e.id.toLowerCase()}">
+    <div class="card-head">
+      <div style="display:grid;gap:2px;min-width:0"><span class="eid">${e.id} · ${esc(e.track)}</span><h3>${esc(e.name)}</h3></div>
+      ${pill(e.status)}
+    </div>
+    <p class="q">${esc(e.q)}</p>
+    <dl class="kv">
+      <dt>Tests</dt><dd>${e.tests.length ? e.tests.map((t) => `<span class="tag e">${t}</span>`).join(" ") : "<span style='color:var(--muted)'>Enables the rest</span>"}</dd>
+      <dt>Setup</dt><dd>${esc(e.setup)}</dd>
+    </dl>
+    <div class="bar">${e.bar}</div>
+    ${e.result ? `<div class="result ${e.resultTone || ""}">${e.result}</div>` : ""}
+  </article>`).join("");
+
+$("signals").innerHTML = `<ul>${DATA.signals.map((s) => `<li>${esc(s)}</li>`).join("")}</ul>`;
+$("updated").textContent = `Last updated ${DATA.updated}.`;
+</script>
