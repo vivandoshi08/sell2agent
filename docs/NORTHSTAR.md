@@ -8,13 +8,15 @@ A selling agent that represents a merchant to AI buying agents: it presents the 
 
 ## Problem
 
-- E-commerce was built for humans. Agents are now doing the buying, but sellers still build for human shoppers.
-- Buying agents have to work through human-facing interfaces: pages, forms, checkouts.
-- Those interfaces can block agents outright.
+**Commerce is static because it was built for humans. The buyers are now agents.**
+
+- A product page shows every visitor the same thing: one price, one description, one checkout flow. That made sense when every buyer was a person reading a screen.
+- Agents can do things a person browsing a page can't: ask follow-up questions, compare offers instantly, negotiate, and call an API. A static page can't respond to any of that, so the seller has no way to adapt, answer, or make a deal.
+- Agents are now doing the buying, but sellers still build for human shoppers. Buying agents have to work through interfaces made for people (pages, forms, checkouts), and those interfaces can block them outright.
 
 ## How it's solved today
 
-- The buying environment is still built for a human.
+- The buying environment is still static and built for a human.
 - Buying agents can get blocked.
 
 ## Our approach
