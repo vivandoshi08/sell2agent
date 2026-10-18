@@ -77,3 +77,14 @@ export const PRODUCTS: Product[] = [
     shipping_days: 2,
   },
 ];
+
+// Extras each seller can include (public: which levers exist, never what they cost). Mirrors
+// seller_policies.allowed_concessions in supabase/seed.sql and the exchange's allowed_levers.
+export const LEVERS_OFFERED: Record<string, string[]> = {
+  kb_keyforge_quiet75: ["free_shipping", "volume_discount"],
+  kb_clackco_tkl: ["free_shipping"],
+  kb_typewell_65: ["free_shipping", "extended_warranty"],
+  hp_keyforge_anc: ["free_shipping", "extended_warranty"],
+  hp_clackco_studio: ["free_shipping"],
+  hp_typewell_buds: ["free_shipping", "bundle_discount"],
+};

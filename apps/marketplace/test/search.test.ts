@@ -90,3 +90,56 @@ test("an unknown category doesn't hide everything", () => {
   assert.ok(out.results.length > 0);
   assert.match(out.note ?? "", /Unknown category/);
 });
+
+// ---- Bridge 2: lever-profile ranking ----
+const KB = { category: "mechanical_keyboard" };
+
+test("price-first buyer: cheapest keyboard first", () => {
+  const out = searchProducts({ ...KB, preferences: { price: 1 } }, URL);
+  assert.equal(ids(out)[0], "kb_clackco_tkl");
+  assert.ok(out.results.every((r) => typeof r.fit_score === "number"));
+});
+
+test("delivery-first buyer: fastest shipping first", () => {
+  assert.equal(ids(searchProducts({ ...KB, preferences: { delivery: 1 } }, URL))[0], "kb_typewell_65");
+});
+
+test("quality + warranty buyer: the one with an extended warranty and premium features first", () => {
+  const out = searchProducts({ ...KB, preferences: { quality: 1, warranty: 0.8, price: 0.1 } }, URL);
+  assert.deepEqual(ids(out).slice(0, 2), ["kb_typewell_65", "kb_keyforge_quiet75"]);
+  assert.match(out.results[0].fit_note, /Strong on .*warranty/);
+});
+
+test("same products, different buyers, different order", () => {
+  const cheap = ids(searchProducts({ ...KB, preferences: { price: 1 } }, URL));
+  const premium = ids(searchProducts({ ...KB, preferences: { quality: 1, warranty: 1 } }, URL));
+  assert.notDeepEqual(cheap, premium);
+});
+
+test("hard needs still filter before ranking", () => {
+  const out = searchProducts({ ...KB, must_have: ["wireless"], preferences: { price: 1 } }, URL);
+  assert.ok(!ids(out).includes("kb_clackco_tkl"), "wired keyboard ranked despite a wireless hard need");
+});
+
+test("no preferences: no fit_score, previous ordering", () => {
+  const out = searchProducts({ q: "quiet", ...KB }, URL);
+  assert.ok(out.results.every((r) => r.fit_score === undefined));
+  assert.equal(ids(out)[0], "kb_keyforge_quiet75");
+});
+
+test("levers offered are public labels only, never costs", () => {
+  const out = searchProducts({ ...KB, preferences: { warranty: 1 } }, URL);
+  const tw = out.results.find((r) => r.listing.id === "kb_typewell_65")!;
+  assert.deepEqual(tw.levers_offered.map((l) => l.id).sort(), ["extended_warranty", "free_shipping"]);
+  assert.ok(tw.levers_offered.every((l) => l.label && l.lever));
+  const json = JSON.stringify(out);
+  for (const k of ["cost_cents", "floor_price_cents", "unit_cost_cents", "objective"]) assert.ok(!json.includes(k), `leaked ${k}`);
+});
+
+// Regression: in the production bundle @sa/shared runs on zod 4, where LeverProfile needs every lever.
+test("a partial lever profile filled with zeros ranks the same as the partial one", () => {
+  const partial = searchProducts({ ...KB, preferences: { quality: 1, warranty: 0.8 } }, URL);
+  const filled = searchProducts({ ...KB, preferences: { price: 0, quality: 1, delivery: 0, warranty: 0.8, trust: 0, convenience: 0 } }, URL);
+  assert.deepEqual(ids(filled), ids(partial));
+  assert.deepEqual(filled.results.map((r) => r.fit_score), partial.results.map((r) => r.fit_score));
+});
