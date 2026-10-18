@@ -165,3 +165,14 @@ test("warrantyYears reads loose phrasings", () => {
   assert.equal(warrantyYears({ specs: { warranty: "18 months" } }), 1.5);
   assert.equal(warrantyYears({ specs: {} }), 0);
 });
+
+test("a product named in the query but over max_price is mentioned, not silently dropped", () => {
+  const out = searchProducts({ q: "TypeWell 65 Silent keyboard", category: "mechanical_keyboard", max_price_cents: 8000 }, URL);
+  assert.ok(!ids(out).includes("kb_typewell_65"), "still filtered from results");
+  assert.match(out.note ?? "", /Over your max price.*TypeWell 65 Silent \(\$139\.00 list, id kb_typewell_65\).*make_offer/);
+  // A generic word isn't a name: "silent keyboard" under $80 doesn't list every silent board.
+  assert.doesNotMatch(searchProducts({ q: "silent keyboard", max_price_cents: 8000 }, URL).note ?? "", /Over your max price/);
+  // No cap, no note.
+  assert.doesNotMatch(searchProducts({ q: "TypeWell 65 Silent" }, URL).note ?? "", /Over your max price/);
+  assert.equal(allKeys(out).has("floor_price_cents"), false);
+});

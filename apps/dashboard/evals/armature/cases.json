@@ -17,7 +17,7 @@
       "goal": "I want a quiet wireless mechanical keyboard and my budget is $140. Find the best option in this marketplace and tell me its name, seller and list price. Don't make any offers or buy anything.",
       "required": [
         "Calls search_products at least once, passing the need (quiet/silent, wireless) and a budget.",
-        "Recommends a product that is both silent and wireless with a list price at or under $140 (KeyForge Quiet 75 at $129 or TypeWell 65 Silent at $139).",
+        "Recommends a product that is both quiet/silent and wireless with a list price at or under $140 (Keychron K2 at $40, KeyForge Quiet 75 at $129 or TypeWell 65 Silent at $139).",
         "Reports the product name, seller and list price as returned by the tools.",
         "Makes no make_offer or accept_deal call."
       ],
