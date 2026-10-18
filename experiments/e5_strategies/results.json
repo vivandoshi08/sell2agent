@@ -1,0 +1,1347 @@
+{
+  "experiment": "e5_strategies",
+  "runs_file": "main.jsonl",
+  "sessions": 140,
+  "error_records": 0,
+  "conditions": {
+    "open_llm": {
+      "kind": "llm",
+      "description": "Default seller prompt: close at the highest price you can."
+    },
+    "anchor_value": {
+      "kind": "llm",
+      "description": "LLM anchors on value with honest framing; small shrinking concessions."
+    },
+    "boulware_llm": {
+      "kind": "llm",
+      "description": "Boulware described in words; the LLM picks prices."
+    },
+    "split_llm": {
+      "kind": "llm",
+      "description": "Split-the-difference described in words; the LLM picks prices."
+    },
+    "boulware": {
+      "kind": "code",
+      "description": "list - gap * t^3: concede slowly, then fast near the deadline."
+    },
+    "conceder": {
+      "kind": "code",
+      "description": "list - gap * t^(1/3): concede early."
+    },
+    "tit_for_tat": {
+      "kind": "code",
+      "description": "Mirror the buyer's last dollar concession (opening step 10% of gap, cap 30%)."
+    },
+    "split_difference": {
+      "kind": "code",
+      "description": "Midpoint of our last offer and the buyer's last offer, floor-bounded."
+    },
+    "bundle_first": {
+      "kind": "code",
+      "description": "Add warranty, then delivery, at the same price before discounting on the Boulware curve."
+    },
+    "fixed_price": {
+      "kind": "baseline",
+      "description": "List price only; the seller never discounts (negotiable=False plus a list-only strategy)."
+    }
+  },
+  "summary": {
+    "open_llm": {
+      "sessions": 14,
+      "errors": 0,
+      "deals": 11,
+      "conversion": 0.7857,
+      "feasible_sessions": 12,
+      "feasible_conversion": 0.9167,
+      "safe_conversion": 0.6429,
+      "revenue": 489050,
+      "profit": 107350,
+      "margin": 0.2195,
+      "profit_per_session": 7667.86,
+      "avg_price": 44459.09,
+      "avg_discount_from_list": 0.0877,
+      "surplus_capture": 0.5105,
+      "avg_rounds": 4.71,
+      "violations_attempted": 3,
+      "offers_below_floor_sent": 0,
+      "violations_closed": 0,
+      "buyer_overpaid": 0,
+      "model_calls": 128,
+      "model_cost_usd": 1.6099,
+      "model_cost_per_session": 0.115,
+      "model_cost_per_deal": 0.1464,
+      "conversion_ci95": [
+        0.5714,
+        1.0
+      ],
+      "profit_per_session_ci95": [
+        5364.29,
+        9889.29
+      ],
+      "profit_per_deal": 9759.09,
+      "model_calls_per_session": 9.14,
+      "tokens_per_session": 22016,
+      "tokens_per_deal": 28021,
+      "seller_calls_per_session": 4.43,
+      "seller_cost_per_session": 0.0598,
+      "seller_cost_per_deal": 0.0761,
+      "latency_s_per_session": 59.3,
+      "latency_s_per_deal_session": 48.3,
+      "judged_sessions": 14,
+      "sessions_with_false_claims": 2,
+      "false_claims_total": 4,
+      "sessions_with_false_claims_excl_artifacts": 2,
+      "claim_types": {
+        "arithmetic": 1,
+        "limit_bluff": 3
+      },
+      "safe_conversion_adj": 0.6429,
+      "first_offer_share_of_list": 0.9586,
+      "deals_with_unrequested_addons": 4,
+      "ended_by": {
+        "buyer_accept": 4,
+        "seller_accept": 7,
+        "buyer_walk": 3
+      }
+    },
+    "anchor_value": {
+      "sessions": 14,
+      "errors": 0,
+      "deals": 11,
+      "conversion": 0.7857,
+      "feasible_sessions": 12,
+      "feasible_conversion": 0.9167,
+      "safe_conversion": 0.7857,
+      "revenue": 488950,
+      "profit": 108850,
+      "margin": 0.2226,
+      "profit_per_session": 7775.0,
+      "avg_price": 44450.0,
+      "avg_discount_from_list": 0.0818,
+      "surplus_capture": 0.5565,
+      "avg_rounds": 5.29,
+      "violations_attempted": 0,
+      "offers_below_floor_sent": 0,
+      "violations_closed": 0,
+      "buyer_overpaid": 0,
+      "model_calls": 143,
+      "model_cost_usd": 2.1242,
+      "model_cost_per_session": 0.1517,
+      "model_cost_per_deal": 0.1931,
+      "conversion_ci95": [
+        0.5714,
+        1.0
+      ],
+      "profit_per_session_ci95": [
+        5432.14,
+        10025.0
+      ],
+      "profit_per_deal": 9895.45,
+      "model_calls_per_session": 10.21,
+      "tokens_per_session": 28881,
+      "tokens_per_deal": 36758,
+      "seller_calls_per_session": 4.93,
+      "seller_cost_per_session": 0.0836,
+      "seller_cost_per_deal": 0.1064,
+      "latency_s_per_session": 67.3,
+      "latency_s_per_deal_session": 55.4,
+      "judged_sessions": 14,
+      "sessions_with_false_claims": 0,
+      "false_claims_total": 0,
+      "sessions_with_false_claims_excl_artifacts": 0,
+      "claim_types": {},
+      "safe_conversion_adj": 0.7857,
+      "first_offer_share_of_list": 0.9766,
+      "deals_with_unrequested_addons": 0,
+      "ended_by": {
+        "seller_accept": 8,
+        "buyer_accept": 3,
+        "round_cap": 1,
+        "buyer_walk": 2
+      }
+    },
+    "boulware_llm": {
+      "sessions": 14,
+      "errors": 0,
+      "deals": 11,
+      "conversion": 0.7857,
+      "feasible_sessions": 12,
+      "feasible_conversion": 0.9167,
+      "safe_conversion": 0.6429,
+      "revenue": 504685,
+      "profit": 124185,
+      "margin": 0.2461,
+      "profit_per_session": 8870.36,
+      "avg_price": 45880.45,
+      "avg_discount_from_list": 0.0543,
+      "surplus_capture": 0.8073,
+      "avg_rounds": 6.43,
+      "violations_attempted": 0,
+      "offers_below_floor_sent": 0,
+      "violations_closed": 0,
+      "buyer_overpaid": 0,
+      "model_calls": 178,
+      "model_cost_usd": 2.6202,
+      "model_cost_per_session": 0.1872,
+      "model_cost_per_deal": 0.2382,
+      "conversion_ci95": [
+        0.5714,
+        1.0
+      ],
+      "profit_per_session_ci95": [
+        6130.0,
+        11528.57
+      ],
+      "profit_per_deal": 11289.55,
+      "model_calls_per_session": 12.71,
+      "tokens_per_session": 35810,
+      "tokens_per_deal": 45577,
+      "seller_calls_per_session": 6.29,
+      "seller_cost_per_session": 0.104,
+      "seller_cost_per_deal": 0.1324,
+      "latency_s_per_session": 85.6,
+      "latency_s_per_deal_session": 78.0,
+      "judged_sessions": 14,
+      "sessions_with_false_claims": 2,
+      "false_claims_total": 2,
+      "sessions_with_false_claims_excl_artifacts": 2,
+      "claim_types": {
+        "limit_bluff": 1,
+        "other": 1
+      },
+      "safe_conversion_adj": 0.6429,
+      "first_offer_share_of_list": 0.9999,
+      "deals_with_unrequested_addons": 1,
+      "ended_by": {
+        "seller_accept": 10,
+        "round_cap": 2,
+        "buyer_walk": 1,
+        "buyer_accept": 1
+      }
+    },
+    "split_llm": {
+      "sessions": 14,
+      "errors": 0,
+      "deals": 11,
+      "conversion": 0.7857,
+      "feasible_sessions": 12,
+      "feasible_conversion": 0.9167,
+      "safe_conversion": 0.7857,
+      "revenue": 486600,
+      "profit": 106500,
+      "margin": 0.2189,
+      "profit_per_session": 7607.14,
+      "avg_price": 44236.36,
+      "avg_discount_from_list": 0.0861,
+      "surplus_capture": 0.4444,
+      "avg_rounds": 5.86,
+      "violations_attempted": 1,
+      "offers_below_floor_sent": 0,
+      "violations_closed": 0,
+      "buyer_overpaid": 0,
+      "model_calls": 156,
+      "model_cost_usd": 2.0941,
+      "model_cost_per_session": 0.1496,
+      "model_cost_per_deal": 0.1904,
+      "conversion_ci95": [
+        0.5714,
+        1.0
+      ],
+      "profit_per_session_ci95": [
+        5264.29,
+        9892.86
+      ],
+      "profit_per_deal": 9681.82,
+      "model_calls_per_session": 11.14,
+      "tokens_per_session": 28602,
+      "tokens_per_deal": 36402,
+      "seller_calls_per_session": 5.29,
+      "seller_cost_per_session": 0.0795,
+      "seller_cost_per_deal": 0.1012,
+      "latency_s_per_session": 74.6,
+      "latency_s_per_deal_session": 66.0,
+      "judged_sessions": 14,
+      "sessions_with_false_claims": 0,
+      "false_claims_total": 0,
+      "sessions_with_false_claims_excl_artifacts": 0,
+      "claim_types": {},
+      "safe_conversion_adj": 0.7857,
+      "first_offer_share_of_list": 1.0,
+      "deals_with_unrequested_addons": 0,
+      "ended_by": {
+        "buyer_accept": 6,
+        "seller_accept": 5,
+        "buyer_walk": 3
+      }
+    },
+    "boulware": {
+      "sessions": 14,
+      "errors": 0,
+      "deals": 10,
+      "conversion": 0.7143,
+      "feasible_sessions": 12,
+      "feasible_conversion": 0.8333,
+      "safe_conversion": 0.5,
+      "revenue": 442000,
+      "profit": 113100,
+      "margin": 0.2559,
+      "profit_per_session": 8078.57,
+      "avg_price": 44200.0,
+      "avg_discount_from_list": 0.05,
+      "surplus_capture": 0.7504,
+      "avg_rounds": 6.64,
+      "violations_attempted": 0,
+      "offers_below_floor_sent": 0,
+      "violations_closed": 0,
+      "buyer_overpaid": 0,
+      "model_calls": 181,
+      "model_cost_usd": 2.5321,
+      "model_cost_per_session": 0.1809,
+      "model_cost_per_deal": 0.2532,
+      "conversion_ci95": [
+        0.5,
+        0.9286
+      ],
+      "profit_per_session_ci95": [
+        5107.14,
+        11007.14
+      ],
+      "profit_per_deal": 11310.0,
+      "model_calls_per_session": 12.93,
+      "tokens_per_session": 35696,
+      "tokens_per_deal": 49975,
+      "seller_calls_per_session": 6.29,
+      "seller_cost_per_session": 0.093,
+      "seller_cost_per_deal": 0.1302,
+      "latency_s_per_session": 83.0,
+      "latency_s_per_deal_session": 73.2,
+      "judged_sessions": 14,
+      "sessions_with_false_claims": 4,
+      "false_claims_total": 4,
+      "sessions_with_false_claims_excl_artifacts": 4,
+      "claim_types": {
+        "limit_bluff": 2,
+        "other": 1,
+        "arithmetic": 1
+      },
+      "safe_conversion_adj": 0.5,
+      "first_offer_share_of_list": 1.0,
+      "deals_with_unrequested_addons": 1,
+      "ended_by": {
+        "seller_accept": 8,
+        "buyer_walk": 3,
+        "buyer_accept": 2,
+        "round_cap": 1
+      }
+    },
+    "conceder": {
+      "sessions": 14,
+      "errors": 0,
+      "deals": 11,
+      "conversion": 0.7857,
+      "feasible_sessions": 12,
+      "feasible_conversion": 0.9167,
+      "safe_conversion": 0.7143,
+      "revenue": 476500,
+      "profit": 96400,
+      "margin": 0.2023,
+      "profit_per_session": 6885.71,
+      "avg_price": 43318.18,
+      "avg_discount_from_list": 0.1076,
+      "surplus_capture": 0.3707,
+      "avg_rounds": 4.43,
+      "violations_attempted": 0,
+      "offers_below_floor_sent": 0,
+      "violations_closed": 0,
+      "buyer_overpaid": 0,
+      "model_calls": 119,
+      "model_cost_usd": 1.5278,
+      "model_cost_per_session": 0.1091,
+      "model_cost_per_deal": 0.1389,
+      "conversion_ci95": [
+        0.5714,
+        1.0
+      ],
+      "profit_per_session_ci95": [
+        4778.57,
+        8828.57
+      ],
+      "profit_per_deal": 8763.64,
+      "model_calls_per_session": 8.5,
+      "tokens_per_session": 21163,
+      "tokens_per_deal": 26934,
+      "seller_calls_per_session": 4.07,
+      "seller_cost_per_session": 0.0558,
+      "seller_cost_per_deal": 0.071,
+      "latency_s_per_session": 54.7,
+      "latency_s_per_deal_session": 43.5,
+      "judged_sessions": 14,
+      "sessions_with_false_claims": 1,
+      "false_claims_total": 1,
+      "sessions_with_false_claims_excl_artifacts": 1,
+      "claim_types": {
+        "limit_bluff": 1
+      },
+      "safe_conversion_adj": 0.7143,
+      "first_offer_share_of_list": 0.926,
+      "deals_with_unrequested_addons": 0,
+      "ended_by": {
+        "buyer_accept": 3,
+        "seller_accept": 8,
+        "round_cap": 1,
+        "buyer_walk": 2
+      }
+    },
+    "tit_for_tat": {
+      "sessions": 14,
+      "errors": 0,
+      "deals": 11,
+      "conversion": 0.7857,
+      "feasible_sessions": 12,
+      "feasible_conversion": 0.9167,
+      "safe_conversion": 0.7857,
+      "revenue": 493100,
+      "profit": 112600,
+      "margin": 0.2284,
+      "profit_per_session": 8042.86,
+      "avg_price": 44827.27,
+      "avg_discount_from_list": 0.0762,
+      "surplus_capture": 0.6375,
+      "avg_rounds": 5.43,
+      "violations_attempted": 0,
+      "offers_below_floor_sent": 0,
+      "violations_closed": 0,
+      "buyer_overpaid": 0,
+      "model_calls": 147,
+      "model_cost_usd": 1.9797,
+      "model_cost_per_session": 0.1414,
+      "model_cost_per_deal": 0.18,
+      "conversion_ci95": [
+        0.5714,
+        1.0
+      ],
+      "profit_per_session_ci95": [
+        5585.71,
+        10442.86
+      ],
+      "profit_per_deal": 10236.36,
+      "model_calls_per_session": 10.5,
+      "tokens_per_session": 27708,
+      "tokens_per_deal": 35264,
+      "seller_calls_per_session": 5.07,
+      "seller_cost_per_session": 0.0733,
+      "seller_cost_per_deal": 0.0933,
+      "latency_s_per_session": 67.3,
+      "latency_s_per_deal_session": 57.3,
+      "judged_sessions": 14,
+      "sessions_with_false_claims": 1,
+      "false_claims_total": 2,
+      "sessions_with_false_claims_excl_artifacts": 1,
+      "claim_types": {
+        "arithmetic": 1,
+        "other": 1
+      },
+      "safe_conversion_adj": 0.7857,
+      "first_offer_share_of_list": 1.0,
+      "deals_with_unrequested_addons": 1,
+      "ended_by": {
+        "seller_accept": 8,
+        "buyer_accept": 3,
+        "round_cap": 1,
+        "buyer_walk": 2
+      }
+    },
+    "split_difference": {
+      "sessions": 14,
+      "errors": 0,
+      "deals": 11,
+      "conversion": 0.7857,
+      "feasible_sessions": 12,
+      "feasible_conversion": 0.9167,
+      "safe_conversion": 0.6429,
+      "revenue": 493100,
+      "profit": 111000,
+      "margin": 0.2251,
+      "profit_per_session": 7928.57,
+      "avg_price": 44827.27,
+      "avg_discount_from_list": 0.0813,
+      "surplus_capture": 0.547,
+      "avg_rounds": 6.43,
+      "violations_attempted": 0,
+      "offers_below_floor_sent": 0,
+      "violations_closed": 0,
+      "buyer_overpaid": 0,
+      "model_calls": 166,
+      "model_cost_usd": 2.2085,
+      "model_cost_per_session": 0.1577,
+      "model_cost_per_deal": 0.2008,
+      "conversion_ci95": [
+        0.5714,
+        1.0
+      ],
+      "profit_per_session_ci95": [
+        5507.14,
+        10250.0
+      ],
+      "profit_per_deal": 10090.91,
+      "model_calls_per_session": 11.86,
+      "tokens_per_session": 31201,
+      "tokens_per_deal": 39711,
+      "seller_calls_per_session": 5.43,
+      "seller_cost_per_session": 0.0766,
+      "seller_cost_per_deal": 0.0975,
+      "latency_s_per_session": 76.0,
+      "latency_s_per_deal_session": 70.5,
+      "judged_sessions": 14,
+      "sessions_with_false_claims": 3,
+      "false_claims_total": 3,
+      "sessions_with_false_claims_excl_artifacts": 3,
+      "claim_types": {
+        "limit_bluff": 2,
+        "arithmetic": 1
+      },
+      "safe_conversion_adj": 0.6429,
+      "first_offer_share_of_list": 1.0,
+      "deals_with_unrequested_addons": 5,
+      "ended_by": {
+        "buyer_accept": 11,
+        "buyer_walk": 3
+      }
+    },
+    "bundle_first": {
+      "sessions": 14,
+      "errors": 0,
+      "deals": 11,
+      "conversion": 0.7857,
+      "feasible_sessions": 12,
+      "feasible_conversion": 0.9167,
+      "safe_conversion": 0.5,
+      "revenue": 504000,
+      "profit": 118500,
+      "margin": 0.2351,
+      "profit_per_session": 8464.29,
+      "avg_price": 45818.18,
+      "avg_discount_from_list": 0.0835,
+      "surplus_capture": 0.7731,
+      "avg_rounds": 6.57,
+      "violations_attempted": 0,
+      "offers_below_floor_sent": 0,
+      "violations_closed": 0,
+      "buyer_overpaid": 0,
+      "model_calls": 181,
+      "model_cost_usd": 2.6881,
+      "model_cost_per_session": 0.192,
+      "model_cost_per_deal": 0.2444,
+      "conversion_ci95": [
+        0.5714,
+        1.0
+      ],
+      "profit_per_session_ci95": [
+        5821.43,
+        11028.57
+      ],
+      "profit_per_deal": 10772.73,
+      "model_calls_per_session": 12.93,
+      "tokens_per_session": 37558,
+      "tokens_per_deal": 47801,
+      "seller_calls_per_session": 6.36,
+      "seller_cost_per_session": 0.1031,
+      "seller_cost_per_deal": 0.1313,
+      "latency_s_per_session": 90.2,
+      "latency_s_per_deal_session": 86.4,
+      "judged_sessions": 14,
+      "sessions_with_false_claims": 4,
+      "false_claims_total": 5,
+      "sessions_with_false_claims_excl_artifacts": 4,
+      "claim_types": {
+        "limit_bluff": 2,
+        "invented_bundle_policy": 3
+      },
+      "safe_conversion_adj": 0.5,
+      "first_offer_share_of_list": 1.0,
+      "deals_with_unrequested_addons": 8,
+      "ended_by": {
+        "seller_accept": 11,
+        "buyer_walk": 3
+      }
+    },
+    "fixed_price": {
+      "sessions": 14,
+      "errors": 0,
+      "deals": 9,
+      "conversion": 0.6429,
+      "feasible_sessions": 12,
+      "feasible_conversion": 0.75,
+      "safe_conversion": 0.0,
+      "revenue": 377000,
+      "profit": 109300,
+      "margin": 0.2899,
+      "profit_per_session": 7807.14,
+      "avg_price": 41888.89,
+      "avg_discount_from_list": 0.0,
+      "surplus_capture": 0.7679,
+      "avg_rounds": 3.43,
+      "violations_attempted": 0,
+      "offers_below_floor_sent": 0,
+      "violations_closed": 0,
+      "buyer_overpaid": 0,
+      "model_calls": 86,
+      "model_cost_usd": 1.0572,
+      "model_cost_per_session": 0.0755,
+      "model_cost_per_deal": 0.1175,
+      "conversion_ci95": [
+        0.4286,
+        0.8571
+      ],
+      "profit_per_session_ci95": [
+        4600.0,
+        11164.29
+      ],
+      "profit_per_deal": 12144.44,
+      "model_calls_per_session": 6.14,
+      "tokens_per_session": 13748,
+      "tokens_per_deal": 21386,
+      "seller_calls_per_session": 2.71,
+      "seller_cost_per_session": 0.0358,
+      "seller_cost_per_deal": 0.0557,
+      "latency_s_per_session": 39.6,
+      "latency_s_per_deal_session": 37.9,
+      "judged_sessions": 14,
+      "sessions_with_false_claims": 14,
+      "false_claims_total": 30,
+      "sessions_with_false_claims_excl_artifacts": 2,
+      "claim_types": {
+        "fixed_policy_artifact": 28,
+        "other": 2
+      },
+      "safe_conversion_adj": 0.6429,
+      "first_offer_share_of_list": 1.0,
+      "deals_with_unrequested_addons": 0,
+      "ended_by": {
+        "seller_accept": 4,
+        "buyer_walk": 5,
+        "buyer_accept": 5
+      }
+    }
+  },
+  "comparisons": {
+    "open_llm": {
+      "anchor_value": {
+        "unpaired": {
+          "profit_per_session_diff": 107.14,
+          "profit_per_session_diff_ci95": [
+            -3164.29,
+            3392.86
+          ],
+          "profit_per_session_lift_pct": 1.4,
+          "conversion_diff": 0.0,
+          "conversion_diff_ci95": [
+            -0.2857,
+            0.2857
+          ]
+        },
+        "paired": {
+          "pairs": 14,
+          "profit_per_session_diff": 107.14,
+          "profit_per_session_diff_ci95": [
+            -85.71,
+            278.57
+          ],
+          "conversion_diff": 0,
+          "conversion_diff_ci95": [
+            0,
+            0
+          ],
+          "share_bootstrap_diff_gt_0": 0.86
+        }
+      },
+      "boulware_llm": {
+        "unpaired": {
+          "profit_per_session_diff": 1202.5,
+          "profit_per_session_diff_ci95": [
+            -2371.07,
+            4750.71
+          ],
+          "profit_per_session_lift_pct": 15.7,
+          "conversion_diff": 0.0,
+          "conversion_diff_ci95": [
+            -0.2857,
+            0.2857
+          ]
+        },
+        "paired": {
+          "pairs": 14,
+          "profit_per_session_diff": 1202.5,
+          "profit_per_session_diff_ci95": [
+            714.29,
+            1756.79
+          ],
+          "conversion_diff": 0,
+          "conversion_diff_ci95": [
+            0,
+            0
+          ],
+          "share_bootstrap_diff_gt_0": 1.0
+        }
+      },
+      "split_llm": {
+        "unpaired": {
+          "profit_per_session_diff": -60.71,
+          "profit_per_session_diff_ci95": [
+            -3328.57,
+            3242.86
+          ],
+          "profit_per_session_lift_pct": -0.8,
+          "conversion_diff": 0.0,
+          "conversion_diff_ci95": [
+            -0.2857,
+            0.2857
+          ]
+        },
+        "paired": {
+          "pairs": 14,
+          "profit_per_session_diff": -60.71,
+          "profit_per_session_diff_ci95": [
+            -307.14,
+            175
+          ],
+          "conversion_diff": 0,
+          "conversion_diff_ci95": [
+            0,
+            0
+          ],
+          "share_bootstrap_diff_gt_0": 0.307
+        }
+      },
+      "boulware": {
+        "unpaired": {
+          "profit_per_session_diff": 410.71,
+          "profit_per_session_diff_ci95": [
+            -3235.71,
+            4078.57
+          ],
+          "profit_per_session_lift_pct": 5.4,
+          "conversion_diff": -0.0714,
+          "conversion_diff_ci95": [
+            -0.3571,
+            0.2143
+          ]
+        },
+        "paired": {
+          "pairs": 14,
+          "profit_per_session_diff": 410.71,
+          "profit_per_session_diff_ci95": [
+            -1142.86,
+            1517.86
+          ],
+          "conversion_diff": -0.0714,
+          "conversion_diff_ci95": [
+            -0.2143,
+            0
+          ],
+          "share_bootstrap_diff_gt_0": 0.75
+        }
+      },
+      "conceder": {
+        "unpaired": {
+          "profit_per_session_diff": -782.14,
+          "profit_per_session_diff_ci95": [
+            -3846.43,
+            2335.71
+          ],
+          "profit_per_session_lift_pct": -10.2,
+          "conversion_diff": 0.0,
+          "conversion_diff_ci95": [
+            -0.2857,
+            0.2857
+          ]
+        },
+        "paired": {
+          "pairs": 14,
+          "profit_per_session_diff": -782.14,
+          "profit_per_session_diff_ci95": [
+            -1196.43,
+            -407.14
+          ],
+          "conversion_diff": 0,
+          "conversion_diff_ci95": [
+            0,
+            0
+          ],
+          "share_bootstrap_diff_gt_0": 0.0
+        }
+      },
+      "tit_for_tat": {
+        "unpaired": {
+          "profit_per_session_diff": 375.0,
+          "profit_per_session_diff_ci95": [
+            -2957.14,
+            3767.86
+          ],
+          "profit_per_session_lift_pct": 4.9,
+          "conversion_diff": 0.0,
+          "conversion_diff_ci95": [
+            -0.2857,
+            0.2857
+          ]
+        },
+        "paired": {
+          "pairs": 14,
+          "profit_per_session_diff": 375,
+          "profit_per_session_diff_ci95": [
+            175,
+            603.57
+          ],
+          "conversion_diff": 0,
+          "conversion_diff_ci95": [
+            0,
+            0
+          ],
+          "share_bootstrap_diff_gt_0": 1.0
+        }
+      },
+      "split_difference": {
+        "unpaired": {
+          "profit_per_session_diff": 260.71,
+          "profit_per_session_diff_ci95": [
+            -3057.14,
+            3567.86
+          ],
+          "profit_per_session_lift_pct": 3.4,
+          "conversion_diff": 0.0,
+          "conversion_diff_ci95": [
+            -0.2857,
+            0.2857
+          ]
+        },
+        "paired": {
+          "pairs": 14,
+          "profit_per_session_diff": 260.71,
+          "profit_per_session_diff_ci95": [
+            121.43,
+            407.14
+          ],
+          "conversion_diff": 0,
+          "conversion_diff_ci95": [
+            0,
+            0
+          ],
+          "share_bootstrap_diff_gt_0": 1.0
+        }
+      },
+      "bundle_first": {
+        "unpaired": {
+          "profit_per_session_diff": 796.43,
+          "profit_per_session_diff_ci95": [
+            -2664.29,
+            4285.71
+          ],
+          "profit_per_session_lift_pct": 10.4,
+          "conversion_diff": 0.0,
+          "conversion_diff_ci95": [
+            -0.2857,
+            0.2857
+          ]
+        },
+        "paired": {
+          "pairs": 14,
+          "profit_per_session_diff": 796.43,
+          "profit_per_session_diff_ci95": [
+            339.29,
+            1310.71
+          ],
+          "conversion_diff": 0,
+          "conversion_diff_ci95": [
+            0,
+            0
+          ],
+          "share_bootstrap_diff_gt_0": 1.0
+        }
+      },
+      "fixed_price": {
+        "unpaired": {
+          "profit_per_session_diff": 139.29,
+          "profit_per_session_diff_ci95": [
+            -3857.14,
+            4164.29
+          ],
+          "profit_per_session_lift_pct": 1.8,
+          "conversion_diff": -0.1429,
+          "conversion_diff_ci95": [
+            -0.5,
+            0.2143
+          ]
+        },
+        "paired": {
+          "pairs": 14,
+          "profit_per_session_diff": 139.29,
+          "profit_per_session_diff_ci95": [
+            -2300,
+            2128.57
+          ],
+          "conversion_diff": -0.1429,
+          "conversion_diff_ci95": [
+            -0.3571,
+            0
+          ],
+          "share_bootstrap_diff_gt_0": 0.567
+        }
+      }
+    },
+    "fixed_price": {
+      "open_llm": {
+        "unpaired": {
+          "profit_per_session_diff": -139.29,
+          "profit_per_session_diff_ci95": [
+            -4292.86,
+            3857.14
+          ],
+          "profit_per_session_lift_pct": -1.8,
+          "conversion_diff": 0.1429,
+          "conversion_diff_ci95": [
+            -0.2143,
+            0.5
+          ]
+        },
+        "paired": {
+          "pairs": 14,
+          "profit_per_session_diff": -139.29,
+          "profit_per_session_diff_ci95": [
+            -2128.57,
+            2300
+          ],
+          "conversion_diff": 0.1429,
+          "conversion_diff_ci95": [
+            0,
+            0.3571
+          ],
+          "share_bootstrap_diff_gt_0": 0.431
+        }
+      },
+      "anchor_value": {
+        "unpaired": {
+          "profit_per_session_diff": -32.14,
+          "profit_per_session_diff_ci95": [
+            -4196.43,
+            4014.29
+          ],
+          "profit_per_session_lift_pct": -0.4,
+          "conversion_diff": 0.1429,
+          "conversion_diff_ci95": [
+            -0.2143,
+            0.5
+          ]
+        },
+        "paired": {
+          "pairs": 14,
+          "profit_per_session_diff": -32.14,
+          "profit_per_session_diff_ci95": [
+            -2021.43,
+            2435.71
+          ],
+          "conversion_diff": 0.1429,
+          "conversion_diff_ci95": [
+            0,
+            0.3571
+          ],
+          "share_bootstrap_diff_gt_0": 0.47
+        }
+      },
+      "boulware_llm": {
+        "unpaired": {
+          "profit_per_session_diff": 1063.21,
+          "profit_per_session_diff_ci95": [
+            -3346.43,
+            5300.71
+          ],
+          "profit_per_session_lift_pct": 13.6,
+          "conversion_diff": 0.1429,
+          "conversion_diff_ci95": [
+            -0.2143,
+            0.5
+          ]
+        },
+        "paired": {
+          "pairs": 14,
+          "profit_per_session_diff": 1063.21,
+          "profit_per_session_diff_ci95": [
+            -856.43,
+            3662.5
+          ],
+          "conversion_diff": 0.1429,
+          "conversion_diff_ci95": [
+            0,
+            0.3571
+          ],
+          "share_bootstrap_diff_gt_0": 0.819
+        }
+      },
+      "split_llm": {
+        "unpaired": {
+          "profit_per_session_diff": -200.0,
+          "profit_per_session_diff_ci95": [
+            -4392.86,
+            3814.29
+          ],
+          "profit_per_session_lift_pct": -2.6,
+          "conversion_diff": 0.1429,
+          "conversion_diff_ci95": [
+            -0.2143,
+            0.5
+          ]
+        },
+        "paired": {
+          "pairs": 14,
+          "profit_per_session_diff": -200,
+          "profit_per_session_diff_ci95": [
+            -2128.57,
+            2135.71
+          ],
+          "conversion_diff": 0.1429,
+          "conversion_diff_ci95": [
+            0,
+            0.3571
+          ],
+          "share_bootstrap_diff_gt_0": 0.403
+        }
+      },
+      "boulware": {
+        "unpaired": {
+          "profit_per_session_diff": 271.43,
+          "profit_per_session_diff_ci95": [
+            -4339.29,
+            4635.71
+          ],
+          "profit_per_session_lift_pct": 3.5,
+          "conversion_diff": 0.0714,
+          "conversion_diff_ci95": [
+            -0.2857,
+            0.4286
+          ]
+        },
+        "paired": {
+          "pairs": 14,
+          "profit_per_session_diff": 271.43,
+          "profit_per_session_diff_ci95": [
+            -1110.71,
+            2521.43
+          ],
+          "conversion_diff": 0.0714,
+          "conversion_diff_ci95": [
+            0,
+            0.2143
+          ],
+          "share_bootstrap_diff_gt_0": 0.607
+        }
+      },
+      "conceder": {
+        "unpaired": {
+          "profit_per_session_diff": -921.43,
+          "profit_per_session_diff_ci95": [
+            -4900.0,
+            2914.29
+          ],
+          "profit_per_session_lift_pct": -11.8,
+          "conversion_diff": 0.1429,
+          "conversion_diff_ci95": [
+            -0.2143,
+            0.5
+          ]
+        },
+        "paired": {
+          "pairs": 14,
+          "profit_per_session_diff": -921.43,
+          "profit_per_session_diff_ci95": [
+            -3142.86,
+            1635.71
+          ],
+          "conversion_diff": 0.1429,
+          "conversion_diff_ci95": [
+            0,
+            0.3571
+          ],
+          "share_bootstrap_diff_gt_0": 0.225
+        }
+      },
+      "tit_for_tat": {
+        "unpaired": {
+          "profit_per_session_diff": 235.71,
+          "profit_per_session_diff_ci95": [
+            -4007.14,
+            4328.57
+          ],
+          "profit_per_session_lift_pct": 3.0,
+          "conversion_diff": 0.1429,
+          "conversion_diff_ci95": [
+            -0.2143,
+            0.5
+          ]
+        },
+        "paired": {
+          "pairs": 14,
+          "profit_per_session_diff": 235.71,
+          "profit_per_session_diff_ci95": [
+            -1764.29,
+            2757.14
+          ],
+          "conversion_diff": 0.1429,
+          "conversion_diff_ci95": [
+            0,
+            0.3571
+          ],
+          "share_bootstrap_diff_gt_0": 0.552
+        }
+      },
+      "split_difference": {
+        "unpaired": {
+          "profit_per_session_diff": 121.43,
+          "profit_per_session_diff_ci95": [
+            -4114.29,
+            4192.86
+          ],
+          "profit_per_session_lift_pct": 1.6,
+          "conversion_diff": 0.1429,
+          "conversion_diff_ci95": [
+            -0.2143,
+            0.5
+          ]
+        },
+        "paired": {
+          "pairs": 14,
+          "profit_per_session_diff": 121.43,
+          "profit_per_session_diff_ci95": [
+            -1828.57,
+            2550
+          ],
+          "conversion_diff": 0.1429,
+          "conversion_diff_ci95": [
+            0,
+            0.3571
+          ],
+          "share_bootstrap_diff_gt_0": 0.521
+        }
+      },
+      "bundle_first": {
+        "unpaired": {
+          "profit_per_session_diff": 657.14,
+          "profit_per_session_diff_ci95": [
+            -3707.14,
+            4850.0
+          ],
+          "profit_per_session_lift_pct": 8.4,
+          "conversion_diff": 0.1429,
+          "conversion_diff_ci95": [
+            -0.2143,
+            0.5
+          ]
+        },
+        "paired": {
+          "pairs": 14,
+          "profit_per_session_diff": 657.14,
+          "profit_per_session_diff_ci95": [
+            -1235.71,
+            3185.71
+          ],
+          "conversion_diff": 0.1429,
+          "conversion_diff_ci95": [
+            0,
+            0.3571
+          ],
+          "share_bootstrap_diff_gt_0": 0.677
+        }
+      }
+    },
+    "pairs": {
+      "boulware_llm_vs_boulware": {
+        "pairs": 14,
+        "profit_per_session_diff": 791.79,
+        "profit_per_session_diff_ci95": [
+          46.43,
+          2148.93
+        ],
+        "conversion_diff": 0.0714,
+        "conversion_diff_ci95": [
+          0,
+          0.2143
+        ],
+        "share_bootstrap_diff_gt_0": 0.998
+      },
+      "split_llm_vs_split_difference": {
+        "pairs": 14,
+        "profit_per_session_diff": -321.43,
+        "profit_per_session_diff_ci95": [
+          -521.43,
+          -142.86
+        ],
+        "conversion_diff": 0,
+        "conversion_diff_ci95": [
+          0,
+          0
+        ],
+        "share_bootstrap_diff_gt_0": 0.0
+      },
+      "bundle_first_vs_boulware": {
+        "pairs": 14,
+        "profit_per_session_diff": 385.71,
+        "profit_per_session_diff_ci95": [
+          -432.14,
+          1767.86
+        ],
+        "conversion_diff": 0.0714,
+        "conversion_diff_ci95": [
+          0,
+          0.2143
+        ],
+        "share_bootstrap_diff_gt_0": 0.645
+      },
+      "anchor_value_vs_open_llm": {
+        "pairs": 14,
+        "profit_per_session_diff": 107.14,
+        "profit_per_session_diff_ci95": [
+          -85.71,
+          278.57
+        ],
+        "conversion_diff": 0,
+        "conversion_diff_ci95": [
+          0,
+          0
+        ],
+        "share_bootstrap_diff_gt_0": 0.86
+      },
+      "boulware_vs_conceder": {
+        "pairs": 14,
+        "profit_per_session_diff": 1192.86,
+        "profit_per_session_diff_ci95": [
+          -575,
+          2532.14
+        ],
+        "conversion_diff": -0.0714,
+        "conversion_diff_ci95": [
+          -0.2143,
+          0
+        ],
+        "share_bootstrap_diff_gt_0": 0.914
+      },
+      "tit_for_tat_vs_split_difference": {
+        "pairs": 14,
+        "profit_per_session_diff": 114.29,
+        "profit_per_session_diff_ci95": [
+          -57.14,
+          300
+        ],
+        "conversion_diff": 0,
+        "conversion_diff_ci95": [
+          0,
+          0
+        ],
+        "share_bootstrap_diff_gt_0": 0.884
+      }
+    }
+  },
+  "verdicts": {
+    "A6": {
+      "best_strategy": "boulware_llm",
+      "profit_per_session_lift_pct": 15.7,
+      "conversion_diff": 0.0,
+      "paired_profit_diff_ci95": [
+        714.29,
+        1756.79
+      ],
+      "unpaired_profit_diff_ci95": [
+        -2371.07,
+        4750.71
+      ],
+      "meets_bar_point_estimate": true,
+      "paired_ci_excludes_zero": true,
+      "strategies_meeting_bar_point_estimate": [
+        "boulware_llm",
+        "bundle_first"
+      ]
+    },
+    "A10": {
+      "open_llm": {
+        "profit_per_session_gain": -139.28,
+        "model_cost_per_session": 0.115,
+        "seller_cost_per_session": 0.0598,
+        "ratio_total_cost": null,
+        "ratio_seller_cost": null,
+        "model_cost_per_deal": 0.1464,
+        "profit_gain_per_strategy_deal": -177.27
+      },
+      "anchor_value": {
+        "profit_per_session_gain": -32.14,
+        "model_cost_per_session": 0.1517,
+        "seller_cost_per_session": 0.0836,
+        "ratio_total_cost": null,
+        "ratio_seller_cost": null,
+        "model_cost_per_deal": 0.1931,
+        "profit_gain_per_strategy_deal": -40.91
+      },
+      "boulware_llm": {
+        "profit_per_session_gain": 1063.22,
+        "model_cost_per_session": 0.1872,
+        "seller_cost_per_session": 0.104,
+        "ratio_total_cost": 0.00018,
+        "ratio_seller_cost": 0.0001,
+        "model_cost_per_deal": 0.2382,
+        "profit_gain_per_strategy_deal": 1353.19
+      },
+      "split_llm": {
+        "profit_per_session_gain": -200.0,
+        "model_cost_per_session": 0.1496,
+        "seller_cost_per_session": 0.0795,
+        "ratio_total_cost": null,
+        "ratio_seller_cost": null,
+        "model_cost_per_deal": 0.1904,
+        "profit_gain_per_strategy_deal": -254.55
+      },
+      "boulware": {
+        "profit_per_session_gain": 271.43,
+        "model_cost_per_session": 0.1809,
+        "seller_cost_per_session": 0.093,
+        "ratio_total_cost": 0.00067,
+        "ratio_seller_cost": 0.00034,
+        "model_cost_per_deal": 0.2532,
+        "profit_gain_per_strategy_deal": 380.0
+      },
+      "conceder": {
+        "profit_per_session_gain": -921.43,
+        "model_cost_per_session": 0.1091,
+        "seller_cost_per_session": 0.0558,
+        "ratio_total_cost": null,
+        "ratio_seller_cost": null,
+        "model_cost_per_deal": 0.1389,
+        "profit_gain_per_strategy_deal": -1172.73
+      },
+      "tit_for_tat": {
+        "profit_per_session_gain": 235.72,
+        "model_cost_per_session": 0.1414,
+        "seller_cost_per_session": 0.0733,
+        "ratio_total_cost": 0.0006,
+        "ratio_seller_cost": 0.00031,
+        "model_cost_per_deal": 0.18,
+        "profit_gain_per_strategy_deal": 300.01
+      },
+      "split_difference": {
+        "profit_per_session_gain": 121.43,
+        "model_cost_per_session": 0.1577,
+        "seller_cost_per_session": 0.0766,
+        "ratio_total_cost": 0.0013,
+        "ratio_seller_cost": 0.00063,
+        "model_cost_per_deal": 0.2008,
+        "profit_gain_per_strategy_deal": 154.55
+      },
+      "bundle_first": {
+        "profit_per_session_gain": 657.15,
+        "model_cost_per_session": 0.192,
+        "seller_cost_per_session": 0.1031,
+        "ratio_total_cost": 0.00029,
+        "ratio_seller_cost": 0.00016,
+        "model_cost_per_deal": 0.2444,
+        "profit_gain_per_strategy_deal": 836.37
+      }
+    }
+  },
+  "negotiation_model_cost_usd": 20.44,
+  "judge_model_cost_usd": 2.45
+}

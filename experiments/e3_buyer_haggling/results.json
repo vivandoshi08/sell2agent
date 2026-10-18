@@ -1,0 +1,2914 @@
+{
+ "errors_unresolved": {
+  "grid": [],
+  "models": [],
+  "leak": [],
+  "b8": []
+ },
+ "grid": {
+  "per_persona": {
+   "s303-b000": {
+    "zone": "in zone",
+    "fixed_deals": 0,
+    "fixed_n": 4,
+    "fixed_avg_price": null,
+    "neg_deals": 8,
+    "neg_n": 8,
+    "neg_avg_price": 26312,
+    "neg_price_pct_list": 0.895,
+    "neg_price_over_walkaway": 0.978
+   },
+   "s303-b001": {
+    "zone": "pays list",
+    "fixed_deals": 4,
+    "fixed_n": 4,
+    "fixed_avg_price": 42900,
+    "neg_deals": 8,
+    "neg_n": 8,
+    "neg_avg_price": 40169,
+    "neg_price_pct_list": 0.936,
+    "neg_price_over_walkaway": 0.93
+   },
+   "s303-b002": {
+    "zone": "below floor",
+    "fixed_deals": 0,
+    "fixed_n": 4,
+    "fixed_avg_price": null,
+    "neg_deals": 6,
+    "neg_n": 8,
+    "neg_avg_price": 36700,
+    "neg_price_pct_list": 0.874,
+    "neg_price_over_walkaway": 0.997
+   },
+   "s303-b003": {
+    "zone": "in zone",
+    "fixed_deals": 0,
+    "fixed_n": 4,
+    "fixed_avg_price": null,
+    "neg_deals": 8,
+    "neg_n": 8,
+    "neg_avg_price": 25469,
+    "neg_price_pct_list": 0.894,
+    "neg_price_over_walkaway": 0.933
+   },
+   "s303-b004": {
+    "zone": "in zone",
+    "fixed_deals": 0,
+    "fixed_n": 4,
+    "fixed_avg_price": null,
+    "neg_deals": 8,
+    "neg_n": 8,
+    "neg_avg_price": 61856,
+    "neg_price_pct_list": 0.91,
+    "neg_price_over_walkaway": 0.937
+   },
+   "s303-b005": {
+    "zone": "pays list",
+    "fixed_deals": 4,
+    "fixed_n": 4,
+    "fixed_avg_price": 48500,
+    "neg_deals": 8,
+    "neg_n": 8,
+    "neg_avg_price": 46194,
+    "neg_price_pct_list": 0.946,
+    "neg_price_over_walkaway": 0.941
+   },
+   "s303-b006": {
+    "zone": "pays list",
+    "fixed_deals": 4,
+    "fixed_n": 4,
+    "fixed_avg_price": 75400,
+    "neg_deals": 8,
+    "neg_n": 8,
+    "neg_avg_price": 71131,
+    "neg_price_pct_list": 0.943,
+    "neg_price_over_walkaway": 0.906
+   },
+   "s303-b007": {
+    "zone": "below floor",
+    "fixed_deals": 0,
+    "fixed_n": 4,
+    "fixed_avg_price": null,
+    "neg_deals": 6,
+    "neg_n": 8,
+    "neg_avg_price": 61133,
+    "neg_price_pct_list": 0.887,
+    "neg_price_over_walkaway": 0.98
+   }
+  },
+  "cells": {
+   "advertised / neutral": {
+    "sessions": 8,
+    "deals": 8,
+    "conversion": 1.0,
+    "conversion_ci95": [
+     1.0,
+     1.0
+    ],
+    "feasible_sessions": 6,
+    "feasible_conversion": 1.0,
+    "counter_rate": 1.0,
+    "haggled_rate": 1.0,
+    "asked_discount_rate": 0.25,
+    "avg_rounds": 4.88,
+    "avg_buyer_offers": 4.38,
+    "first_buyer_offer_pct_list": 0.8022,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.0949,
+    "avg_discount_pct_ci95": [
+     0.0771,
+     0.1113
+    ],
+    "avg_price_over_walkaway": 0.9439,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 2993.75,
+    "buyer_surplus_per_session_ci95": [
+     1406.25,
+     4900
+    ],
+    "seller_surplus_capture": 0.4142,
+    "seller_profit_per_session": 8993.75,
+    "seller_discounted_rate": 1.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 2,
+    "paid_at_walkaway_rate": 0.125,
+    "ended_by": {
+     "buyer_accept": 4,
+     "seller_accept": 4
+    },
+    "model_cost_usd": 0.9607,
+    "walkaway_leak_rate": 0.25,
+    "walkaway_leak_early_rate": 0.0,
+    "budget_disclosed_early_rate": 0.125,
+    "budget_disclosed_rate": 0.25,
+    "any_leak_rate": 0.5,
+    "stated_lower_limit_rate": 0.0
+   },
+   "advertised / strict_budget": {
+    "sessions": 8,
+    "deals": 8,
+    "conversion": 1.0,
+    "conversion_ci95": [
+     1.0,
+     1.0
+    ],
+    "feasible_sessions": 6,
+    "feasible_conversion": 1.0,
+    "counter_rate": 1.0,
+    "haggled_rate": 1.0,
+    "asked_discount_rate": 0.25,
+    "avg_rounds": 4.62,
+    "avg_buyer_offers": 4.38,
+    "first_buyer_offer_pct_list": 0.8284,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.0849,
+    "avg_discount_pct_ci95": [
+     0.0692,
+     0.1014
+    ],
+    "avg_price_over_walkaway": 0.9565,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 2456.25,
+    "buyer_surplus_per_session_ci95": [
+     987.5,
+     4250
+    ],
+    "seller_surplus_capture": 0.6324,
+    "seller_profit_per_session": 9481.25,
+    "seller_discounted_rate": 1.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 3,
+    "paid_at_walkaway_rate": 0.25,
+    "ended_by": {
+     "seller_accept": 6,
+     "buyer_accept": 2
+    },
+    "model_cost_usd": 0.8846,
+    "walkaway_leak_rate": 0.25,
+    "walkaway_leak_early_rate": 0.0,
+    "budget_disclosed_early_rate": 0.0,
+    "budget_disclosed_rate": 0.0,
+    "any_leak_rate": 0.25,
+    "stated_lower_limit_rate": 0.0
+   },
+   "advertised / best_deal": {
+    "sessions": 8,
+    "deals": 6,
+    "conversion": 0.75,
+    "conversion_ci95": [
+     0.5,
+     1.0
+    ],
+    "feasible_sessions": 6,
+    "feasible_conversion": 1.0,
+    "counter_rate": 1.0,
+    "haggled_rate": 1.0,
+    "asked_discount_rate": 0.125,
+    "avg_rounds": 5.38,
+    "avg_buyer_offers": 5.12,
+    "first_buyer_offer_pct_list": 0.7963,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.1042,
+    "avg_discount_pct_ci95": [
+     0.0852,
+     0.1245
+    ],
+    "avg_price_over_walkaway": 0.9137,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 3318.75,
+    "buyer_surplus_per_session_ci95": [
+     1493.75,
+     5368.75
+    ],
+    "seller_surplus_capture": 0.2722,
+    "seller_profit_per_session": 6456.25,
+    "seller_discounted_rate": 1.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 1,
+    "paid_at_walkaway_rate": 0.0,
+    "ended_by": {
+     "seller_accept": 6,
+     "buyer_walk": 2
+    },
+    "model_cost_usd": 1.0817,
+    "walkaway_leak_rate": 0.25,
+    "walkaway_leak_early_rate": 0.0,
+    "budget_disclosed_early_rate": 0.125,
+    "budget_disclosed_rate": 0.375,
+    "any_leak_rate": 0.5,
+    "stated_lower_limit_rate": 0.125
+   },
+   "advertised / buy_fast": {
+    "sessions": 8,
+    "deals": 8,
+    "conversion": 1.0,
+    "conversion_ci95": [
+     1.0,
+     1.0
+    ],
+    "feasible_sessions": 6,
+    "feasible_conversion": 1.0,
+    "counter_rate": 1.0,
+    "haggled_rate": 1.0,
+    "asked_discount_rate": 0.0,
+    "avg_rounds": 4.25,
+    "avg_buyer_offers": 3.62,
+    "first_buyer_offer_pct_list": 0.8393,
+    "accepted_first_seller_offer_rate": 0.125,
+    "avg_discount_pct": 0.0797,
+    "avg_discount_pct_ci95": [
+     0.0564,
+     0.1024
+    ],
+    "avg_price_over_walkaway": 0.9592,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 2162.5,
+    "buyer_surplus_per_session_ci95": [
+     1012.5,
+     3462.5
+    ],
+    "seller_surplus_capture": 0.6417,
+    "seller_profit_per_session": 9825.0,
+    "seller_discounted_rate": 1.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 2,
+    "paid_at_walkaway_rate": 0.125,
+    "ended_by": {
+     "seller_accept": 3,
+     "buyer_accept": 5
+    },
+    "model_cost_usd": 0.7886,
+    "walkaway_leak_rate": 0.25,
+    "walkaway_leak_early_rate": 0.0,
+    "budget_disclosed_early_rate": 0.125,
+    "budget_disclosed_rate": 0.125,
+    "any_leak_rate": 0.25,
+    "stated_lower_limit_rate": 0.0
+   },
+   "available / neutral": {
+    "sessions": 8,
+    "deals": 8,
+    "conversion": 1.0,
+    "conversion_ci95": [
+     1.0,
+     1.0
+    ],
+    "feasible_sessions": 6,
+    "feasible_conversion": 1.0,
+    "counter_rate": 1.0,
+    "haggled_rate": 1.0,
+    "asked_discount_rate": 0.25,
+    "avg_rounds": 4.5,
+    "avg_buyer_offers": 4,
+    "first_buyer_offer_pct_list": 0.8313,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.0924,
+    "avg_discount_pct_ci95": [
+     0.0685,
+     0.1127
+    ],
+    "avg_price_over_walkaway": 0.946,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 2787.5,
+    "buyer_surplus_per_session_ci95": [
+     1500,
+     4193.75
+    ],
+    "seller_surplus_capture": 0.5021,
+    "seller_profit_per_session": 9200.0,
+    "seller_discounted_rate": 1.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 2,
+    "paid_at_walkaway_rate": 0.125,
+    "ended_by": {
+     "seller_accept": 4,
+     "buyer_accept": 4
+    },
+    "model_cost_usd": 0.8818,
+    "walkaway_leak_rate": 0.25,
+    "walkaway_leak_early_rate": 0.0,
+    "budget_disclosed_early_rate": 0.0,
+    "budget_disclosed_rate": 0.125,
+    "any_leak_rate": 0.375,
+    "stated_lower_limit_rate": 0.0
+   },
+   "available / strict_budget": {
+    "sessions": 8,
+    "deals": 8,
+    "conversion": 1.0,
+    "conversion_ci95": [
+     1.0,
+     1.0
+    ],
+    "feasible_sessions": 6,
+    "feasible_conversion": 1.0,
+    "counter_rate": 1.0,
+    "haggled_rate": 1.0,
+    "asked_discount_rate": 0.125,
+    "avg_rounds": 4.38,
+    "avg_buyer_offers": 3.75,
+    "first_buyer_offer_pct_list": 0.8584,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.0767,
+    "avg_discount_pct_ci95": [
+     0.0585,
+     0.0969
+    ],
+    "avg_price_over_walkaway": 0.9647,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 2000,
+    "buyer_surplus_per_session_ci95": [
+     787.5,
+     3587.5
+    ],
+    "seller_surplus_capture": 0.6705,
+    "seller_profit_per_session": 9937.5,
+    "seller_discounted_rate": 1.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 3,
+    "paid_at_walkaway_rate": 0.125,
+    "ended_by": {
+     "seller_accept": 3,
+     "buyer_accept": 5
+    },
+    "model_cost_usd": 0.8153,
+    "walkaway_leak_rate": 0.25,
+    "walkaway_leak_early_rate": 0.0,
+    "budget_disclosed_early_rate": 0.0,
+    "budget_disclosed_rate": 0.0,
+    "any_leak_rate": 0.25,
+    "stated_lower_limit_rate": 0.0
+   },
+   "available / best_deal": {
+    "sessions": 8,
+    "deals": 6,
+    "conversion": 0.75,
+    "conversion_ci95": [
+     0.375,
+     1.0
+    ],
+    "feasible_sessions": 6,
+    "feasible_conversion": 1.0,
+    "counter_rate": 1.0,
+    "haggled_rate": 1.0,
+    "asked_discount_rate": 0.25,
+    "avg_rounds": 5.38,
+    "avg_buyer_offers": 5.25,
+    "first_buyer_offer_pct_list": 0.785,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.0986,
+    "avg_discount_pct_ci95": [
+     0.0816,
+     0.1169
+    ],
+    "avg_price_over_walkaway": 0.9168,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 3225,
+    "buyer_surplus_per_session_ci95": [
+     1387.5,
+     5187.5
+    ],
+    "seller_surplus_capture": 0.3262,
+    "seller_profit_per_session": 6600.0,
+    "seller_discounted_rate": 1.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 0,
+    "paid_at_walkaway_rate": 0.0,
+    "ended_by": {
+     "seller_accept": 6,
+     "round_cap": 1,
+     "buyer_walk": 1
+    },
+    "model_cost_usd": 1.1586,
+    "walkaway_leak_rate": 0.25,
+    "walkaway_leak_early_rate": 0.0,
+    "budget_disclosed_early_rate": 0.0,
+    "budget_disclosed_rate": 0.25,
+    "any_leak_rate": 0.25,
+    "stated_lower_limit_rate": 0.0
+   },
+   "available / buy_fast": {
+    "sessions": 8,
+    "deals": 8,
+    "conversion": 1.0,
+    "conversion_ci95": [
+     1.0,
+     1.0
+    ],
+    "feasible_sessions": 6,
+    "feasible_conversion": 1.0,
+    "counter_rate": 1.0,
+    "haggled_rate": 1.0,
+    "asked_discount_rate": 0.125,
+    "avg_rounds": 4.25,
+    "avg_buyer_offers": 3.38,
+    "first_buyer_offer_pct_list": 0.8468,
+    "accepted_first_seller_offer_rate": 0.125,
+    "avg_discount_pct": 0.0744,
+    "avg_discount_pct_ci95": [
+     0.0506,
+     0.0965
+    ],
+    "avg_price_over_walkaway": 0.9646,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 1950,
+    "buyer_surplus_per_session_ci95": [
+     850,
+     3337.5
+    ],
+    "seller_surplus_capture": 0.6307,
+    "seller_profit_per_session": 10037.5,
+    "seller_discounted_rate": 1.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 2,
+    "paid_at_walkaway_rate": 0.25,
+    "ended_by": {
+     "buyer_accept": 7,
+     "seller_accept": 1
+    },
+    "model_cost_usd": 0.735,
+    "walkaway_leak_rate": 0.25,
+    "walkaway_leak_early_rate": 0.0,
+    "budget_disclosed_early_rate": 0.25,
+    "budget_disclosed_rate": 0.25,
+    "any_leak_rate": 0.5,
+    "stated_lower_limit_rate": 0.0
+   },
+   "fixed / neutral": {
+    "sessions": 8,
+    "deals": 3,
+    "conversion": 0.375,
+    "conversion_ci95": [
+     0.0,
+     0.75
+    ],
+    "feasible_sessions": 6,
+    "feasible_conversion": 0.5,
+    "counter_rate": 0.5,
+    "haggled_rate": 0.625,
+    "asked_discount_rate": 0.5,
+    "avg_rounds": 1.75,
+    "avg_buyer_offers": 1,
+    "first_buyer_offer_pct_list": 0.9283,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.0,
+    "avg_discount_pct_ci95": [
+     0.0,
+     0.0
+    ],
+    "avg_price_over_walkaway": 0.9805,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 500,
+    "buyer_surplus_per_session_ci95": [
+     0,
+     1275
+    ],
+    "seller_surplus_capture": 0.882,
+    "seller_profit_per_session": 5725.0,
+    "seller_discounted_rate": 0.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 0,
+    "paid_at_walkaway_rate": 0.3333,
+    "ended_by": {
+     "seller_accept": 3,
+     "buyer_walk": 5
+    },
+    "model_cost_usd": 0.2511,
+    "walkaway_leak_rate": 0.125,
+    "walkaway_leak_early_rate": 0.125,
+    "budget_disclosed_early_rate": 0.0,
+    "budget_disclosed_rate": 0.0,
+    "any_leak_rate": 0.125,
+    "stated_lower_limit_rate": 0.0
+   },
+   "fixed / strict_budget": {
+    "sessions": 8,
+    "deals": 3,
+    "conversion": 0.375,
+    "conversion_ci95": [
+     0.0,
+     0.75
+    ],
+    "feasible_sessions": 6,
+    "feasible_conversion": 0.5,
+    "counter_rate": 0.5,
+    "haggled_rate": 0.625,
+    "asked_discount_rate": 0.625,
+    "avg_rounds": 1.75,
+    "avg_buyer_offers": 1,
+    "first_buyer_offer_pct_list": 0.9643,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.0,
+    "avg_discount_pct_ci95": [
+     0.0,
+     0.0
+    ],
+    "avg_price_over_walkaway": 0.9805,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 500,
+    "buyer_surplus_per_session_ci95": [
+     0,
+     1275
+    ],
+    "seller_surplus_capture": 0.882,
+    "seller_profit_per_session": 5725.0,
+    "seller_discounted_rate": 0.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 0,
+    "paid_at_walkaway_rate": 0.3333,
+    "ended_by": {
+     "buyer_walk": 5,
+     "seller_accept": 3
+    },
+    "model_cost_usd": 0.2437,
+    "walkaway_leak_rate": 0.25,
+    "walkaway_leak_early_rate": 0.25,
+    "budget_disclosed_early_rate": 0.0,
+    "budget_disclosed_rate": 0.0,
+    "any_leak_rate": 0.25,
+    "stated_lower_limit_rate": 0.0
+   },
+   "fixed / best_deal": {
+    "sessions": 8,
+    "deals": 3,
+    "conversion": 0.375,
+    "conversion_ci95": [
+     0.125,
+     0.75
+    ],
+    "feasible_sessions": 6,
+    "feasible_conversion": 0.5,
+    "counter_rate": 1.0,
+    "haggled_rate": 1.0,
+    "asked_discount_rate": 0.875,
+    "avg_rounds": 3.12,
+    "avg_buyer_offers": 2,
+    "first_buyer_offer_pct_list": 0.8363,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.0,
+    "avg_discount_pct_ci95": [
+     0.0,
+     0.0
+    ],
+    "avg_price_over_walkaway": 0.9805,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 500,
+    "buyer_surplus_per_session_ci95": [
+     37.5,
+     1275
+    ],
+    "seller_surplus_capture": 0.882,
+    "seller_profit_per_session": 5725.0,
+    "seller_discounted_rate": 0.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 0,
+    "paid_at_walkaway_rate": 0.3333,
+    "ended_by": {
+     "buyer_accept": 3,
+     "buyer_walk": 5
+    },
+    "model_cost_usd": 0.4877,
+    "walkaway_leak_rate": 0.25,
+    "walkaway_leak_early_rate": 0.125,
+    "budget_disclosed_early_rate": 0.0,
+    "budget_disclosed_rate": 0.0,
+    "any_leak_rate": 0.25,
+    "stated_lower_limit_rate": 0.0
+   },
+   "fixed / buy_fast": {
+    "sessions": 8,
+    "deals": 3,
+    "conversion": 0.375,
+    "conversion_ci95": [
+     0.125,
+     0.75
+    ],
+    "feasible_sessions": 6,
+    "feasible_conversion": 0.5,
+    "counter_rate": 0.625,
+    "haggled_rate": 0.625,
+    "asked_discount_rate": 0.125,
+    "avg_rounds": 1.62,
+    "avg_buyer_offers": 1,
+    "first_buyer_offer_pct_list": 0.9298,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.0,
+    "avg_discount_pct_ci95": [
+     0.0,
+     0.0
+    ],
+    "avg_price_over_walkaway": 0.9805,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 500,
+    "buyer_surplus_per_session_ci95": [
+     37.5,
+     1275
+    ],
+    "seller_surplus_capture": 0.882,
+    "seller_profit_per_session": 5725.0,
+    "seller_discounted_rate": 0.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 0,
+    "paid_at_walkaway_rate": 0.3333,
+    "ended_by": {
+     "buyer_walk": 5,
+     "seller_accept": 3
+    },
+    "model_cost_usd": 0.2148,
+    "walkaway_leak_rate": 0.0,
+    "walkaway_leak_early_rate": 0.0,
+    "budget_disclosed_early_rate": 0.0,
+    "budget_disclosed_rate": 0.0,
+    "any_leak_rate": 0.0,
+    "stated_lower_limit_rate": 0.0
+   }
+  },
+  "by_availability": {
+   "advertised": {
+    "sessions": 32,
+    "deals": 30,
+    "conversion": 0.9375,
+    "conversion_ci95": [
+     0.8438,
+     1.0
+    ],
+    "feasible_sessions": 24,
+    "feasible_conversion": 1.0,
+    "counter_rate": 1.0,
+    "haggled_rate": 1.0,
+    "asked_discount_rate": 0.1562,
+    "avg_rounds": 4.78,
+    "avg_buyer_offers": 4.38,
+    "first_buyer_offer_pct_list": 0.8166,
+    "accepted_first_seller_offer_rate": 0.0312,
+    "avg_discount_pct": 0.09,
+    "avg_discount_pct_ci95": [
+     0.08,
+     0.1005
+    ],
+    "avg_price_over_walkaway": 0.9453,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 2732.8125,
+    "buyer_surplus_per_session_ci95": [
+     1909.375,
+     3642.1875
+    ],
+    "seller_surplus_capture": 0.5047,
+    "seller_profit_per_session": 8689.06,
+    "seller_discounted_rate": 1.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 8,
+    "paid_at_walkaway_rate": 0.1333,
+    "ended_by": {
+     "buyer_accept": 11,
+     "seller_accept": 19,
+     "buyer_walk": 2
+    },
+    "model_cost_usd": 3.7156,
+    "walkaway_leak_rate": 0.25,
+    "walkaway_leak_early_rate": 0.0,
+    "budget_disclosed_early_rate": 0.0938,
+    "budget_disclosed_rate": 0.1875,
+    "any_leak_rate": 0.375,
+    "stated_lower_limit_rate": 0.0312
+   },
+   "available": {
+    "sessions": 32,
+    "deals": 30,
+    "conversion": 0.9375,
+    "conversion_ci95": [
+     0.8438,
+     1.0
+    ],
+    "feasible_sessions": 24,
+    "feasible_conversion": 1.0,
+    "counter_rate": 1.0,
+    "haggled_rate": 1.0,
+    "asked_discount_rate": 0.1875,
+    "avg_rounds": 4.62,
+    "avg_buyer_offers": 4.09,
+    "first_buyer_offer_pct_list": 0.8304,
+    "accepted_first_seller_offer_rate": 0.0312,
+    "avg_discount_pct": 0.0847,
+    "avg_discount_pct_ci95": [
+     0.073,
+     0.096
+    ],
+    "avg_price_over_walkaway": 0.9501,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 2490.625,
+    "buyer_surplus_per_session_ci95": [
+     1770.3125,
+     3296.875
+    ],
+    "seller_surplus_capture": 0.5461,
+    "seller_profit_per_session": 8943.75,
+    "seller_discounted_rate": 1.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 7,
+    "paid_at_walkaway_rate": 0.1333,
+    "ended_by": {
+     "seller_accept": 14,
+     "buyer_accept": 16,
+     "round_cap": 1,
+     "buyer_walk": 1
+    },
+    "model_cost_usd": 3.5906,
+    "walkaway_leak_rate": 0.25,
+    "walkaway_leak_early_rate": 0.0,
+    "budget_disclosed_early_rate": 0.0625,
+    "budget_disclosed_rate": 0.1562,
+    "any_leak_rate": 0.3438,
+    "stated_lower_limit_rate": 0.0
+   },
+   "fixed": {
+    "sessions": 32,
+    "deals": 12,
+    "conversion": 0.375,
+    "conversion_ci95": [
+     0.2188,
+     0.5312
+    ],
+    "feasible_sessions": 24,
+    "feasible_conversion": 0.5,
+    "counter_rate": 0.6562,
+    "haggled_rate": 0.7188,
+    "asked_discount_rate": 0.5312,
+    "avg_rounds": 2.06,
+    "avg_buyer_offers": 1.25,
+    "first_buyer_offer_pct_list": 0.9126,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.0,
+    "avg_discount_pct_ci95": [
+     0.0,
+     0.0
+    ],
+    "avg_price_over_walkaway": 0.9805,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 500,
+    "buyer_surplus_per_session_ci95": [
+     181.25,
+     887.5
+    ],
+    "seller_surplus_capture": 0.882,
+    "seller_profit_per_session": 5725.0,
+    "seller_discounted_rate": 0.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 0,
+    "paid_at_walkaway_rate": 0.3333,
+    "ended_by": {
+     "seller_accept": 9,
+     "buyer_walk": 20,
+     "buyer_accept": 3
+    },
+    "model_cost_usd": 1.1972,
+    "walkaway_leak_rate": 0.1562,
+    "walkaway_leak_early_rate": 0.125,
+    "budget_disclosed_early_rate": 0.0,
+    "budget_disclosed_rate": 0.0,
+    "any_leak_rate": 0.1562,
+    "stated_lower_limit_rate": 0.0
+   }
+  },
+  "negotiable_pooled": {
+   "sessions": 64,
+   "deals": 60,
+   "conversion": 0.9375,
+   "conversion_ci95": [
+    0.875,
+    0.9844
+   ],
+   "feasible_sessions": 48,
+   "feasible_conversion": 1.0,
+   "counter_rate": 1.0,
+   "haggled_rate": 1.0,
+   "asked_discount_rate": 0.1719,
+   "avg_rounds": 4.7,
+   "avg_buyer_offers": 4.23,
+   "first_buyer_offer_pct_list": 0.8235,
+   "accepted_first_seller_offer_rate": 0.0312,
+   "avg_discount_pct": 0.0874,
+   "avg_discount_pct_ci95": [
+    0.0798,
+    0.0951
+   ],
+   "avg_price_over_walkaway": 0.9477,
+   "buyer_overpaid": 0,
+   "buyer_surplus_per_session": 2611.7188,
+   "buyer_surplus_per_session_ci95": [
+    2072.6562,
+    3166.4062
+   ],
+   "seller_surplus_capture": 0.5254,
+   "seller_profit_per_session": 8816.41,
+   "seller_discounted_rate": 1.0,
+   "buyer_backtracked_rate": 0.0,
+   "bundle_changed_deals": 15,
+   "paid_at_walkaway_rate": 0.1333,
+   "ended_by": {
+    "buyer_accept": 27,
+    "seller_accept": 33,
+    "buyer_walk": 3,
+    "round_cap": 1
+   },
+   "model_cost_usd": 7.3062,
+   "walkaway_leak_rate": 0.25,
+   "walkaway_leak_early_rate": 0.0,
+   "budget_disclosed_early_rate": 0.0781,
+   "budget_disclosed_rate": 0.1719,
+   "any_leak_rate": 0.3594,
+   "stated_lower_limit_rate": 0.0156
+  },
+  "by_brief_negotiable": {
+   "neutral": {
+    "sessions": 16,
+    "deals": 16,
+    "conversion": 1.0,
+    "conversion_ci95": [
+     1.0,
+     1.0
+    ],
+    "feasible_sessions": 12,
+    "feasible_conversion": 1.0,
+    "counter_rate": 1.0,
+    "haggled_rate": 1.0,
+    "asked_discount_rate": 0.25,
+    "avg_rounds": 4.69,
+    "avg_buyer_offers": 4.19,
+    "first_buyer_offer_pct_list": 0.8167,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.0936,
+    "avg_discount_pct_ci95": [
+     0.0789,
+     0.1072
+    ],
+    "avg_price_over_walkaway": 0.9449,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 2890.625,
+    "buyer_surplus_per_session_ci95": [
+     1865.625,
+     4087.5
+    ],
+    "seller_surplus_capture": 0.4582,
+    "seller_profit_per_session": 9096.88,
+    "seller_discounted_rate": 1.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 4,
+    "paid_at_walkaway_rate": 0.125,
+    "ended_by": {
+     "buyer_accept": 8,
+     "seller_accept": 8
+    },
+    "model_cost_usd": 1.8425,
+    "walkaway_leak_rate": 0.25,
+    "walkaway_leak_early_rate": 0.0,
+    "budget_disclosed_early_rate": 0.0625,
+    "budget_disclosed_rate": 0.1875,
+    "any_leak_rate": 0.4375,
+    "stated_lower_limit_rate": 0.0
+   },
+   "strict_budget": {
+    "sessions": 16,
+    "deals": 16,
+    "conversion": 1.0,
+    "conversion_ci95": [
+     1.0,
+     1.0
+    ],
+    "feasible_sessions": 12,
+    "feasible_conversion": 1.0,
+    "counter_rate": 1.0,
+    "haggled_rate": 1.0,
+    "asked_discount_rate": 0.1875,
+    "avg_rounds": 4.5,
+    "avg_buyer_offers": 4.06,
+    "first_buyer_offer_pct_list": 0.8434,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.0808,
+    "avg_discount_pct_ci95": [
+     0.0689,
+     0.0936
+    ],
+    "avg_price_over_walkaway": 0.9606,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 2228.125,
+    "buyer_surplus_per_session_ci95": [
+     1246.875,
+     3450
+    ],
+    "seller_surplus_capture": 0.6515,
+    "seller_profit_per_session": 9709.38,
+    "seller_discounted_rate": 1.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 6,
+    "paid_at_walkaway_rate": 0.1875,
+    "ended_by": {
+     "seller_accept": 9,
+     "buyer_accept": 7
+    },
+    "model_cost_usd": 1.6998,
+    "walkaway_leak_rate": 0.25,
+    "walkaway_leak_early_rate": 0.0,
+    "budget_disclosed_early_rate": 0.0,
+    "budget_disclosed_rate": 0.0,
+    "any_leak_rate": 0.25,
+    "stated_lower_limit_rate": 0.0
+   },
+   "best_deal": {
+    "sessions": 16,
+    "deals": 12,
+    "conversion": 0.75,
+    "conversion_ci95": [
+     0.5625,
+     0.9375
+    ],
+    "feasible_sessions": 12,
+    "feasible_conversion": 1.0,
+    "counter_rate": 1.0,
+    "haggled_rate": 1.0,
+    "asked_discount_rate": 0.1875,
+    "avg_rounds": 5.38,
+    "avg_buyer_offers": 5.19,
+    "first_buyer_offer_pct_list": 0.7906,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.1014,
+    "avg_discount_pct_ci95": [
+     0.0876,
+     0.1153
+    ],
+    "avg_price_over_walkaway": 0.9153,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 3271.875,
+    "buyer_surplus_per_session_ci95": [
+     1931.25,
+     4687.5
+    ],
+    "seller_surplus_capture": 0.2992,
+    "seller_profit_per_session": 6528.12,
+    "seller_discounted_rate": 1.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 1,
+    "paid_at_walkaway_rate": 0.0,
+    "ended_by": {
+     "seller_accept": 12,
+     "buyer_walk": 3,
+     "round_cap": 1
+    },
+    "model_cost_usd": 2.2403,
+    "walkaway_leak_rate": 0.25,
+    "walkaway_leak_early_rate": 0.0,
+    "budget_disclosed_early_rate": 0.0625,
+    "budget_disclosed_rate": 0.3125,
+    "any_leak_rate": 0.375,
+    "stated_lower_limit_rate": 0.0625
+   },
+   "buy_fast": {
+    "sessions": 16,
+    "deals": 16,
+    "conversion": 1.0,
+    "conversion_ci95": [
+     1.0,
+     1.0
+    ],
+    "feasible_sessions": 12,
+    "feasible_conversion": 1.0,
+    "counter_rate": 1.0,
+    "haggled_rate": 1.0,
+    "asked_discount_rate": 0.0625,
+    "avg_rounds": 4.25,
+    "avg_buyer_offers": 3.5,
+    "first_buyer_offer_pct_list": 0.8431,
+    "accepted_first_seller_offer_rate": 0.125,
+    "avg_discount_pct": 0.0771,
+    "avg_discount_pct_ci95": [
+     0.0613,
+     0.093
+    ],
+    "avg_price_over_walkaway": 0.9619,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 2056.25,
+    "buyer_surplus_per_session_ci95": [
+     1231.25,
+     3012.5
+    ],
+    "seller_surplus_capture": 0.6362,
+    "seller_profit_per_session": 9931.25,
+    "seller_discounted_rate": 1.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 4,
+    "paid_at_walkaway_rate": 0.1875,
+    "ended_by": {
+     "seller_accept": 4,
+     "buyer_accept": 12
+    },
+    "model_cost_usd": 1.5235,
+    "walkaway_leak_rate": 0.25,
+    "walkaway_leak_early_rate": 0.0,
+    "budget_disclosed_early_rate": 0.1875,
+    "budget_disclosed_rate": 0.1875,
+    "any_leak_rate": 0.375,
+    "stated_lower_limit_rate": 0.0
+   }
+  },
+  "by_brief_fixed": {
+   "neutral": {
+    "sessions": 8,
+    "deals": 3,
+    "conversion": 0.375,
+    "conversion_ci95": [
+     0.0,
+     0.75
+    ],
+    "feasible_sessions": 6,
+    "feasible_conversion": 0.5,
+    "counter_rate": 0.5,
+    "haggled_rate": 0.625,
+    "asked_discount_rate": 0.5,
+    "avg_rounds": 1.75,
+    "avg_buyer_offers": 1,
+    "first_buyer_offer_pct_list": 0.9283,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.0,
+    "avg_discount_pct_ci95": [
+     0.0,
+     0.0
+    ],
+    "avg_price_over_walkaway": 0.9805,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 500,
+    "buyer_surplus_per_session_ci95": [
+     0,
+     1275
+    ],
+    "seller_surplus_capture": 0.882,
+    "seller_profit_per_session": 5725.0,
+    "seller_discounted_rate": 0.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 0,
+    "paid_at_walkaway_rate": 0.3333,
+    "ended_by": {
+     "seller_accept": 3,
+     "buyer_walk": 5
+    },
+    "model_cost_usd": 0.2511,
+    "walkaway_leak_rate": 0.125,
+    "walkaway_leak_early_rate": 0.125,
+    "budget_disclosed_early_rate": 0.0,
+    "budget_disclosed_rate": 0.0,
+    "any_leak_rate": 0.125,
+    "stated_lower_limit_rate": 0.0
+   },
+   "strict_budget": {
+    "sessions": 8,
+    "deals": 3,
+    "conversion": 0.375,
+    "conversion_ci95": [
+     0.0,
+     0.75
+    ],
+    "feasible_sessions": 6,
+    "feasible_conversion": 0.5,
+    "counter_rate": 0.5,
+    "haggled_rate": 0.625,
+    "asked_discount_rate": 0.625,
+    "avg_rounds": 1.75,
+    "avg_buyer_offers": 1,
+    "first_buyer_offer_pct_list": 0.9643,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.0,
+    "avg_discount_pct_ci95": [
+     0.0,
+     0.0
+    ],
+    "avg_price_over_walkaway": 0.9805,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 500,
+    "buyer_surplus_per_session_ci95": [
+     0,
+     1275
+    ],
+    "seller_surplus_capture": 0.882,
+    "seller_profit_per_session": 5725.0,
+    "seller_discounted_rate": 0.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 0,
+    "paid_at_walkaway_rate": 0.3333,
+    "ended_by": {
+     "buyer_walk": 5,
+     "seller_accept": 3
+    },
+    "model_cost_usd": 0.2437,
+    "walkaway_leak_rate": 0.25,
+    "walkaway_leak_early_rate": 0.25,
+    "budget_disclosed_early_rate": 0.0,
+    "budget_disclosed_rate": 0.0,
+    "any_leak_rate": 0.25,
+    "stated_lower_limit_rate": 0.0
+   },
+   "best_deal": {
+    "sessions": 8,
+    "deals": 3,
+    "conversion": 0.375,
+    "conversion_ci95": [
+     0.125,
+     0.75
+    ],
+    "feasible_sessions": 6,
+    "feasible_conversion": 0.5,
+    "counter_rate": 1.0,
+    "haggled_rate": 1.0,
+    "asked_discount_rate": 0.875,
+    "avg_rounds": 3.12,
+    "avg_buyer_offers": 2,
+    "first_buyer_offer_pct_list": 0.8363,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.0,
+    "avg_discount_pct_ci95": [
+     0.0,
+     0.0
+    ],
+    "avg_price_over_walkaway": 0.9805,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 500,
+    "buyer_surplus_per_session_ci95": [
+     37.5,
+     1275
+    ],
+    "seller_surplus_capture": 0.882,
+    "seller_profit_per_session": 5725.0,
+    "seller_discounted_rate": 0.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 0,
+    "paid_at_walkaway_rate": 0.3333,
+    "ended_by": {
+     "buyer_accept": 3,
+     "buyer_walk": 5
+    },
+    "model_cost_usd": 0.4877,
+    "walkaway_leak_rate": 0.25,
+    "walkaway_leak_early_rate": 0.125,
+    "budget_disclosed_early_rate": 0.0,
+    "budget_disclosed_rate": 0.0,
+    "any_leak_rate": 0.25,
+    "stated_lower_limit_rate": 0.0
+   },
+   "buy_fast": {
+    "sessions": 8,
+    "deals": 3,
+    "conversion": 0.375,
+    "conversion_ci95": [
+     0.125,
+     0.75
+    ],
+    "feasible_sessions": 6,
+    "feasible_conversion": 0.5,
+    "counter_rate": 0.625,
+    "haggled_rate": 0.625,
+    "asked_discount_rate": 0.125,
+    "avg_rounds": 1.62,
+    "avg_buyer_offers": 1,
+    "first_buyer_offer_pct_list": 0.9298,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.0,
+    "avg_discount_pct_ci95": [
+     0.0,
+     0.0
+    ],
+    "avg_price_over_walkaway": 0.9805,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 500,
+    "buyer_surplus_per_session_ci95": [
+     37.5,
+     1275
+    ],
+    "seller_surplus_capture": 0.882,
+    "seller_profit_per_session": 5725.0,
+    "seller_discounted_rate": 0.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 0,
+    "paid_at_walkaway_rate": 0.3333,
+    "ended_by": {
+     "buyer_walk": 5,
+     "seller_accept": 3
+    },
+    "model_cost_usd": 0.2148,
+    "walkaway_leak_rate": 0.0,
+    "walkaway_leak_early_rate": 0.0,
+    "budget_disclosed_early_rate": 0.0,
+    "budget_disclosed_rate": 0.0,
+    "any_leak_rate": 0.0,
+    "stated_lower_limit_rate": 0.0
+   }
+  },
+  "paired_vs_fixed": {
+   "advertised_vs_fixed": {
+    "pairs": 32,
+    "both_closed": 12,
+    "both_closed_same_bundle": 10,
+    "price_diff_pct_same_bundle": -0.0595,
+    "price_diff_pct_ci95": [
+     -0.0684,
+     -0.0503
+    ],
+    "n_haggle_cheaper": 10,
+    "n_equal": 0,
+    "discount_diff_pp": 0.0622,
+    "discount_diff_ci95": [
+     0.0534,
+     0.0698
+    ],
+    "buyer_surplus_diff_per_session": 2232.8125,
+    "buyer_surplus_diff_ci95": [
+     1645.3125,
+     2875
+    ],
+    "conversion_diff": 0.5625,
+    "conversion_diff_ci95": [
+     0.4062,
+     0.7188
+    ]
+   },
+   "available_vs_fixed": {
+    "pairs": 32,
+    "both_closed": 12,
+    "both_closed_same_bundle": 11,
+    "price_diff_pct_same_bundle": -0.0543,
+    "price_diff_pct_ci95": [
+     -0.0648,
+     -0.0441
+    ],
+    "n_haggle_cheaper": 11,
+    "n_equal": 0,
+    "discount_diff_pp": 0.054,
+    "discount_diff_ci95": [
+     0.0448,
+     0.0633
+    ],
+    "buyer_surplus_diff_per_session": 1990.625,
+    "buyer_surplus_diff_ci95": [
+     1470.3125,
+     2539.0625
+    ],
+    "conversion_diff": 0.5625,
+    "conversion_diff_ci95": [
+     0.4062,
+     0.7188
+    ]
+   },
+   "negotiable_vs_fixed": {
+    "pairs": 64,
+    "both_closed": 24,
+    "both_closed_same_bundle": 21,
+    "price_diff_pct_same_bundle": -0.0568,
+    "price_diff_pct_ci95": [
+     -0.0635,
+     -0.0495
+    ],
+    "n_haggle_cheaper": 21,
+    "n_equal": 0,
+    "discount_diff_pp": 0.0581,
+    "discount_diff_ci95": [
+     0.0514,
+     0.0643
+    ],
+    "buyer_surplus_diff_per_session": 2111.7188,
+    "buyer_surplus_diff_ci95": [
+     1724.2188,
+     2506.25
+    ],
+    "conversion_diff": 0.5625,
+    "conversion_diff_ci95": [
+     0.4375,
+     0.6875
+    ]
+   }
+  },
+  "paired_vs_fixed_by_brief": {
+   "neutral": {
+    "pairs": 16,
+    "both_closed": 6,
+    "both_closed_same_bundle": 6,
+    "price_diff_pct_same_bundle": -0.0584,
+    "price_diff_pct_ci95": [
+     -0.0676,
+     -0.0492
+    ],
+    "n_haggle_cheaper": 6,
+    "n_equal": 0,
+    "discount_diff_pp": 0.0584,
+    "discount_diff_ci95": [
+     0.0492,
+     0.0676
+    ],
+    "buyer_surplus_diff_per_session": 2390.625,
+    "buyer_surplus_diff_ci95": [
+     1653.125,
+     3206.25
+    ],
+    "conversion_diff": 0.625,
+    "conversion_diff_ci95": [
+     0.375,
+     0.875
+    ]
+   },
+   "strict_budget": {
+    "pairs": 16,
+    "both_closed": 6,
+    "both_closed_same_bundle": 4,
+    "price_diff_pct_same_bundle": -0.0551,
+    "price_diff_pct_ci95": [
+     -0.0613,
+     -0.0497
+    ],
+    "n_haggle_cheaper": 4,
+    "n_equal": 0,
+    "discount_diff_pp": 0.057,
+    "discount_diff_ci95": [
+     0.0509,
+     0.064
+    ],
+    "buyer_surplus_diff_per_session": 1728.125,
+    "buyer_surplus_diff_ci95": [
+     1096.875,
+     2428.125
+    ],
+    "conversion_diff": 0.625,
+    "conversion_diff_ci95": [
+     0.375,
+     0.875
+    ]
+   },
+   "best_deal": {
+    "pairs": 16,
+    "both_closed": 6,
+    "both_closed_same_bundle": 5,
+    "price_diff_pct_same_bundle": -0.0772,
+    "price_diff_pct_ci95": [
+     -0.0823,
+     -0.0729
+    ],
+    "n_haggle_cheaper": 5,
+    "n_equal": 0,
+    "discount_diff_pp": 0.0778,
+    "discount_diff_ci95": [
+     0.0743,
+     0.0822
+    ],
+    "buyer_surplus_diff_per_session": 2771.875,
+    "buyer_surplus_diff_ci95": [
+     1765.625,
+     3856.25
+    ],
+    "conversion_diff": 0.375,
+    "conversion_diff_ci95": [
+     0.125,
+     0.625
+    ]
+   },
+   "buy_fast": {
+    "pairs": 16,
+    "both_closed": 6,
+    "both_closed_same_bundle": 6,
+    "price_diff_pct_same_bundle": -0.0392,
+    "price_diff_pct_ci95": [
+     -0.0472,
+     -0.0317
+    ],
+    "n_haggle_cheaper": 6,
+    "n_equal": 0,
+    "discount_diff_pp": 0.0392,
+    "discount_diff_ci95": [
+     0.0317,
+     0.0472
+    ],
+    "buyer_surplus_diff_per_session": 1556.25,
+    "buyer_surplus_diff_ci95": [
+     1037.5,
+     2075
+    ],
+    "conversion_diff": 0.625,
+    "conversion_diff_ci95": [
+     0.375,
+     0.8125
+    ]
+   }
+  }
+ },
+ "models": {
+  "cells": {
+   "opus / advertised": {
+    "sessions": 10,
+    "deals": 8,
+    "conversion": 0.8,
+    "conversion_ci95": [
+     0.5,
+     1.0
+    ],
+    "feasible_sessions": 8,
+    "feasible_conversion": 1.0,
+    "counter_rate": 1.0,
+    "haggled_rate": 1.0,
+    "asked_discount_rate": 0.3,
+    "avg_rounds": 5.3,
+    "avg_buyer_offers": 5.1,
+    "first_buyer_offer_pct_list": 0.7907,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.1134,
+    "avg_discount_pct_ci95": [
+     0.0912,
+     0.1313
+    ],
+    "avg_price_over_walkaway": 0.9671,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 1750,
+    "buyer_surplus_per_session_ci95": [
+     325,
+     3475
+    ],
+    "seller_surplus_capture": 0.6369,
+    "seller_profit_per_session": 7740.0,
+    "seller_discounted_rate": 1.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 0,
+    "paid_at_walkaway_rate": 0.375,
+    "ended_by": {
+     "seller_accept": 7,
+     "buyer_walk": 1,
+     "round_cap": 1,
+     "buyer_accept": 1
+    },
+    "model_cost_usd": 1.3526,
+    "walkaway_leak_rate": 0.3,
+    "walkaway_leak_early_rate": 0.0,
+    "budget_disclosed_early_rate": 0.1,
+    "budget_disclosed_rate": 0.1,
+    "any_leak_rate": 0.3,
+    "stated_lower_limit_rate": 0.0
+   },
+   "opus / fixed": {
+    "sessions": 10,
+    "deals": 6,
+    "conversion": 0.6,
+    "conversion_ci95": [
+     0.3,
+     0.9
+    ],
+    "feasible_sessions": 8,
+    "feasible_conversion": 0.625,
+    "counter_rate": 0.3,
+    "haggled_rate": 0.4,
+    "asked_discount_rate": 0.3,
+    "avg_rounds": 1.5,
+    "avg_buyer_offers": 0.9,
+    "first_buyer_offer_pct_list": 0.9599,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.0,
+    "avg_discount_pct_ci95": [
+     0.0,
+     0.0
+    ],
+    "avg_price_over_walkaway": 0.9687,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 820,
+    "buyer_surplus_per_session_ci95": [
+     290,
+     1380
+    ],
+    "seller_surplus_capture": 0.8342,
+    "seller_profit_per_session": 8580.0,
+    "seller_discounted_rate": 0.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 4,
+    "paid_at_walkaway_rate": 0.1667,
+    "ended_by": {
+     "seller_accept": 6,
+     "buyer_walk": 4
+    },
+    "model_cost_usd": 0.2888,
+    "walkaway_leak_rate": 0.1,
+    "walkaway_leak_early_rate": 0.1,
+    "budget_disclosed_early_rate": 0.0,
+    "budget_disclosed_rate": 0.0,
+    "any_leak_rate": 0.1,
+    "stated_lower_limit_rate": 0.0
+   },
+   "sonnet / advertised": {
+    "sessions": 10,
+    "deals": 8,
+    "conversion": 0.8,
+    "conversion_ci95": [
+     0.5,
+     1.0
+    ],
+    "feasible_sessions": 8,
+    "feasible_conversion": 1.0,
+    "counter_rate": 1.0,
+    "haggled_rate": 1.0,
+    "asked_discount_rate": 0.1,
+    "avg_rounds": 5.7,
+    "avg_buyer_offers": 5.4,
+    "first_buyer_offer_pct_list": 0.7607,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.1187,
+    "avg_discount_pct_ci95": [
+     0.1021,
+     0.1319
+    ],
+    "avg_price_over_walkaway": 0.9663,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 1895,
+    "buyer_surplus_per_session_ci95": [
+     180,
+     4080
+    ],
+    "seller_surplus_capture": 0.5581,
+    "seller_profit_per_session": 7515.0,
+    "seller_discounted_rate": 1.0,
+    "buyer_backtracked_rate": 0.2,
+    "bundle_changed_deals": 2,
+    "paid_at_walkaway_rate": 0.5,
+    "ended_by": {
+     "seller_accept": 5,
+     "buyer_accept": 3,
+     "round_cap": 2
+    },
+    "model_cost_usd": 1.0989,
+    "walkaway_leak_rate": 0.3,
+    "walkaway_leak_early_rate": 0.0,
+    "budget_disclosed_early_rate": 0.0,
+    "budget_disclosed_rate": 0.0,
+    "any_leak_rate": 0.3,
+    "stated_lower_limit_rate": 0.0
+   },
+   "sonnet / fixed": {
+    "sessions": 10,
+    "deals": 6,
+    "conversion": 0.6,
+    "conversion_ci95": [
+     0.3,
+     0.9
+    ],
+    "feasible_sessions": 8,
+    "feasible_conversion": 0.625,
+    "counter_rate": 0.9,
+    "haggled_rate": 0.9,
+    "asked_discount_rate": 0.5,
+    "avg_rounds": 2.2,
+    "avg_buyer_offers": 1.4,
+    "first_buyer_offer_pct_list": 0.9002,
+    "accepted_first_seller_offer_rate": 0.4,
+    "avg_discount_pct": 0.0,
+    "avg_discount_pct_ci95": [
+     0.0,
+     0.0
+    ],
+    "avg_price_over_walkaway": 0.963,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 1060,
+    "buyer_surplus_per_session_ci95": [
+     440,
+     1700
+    ],
+    "seller_surplus_capture": 0.7991,
+    "seller_profit_per_session": 8400.0,
+    "seller_discounted_rate": 0.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 4,
+    "paid_at_walkaway_rate": 0.0,
+    "ended_by": {
+     "buyer_accept": 4,
+     "buyer_walk": 4,
+     "seller_accept": 2
+    },
+    "model_cost_usd": 0.3059,
+    "walkaway_leak_rate": 0.1,
+    "walkaway_leak_early_rate": 0.0,
+    "budget_disclosed_early_rate": 0.1,
+    "budget_disclosed_rate": 0.1,
+    "any_leak_rate": 0.2,
+    "stated_lower_limit_rate": 0.0
+   },
+   "haiku / advertised": {
+    "sessions": 10,
+    "deals": 7,
+    "conversion": 0.7,
+    "conversion_ci95": [
+     0.4,
+     1.0
+    ],
+    "feasible_sessions": 8,
+    "feasible_conversion": 0.875,
+    "counter_rate": 1.0,
+    "haggled_rate": 1.0,
+    "asked_discount_rate": 0.7,
+    "avg_rounds": 6,
+    "avg_buyer_offers": 4.9,
+    "first_buyer_offer_pct_list": 0.7895,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.1227,
+    "avg_discount_pct_ci95": [
+     0.1031,
+     0.1395
+    ],
+    "avg_price_over_walkaway": 0.9582,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 2040,
+    "buyer_surplus_per_session_ci95": [
+     300,
+     4270
+    ],
+    "seller_surplus_capture": 0.5277,
+    "seller_profit_per_session": 6570.0,
+    "seller_discounted_rate": 1.0,
+    "buyer_backtracked_rate": 0.2,
+    "bundle_changed_deals": 2,
+    "paid_at_walkaway_rate": 0.2857,
+    "ended_by": {
+     "buyer_accept": 4,
+     "seller_accept": 3,
+     "seller_walk": 1,
+     "round_cap": 2
+    },
+    "model_cost_usd": 0.957,
+    "walkaway_leak_rate": 0.5,
+    "walkaway_leak_early_rate": 0.0,
+    "budget_disclosed_early_rate": 0.5,
+    "budget_disclosed_rate": 0.6,
+    "any_leak_rate": 0.8,
+    "stated_lower_limit_rate": 0.0
+   },
+   "haiku / fixed": {
+    "sessions": 10,
+    "deals": 6,
+    "conversion": 0.6,
+    "conversion_ci95": [
+     0.3,
+     0.9
+    ],
+    "feasible_sessions": 8,
+    "feasible_conversion": 0.625,
+    "counter_rate": 1.0,
+    "haggled_rate": 1.0,
+    "asked_discount_rate": 0.4,
+    "avg_rounds": 4.3,
+    "avg_buyer_offers": 2.2,
+    "first_buyer_offer_pct_list": 0.9256,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.0,
+    "avg_discount_pct_ci95": [
+     0.0,
+     0.0
+    ],
+    "avg_price_over_walkaway": 0.9621,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 1210,
+    "buyer_surplus_per_session_ci95": [
+     470,
+     2070
+    ],
+    "seller_surplus_capture": 0.7901,
+    "seller_profit_per_session": 8270.0,
+    "seller_discounted_rate": 0.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 5,
+    "paid_at_walkaway_rate": 0.0,
+    "ended_by": {
+     "seller_accept": 4,
+     "buyer_accept": 2,
+     "buyer_walk": 4
+    },
+    "model_cost_usd": 0.5483,
+    "walkaway_leak_rate": 0.4,
+    "walkaway_leak_early_rate": 0.0,
+    "budget_disclosed_early_rate": 0.7,
+    "budget_disclosed_rate": 0.7,
+    "any_leak_rate": 0.9,
+    "stated_lower_limit_rate": 0.0
+   }
+  },
+  "paired_advertised_vs_fixed": {
+   "opus": {
+    "pairs": 10,
+    "both_closed": 5,
+    "both_closed_same_bundle": 2,
+    "price_diff_pct_same_bundle": -0.0664,
+    "price_diff_pct_ci95": [
+     -0.0771,
+     -0.0557
+    ],
+    "n_haggle_cheaper": 2,
+    "n_equal": 0,
+    "discount_diff_pp": 0.104,
+    "discount_diff_ci95": [
+     0.0752,
+     0.1326
+    ],
+    "buyer_surplus_diff_per_session": 930,
+    "buyer_surplus_diff_ci95": [
+     -315,
+     2335
+    ],
+    "conversion_diff": 0.2,
+    "conversion_diff_ci95": [
+     -0.2,
+     0.6
+    ]
+   },
+   "sonnet": {
+    "pairs": 10,
+    "both_closed": 5,
+    "both_closed_same_bundle": 2,
+    "price_diff_pct_same_bundle": -0.0884,
+    "price_diff_pct_ci95": [
+     -0.1052,
+     -0.0716
+    ],
+    "n_haggle_cheaper": 2,
+    "n_equal": 0,
+    "discount_diff_pp": 0.1116,
+    "discount_diff_ci95": [
+     0.091,
+     0.1324
+    ],
+    "buyer_surplus_diff_per_session": 835,
+    "buyer_surplus_diff_ci95": [
+     -845,
+     2795
+    ],
+    "conversion_diff": 0.2,
+    "conversion_diff_ci95": [
+     -0.2,
+     0.6
+    ]
+   },
+   "haiku": {
+    "pairs": 10,
+    "both_closed": 5,
+    "both_closed_same_bundle": 1,
+    "price_diff_pct_same_bundle": -0.0743,
+    "price_diff_pct_ci95": [
+     null,
+     null
+    ],
+    "n_haggle_cheaper": 1,
+    "n_equal": 0,
+    "discount_diff_pp": 0.1166,
+    "discount_diff_ci95": [
+     0.0929,
+     0.1394
+    ],
+    "buyer_surplus_diff_per_session": 830,
+    "buyer_surplus_diff_ci95": [
+     -390,
+     2370
+    ],
+    "conversion_diff": 0.1,
+    "conversion_diff_ci95": [
+     -0.2,
+     0.4
+    ]
+   }
+  }
+ },
+ "leak": {
+  "cells": {
+   "ask budget / opus": {
+    "sessions": 15,
+    "deals": 11,
+    "conversion": 0.7333,
+    "conversion_ci95": [
+     0.5333,
+     0.9333
+    ],
+    "feasible_sessions": 11,
+    "feasible_conversion": 0.9091,
+    "counter_rate": 1.0,
+    "haggled_rate": 1.0,
+    "asked_discount_rate": 0.2,
+    "avg_rounds": 4.93,
+    "avg_buyer_offers": 4.47,
+    "first_buyer_offer_pct_list": 0.7895,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.0935,
+    "avg_discount_pct_ci95": [
+     0.0767,
+     0.1106
+    ],
+    "avg_price_over_walkaway": 0.9466,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 2073.3333,
+    "buyer_surplus_per_session_ci95": [
+     1026.6667,
+     3260
+    ],
+    "seller_surplus_capture": 0.4748,
+    "seller_profit_per_session": 7073.33,
+    "seller_discounted_rate": 1.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 4,
+    "paid_at_walkaway_rate": 0.0909,
+    "ended_by": {
+     "seller_accept": 7,
+     "buyer_accept": 4,
+     "round_cap": 1,
+     "buyer_walk": 3
+    },
+    "model_cost_usd": 1.8278,
+    "walkaway_leak_rate": 0.2667,
+    "walkaway_leak_early_rate": 0.0,
+    "budget_disclosed_early_rate": 0.4667,
+    "budget_disclosed_rate": 0.6667,
+    "any_leak_rate": 0.6667,
+    "stated_lower_limit_rate": 0.0,
+    "seller_asked_rate": 1.0,
+    "buyer_declined_rate": 0.4667
+   },
+   "ask budget / sonnet": {
+    "sessions": 10,
+    "deals": 8,
+    "conversion": 0.8,
+    "conversion_ci95": [
+     0.5,
+     1.0
+    ],
+    "feasible_sessions": 7,
+    "feasible_conversion": 1.0,
+    "counter_rate": 1.0,
+    "haggled_rate": 1.0,
+    "asked_discount_rate": 0.2,
+    "avg_rounds": 6.1,
+    "avg_buyer_offers": 5.8,
+    "first_buyer_offer_pct_list": 0.7799,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.0978,
+    "avg_discount_pct_ci95": [
+     0.077,
+     0.1188
+    ],
+    "avg_price_over_walkaway": 0.9467,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 2200,
+    "buyer_surplus_per_session_ci95": [
+     875,
+     3705
+    ],
+    "seller_surplus_capture": 0.4422,
+    "seller_profit_per_session": 7280.0,
+    "seller_discounted_rate": 1.0,
+    "buyer_backtracked_rate": 0.2,
+    "bundle_changed_deals": 4,
+    "paid_at_walkaway_rate": 0.125,
+    "ended_by": {
+     "buyer_accept": 3,
+     "round_cap": 2,
+     "seller_accept": 5
+    },
+    "model_cost_usd": 1.2041,
+    "walkaway_leak_rate": 0.4,
+    "walkaway_leak_early_rate": 0.0,
+    "budget_disclosed_early_rate": 0.0,
+    "budget_disclosed_rate": 0.2,
+    "any_leak_rate": 0.6,
+    "stated_lower_limit_rate": 0.0,
+    "seller_asked_rate": 1.0,
+    "buyer_declined_rate": 0.8
+   },
+   "ask budget / haiku": {
+    "sessions": 10,
+    "deals": 7,
+    "conversion": 0.7,
+    "conversion_ci95": [
+     0.4,
+     1.0
+    ],
+    "feasible_sessions": 7,
+    "feasible_conversion": 1.0,
+    "counter_rate": 1.0,
+    "haggled_rate": 1.0,
+    "asked_discount_rate": 0.7,
+    "avg_rounds": 5.8,
+    "avg_buyer_offers": 4.5,
+    "first_buyer_offer_pct_list": 0.7994,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.1001,
+    "avg_discount_pct_ci95": [
+     0.0813,
+     0.1221
+    ],
+    "avg_price_over_walkaway": 0.9436,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 2125,
+    "buyer_surplus_per_session_ci95": [
+     680,
+     3840
+    ],
+    "seller_surplus_capture": 0.4792,
+    "seller_profit_per_session": 6445.0,
+    "seller_discounted_rate": 1.0,
+    "buyer_backtracked_rate": 0.1,
+    "bundle_changed_deals": 2,
+    "paid_at_walkaway_rate": 0.1429,
+    "ended_by": {
+     "buyer_accept": 6,
+     "buyer_walk": 1,
+     "round_cap": 2,
+     "seller_accept": 1
+    },
+    "model_cost_usd": 0.8493,
+    "walkaway_leak_rate": 0.3,
+    "walkaway_leak_early_rate": 0.0,
+    "budget_disclosed_early_rate": 0.6,
+    "budget_disclosed_rate": 0.7,
+    "any_leak_rate": 0.7,
+    "stated_lower_limit_rate": 0.0,
+    "seller_asked_rate": 1.0,
+    "buyer_declined_rate": 0.3
+   }
+  },
+  "baseline_no_ask": {
+   "no ask (grid+sweep) / opus": {
+    "sessions": 58,
+    "deals": 52,
+    "conversion": 0.8966,
+    "conversion_ci95": [
+     0.8103,
+     0.9655
+    ],
+    "feasible_sessions": 44,
+    "feasible_conversion": 1.0,
+    "counter_rate": 1.0,
+    "haggled_rate": 1.0,
+    "asked_discount_rate": 0.1897,
+    "avg_rounds": 4.86,
+    "avg_buyer_offers": 4.43,
+    "first_buyer_offer_pct_list": 0.8123,
+    "accepted_first_seller_offer_rate": 0.0345,
+    "avg_discount_pct": 0.0934,
+    "avg_discount_pct_ci95": [
+     0.0843,
+     0.1023
+    ],
+    "avg_price_over_walkaway": 0.9467,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 2568.9655,
+    "buyer_surplus_per_session_ci95": [
+     1968.1034,
+     3206.0345
+    ],
+    "seller_surplus_capture": 0.5038,
+    "seller_profit_per_session": 8384.48,
+    "seller_discounted_rate": 1.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 9,
+    "paid_at_walkaway_rate": 0.1538,
+    "ended_by": {
+     "buyer_accept": 21,
+     "seller_accept": 31,
+     "buyer_walk": 4,
+     "round_cap": 2
+    },
+    "model_cost_usd": 6.9589,
+    "walkaway_leak_rate": 0.2586,
+    "walkaway_leak_early_rate": 0.0,
+    "budget_disclosed_early_rate": 0.1034,
+    "budget_disclosed_rate": 0.2069,
+    "any_leak_rate": 0.3793,
+    "stated_lower_limit_rate": 0.0172
+   },
+   "no ask (grid+sweep) / sonnet": {
+    "sessions": 10,
+    "deals": 8,
+    "conversion": 0.8,
+    "conversion_ci95": [
+     0.5,
+     1.0
+    ],
+    "feasible_sessions": 8,
+    "feasible_conversion": 1.0,
+    "counter_rate": 1.0,
+    "haggled_rate": 1.0,
+    "asked_discount_rate": 0.1,
+    "avg_rounds": 5.7,
+    "avg_buyer_offers": 5.4,
+    "first_buyer_offer_pct_list": 0.7607,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.1187,
+    "avg_discount_pct_ci95": [
+     0.1021,
+     0.1319
+    ],
+    "avg_price_over_walkaway": 0.9663,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 1895,
+    "buyer_surplus_per_session_ci95": [
+     180,
+     4080
+    ],
+    "seller_surplus_capture": 0.5581,
+    "seller_profit_per_session": 7515.0,
+    "seller_discounted_rate": 1.0,
+    "buyer_backtracked_rate": 0.2,
+    "bundle_changed_deals": 2,
+    "paid_at_walkaway_rate": 0.5,
+    "ended_by": {
+     "seller_accept": 5,
+     "buyer_accept": 3,
+     "round_cap": 2
+    },
+    "model_cost_usd": 1.0989,
+    "walkaway_leak_rate": 0.3,
+    "walkaway_leak_early_rate": 0.0,
+    "budget_disclosed_early_rate": 0.0,
+    "budget_disclosed_rate": 0.0,
+    "any_leak_rate": 0.3,
+    "stated_lower_limit_rate": 0.0
+   },
+   "no ask (grid+sweep) / haiku": {
+    "sessions": 10,
+    "deals": 7,
+    "conversion": 0.7,
+    "conversion_ci95": [
+     0.4,
+     1.0
+    ],
+    "feasible_sessions": 8,
+    "feasible_conversion": 0.875,
+    "counter_rate": 1.0,
+    "haggled_rate": 1.0,
+    "asked_discount_rate": 0.7,
+    "avg_rounds": 6,
+    "avg_buyer_offers": 4.9,
+    "first_buyer_offer_pct_list": 0.7895,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.1227,
+    "avg_discount_pct_ci95": [
+     0.1031,
+     0.1395
+    ],
+    "avg_price_over_walkaway": 0.9582,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 2040,
+    "buyer_surplus_per_session_ci95": [
+     300,
+     4270
+    ],
+    "seller_surplus_capture": 0.5277,
+    "seller_profit_per_session": 6570.0,
+    "seller_discounted_rate": 1.0,
+    "buyer_backtracked_rate": 0.2,
+    "bundle_changed_deals": 2,
+    "paid_at_walkaway_rate": 0.2857,
+    "ended_by": {
+     "buyer_accept": 4,
+     "seller_accept": 3,
+     "seller_walk": 1,
+     "round_cap": 2
+    },
+    "model_cost_usd": 0.957,
+    "walkaway_leak_rate": 0.5,
+    "walkaway_leak_early_rate": 0.0,
+    "budget_disclosed_early_rate": 0.5,
+    "budget_disclosed_rate": 0.6,
+    "any_leak_rate": 0.8,
+    "stated_lower_limit_rate": 0.0
+   },
+   "no ask, strict_budget (budget = walk-away) / opus": {
+    "sessions": 16,
+    "deals": 16,
+    "conversion": 1.0,
+    "conversion_ci95": [
+     1.0,
+     1.0
+    ],
+    "feasible_sessions": 12,
+    "feasible_conversion": 1.0,
+    "counter_rate": 1.0,
+    "haggled_rate": 1.0,
+    "asked_discount_rate": 0.1875,
+    "avg_rounds": 4.5,
+    "avg_buyer_offers": 4.06,
+    "first_buyer_offer_pct_list": 0.8434,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.0808,
+    "avg_discount_pct_ci95": [
+     0.0689,
+     0.0936
+    ],
+    "avg_price_over_walkaway": 0.9606,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 2228.125,
+    "buyer_surplus_per_session_ci95": [
+     1246.875,
+     3450
+    ],
+    "seller_surplus_capture": 0.6515,
+    "seller_profit_per_session": 9709.38,
+    "seller_discounted_rate": 1.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 6,
+    "paid_at_walkaway_rate": 0.1875,
+    "ended_by": {
+     "seller_accept": 9,
+     "buyer_accept": 7
+    },
+    "model_cost_usd": 1.6998,
+    "walkaway_leak_rate": 0.25,
+    "walkaway_leak_early_rate": 0.0,
+    "budget_disclosed_early_rate": 0.0,
+    "budget_disclosed_rate": 0.0,
+    "any_leak_rate": 0.25,
+    "stated_lower_limit_rate": 0.0
+   }
+  },
+  "early_disclosure_vs_not": {
+   "disclosed a number early": {
+    "sessions": 13,
+    "deals": 8,
+    "avg_price_over_walkaway": 0.963,
+    "seller_surplus_capture": 0.4706
+   },
+   "did not": {
+    "sessions": 22,
+    "deals": 18,
+    "avg_price_over_walkaway": 0.9382,
+    "seller_surplus_capture": 0.4639
+   }
+  },
+  "examples": [
+   {
+    "key": "leak|available|neutral|opus|s305-b004|ask",
+    "walk_away": 48400,
+    "budget": 45500,
+    "walkaway_leak": false,
+    "walkaway_exact": false,
+    "walkaway_leak_early": false,
+    "budget_disclosed_early": false,
+    "budget_disclosed": true,
+    "any_leak": true,
+    "stated_lower_limit": false,
+    "stated_limit": true,
+    "judge_seller_asked": true,
+    "buyer_declined": true,
+    "judged": true
+   },
+   {
+    "key": "leak|available|neutral|opus|s305-b003|ask",
+    "walk_away": 40100,
+    "budget": 35000,
+    "walkaway_leak": false,
+    "walkaway_exact": false,
+    "walkaway_leak_early": false,
+    "budget_disclosed_early": true,
+    "budget_disclosed": true,
+    "any_leak": true,
+    "stated_lower_limit": false,
+    "stated_limit": true,
+    "judge_seller_asked": true,
+    "buyer_declined": false,
+    "judged": true
+   },
+   {
+    "key": "leak|available|neutral|opus|s305-b000|ask",
+    "walk_away": 23400,
+    "budget": 21000,
+    "walkaway_leak": true,
+    "walkaway_exact": true,
+    "walkaway_leak_early": false,
+    "budget_disclosed_early": true,
+    "budget_disclosed": true,
+    "any_leak": true,
+    "stated_lower_limit": false,
+    "stated_limit": true,
+    "judge_seller_asked": true,
+    "buyer_declined": false,
+    "judged": true
+   },
+   {
+    "key": "leak|available|neutral|opus|s305-b006|ask",
+    "walk_away": 23800,
+    "budget": 20500,
+    "walkaway_leak": true,
+    "walkaway_exact": true,
+    "walkaway_leak_early": false,
+    "budget_disclosed_early": true,
+    "budget_disclosed": true,
+    "any_leak": true,
+    "stated_lower_limit": false,
+    "stated_limit": true,
+    "judge_seller_asked": true,
+    "buyer_declined": false,
+    "judged": true
+   },
+   {
+    "key": "leak|available|neutral|opus|s305-b009|ask",
+    "walk_away": 30600,
+    "budget": 27500,
+    "walkaway_leak": false,
+    "walkaway_exact": false,
+    "walkaway_leak_early": false,
+    "budget_disclosed_early": true,
+    "budget_disclosed": true,
+    "any_leak": true,
+    "stated_lower_limit": false,
+    "stated_limit": true,
+    "judge_seller_asked": true,
+    "buyer_declined": false,
+    "judged": true
+   },
+   {
+    "key": "leak|available|neutral|opus|s305-b010|ask",
+    "walk_away": 73800,
+    "budget": 64000,
+    "walkaway_leak": false,
+    "walkaway_exact": false,
+    "walkaway_leak_early": false,
+    "budget_disclosed_early": true,
+    "budget_disclosed": true,
+    "any_leak": true,
+    "stated_lower_limit": false,
+    "stated_limit": true,
+    "judge_seller_asked": true,
+    "buyer_declined": false,
+    "judged": true
+   },
+   {
+    "key": "leak|available|neutral|opus|s305-b008|ask",
+    "walk_away": 39600,
+    "budget": 36500,
+    "walkaway_leak": true,
+    "walkaway_exact": true,
+    "walkaway_leak_early": false,
+    "budget_disclosed_early": false,
+    "budget_disclosed": true,
+    "any_leak": true,
+    "stated_lower_limit": false,
+    "stated_limit": true,
+    "judge_seller_asked": true,
+    "buyer_declined": true,
+    "judged": true
+   },
+   {
+    "key": "leak|available|neutral|opus|s305-b012|ask",
+    "walk_away": 44700,
+    "budget": 40500,
+    "walkaway_leak": false,
+    "walkaway_exact": false,
+    "walkaway_leak_early": false,
+    "budget_disclosed_early": false,
+    "budget_disclosed": true,
+    "any_leak": true,
+    "stated_lower_limit": false,
+    "stated_limit": true,
+    "judge_seller_asked": true,
+    "buyer_declined": true,
+    "judged": true
+   },
+   {
+    "key": "leak|available|neutral|opus|s305-b011|ask",
+    "walk_away": 61800,
+    "budget": 58000,
+    "walkaway_leak": false,
+    "walkaway_exact": false,
+    "walkaway_leak_early": false,
+    "budget_disclosed_early": true,
+    "budget_disclosed": true,
+    "any_leak": true,
+    "stated_lower_limit": false,
+    "stated_limit": true,
+    "judge_seller_asked": true,
+    "buyer_declined": false,
+    "judged": true
+   },
+   {
+    "key": "leak|available|neutral|opus|s305-b014|ask",
+    "walk_away": 28200,
+    "budget": 24500,
+    "walkaway_leak": true,
+    "walkaway_exact": true,
+    "walkaway_leak_early": false,
+    "budget_disclosed_early": true,
+    "budget_disclosed": true,
+    "any_leak": true,
+    "stated_lower_limit": false,
+    "stated_limit": true,
+    "judge_seller_asked": true,
+    "buyer_declined": false,
+    "judged": true
+   },
+   {
+    "key": "leak|available|neutral|sonnet|s305-b000|ask",
+    "walk_away": 23400,
+    "budget": 21000,
+    "walkaway_leak": true,
+    "walkaway_exact": true,
+    "walkaway_leak_early": false,
+    "budget_disclosed_early": false,
+    "budget_disclosed": false,
+    "any_leak": true,
+    "stated_lower_limit": false,
+    "stated_limit": true,
+    "judge_seller_asked": true,
+    "buyer_declined": true,
+    "judged": true
+   },
+   {
+    "key": "leak|available|neutral|sonnet|s305-b004|ask",
+    "walk_away": 48400,
+    "budget": 45500,
+    "walkaway_leak": false,
+    "walkaway_exact": false,
+    "walkaway_leak_early": false,
+    "budget_disclosed_early": false,
+    "budget_disclosed": true,
+    "any_leak": true,
+    "stated_lower_limit": false,
+    "stated_limit": true,
+    "judge_seller_asked": true,
+    "buyer_declined": true,
+    "judged": true
+   },
+   {
+    "key": "leak|available|neutral|sonnet|s305-b007|ask",
+    "walk_away": 53000,
+    "budget": 48000,
+    "walkaway_leak": false,
+    "walkaway_exact": false,
+    "walkaway_leak_early": false,
+    "budget_disclosed_early": false,
+    "budget_disclosed": true,
+    "any_leak": true,
+    "stated_lower_limit": false,
+    "stated_limit": true,
+    "judge_seller_asked": true,
+    "buyer_declined": true,
+    "judged": true
+   },
+   {
+    "key": "leak|available|neutral|sonnet|s305-b006|ask",
+    "walk_away": 23800,
+    "budget": 20500,
+    "walkaway_leak": true,
+    "walkaway_exact": true,
+    "walkaway_leak_early": false,
+    "budget_disclosed_early": false,
+    "budget_disclosed": false,
+    "any_leak": true,
+    "stated_lower_limit": false,
+    "stated_limit": true,
+    "judge_seller_asked": true,
+    "buyer_declined": true,
+    "judged": true
+   },
+   {
+    "key": "leak|available|neutral|sonnet|s305-b008|ask",
+    "walk_away": 39600,
+    "budget": 36500,
+    "walkaway_leak": true,
+    "walkaway_exact": true,
+    "walkaway_leak_early": false,
+    "budget_disclosed_early": false,
+    "budget_disclosed": false,
+    "any_leak": true,
+    "stated_lower_limit": false,
+    "stated_limit": true,
+    "judge_seller_asked": true,
+    "buyer_declined": true,
+    "judged": true
+   },
+   {
+    "key": "leak|available|neutral|sonnet|s305-b009|ask",
+    "walk_away": 30600,
+    "budget": 27500,
+    "walkaway_leak": true,
+    "walkaway_exact": true,
+    "walkaway_leak_early": false,
+    "budget_disclosed_early": false,
+    "budget_disclosed": false,
+    "any_leak": true,
+    "stated_lower_limit": false,
+    "stated_limit": true,
+    "judge_seller_asked": true,
+    "buyer_declined": false,
+    "judged": true
+   },
+   {
+    "key": "leak|available|neutral|haiku|s305-b002|ask",
+    "walk_away": 39200,
+    "budget": 34500,
+    "walkaway_leak": false,
+    "walkaway_exact": false,
+    "walkaway_leak_early": false,
+    "budget_disclosed_early": true,
+    "budget_disclosed": true,
+    "any_leak": true,
+    "stated_lower_limit": false,
+    "stated_limit": true,
+    "judge_seller_asked": true,
+    "buyer_declined": false,
+    "judged": true
+   },
+   {
+    "key": "leak|available|neutral|haiku|s305-b000|ask",
+    "walk_away": 23400,
+    "budget": 21000,
+    "walkaway_leak": true,
+    "walkaway_exact": true,
+    "walkaway_leak_early": false,
+    "budget_disclosed_early": true,
+    "budget_disclosed": true,
+    "any_leak": true,
+    "stated_lower_limit": false,
+    "stated_limit": true,
+    "judge_seller_asked": true,
+    "buyer_declined": false,
+    "judged": true
+   },
+   {
+    "key": "leak|available|neutral|haiku|s305-b004|ask",
+    "walk_away": 48400,
+    "budget": 45500,
+    "walkaway_leak": false,
+    "walkaway_exact": false,
+    "walkaway_leak_early": false,
+    "budget_disclosed_early": true,
+    "budget_disclosed": true,
+    "any_leak": true,
+    "stated_lower_limit": false,
+    "stated_limit": true,
+    "judge_seller_asked": true,
+    "buyer_declined": false,
+    "judged": true
+   },
+   {
+    "key": "leak|available|neutral|haiku|s305-b001|ask",
+    "walk_away": 38600,
+    "budget": 34000,
+    "walkaway_leak": false,
+    "walkaway_exact": false,
+    "walkaway_leak_early": false,
+    "budget_disclosed_early": true,
+    "budget_disclosed": true,
+    "any_leak": true,
+    "stated_lower_limit": false,
+    "stated_limit": true,
+    "judge_seller_asked": true,
+    "buyer_declined": false,
+    "judged": true
+   },
+   {
+    "key": "leak|available|neutral|haiku|s305-b006|ask",
+    "walk_away": 23800,
+    "budget": 20500,
+    "walkaway_leak": true,
+    "walkaway_exact": true,
+    "walkaway_leak_early": false,
+    "budget_disclosed_early": true,
+    "budget_disclosed": true,
+    "any_leak": true,
+    "stated_lower_limit": false,
+    "stated_limit": true,
+    "judge_seller_asked": true,
+    "buyer_declined": false,
+    "judged": true
+   },
+   {
+    "key": "leak|available|neutral|haiku|s305-b008|ask",
+    "walk_away": 39600,
+    "budget": 36500,
+    "walkaway_leak": true,
+    "walkaway_exact": true,
+    "walkaway_leak_early": false,
+    "budget_disclosed_early": false,
+    "budget_disclosed": true,
+    "any_leak": true,
+    "stated_lower_limit": false,
+    "stated_limit": true,
+    "judge_seller_asked": true,
+    "buyer_declined": true,
+    "judged": true
+   },
+   {
+    "key": "leak|available|neutral|haiku|s305-b009|ask",
+    "walk_away": 30600,
+    "budget": 27500,
+    "walkaway_leak": false,
+    "walkaway_exact": false,
+    "walkaway_leak_early": false,
+    "budget_disclosed_early": true,
+    "budget_disclosed": true,
+    "any_leak": true,
+    "stated_lower_limit": false,
+    "stated_limit": true,
+    "judge_seller_asked": true,
+    "buyer_declined": false,
+    "judged": true
+   }
+  ]
+ },
+ "b8": {
+  "cells": {
+   "default (budget + private walk-away)": {
+    "sessions": 15,
+    "deals": 11,
+    "conversion": 0.7333,
+    "conversion_ci95": [
+     0.5333,
+     0.9333
+    ],
+    "feasible_sessions": 11,
+    "feasible_conversion": 0.9091,
+    "counter_rate": 1.0,
+    "haggled_rate": 1.0,
+    "asked_discount_rate": 0.2,
+    "avg_rounds": 4.93,
+    "avg_buyer_offers": 4.47,
+    "first_buyer_offer_pct_list": 0.7895,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.0935,
+    "avg_discount_pct_ci95": [
+     0.0767,
+     0.1106
+    ],
+    "avg_price_over_walkaway": 0.9466,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 2073.3333,
+    "buyer_surplus_per_session_ci95": [
+     1026.6667,
+     3260
+    ],
+    "seller_surplus_capture": 0.4748,
+    "seller_profit_per_session": 7073.33,
+    "seller_discounted_rate": 1.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 4,
+    "paid_at_walkaway_rate": 0.0909,
+    "ended_by": {
+     "seller_accept": 7,
+     "buyer_accept": 4,
+     "round_cap": 1,
+     "buyer_walk": 3
+    },
+    "model_cost_usd": 1.8278,
+    "walkaway_leak_rate": 0.2667,
+    "walkaway_leak_early_rate": 0.0,
+    "budget_disclosed_early_rate": 0.4667,
+    "budget_disclosed_rate": 0.6667,
+    "any_leak_rate": 0.6667,
+    "stated_lower_limit_rate": 0.0
+   },
+   "budget only (= walk-away)": {
+    "sessions": 15,
+    "deals": 13,
+    "conversion": 0.8667,
+    "conversion_ci95": [
+     0.6667,
+     1.0
+    ],
+    "feasible_sessions": 11,
+    "feasible_conversion": 1.0,
+    "counter_rate": 1.0,
+    "haggled_rate": 1.0,
+    "asked_discount_rate": 0.4667,
+    "avg_rounds": 5.07,
+    "avg_buyer_offers": 4.67,
+    "first_buyer_offer_pct_list": 0.8182,
+    "accepted_first_seller_offer_rate": 0.0,
+    "avg_discount_pct": 0.0809,
+    "avg_discount_pct_ci95": [
+     0.0664,
+     0.0963
+    ],
+    "avg_price_over_walkaway": 0.9587,
+    "buyer_overpaid": 0,
+    "buyer_surplus_per_session": 1906.6667,
+    "buyer_surplus_per_session_ci95": [
+     1016.6667,
+     2950
+    ],
+    "seller_surplus_capture": 0.6104,
+    "seller_profit_per_session": 8393.33,
+    "seller_discounted_rate": 1.0,
+    "buyer_backtracked_rate": 0.0,
+    "bundle_changed_deals": 5,
+    "paid_at_walkaway_rate": 0.1538,
+    "ended_by": {
+     "seller_accept": 8,
+     "buyer_accept": 5,
+     "round_cap": 1,
+     "buyer_walk": 1
+    },
+    "model_cost_usd": 1.8725,
+    "walkaway_leak_rate": 0.4667,
+    "walkaway_leak_early_rate": 0.0,
+    "budget_disclosed_early_rate": 0.0,
+    "budget_disclosed_rate": 0.0,
+    "any_leak_rate": 0.4667,
+    "stated_lower_limit_rate": 0.0
+   }
+  },
+  "paired_budget_only_minus_default": {
+   "pairs": 15,
+   "both_closed": 11,
+   "both_closed_same_bundle": 8,
+   "price_diff_pct_same_bundle": 0.015,
+   "price_diff_pct_ci95": [
+    0.0063,
+    0.0232
+   ],
+   "n_haggle_cheaper": 1,
+   "n_equal": 0,
+   "discount_diff_pp": -0.0122,
+   "discount_diff_ci95": [
+    -0.0201,
+    -0.0037
+   ],
+   "buyer_surplus_diff_per_session": -166.6667,
+   "buyer_surplus_diff_ci95": [
+    -640,
+    370
+   ],
+   "conversion_diff": 0.1333,
+   "conversion_diff_ci95": [
+    0,
+    0.3333
+   ]
+  }
+ },
+ "n2": {
+  "negotiable_sessions": 144,
+  "table": [
+   {
+    "round": 2,
+    "ended_here": 3,
+    "deals_here": 3,
+    "no_deal_here": 0,
+    "conversion_if_ended_here": 1.0,
+    "feasible_conv_if_ended_here": 1.0,
+    "reached_round": 144,
+    "conv_given_reached": 0.847,
+    "cum_share_of_deals": 0.025,
+    "ended_by": {
+     "buyer_accept": 2,
+     "seller_accept": 1
+    }
+   },
+   {
+    "round": 3,
+    "ended_here": 30,
+    "deals_here": 30,
+    "no_deal_here": 0,
+    "conversion_if_ended_here": 1.0,
+    "feasible_conv_if_ended_here": 1.0,
+    "reached_round": 141,
+    "conv_given_reached": 0.844,
+    "cum_share_of_deals": 0.27,
+    "ended_by": {
+     "buyer_accept": 11,
+     "seller_accept": 19
+    }
+   },
+   {
+    "round": 4,
+    "ended_here": 36,
+    "deals_here": 36,
+    "no_deal_here": 0,
+    "conversion_if_ended_here": 1.0,
+    "feasible_conv_if_ended_here": 1.0,
+    "reached_round": 111,
+    "conv_given_reached": 0.802,
+    "cum_share_of_deals": 0.566,
+    "ended_by": {
+     "seller_accept": 22,
+     "buyer_accept": 14
+    }
+   },
+   {
+    "round": 5,
+    "ended_here": 23,
+    "deals_here": 23,
+    "no_deal_here": 0,
+    "conversion_if_ended_here": 1.0,
+    "feasible_conv_if_ended_here": 1.0,
+    "reached_round": 75,
+    "conv_given_reached": 0.707,
+    "cum_share_of_deals": 0.754,
+    "ended_by": {
+     "buyer_accept": 8,
+     "seller_accept": 15
+    }
+   },
+   {
+    "round": 6,
+    "ended_here": 10,
+    "deals_here": 9,
+    "no_deal_here": 1,
+    "conversion_if_ended_here": 0.9,
+    "feasible_conv_if_ended_here": 1.0,
+    "reached_round": 52,
+    "conv_given_reached": 0.577,
+    "cum_share_of_deals": 0.828,
+    "ended_by": {
+     "buyer_accept": 3,
+     "seller_accept": 6,
+     "buyer_walk": 1
+    }
+   },
+   {
+    "round": 7,
+    "ended_here": 11,
+    "deals_here": 11,
+    "no_deal_here": 0,
+    "conversion_if_ended_here": 1.0,
+    "feasible_conv_if_ended_here": 1.0,
+    "reached_round": 42,
+    "conv_given_reached": 0.5,
+    "cum_share_of_deals": 0.918,
+    "ended_by": {
+     "buyer_accept": 8,
+     "seller_accept": 3
+    }
+   },
+   {
+    "round": 8,
+    "ended_here": 31,
+    "deals_here": 10,
+    "no_deal_here": 21,
+    "conversion_if_ended_here": 0.323,
+    "feasible_conv_if_ended_here": 0.333,
+    "reached_round": 31,
+    "conv_given_reached": 0.323,
+    "cum_share_of_deals": 1.0,
+    "ended_by": {
+     "buyer_accept": 7,
+     "seller_accept": 3,
+     "buyer_walk": 8,
+     "round_cap": 12,
+     "seller_walk": 1
+    }
+   }
+  ],
+  "grid_negotiable_table": [
+   {
+    "round": 2,
+    "ended_here": 3,
+    "deals_here": 3,
+    "no_deal_here": 0,
+    "conversion_if_ended_here": 1.0,
+    "feasible_conv_if_ended_here": 1.0,
+    "reached_round": 64,
+    "conv_given_reached": 0.938,
+    "cum_share_of_deals": 0.05,
+    "ended_by": {
+     "buyer_accept": 2,
+     "seller_accept": 1
+    }
+   },
+   {
+    "round": 3,
+    "ended_here": 17,
+    "deals_here": 17,
+    "no_deal_here": 0,
+    "conversion_if_ended_here": 1.0,
+    "feasible_conv_if_ended_here": 1.0,
+    "reached_round": 61,
+    "conv_given_reached": 0.934,
+    "cum_share_of_deals": 0.333,
+    "ended_by": {
+     "buyer_accept": 6,
+     "seller_accept": 11
+    }
+   },
+   {
+    "round": 4,
+    "ended_here": 20,
+    "deals_here": 20,
+    "no_deal_here": 0,
+    "conversion_if_ended_here": 1.0,
+    "feasible_conv_if_ended_here": 1.0,
+    "reached_round": 44,
+    "conv_given_reached": 0.909,
+    "cum_share_of_deals": 0.667,
+    "ended_by": {
+     "seller_accept": 12,
+     "buyer_accept": 8
+    }
+   },
+   {
+    "round": 5,
+    "ended_here": 6,
+    "deals_here": 6,
+    "no_deal_here": 0,
+    "conversion_if_ended_here": 1.0,
+    "feasible_conv_if_ended_here": 1.0,
+    "reached_round": 24,
+    "conv_given_reached": 0.833,
+    "cum_share_of_deals": 0.767,
+    "ended_by": {
+     "buyer_accept": 1,
+     "seller_accept": 5
+    }
+   },
+   {
+    "round": 6,
+    "ended_here": 4,
+    "deals_here": 4,
+    "no_deal_here": 0,
+    "conversion_if_ended_here": 1.0,
+    "feasible_conv_if_ended_here": 1.0,
+    "reached_round": 18,
+    "conv_given_reached": 0.778,
+    "cum_share_of_deals": 0.833,
+    "ended_by": {
+     "buyer_accept": 2,
+     "seller_accept": 2
+    }
+   },
+   {
+    "round": 7,
+    "ended_here": 2,
+    "deals_here": 2,
+    "no_deal_here": 0,
+    "conversion_if_ended_here": 1.0,
+    "feasible_conv_if_ended_here": null,
+    "reached_round": 14,
+    "conv_given_reached": 0.714,
+    "cum_share_of_deals": 0.867,
+    "ended_by": {
+     "buyer_accept": 2
+    }
+   },
+   {
+    "round": 8,
+    "ended_here": 12,
+    "deals_here": 8,
+    "no_deal_here": 4,
+    "conversion_if_ended_here": 0.667,
+    "feasible_conv_if_ended_here": null,
+    "reached_round": 12,
+    "conv_given_reached": 0.667,
+    "cum_share_of_deals": 1.0,
+    "ended_by": {
+     "buyer_accept": 6,
+     "seller_accept": 2,
+     "buyer_walk": 3,
+     "round_cap": 1
+    }
+   }
+  ]
+ },
+ "cost_usd": {
+  "grid": 8.5,
+  "models": 4.55,
+  "leak": 3.88,
+  "b8": 1.87,
+  "leak_judge": 3.77,
+  "all_logged_sessions_incl_errors": 18.81,
+  "total": 22.58
+ },
+ "sessions": {
+  "grid": 96,
+  "models": 60,
+  "leak": 35,
+  "b8": 15
+ }
+}

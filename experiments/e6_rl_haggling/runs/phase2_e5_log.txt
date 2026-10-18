@@ -1,0 +1,26 @@
+20 sessions to run (best fixed = td(beta=0.75,reserve=0.0))
+[phase2] 1/20 done (72s)
+[phase2] 2/20 done (96s)
+[phase2] 3/20 done (98s)
+[phase2] 4/20 done (156s)
+[phase2] 5/20 done (183s)
+[phase2] 6/20 done (194s)
+[phase2] 7/20 done (218s)
+[phase2] 8/20 done (238s)
+[phase2] 9/20 done (296s)
+[phase2] 10/20 done (308s)
+[phase2] 11/20 done (312s)
+[phase2] 12/20 done (384s)
+[phase2] 13/20 done (388s)
+[phase2] 14/20 done (405s)
+[phase2] 15/20 done (483s)
+[phase2] 16/20 done (487s)
+[phase2] 17/20 done (505s)
+[phase2] 18/20 done (575s)
+[phase2] 19/20 done (582s)
+[phase2] 20/20 done (590s)
+opus learned {'sessions': 20, 'errors': 0, 'conversion': 0.9, 'profit_per_session': 8252.5, 'profit_per_session_ci95': [6420.0, 10077.5], 'avg_rounds': 6.45, 'model_cost_usd': 3.342}
+opus best_fixed {'sessions': 20, 'errors': 0, 'conversion': 0.8, 'profit_per_session': 7645.0, 'profit_per_session_ci95': [5517.5, 9637.5], 'avg_rounds': 5.6, 'model_cost_usd': 3.0505}
+opus e5:bundle_first {'sessions': 20, 'errors': 0, 'conversion': 0.7, 'profit_per_session': 6967.5, 'profit_per_session_ci95': [4775.0, 9272.5], 'avg_rounds': 6.9, 'model_cost_usd': 4.1704}
+haiku learned {'sessions': 10, 'errors': 0, 'conversion': 0.6, 'profit_per_session': 6570.0, 'profit_per_session_ci95': [3020.0, 10110.0], 'avg_rounds': 7.1, 'model_cost_usd': 1.1271}
+haiku best_fixed {'sessions': 10, 'errors': 0, 'conversion': 0.8, 'profit_per_session': 8125.0, 'profit_per_session_ci95': [4780.0, 11030.0], 'avg_rounds': 5.5, 'model_cost_usd': 0.8189}

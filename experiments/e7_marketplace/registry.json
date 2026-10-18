@@ -1,0 +1,86 @@
+{
+  "registry": "E7 local seller registry (simulated discovery)",
+  "note": "All four sellers carry the same three tractors and three add-ons with identical specs.",
+  "sellers": [
+    {
+      "id": "heartland",
+      "name": "Heartland Tractor Supply",
+      "description": "Family-run tractor dealer since 1987. Sells the T25 Compact, T45 Utility and T75 Row-Crop, plus loader, warranty and delivery add-ons.",
+      "endpoint": "https://heartland.agents.example/a2a",
+      "negotiable": false,
+      "pitch": "Straightforward pricing: our list price is the price. No haggling, no surprises.",
+      "list_prices": {
+        "tractors": {
+          "T25": 28500,
+          "T45": 42000,
+          "T75": 68000
+        },
+        "addons": {
+          "loader": 6500,
+          "warranty": 2400,
+          "delivery": 900
+        }
+      }
+    },
+    {
+      "id": "valueag",
+      "name": "ValueAg Direct",
+      "description": "Online-first equipment dealer with low overhead. Sells the T25 Compact, T45 Utility and T75 Row-Crop, plus loader, warranty and delivery add-ons.",
+      "endpoint": "https://valueag.agents.example/a2a",
+      "negotiable": false,
+      "pitch": "Everyday low prices: about 5% below standard list on every tractor and add-on. Fixed prices, no haggling.",
+      "list_prices": {
+        "tractors": {
+          "T25": 27100,
+          "T45": 39900,
+          "T75": 64600
+        },
+        "addons": {
+          "loader": 6200,
+          "warranty": 2300,
+          "delivery": 850
+        }
+      }
+    },
+    {
+      "id": "prairie",
+      "name": "Prairie Equipment Co.",
+      "description": "Regional tractor dealer. Sells the T25 Compact, T45 Utility and T75 Row-Crop, plus loader, warranty and delivery add-ons.",
+      "endpoint": "https://prairie.agents.example/a2a",
+      "negotiable": true,
+      "pitch": "Talk to our sales agent: we'll work with you on price and bundles to find a deal that fits.",
+      "list_prices": {
+        "tractors": {
+          "T25": 28500,
+          "T45": 42000,
+          "T75": 68000
+        },
+        "addons": {
+          "loader": 6500,
+          "warranty": 2400,
+          "delivery": 900
+        }
+      }
+    },
+    {
+      "id": "fieldline",
+      "name": "FieldLine Machinery",
+      "description": "Equipment dealer with an automated pricing desk. Sells the T25 Compact, T45 Utility and T75 Row-Crop, plus loader, warranty and delivery add-ons.",
+      "endpoint": "https://fieldline.agents.example/a2a",
+      "negotiable": true,
+      "pitch": "Live pricing: our quotes respond to your order, your timeline, and the market. Bring us a written quote and we'll try to beat it.",
+      "list_prices": {
+        "tractors": {
+          "T25": 28500,
+          "T45": 42000,
+          "T75": 68000
+        },
+        "addons": {
+          "loader": 6500,
+          "warranty": 2400,
+          "delivery": 900
+        }
+      }
+    }
+  ]
+}

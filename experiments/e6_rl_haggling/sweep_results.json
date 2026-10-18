@@ -1,0 +1,85 @@
+{
+ "fixed": {
+  "boulware": 5619.7,
+  "linear": 6517.0,
+  "conceder": 6145.7,
+  "split_difference": 6400.6,
+  "tit_for_tat": 6105.4,
+  "static_list": 2930.3,
+  "floor_now": 4912.1
+ },
+ "runs": [
+  {
+   "episodes": 100000,
+   "method": "q",
+   "alpha_pow": 0.6,
+   "eps_end": 0.05,
+   "val_pps": 6528.9,
+   "val_conv": 0.653,
+   "secs": 8
+  },
+  {
+   "episodes": 100000,
+   "method": "q",
+   "alpha_pow": 1.0,
+   "eps_end": 0.05,
+   "val_pps": 6429.4,
+   "val_conv": 0.614,
+   "secs": 9
+  },
+  {
+   "episodes": 100000,
+   "method": "mc",
+   "alpha_pow": 0.6,
+   "eps_end": 0.05,
+   "val_pps": 6111.9,
+   "val_conv": 0.652,
+   "secs": 4
+  },
+  {
+   "episodes": 100000,
+   "method": "mc",
+   "alpha_pow": 1.0,
+   "eps_end": 0.05,
+   "val_pps": 5798.0,
+   "val_conv": 0.64,
+   "secs": 4
+  },
+  {
+   "episodes": 300000,
+   "method": "q",
+   "alpha_pow": 0.6,
+   "eps_end": 0.05,
+   "val_pps": 6556.8,
+   "val_conv": 0.663,
+   "secs": 24
+  },
+  {
+   "episodes": 300000,
+   "method": "q",
+   "alpha_pow": 1.0,
+   "eps_end": 0.05,
+   "val_pps": 6504.5,
+   "val_conv": 0.6415,
+   "secs": 25
+  },
+  {
+   "episodes": 300000,
+   "method": "mc",
+   "alpha_pow": 0.6,
+   "eps_end": 0.05,
+   "val_pps": 6361.1,
+   "val_conv": 0.6535,
+   "secs": 14
+  },
+  {
+   "episodes": 300000,
+   "method": "mc",
+   "alpha_pow": 1.0,
+   "eps_end": 0.05,
+   "val_pps": 6066.7,
+   "val_conv": 0.6455,
+   "secs": 13
+  }
+ ]
+}

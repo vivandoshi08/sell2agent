@@ -1,0 +1,162 @@
+[
+ {
+  "group": "profit",
+  "buyer_type": "all",
+  "conversion": 1.0,
+  "margin": 0.2614,
+  "profit_per_session": 13358.33,
+  "revenue_per_session": 51104.17,
+  "premium_share": 0.4583,
+  "sessions": 24
+ },
+ {
+  "group": "conversion",
+  "buyer_type": "all",
+  "conversion": 1.0,
+  "margin": 0.2333,
+  "profit_per_session": 11716.67,
+  "revenue_per_session": 50220.83,
+  "premium_share": 0.5,
+  "sessions": 24
+ },
+ {
+  "group": "balanced",
+  "buyer_type": "all",
+  "conversion": 0.9583,
+  "margin": 0.2534,
+  "profit_per_session": 12445.83,
+  "revenue_per_session": 49125.0,
+  "premium_share": 0.4783,
+  "sessions": 24
+ },
+ {
+  "group": "adaptive",
+  "buyer_type": "all",
+  "conversion": 1.0,
+  "margin": 0.2509,
+  "profit_per_session": 12651.04,
+  "revenue_per_session": 50421.88,
+  "premium_share": 0.4583,
+  "sessions": 24
+ },
+ {
+  "group": "profit",
+  "buyer_type": "price_first",
+  "conversion": 1.0,
+  "margin": 0.2386,
+  "profit_per_session": 11200.0,
+  "revenue_per_session": 46950.0,
+  "premium_share": 0.25,
+  "sessions": 8
+ },
+ {
+  "group": "profit",
+  "buyer_type": "quality_first",
+  "conversion": 1.0,
+  "margin": 0.2758,
+  "profit_per_session": 15506.25,
+  "revenue_per_session": 56218.75,
+  "premium_share": 0.875,
+  "sessions": 8
+ },
+ {
+  "group": "profit",
+  "buyer_type": "balanced",
+  "conversion": 1.0,
+  "margin": 0.2666,
+  "profit_per_session": 13368.75,
+  "revenue_per_session": 50143.75,
+  "premium_share": 0.25,
+  "sessions": 8
+ },
+ {
+  "group": "conversion",
+  "buyer_type": "price_first",
+  "conversion": 1.0,
+  "margin": 0.2147,
+  "profit_per_session": 9912.5,
+  "revenue_per_session": 46175.0,
+  "premium_share": 0.25,
+  "sessions": 8
+ },
+ {
+  "group": "conversion",
+  "buyer_type": "quality_first",
+  "conversion": 1.0,
+  "margin": 0.2419,
+  "profit_per_session": 13556.25,
+  "revenue_per_session": 56031.25,
+  "premium_share": 1.0,
+  "sessions": 8
+ },
+ {
+  "group": "conversion",
+  "buyer_type": "balanced",
+  "conversion": 1.0,
+  "margin": 0.2411,
+  "profit_per_session": 11681.25,
+  "revenue_per_session": 48456.25,
+  "premium_share": 0.25,
+  "sessions": 8
+ },
+ {
+  "group": "balanced",
+  "buyer_type": "price_first",
+  "conversion": 0.875,
+  "margin": 0.2375,
+  "profit_per_session": 9775.0,
+  "revenue_per_session": 41150.0,
+  "premium_share": 0.2857,
+  "sessions": 8
+ },
+ {
+  "group": "balanced",
+  "buyer_type": "quality_first",
+  "conversion": 1.0,
+  "margin": 0.2594,
+  "profit_per_session": 14643.75,
+  "revenue_per_session": 56456.25,
+  "premium_share": 0.875,
+  "sessions": 8
+ },
+ {
+  "group": "balanced",
+  "buyer_type": "balanced",
+  "conversion": 1.0,
+  "margin": 0.2596,
+  "profit_per_session": 12918.75,
+  "revenue_per_session": 49768.75,
+  "premium_share": 0.25,
+  "sessions": 8
+ },
+ {
+  "group": "adaptive",
+  "buyer_type": "price_first",
+  "conversion": 1.0,
+  "margin": 0.2216,
+  "profit_per_session": 10178.12,
+  "revenue_per_session": 45928.12,
+  "premium_share": 0.25,
+  "sessions": 8
+ },
+ {
+  "group": "adaptive",
+  "buyer_type": "quality_first",
+  "conversion": 1.0,
+  "margin": 0.2708,
+  "profit_per_session": 15143.75,
+  "revenue_per_session": 55931.25,
+  "premium_share": 0.875,
+  "sessions": 8
+ },
+ {
+  "group": "adaptive",
+  "buyer_type": "balanced",
+  "conversion": 1.0,
+  "margin": 0.2557,
+  "profit_per_session": 12631.25,
+  "revenue_per_session": 49406.25,
+  "premium_share": 0.25,
+  "sessions": 8
+ }
+]

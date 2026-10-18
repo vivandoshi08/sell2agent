@@ -1,0 +1,22 @@
+17:06:01 phase=pilot personas=2 conditions=10 todo=20 sha=539732269c model=claude-opus-5-5 effort=low max_conc=3
+17:07:02 open_llm          s505-b000 neutral   buyer_accept  deal=True  price=32000 profit=7500 walk=32200 floor=29700 rounds=5 cost=$0.100 wall=61s total=$0.10
+17:07:06 anchor_value      s505-b000 neutral   seller_accept deal=True  price=31300 profit=7200 walk=32200 floor=29700 rounds=5 cost=$0.137 wall=65s total=$0.24
+17:07:38 boulware_llm      s505-b000 neutral   seller_accept deal=True  price=32200 profit=8100 walk=32200 floor=29700 rounds=7 cost=$0.204 wall=97s total=$0.44
+17:08:00 split_llm         s505-b000 neutral   buyer_accept  deal=True  price=30800 profit=6700 walk=32200 floor=29700 rounds=5 cost=$0.104 wall=58s total=$0.54
+17:08:18 conceder          s505-b000 neutral   buyer_accept  deal=True  price=31200 profit=7100 walk=32200 floor=29700 rounds=4 cost=$0.071 wall=40s total=$0.61
+17:08:37 boulware          s505-b000 neutral   seller_accept deal=True  price=32200 profit=8100 walk=32200 floor=29700 rounds=7 cost=$0.190 wall=91s total=$0.81
+17:09:14 tit_for_tat       s505-b000 neutral   seller_accept deal=True  price=32000 profit=7900 walk=32200 floor=29700 rounds=6 cost=$0.151 wall=74s total=$0.96
+17:09:33 split_difference  s505-b000 neutral   buyer_accept  deal=True  price=32000 profit=7500 walk=32200 floor=29700 rounds=7 cost=$0.160 wall=74s total=$1.12
+17:09:46 fixed_price       s505-b000 neutral   seller_accept deal=True  price=28500 profit=8500 walk=32200 floor=29700 rounds=3 cost=$0.068 wall=33s total=$1.18
+17:10:46 bundle_first      s505-b000 neutral   seller_accept deal=True  price=28200 profit=7200 walk=32200 floor=29700 rounds=7 cost=$0.242 wall=129s total=$1.43
+17:10:56 open_llm          s505-b001 best_deal buyer_accept  deal=True  price=60750 profit=8750 walk=60900 floor=60200 rounds=7 cost=$0.188 wall=84s total=$1.61
+17:11:11 anchor_value      s505-b001 best_deal buyer_accept  deal=True  price=60700 profit=9100 walk=60900 floor=60200 rounds=7 cost=$0.210 wall=84s total=$1.82
+17:12:27 boulware_llm      s505-b001 best_deal seller_accept deal=True  price=60900 profit=9300 walk=60900 floor=60200 rounds=8 cost=$0.263 wall=101s total=$2.09
+17:12:31 split_llm         s505-b001 best_deal seller_accept deal=True  price=60200 profit=8600 walk=60900 floor=60200 rounds=7 cost=$0.207 wall=95s total=$2.29
+17:12:50 boulware          s505-b001 best_deal buyer_walk    deal=False price=None profit=0 walk=60900 floor=60200 rounds=8 cost=$0.230 wall=99s total=$2.52
+17:13:58 conceder          s505-b001 best_deal buyer_accept  deal=True  price=60600 profit=9000 walk=60900 floor=60200 rounds=8 cost=$0.222 wall=91s total=$2.75
+17:14:20 tit_for_tat       s505-b001 best_deal seller_accept deal=True  price=60900 profit=9300 walk=60900 floor=60200 rounds=8 cost=$0.254 wall=109s total=$3.00
+17:14:27 split_difference  s505-b001 best_deal buyer_accept  deal=True  price=60700 profit=8700 walk=60900 floor=60200 rounds=8 cost=$0.224 wall=97s total=$3.22
+17:14:55 fixed_price       s505-b001 best_deal buyer_walk    deal=False price=None profit=0 walk=60900 floor=60200 rounds=3 cost=$0.060 wall=36s total=$3.28
+17:15:37 bundle_first      s505-b001 best_deal seller_accept deal=True  price=60900 profit=8900 walk=60900 floor=60200 rounds=8 cost=$0.275 wall=100s total=$3.56
+17:15:37 finished phase=pilot spent=$3.56
