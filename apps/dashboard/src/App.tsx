@@ -30,7 +30,7 @@ export function App() {
           <h1>Static listings vs. negotiating sellers</h1>
         </div>
         <div className="badges">
-          <span className={`badge ${feed.mode}`}>{feed.mode === "live" ? "Live · Supabase" : "Sample data"}</span>
+          <span className={`badge ${feed.mode === "local" ? "live" : feed.mode}`}>{feed.label}</span>
           <span className="badge num">{buyers} buyers</span>
           <span className="badge num">{events.length} events</span>
         </div>
