@@ -300,6 +300,17 @@ test("oai_ (ChatGPT user): own bucket, memory expires after the TTL, OAI_START_L
   assert.equal((await ex.handle({ kind: "offer", ctx: ctx(me), product_id: P, offer_price_cents: 9000 })).error?.code, "rate_limited");
 });
 
+test("eval strategy override: static for a signed eval run only", async () => {
+  const { ex } = setup();
+  const runOut = async (c: ReturnType<typeof ctx>) => {
+    let r = await ex.handle({ kind: "offer", ctx: c, product_id: P, offer_price_cents: 9000, strategy: "static" });
+    while (r.allowed_actions.includes("offer")) r = await ex.handle({ kind: "offer", ctx: c, product_id: P, negotiation_id: r.negotiation_id, offer_price_cents: 9500 });
+    return r.standing_offer!.price_cents;
+  };
+  assert.equal(await runOut({ ...ctx("b001"), run_id: signEvalRun("run_static") }), 12900, "static seller holds list");
+  assert.ok((await runOut(ctx("b002"))) < 12900, "unsigned run ignores the override");
+});
+
 test("clearBuyerMemory (anon:reset): the next anon chat starts from list", async () => {
   const { ex, store } = setup();
   let r = await ex.handle({ kind: "offer", ctx: ctx("anon_x1"), product_id: P, offer_price_cents: 9000 });

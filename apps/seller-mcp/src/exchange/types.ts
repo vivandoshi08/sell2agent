@@ -39,6 +39,8 @@ export interface OfferMove extends MoveBase {
   buyer_profile?: BuyerLeverProfile;
   /** Lever package the buyer wants included (must be in the listing's allowed levers). Omit to keep the current one. */
   levers?: string[];
+  /** Eval A/B only: seller strategy for this negotiation. Honoured only for a signed eval run_id (signEvalRun); floors still hold. */
+  strategy?: "static" | "negotiating" | "balanced";
 }
 /** accept_deal: accept the seller's standing offer, by its offer_id. */
 export interface AcceptMove extends MoveBase {
@@ -121,6 +123,8 @@ export interface LockedDeal {
 export interface Negotiation {
   id: string;
   run_id: string;
+  /** Eval A/B override (signed eval runs only); absent = the product's catalog strategy. */
+  strategy?: "static" | "negotiating" | "balanced";
   buyer_id: string;
   buyer_model: string;
   seller_id: string;

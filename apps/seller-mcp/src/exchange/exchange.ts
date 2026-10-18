@@ -16,7 +16,7 @@ import { defaultSink, guardrailSeverity, type EventSink } from "./events";
 import { inspectInput } from "./input-guard";
 import { checkOutput, fallbackMessage, type OutputContext } from "./output-guard";
 import { allowedActions, assertTransition } from "./state";
-import { MemoryStore, liveMemory, memoryKey, limitKey, breakerKey, probeId, type ExchangeStore } from "./store";
+import { MemoryStore, liveMemory, memoryKey, limitKey, breakerKey, probeId, isEvalRun, type ExchangeStore } from "./store";
 import { ProbeBreaker, StartLimiter, startLimitFor, buyerEndpoint, jitterStep, leverCost, NEAR_MISS_BAND } from "./probing";
 import { CONCESSION_CAP } from "./decision-guard";
 import { Outreach, type Sender } from "./outreach";
@@ -135,6 +135,7 @@ export class Exchange {
       if (!this.limiter.allow(limitKey(m.ctx.buyer_id, p.product_id, m.ctx.run_id), startLimitFor(m.ctx.buyer_id)))
         return fail("rate_limited", "too many negotiations started on this product today; continue an existing negotiation_id instead");
       n = this.newNegotiation(m, p, qty);
+      if (m.strategy && isEvalRun(m.ctx.run_id) && ["static", "negotiating", "balanced"].includes(m.strategy)) n.strategy = m.strategy;
       // E11 buyer memory: a returning buyer resumes where they left off. Never quoted higher than before,
       // and the concession clock doesn't restart, so restarting can't bisect toward the floor.
       const mem = liveMemory(n.buyer_id, await this.store.getBuyerMemory(memoryKey(n.buyer_id, p.product_id, n.run_id)), this.now());
@@ -154,6 +155,7 @@ export class Exchange {
       if (!p) return fail("unknown_product", `product ${n.product_id} is no longer sold`);
     }
 
+    if (n.strategy) p = { ...p, strategy: n.strategy }; // eval A/B override (signed eval runs only)
     // lever package: only levers this listing offers; price is checked against floor + lever costs
     const levers = [...new Set(m.levers ?? n.levers ?? [])];
     const bad = levers.filter((l) => !p!.allowed_levers.includes(l));
