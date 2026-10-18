@@ -23,14 +23,21 @@ export function cardStatus(deal: StoredDeal, now: Date): DealCard["status"] {
   return "ready";
 }
 
-export function toDealCard(deal: StoredDeal, product: ProductFacts, now: Date = new Date()): DealCard {
-  const listTotal = product.list_price_cents * deal.quantity;
+/** "s_keyforge" → "Keyforge". Used only when no public catalog gives a seller name. */
+export function sellerNameFromId(seller_id: string): string {
+  const s = seller_id.replace(/^s_/, "").replace(/[_-]+/g, " ").trim();
+  return s.replace(/\b\w/g, (c) => c.toUpperCase()) || seller_id;
+}
+
+export function toDealCard(deal: StoredDeal, product: ProductFacts | null, now: Date = new Date()): DealCard {
+  const listUnit = deal.list_price_cents ?? product?.list_price_cents ?? deal.unit_price_cents;
+  const listTotal = listUnit * deal.quantity;
   return {
     deal_id: deal.deal_id,
-    seller_name: product.seller_name,
-    product: { id: product.product_id, title: product.title },
+    seller_name: product?.seller_name ?? sellerNameFromId(deal.seller_id),
+    product: { id: deal.product_id, title: deal.title ?? product?.title ?? deal.product_id },
     quantity: deal.quantity,
-    list_unit_price_cents: product.list_price_cents,
+    list_unit_price_cents: listUnit,
     unit_price_cents: deal.unit_price_cents,
     list_total_cents: listTotal,
     total_cents: deal.total_cents,

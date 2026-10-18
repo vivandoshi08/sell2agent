@@ -30,6 +30,9 @@ export interface StoredDeal {
   levers: DealLever[];
   expires_at: string; // ISO 8601
   state: DealState;
+  /** E1's locked deal carries these, so the card doesn't need a catalog lookup for them. */
+  title?: string;
+  list_price_cents?: number;
 }
 
 /** Public product facts the card needs. Comes from the catalog (S1), never from seller policy. */
@@ -41,11 +44,13 @@ export interface ProductFacts {
 }
 
 /** Refusal codes from the exchange's payment check. Mirrors E1's plan: tampering, replay, expired, unknown. */
-export type ValidationCode = "unknown_deal" | "expired" | "already_paid" | "wrong_buyer" | "tampered" | "not_payable";
+export type ValidationCode =
+  | "unknown_deal" | "expired" | "already_paid" | "wrong_buyer" | "tampered" | "not_payable"
+  | "amount_mismatch" | "policy_recheck_failed"; // the last two come from E1's real exchange
 
 export type Validation =
   | { ok: true; deal: StoredDeal }
-  | { ok: false; code: ValidationCode; reason: string };
+  | { ok: false; code: ValidationCode; reason: string; fix?: string; payment_intent_id?: string };
 
 /** What S2 needs from the exchange (E1). */
 export interface DealSource {
@@ -53,6 +58,8 @@ export interface DealSource {
   getDeal(deal_id: string): Promise<StoredDeal | null>;
   /** E1 re-checks policy and binding before money moves. */
   validateForPayment(deal_id: string, buyer: Partial<BuyerContext> | undefined, credential: PaymentCredential): Promise<Validation>;
+  /** Tell the exchange the deal is paid (E1: `ex.markPaid`). Optional for mocks. */
+  markPaid?(deal_id: string, payment_intent_id: string): Promise<void>;
 }
 
 export interface CatalogSource {

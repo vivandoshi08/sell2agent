@@ -31,7 +31,7 @@ export function fixtureProducts(): ProductFacts[] {
   ];
 }
 
-export function createMockExchange(deals: StoredDeal[] = fixtureDeals()): DealSource & { markPaid(deal_id: string): void } {
+export function createMockExchange(deals: StoredDeal[] = fixtureDeals()): DealSource {
   const byId = new Map(deals.map((d) => [d.deal_id, { ...d }]));
   return {
     async getDeal(deal_id) {
@@ -47,7 +47,7 @@ export function createMockExchange(deals: StoredDeal[] = fixtureDeals()): DealSo
       if (buyer?.buyer_id && buyer.buyer_id !== d.buyer_id) return { ok: false, code: "wrong_buyer", reason: "deal is bound to a different buyer" };
       return { ok: true, deal: { ...d, levers: [...d.levers] } };
     },
-    markPaid(deal_id) {
+    async markPaid(deal_id) {
       const d = byId.get(deal_id);
       if (d) d.state = "PAID";
     },

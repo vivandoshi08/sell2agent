@@ -18,10 +18,12 @@ export type { DealCard, PayResult, StoredDeal, DealSource, CatalogSource, Produc
 export { toDealCard, assertPublic, leverLabel, PRIVATE_KEYS } from "./card";
 export { createPayHandler } from "./pay";
 export { createMockExchange, createMockCatalog, fixtureDeals, fixtureProducts } from "./mock-exchange";
+export { fromExchange, type ExchangeLike } from "./exchange-adapter";
 
 export interface DealModuleDeps {
   deals: DealSource;
-  catalog: CatalogSource;
+  /** Public catalog (S1) for seller names. Optional: E1's deals already carry title and list price. */
+  catalog?: CatalogSource;
   payDeal?: Parameters<typeof createPayHandler>[0]["payDeal"];
   logEvent?: (e: NegotiationEvent) => Promise<void>;
   defaultCredential?: () => PaymentCredential | null;
@@ -55,8 +57,8 @@ export function createDealModule(deps: DealModuleDeps) {
   async function reviewDeal(deal_id: string): Promise<DealCard> {
     const deal = await deps.deals.getDeal(deal_id);
     if (!deal) throw new Error(`No deal ${deal_id}. Call accept_deal first and use the deal_id it returns.`);
-    const product = await deps.catalog.getProduct(deal.product_id);
-    if (!product) throw new Error(`Deal ${deal_id} refers to unknown product ${deal.product_id}.`);
+    const product = deps.catalog ? await deps.catalog.getProduct(deal.product_id) : null;
+    if (!product && deal.title === undefined) throw new Error(`Deal ${deal_id} refers to unknown product ${deal.product_id}.`);
     const card = toDealCard(deal, product);
     assertPublic(card);
     return card;

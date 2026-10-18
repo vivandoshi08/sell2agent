@@ -88,7 +88,10 @@ test("concurrent double-click charges once", async () => {
 
 test("exchange refusals come back with a reason and a fix, and nothing is charged", async () => {
   const { mod, charges, events } = setup();
-  for (const [id, code] of [["deal_demo_expired", "expired"], ["deal_demo_paid", "already_paid"], ["nope", "unknown_deal"]] as const) {
+  const paid = await mod.payApprovedDeal("deal_demo_paid");
+  assert.equal(paid.status, "succeeded");
+  assert.equal(paid.already_paid, true);
+  for (const [id, code] of [["deal_demo_expired", "expired"], ["nope", "unknown_deal"]] as const) {
     const r = await mod.payApprovedDeal(id);
     assert.equal(r.status, "refused");
     assert.equal(r.code, code);
