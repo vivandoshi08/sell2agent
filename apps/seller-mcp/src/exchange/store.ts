@@ -2,6 +2,7 @@
  * E1 · Exchange store. One interface, two backends: memory (tests, local) and Supabase (deploy; Manufact is
  * stateless). The Supabase backend lands once the contract has an offers table (docs/e1-asks.html n2–n4).
  */
+import { createHmac } from "node:crypto";
 import type { LockedDeal, Negotiation, StandingOffer } from "./types";
 
 export interface ExchangeStore {
@@ -36,8 +37,35 @@ export const isAnon = (buyer_id: string) => buyer_id.startsWith(ANON_PREFIX);
 export const OAI_PREFIX = "oai_";
 /** Ids the gateway derives from what the client reports (not a verified account): memory expires for these. */
 export const isClientAsserted = (buyer_id: string) => isAnon(buyer_id) || buyer_id.startsWith(OAI_PREFIX);
-export const probeId = (buyer_id: string) => (isAnon(buyer_id) ? "anon" : buyer_id);
-export const memoryKey = (buyer_id: string, product_id: string) => `${probeId(buyer_id)}::${product_id}`;
+/**
+ * Signed eval runs (Bridge 2): simulated buyers reuse ids like `b001` across runs and all hit the one deployed
+ * store, so run 2 would resume at run 1's prices, hit the 4/day start limit, and a near-miss adversary would trip
+ * the probe breaker for the live demo. A run_id `eval_<id>.<sig>` (sig = HMAC of the id with
+ * EXCHANGE_HMAC_SECRET) scopes every anti-probing bucket to that run. Unsigned run_ids change nothing, so a
+ * shopper can't rotate run_id to dodge memory or limits. Harness: `run_id: signEvalRun("run_…")`.
+ */
+export const EVAL_PREFIX = "eval_";
+const evalSig = (id: string) =>
+  createHmac("sha256", process.env.EXCHANGE_HMAC_SECRET ?? "dev-jitter-secret").update(`eval-run|${id}`).digest("hex").slice(0, 16);
+export const signEvalRun = (id: string) => `${EVAL_PREFIX}${id}.${evalSig(id)}`;
+export function isEvalRun(run_id?: string | null): boolean {
+  if (!run_id?.startsWith(EVAL_PREFIX)) return false;
+  const dot = run_id.lastIndexOf(".");
+  return dot > EVAL_PREFIX.length && run_id.slice(dot + 1) === evalSig(run_id.slice(EVAL_PREFIX.length, dot));
+}
+const scoped = (base: string, run_id?: string | null) => (isEvalRun(run_id) ? `${run_id}/${base}` : base);
+
+/** Start limit, jitter endpoint and probe breaker: anon chats share one bucket per product. */
+export const probeId = (buyer_id: string, run_id?: string | null) => scoped(isAnon(buyer_id) ? "anon" : buyer_id, run_id);
+export const limitKey = (buyer_id: string, product_id: string, run_id?: string | null) => `${probeId(buyer_id, run_id)}::${product_id}`;
+/** Breaker scope: a product, or a product inside one signed eval run. */
+export const breakerKey = (product_id: string, run_id?: string | null) => scoped(product_id, run_id);
+/**
+ * Buyer memory is per exact buyer_id (S1 ask, Bridge 2): with a shared anon memory every new anon_ chat opened at
+ * the last chat's frozen final offer, so nobody could haggle. Restarting still can't win: a fresh anon chat walks the
+ * same shared jitter stream to the same shared endpoint as the last one, and starts count against the shared limit.
+ */
+export const memoryKey = (buyer_id: string, product_id: string, run_id?: string | null) => `${scoped(buyer_id, run_id)}::${product_id}`;
 
 /**
  * Memory for client-asserted ids (the shared anon bucket and per-person `oai_` ids) expires 30 min after its last

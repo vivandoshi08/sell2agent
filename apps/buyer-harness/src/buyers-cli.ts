@@ -20,6 +20,7 @@ import { makeBuyers, type BuyerModel } from "./agents/personas";
 import { LocalGateway } from "./gateway/local";
 import { McpGateway } from "./gateway/mcp";
 import { ExchangeGateway, type Strategy } from "./gateway/exchange";
+import { signEvalRun } from "@sa/seller-mcp/exchange";
 import type { Gateway } from "./gateway/types";
 import { runAll, RUNS_DIR, type Summary } from "./run-all";
 
@@ -55,7 +56,10 @@ for (const policy of policies) {
   const gw: Gateway = gatewayUrl ? new McpGateway(gatewayUrl)
     : f.exchange ? new ExchangeGateway(policy as Strategy, voiceLlm, { max_rounds: f["max-rounds"] ? Number(f["max-rounds"]) : undefined })
     : new LocalGateway(policy, voiceLlm);
-  const run_id = `run_${stamp}_${policy}${f["max-rounds"] ? `_r${f["max-rounds"]}` : ""}`;
+  const raw_id = `run_${stamp}_${policy}${f["max-rounds"] ? `_r${f["max-rounds"]}` : ""}`;
+  // E1: a signed eval run gets its own buyer memory, start limits and probe breaker on the shared deployed exchange
+  // (needs the deploy's EXCHANGE_HMAC_SECRET in .env); in-process gateways are fresh per run anyway.
+  const run_id = gatewayUrl ? signEvalRun(raw_id) : raw_id;
   const { summary, outcomes } = await runAll({
     run_id, label: policy, buyers, gateway: gw, concurrency: Number(f.concurrency),
     on_outcome: (o) => console.log(`  [${policy}] ${o.buyer_id} ${o.persona.padEnd(13)} ${(o.adversary ?? "").padEnd(11)} ${o.buyer_model.padEnd(18)} ` +
