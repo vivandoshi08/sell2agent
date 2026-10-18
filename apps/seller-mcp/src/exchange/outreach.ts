@@ -179,24 +179,41 @@ export class Outreach {
   }
 
   /**
-   * Which negotiation an inbound reply belongs to: an explicit negotiation_id, else an offer_id anywhere in the text
-   * (quoted history included), else the latest follow-up sent to that address on that channel. null = can't tell.
+   * Which negotiation an inbound reply belongs to, or null (never a guess).
+   *  - Untrusted (an Inkbox webhook: the signature proves Inkbox delivered it, not who wrote it): only a negotiation whose
+   *    follow-up consent was given for this sender's address on this channel. An offer_id in the text (quoted history
+   *    included) picks among those, else the latest follow-up sent to the address. A stranger quoting someone else's
+   *    offer_id (offer ids are in events) routes nowhere.
+   *  - Trusted (plain JSON with OUTREACH_SECRET): an explicit negotiation_id, else an offer_id, else the reply address.
    */
-  async resolve(r: { negotiation_id?: string; buyer_id?: string; text: string } & InboundMeta): Promise<{ negotiation_id: string; buyer_id: string } | null> {
+  async resolve(r: { negotiation_id?: string; buyer_id?: string; text: string; trusted?: boolean } & InboundMeta): Promise<{ negotiation_id: string; buyer_id: string } | null> {
     const store = this.d.ex.store;
+    const ids = [...new Set([...(r.text ?? "").matchAll(/\boff_[0-9a-f-]{8,}\b/gi)].map((m) => m[0].toLowerCase()))];
+    const route = r.from && r.channel ? await store.getFollowupMark(followupRouteKey(r.channel, r.from)) : null;
+    if (!r.trusted) {
+      if (!r.from) return null;
+      const from = normalizeAddress(r.from);
+      const consented = async (negotiation_id: string) => {
+        const n = await store.getNegotiation(negotiation_id);
+        const f = n?.followup;
+        return n && f && normalizeAddress(f.reply_to) === from && (!r.channel || f.channel === r.channel) ? { negotiation_id: n.id, buyer_id: n.buyer_id } : null;
+      };
+      for (const id of ids) {
+        const o = await store.getOffer(id);
+        const hit = o && (await consented(o.negotiation_id));
+        if (hit) return hit;
+      }
+      return route ? consented(route.negotiation_id) : null;
+    }
     if (r.negotiation_id) {
       const n = await store.getNegotiation(r.negotiation_id);
       return n && (!r.buyer_id || r.buyer_id === n.buyer_id) ? { negotiation_id: n.id, buyer_id: n.buyer_id } : null;
     }
-    for (const id of new Set([...(r.text ?? "").matchAll(/\boff_[0-9a-f-]{8,}\b/gi)].map((m) => m[0].toLowerCase()))) {
+    for (const id of ids) {
       const o = await store.getOffer(id);
       if (o) return { negotiation_id: o.negotiation_id, buyer_id: o.buyer_id };
     }
-    if (r.from && r.channel) {
-      const m = await store.getFollowupMark(followupRouteKey(r.channel, r.from));
-      if (m) return { negotiation_id: m.negotiation_id, buyer_id: m.buyer_id };
-    }
-    return null;
+    return route ? { negotiation_id: route.negotiation_id, buyer_id: route.buyer_id } : null;
   }
 
   /** An inbound reply (email / SMS / A2A) on a negotiation. Logged as a buyer `question_asked` with `payload.inbound`. */

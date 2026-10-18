@@ -17,6 +17,9 @@
 -- Known gap this does NOT close: E1's deal_accepted payload includes unit_cost_cents (and lever_cost_cents),
 -- so costs stay readable through events until E1 drops them (S2's run-result job joins costs server-side).
 --
+-- Sun 3:55 am PT: 0002_contract_v2.sql was applied live, together with
+--   alter table public.offers enable row level security;   (no policies: service role only, like deals)
+--
 -- Roll back: ALTER TABLE ... DISABLE ROW LEVEL SECURITY; (policies can stay; they're ignored when RLS is off).
 
 begin;

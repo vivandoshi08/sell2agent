@@ -87,6 +87,21 @@ test("parseInbound: never a guess", () => {
   assert.equal(k("hello"), "clarify");
 });
 
+test("parseInbound: a decline that names a price is a question, never a counter (PR #94 sim)", () => {
+  const c = { standing_offer_id: "off_12345678-aaaa", allowed_levers: ["free_shipping"] };
+  const k = (t: string) => parseInbound(t, c).kind;
+  for (const t of ["I'm not accepting $110 for this.", "I can't accept $115, too much", "I cannot accept $120.", "I'll pass at $130.",
+    "I won't buy it at $125", "I won't pay $119 for that", "Passing on this at $120", "Not buying at $139, sorry", "I decline $129."])
+    assert.equal(k(t), "clarify", t);
+  for (const t of ["I'm not accepting this.", "I can't accept that offer", "I'll pass", "I won't buy it", "Not interested, thanks"])
+    assert.equal(k(t), "walk", t);
+  assert.equal(k("No thanks. ACCEPT off_12345678-aaaa"), "clarify", "accept + decline is mixed");
+  assert.equal(k("COUNTER $120"), "counter", "plain counters still work");
+  assert.equal(k("How about $118?"), "counter");
+  assert.equal(k("ACCEPT off_12345678-aaaa"), "accept");
+  assert.equal(k("I accept. ACCEPT off_12345678-aaaa"), "accept");
+});
+
 // Bridge 3: the queue, the weekly cap, routing and opt-outs live in the store, not in the process.
 test("a second walk-away by the same buyer in the same week is blocked by followup_cap", async () => {
   const { ex, now, sent, sink } = await walkedAway(true);
@@ -168,16 +183,23 @@ test("a failed delivery is logged, sends nothing twice, and doesn't use up the c
   assert.equal((await ex.outreach.runDue()).length, 1, "the failed one didn't count against the cap");
 });
 
-test("resolve(): explicit id, offer_id in quoted text, then the reply address; inbound is logged", async () => {
+test("resolve(): trusted by id / offer_id; untrusted only by the consented address; inbound is logged", async () => {
   const { ex, now, sent, sink, neg } = await walkedAway(true);
   now.t += FOLLOWUP_DELAY_MS + 1;
   await ex.outreach.runDue();
   const id = sent[0].offer.offer_id;
-  assert.deepEqual(await ex.outreach.resolve({ negotiation_id: neg, text: "" }), { negotiation_id: neg, buyer_id: "fb1" });
-  assert.equal(await ex.outreach.resolve({ negotiation_id: neg, buyer_id: "someone_else", text: "" }), null);
-  assert.deepEqual(await ex.outreach.resolve({ text: `STOP\n\n> to accept, reply: ACCEPT ${id}` }), { negotiation_id: neg, buyer_id: "fb1" });
+  // trusted (plain JSON with the secret): explicit id, then offer_id
+  assert.deepEqual(await ex.outreach.resolve({ negotiation_id: neg, text: "", trusted: true }), { negotiation_id: neg, buyer_id: "fb1" });
+  assert.equal(await ex.outreach.resolve({ negotiation_id: neg, buyer_id: "someone_else", text: "", trusted: true }), null);
+  assert.deepEqual(await ex.outreach.resolve({ text: `STOP\n\n> to accept, reply: ACCEPT ${id}`, trusted: true }), { negotiation_id: neg, buyer_id: "fb1" });
+  // untrusted (Inkbox): only the consented address on the consented channel
+  assert.deepEqual(await ex.outreach.resolve({ text: `STOP\n\n> to accept, reply: ACCEPT ${id}`, channel: "email", from: "buyer-agent@example.test" }), { negotiation_id: neg, buyer_id: "fb1" });
   assert.deepEqual(await ex.outreach.resolve({ text: "yes please", channel: "email", from: "Agent <BUYER-agent@example.test>" }), { negotiation_id: neg, buyer_id: "fb1" });
   assert.equal(await ex.outreach.resolve({ text: "yes please", channel: "email", from: "stranger@example.test" }), null);
+  assert.equal(await ex.outreach.resolve({ negotiation_id: neg, text: "", channel: "email", from: "stranger@example.test" }), null, "explicit id ignored when untrusted");
+  assert.equal(await ex.outreach.resolve({ text: `ACCEPT ${id}`, channel: "email", from: "stranger@example.test" }), null, "a stranger quoting the offer_id routes nowhere");
+  assert.equal(await ex.outreach.resolve({ text: `ACCEPT ${id}`, channel: "sms", from: "buyer-agent@example.test" }), null, "wrong channel");
+  assert.equal(await ex.outreach.resolve({ text: `ACCEPT ${id}` }), null, "no sender, no route");
   const r = await ex.inbound(neg, "fb1", "yes please", { channel: "email", from: "buyer-agent@example.test" });
   assert.equal(r.intent.kind, "clarify");
   assert.match(r.message, new RegExp(`ACCEPT ${id}`), "asks to confirm with the exact offer_id");
@@ -185,4 +207,52 @@ test("resolve(): explicit id, offer_id in quoted text, then the reply address; i
   assert.equal(e.actor, "buyer");
   assert.equal(e.payload.intent, "clarify");
   assert.equal(e.payload.from_matches_consent, true);
+});
+
+test("security: a stranger can't accept a live offer (no consent) by email even with its offer_id", async () => {
+  const ex = new Exchange({ sink: new MemorySink().sink });
+  const r = await ex.handle({ kind: "offer", ctx: ctx("victim"), product_id: P, offer_price_cents: 10000 });
+  const id = r.standing_offer!.offer_id; // readable in events.payload.offer_id
+  assert.equal(await ex.outreach.resolve({ text: `ACCEPT ${id}`, channel: "email", from: "attacker@evil.test" }), null);
+  assert.equal(await ex.outreach.resolve({ text: `ACCEPT ${id}`, channel: "email", from: "victim@example.test" }), null, "no follow-up consent at all");
+  assert.equal((await ex.handle({ kind: "status", ctx: ctx("victim"), negotiation_id: r.negotiation_id! })).state, "negotiating");
+});
+
+test("hold at the cap: a counter to a follow-up past max_rounds never gets a final round below the pre-walk price", async () => {
+  for (const [buyer, delta] of [["cap_lo", -100], ["cap_far", -2500], ["cap_eq", 0], ["cap_hi", 300]] as const) {
+    const now = { t: Date.now() };
+    const sent: OutboundMessage[] = [];
+    const ex = new Exchange({ sink: new MemorySink().sink, now: () => now.t, send: async (m) => { sent.push(m); } });
+    const p = (await ex.catalog.get(P))!;
+    let r = await ex.handle({ kind: "offer", ctx: ctx(buyer), product_id: P, offer_price_cents: 9000 });
+    for (let i = 1; i < p.max_rounds; i++) r = await ex.handle({ kind: "offer", ctx: ctx(buyer), product_id: P, negotiation_id: r.negotiation_id, offer_price_cents: 9000 + i * 100 });
+    assert.equal(r.round, p.max_rounds);
+    const prewalk = r.standing_offer!.price_cents;
+    await ex.handle({ kind: "walk", ctx: ctx(buyer), negotiation_id: r.negotiation_id!, followup: { reply_to: `${buyer}@example.test`, channel: "email" } });
+    now.t += FOLLOWUP_DELAY_MS + 1;
+    await ex.outreach.runDue();
+    assert.equal(sent[0].offer.price_cents, prewalk, "follow-up at the pre-walk price");
+    const bid = prewalk + delta;
+    const c = await ex.inbound(r.negotiation_id!, buyer, `COUNTER $${(bid / 100).toFixed(2)}`);
+    assert.equal(c.intent.kind, "counter");
+    if (delta < 0) {
+      assert.equal(c.status, "counter", `${buyer}: no accept below the pre-walk price`);
+      assert.equal(c.standing_offer!.price_cents, prewalk, `${buyer}: held at the pre-walk price`);
+      assert.equal(c.standing_offer!.final, true);
+      assert.deepEqual(c.allowed_actions.filter((a) => a !== "status"), ["accept", "walk"], "one held final offer, then accept or walk");
+    } else {
+      assert.equal(c.status, "accept", `${buyer}: a bid at or above the held price is accepted`);
+      assert.equal(c.deal!.unit_price_cents, Math.min(bid, p.list_price_cents));
+    }
+  }
+});
+
+test("hold at the cap doesn't change negotiations within the cap", async () => {
+  const { ex, now, sent, neg } = await walkedAway(true); // walked at round 2 of 6
+  now.t += FOLLOWUP_DELAY_MS + 1;
+  await ex.outreach.runDue();
+  const c = await ex.inbound(neg, "fb1", "COUNTER $112");
+  assert.equal(c.round, 3, "normal next round");
+  assert.ok(c.standing_offer!.price_cents <= sent[0].offer.price_cents, "never above the follow-up price");
+  assert.equal(c.standing_offer!.final, false);
 });

@@ -1,5 +1,6 @@
 // Bridge 3 · Follow-up loop end to end against a running gateway (no deps; Node 22+).
-//   OUTREACH_SECRET=… node apps/marketplace/scripts/followup-e2e.mjs [mcp_url] [--delay-ms 5000] [--phase all|walk|finish]
+//   OUTREACH_SECRET=… [INKBOX_SIGNING_KEY=…] node apps/marketplace/scripts/followup-e2e.mjs [mcp_url] [--delay-ms 5000] [--phase all|walk|finish]
+// With INKBOX_SIGNING_KEY (same as the gateway's) it also checks that a stranger's signed Inkbox email can't take the offer.
 // The gateway must run with the same OUTREACH_SECRET and FOLLOWUP_DELAY_MS (e.g. 5000). OUTREACH_TICK_MS=0 keeps its
 // timer out of the way; the script then drives sends with POST /cron/outreach.
 // Flow: make_offer ×2 → walk_away with allow_followup_to → cron before the delay sends nothing → cron after the delay
@@ -7,6 +8,7 @@
 // a clarifying question → "ACCEPT off_…" locks a deal → the same buyer's second walk-away is capped (no follow-up).
 // --phase walk stops after the walk-aways and prints a state line; --phase finish <state> picks up from it (restart test).
 // Uses run_id "s1-test-followup" (dashboard hides s1-test* runs).
+import { createHmac } from "node:crypto";
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
 const MCP = process.argv.find((a) => a.startsWith("http")) ?? "http://localhost:3002/mcp";
 const ORIGIN = new URL(MCP).origin;
@@ -77,6 +79,18 @@ async function finishPhase({ buyer, reply_to, a, t0 }) {
   if (!inBox) fail("follow-up missing from /outbox");
   ok("follow-up is in /outbox");
 
+  if (process.env.INKBOX_SIGNING_KEY) {
+    // a stranger's signed Inkbox email quoting this buyer's live offer_id must route nowhere (PR #90 review)
+    const body = JSON.stringify({ id: `evt_${Date.now()}`, event_type: "message.received", data: { message: { direction: "inbound",
+      from_address: "attacker@evil.example.test", subject: "Re: your offer", body: `ACCEPT ${o.offer_id}` } } });
+    const rid = `req_${Date.now()}`, ts = String(Math.floor(Date.now() / 1000));
+    const sig = `sha256=${createHmac("sha256", process.env.INKBOX_SIGNING_KEY).update(`${rid}.${ts}.${body}`).digest("hex")}`;
+    const res = await fetch(`${ORIGIN}/inbound/email`, { method: "POST", headers: { "content-type": "application/json", "x-inkbox-request-id": rid, "x-inkbox-timestamp": ts, "x-inkbox-signature": sig }, body });
+    const atk = await res.json();
+    if (atk.routed !== false || atk.approve_url) fail(`stranger's signed ACCEPT was routed: ${JSON.stringify(atk)}`);
+    if ((await tool("check_offers", { negotiation_id: a.neg, buyer_id: buyer })).state !== "follow_up") fail("stranger changed the negotiation");
+    ok("a stranger's signed Inkbox ACCEPT with this offer_id: unrouted, no deal, no link");
+  }
   const unclear = await http("POST", "/inbound/email", { from: reply_to, text: "sounds good, deal", subject: "Re: your offer" });
   if (unclear.intent !== "clarify" || !unclear.reply.includes(o.offer_id)) fail(`unclear reply: ${JSON.stringify(unclear)}`);
   ok(`unclear reply → clarifying question, no guess: "${unclear.reply.slice(0, 70)}…"`);
