@@ -3,7 +3,7 @@
  * Sample: fake events replayed over time so the feed moves, labelled "Sample data" in the UI.
  * The browser only ever gets SUPABASE_URL and the anon key (see vite.config.ts).
  */
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { NegotiationEvent } from "@sa/shared";
 import { fakeComparison } from "./fake";
 
@@ -61,27 +61,49 @@ function localFeed(which: string): Feed {
   return feed;
 }
 
+// Supabase's API returns at most 1000 rows per request whatever .limit() says, so the initial load pages.
+// Oldest first, so rows inserted while it pages land after the last page instead of shifting the pages.
+const PAGE = 1000;
+const MAX_ROWS = 60_000;
+
+type Db = SupabaseClient<any, any, any>;
+async function loadEvents(db: Db): Promise<NegotiationEvent[]> {
+  const base = () => db.from("events").select("*").neq("run_id", "exchange_state");
+  const { count, error } = await db.from("events").select("id", { count: "exact", head: true }).neq("run_id", "exchange_state");
+  if (error) throw error;
+  const from = Math.max(0, (count ?? 0) - MAX_ROWS);
+  const pages = await Promise.all(Array.from({ length: Math.ceil(((count ?? 0) - from) / PAGE) }, (_, i) =>
+    base().order("ts", { ascending: true }).order("id", { ascending: true }).range(from + i * PAGE, from + (i + 1) * PAGE - 1)));
+  const bad = pages.find((r) => r.error);
+  if (bad?.error) throw bad.error;
+  return pages.flatMap((r) => (r.data ?? []) as NegotiationEvent[]);
+}
+
 function liveFeed(url: string, key: string): Feed {
   return {
     mode: "live",
     label: "Live · Supabase",
     start(onEvents, onError) {
       const db = createClient(url, key);
-      let all: NegotiationEvent[] = [];
+      // Keyed by row id: realtime inserts that arrive while the initial load pages aren't lost or doubled.
+      const byId = new Map<string, NegotiationEvent>();
+      let loaded = false;
       let stopped = false;
+      const add = (e: NegotiationEvent) => { if (isActivity(e)) byId.set(e.id ?? `${e.run_id}|${e.ts}|${e.type}|${byId.size}`, e); };
+      const emit = () => { if (loaded && !stopped) onEvents([...byId.values()].sort((a, b) => (a.ts ?? "").localeCompare(b.ts ?? ""))); };
       (async () => {
-        const { data, error } = await db.from("events").select("*").neq("run_id", "exchange_state").order("ts", { ascending: false }).limit(5000);
-        if (error) return onError(`Couldn't load events: ${error.message}`);
-        if (stopped) return;
-        all = (data as NegotiationEvent[]).filter(isActivity).reverse();
-        onEvents(all);
+        try {
+          for (const e of await loadEvents(db)) add(e);
+        } catch (e) {
+          return onError(`Couldn't load events: ${(e as { message?: string }).message ?? String(e)}`);
+        }
+        loaded = true;
+        emit();
       })();
       const ch = db.channel("events-feed")
         .on("postgres_changes", { event: "INSERT", schema: "public", table: "events" }, (msg) => {
-          const e = msg.new as NegotiationEvent;
-          if (!isActivity(e)) return;
-          all = [...all, e];
-          onEvents(all);
+          add(msg.new as NegotiationEvent);
+          emit();
         })
         .subscribe((status) => { if (status === "CHANNEL_ERROR") onError("Live updates disconnected; showing the last loaded events."); });
       return () => { stopped = true; void db.removeChannel(ch); };

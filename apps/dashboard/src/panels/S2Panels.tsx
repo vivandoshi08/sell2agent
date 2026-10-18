@@ -11,14 +11,16 @@ import { BarCompare } from "../ui/BarCompare";
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 const muted = { opacity: 0.65 } as const;
 
-/** Pick which runs to compare. Default = latest run of each policy. */
+/** Pick which runs to compare. Default = the latest complete eval (both policies), see defaultSelection. */
 export function RunPicker({ runs, selected, onChange, isDefault }: { runs: RunInfo[]; selected: string[]; onChange: (ids: string[] | null) => void; isDefault: boolean }) {
   if (runs.length <= 1) return null;
+  const evalIds = [...new Set(runs.filter((r) => selected.includes(r.run_id)).map((r) => r.eval_id))];
+  const which = evalIds.length === 1 && evalIds[0] ? `eval ${evalIds[0]}` : "latest per policy";
   const toggle = (id: string) => onChange(selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id]);
   return (
     <details className="panel">
       <summary className="panel-head" style={{ cursor: "pointer" }}>
-        <span className="eyebrow">Comparing {selected.length} run{selected.length === 1 ? "" : "s"}{isDefault ? " · latest per policy" : ""}</span>
+        <span className="eyebrow">Comparing {selected.length} run{selected.length === 1 ? "" : "s"}{isDefault ? ` · ${which}` : ""}</span>
       </summary>
       <div className="scroll">
         <table className="pgrid">
@@ -29,14 +31,14 @@ export function RunPicker({ runs, selected, onChange, isDefault }: { runs: RunIn
                 <td><input id={`run-${r.run_id}`} type="checkbox" checked={selected.includes(r.run_id)} onChange={() => toggle(r.run_id)} aria-label={`Compare ${r.run_id}`} /></td>
                 <td><label htmlFor={`run-${r.run_id}`} className="num">{r.run_id}</label></td>
                 <td>{r.policy}</td>
-                <td className="num">{r.buyers}</td>
+                <td className="num">{r.buyers}{r.planned != null && r.planned !== r.buyers ? <span style={muted}> / {r.planned}</span> : null}</td>
                 <td className="num" style={muted}>{r.started ? new Date(r.started).toLocaleTimeString("en-US", { hour12: false }) : ""}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      {!isDefault && <button type="button" onClick={() => onChange(null)} style={{ marginTop: 8, font: "inherit", cursor: "pointer" }}>Back to latest per policy</button>}
+      {!isDefault && <button type="button" onClick={() => onChange(null)} style={{ marginTop: 8, font: "inherit", cursor: "pointer" }}>Back to the default</button>}
     </details>
   );
 }
