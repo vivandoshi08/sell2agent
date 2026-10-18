@@ -95,3 +95,12 @@ test("no subject and no buyer_id on a later call: clear missing_buyer_id, nothin
   const acc = (await call("accept_deal", { negotiation_id: o.negotiation_id, offer_id: o.standing_offer.offer_id, buyer_id: o.buyer_id })).structuredContent;
   assert.equal(acc.state, "agreed");
 });
+
+// Bridge 2 eval A/B: the gateway passes `strategy` to the exchange, which honours it only for a signed eval run_id.
+test("make_offer accepts an eval strategy and an unsigned run is otherwise unchanged", async () => {
+  const base = { product_id: "kb_keyforge_quiet75", offer_price_cents: 9000, run_id: "s1-test-strategy" };
+  const plain = (await call("make_offer", { ...base, buyer_id: "s1-strat-a" })).structuredContent;
+  const withStrategy = (await call("make_offer", { ...base, buyer_id: "s1-strat-b", strategy: "static" })).structuredContent;
+  assert.equal(withStrategy.ok, true);
+  assert.equal(withStrategy.standing_offer.price_cents, plain.standing_offer.price_cents, "unsigned run_id must not change the seller");
+});
