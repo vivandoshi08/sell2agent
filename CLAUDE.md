@@ -40,6 +40,12 @@ seller-mcp + buyer-harness ──logEvent()──▶ Supabase `events` table ─
 7. **Build against mocks until the real piece lands** (see your BRIEF). Don't block on teammates.
 8. Before merging: `pnpm typecheck` and `pnpm smoke` (once smoke is real). Merge to `main` every 1–2 hours, small commits.
 
+## Live build logs (read before integrating)
+
+- **E2 (seller policy + simulated buyers, Neel):** https://claude.ai/code/artifact/c650b63d-5ba1-4ace-ab58-eb2a7abc3b0a. It has the exact
+  `decide()` / `voice()` / `runAll()` signatures, the mocks in place, open asks, and the plan. Updated after every E2 push.
+  Read it with the Docs tools (it's a Claude Doc). If it disagrees with the code, the code wins; tell your human.
+
 ## Setup
 
 ```bash
