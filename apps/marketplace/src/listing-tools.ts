@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { answerQuestion, defaultLlm } from "@sa/seller-mcp/sellers";
 import { getListing } from "./search.js";
+import { catalog } from "./catalog-source.js";
 import { log } from "./log.js";
 
 const ctxFields = {
@@ -27,7 +28,7 @@ export function registerListingTools(server: any, mcpUrl: string) {
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
     async (a: { product_id: string }) => {
-      const listing = getListing(a.product_id, mcpUrl);
+      const listing = getListing(a.product_id, mcpUrl, await catalog());
       if (!listing) return notFound(a.product_id);
       const specs = Object.entries(listing.specs).map(([k, v]) => `${k}: ${v}`).join(", ");
       const text = `${listing.title} by ${listing.seller_name}: $${(listing.list_price_cents / 100).toFixed(2)} list, ships in ${listing.shipping_days} days, ${listing.in_stock ? "in stock" : "out of stock"}. ${listing.description} Specs: ${specs}.`;
@@ -44,7 +45,7 @@ export function registerListingTools(server: any, mcpUrl: string) {
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
     async (a: { product_id: string; question: string; run_id?: string; buyer_id?: string; buyer_model?: string }) => {
-      const listing = getListing(a.product_id, mcpUrl);
+      const listing = getListing(a.product_id, mcpUrl, await catalog());
       if (!listing) return notFound(a.product_id);
       const base = { run_id: a.run_id ?? "live", buyer_id: a.buyer_id ?? null, buyer_model: a.buyer_model ?? null,
         seller_id: listing.seller_id, product_id: listing.id, negotiation_id: null, price_cents: null };

@@ -4,7 +4,8 @@
 import { MCPServer } from "mcp-use";
 import { z } from "zod";
 import { SearchProductsInput, SearchProductsOutput, SearchQuery } from "@sa/shared";
-import { CATEGORIES, searchProducts } from "./src/search.js";
+import { CATEGORIES, categoriesOf, searchProducts } from "./src/search.js";
+import { catalog } from "./src/catalog-source.js";
 import { log } from "./src/log.js";
 import { registerNegotiationTools, subjectBuyerId, type RequestLike } from "./src/negotiate.js";
 import { registerDealTools } from "./src/deal-tools.js";
@@ -114,7 +115,8 @@ export const searchProductsTool = server.tool(
       preferences,
     });
     const legacy = SearchQuery.parse({ q: query, category: a.category, max_price_cents: a.max_price_cents });
-    const out = searchProducts({ ...legacy, must_have: contract.hard_needs, preferences: contract.preferences }, MCP_URL);
+    const cat = await catalog();
+    const out = searchProducts({ ...legacy, must_have: contract.hard_needs, preferences: contract.preferences }, MCP_URL, cat);
     const listings = SearchProductsOutput.parse({ listings: out.results.map((r) => r.listing) }).listings;
 
     await log({
@@ -140,7 +142,7 @@ export const searchProductsTool = server.tool(
     );
     const text =
       [out.note, ...lines].filter(Boolean).join("\n") ||
-      `No products found. Categories: ${CATEGORIES.join(", ")}. Try fewer hard needs or a higher budget.`;
+      `No products found. Categories: ${categoriesOf(cat).join(", ")}. Try fewer hard needs or a higher budget.`;
 
     return { content: [{ type: "text", text }], structuredContent: { listings, ...out } };
   },
