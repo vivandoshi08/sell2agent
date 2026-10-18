@@ -82,6 +82,7 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; line-height: 1.1; text
 .pill { font: 500 .68rem/1 var(--font-data); padding: 3px 6px; border-radius: 999px; text-align: center; white-space: nowrap; background: var(--static-soft); color: var(--muted); }
 .pill.neg { background: var(--neg-soft); color: var(--neg); }
 .pill.bad { background: var(--bad-bg); color: var(--bad); }
+.glog li.routine { opacity: .55; }
 .feed .what { min-width: 0; overflow-wrap: anywhere; }
 .feed .what b { font-weight: 600; }
 @media (prefers-reduced-motion: no-preference) { .feed li.new { animation: flash 1.2s ease-out; } }

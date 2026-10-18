@@ -47,7 +47,7 @@ export function LiveFeed({ events, policyOf, freshFrom }: { events: NegotiationE
         return (
           <li key={`${e.run_id}-${idx}`} className={idx >= freshFrom ? "new" : ""}>
             <time>{time(e.ts)}</time>
-            <span className={`pill ${e.type === "guardrail_blocked" ? "bad" : pol === "static" ? "" : "neg"}`}>{pol}</span>
+            <span className={`pill ${e.type === "guardrail_blocked" && (e.payload as Record<string, unknown>)?.severity !== "routine" ? "bad" : pol === "static" ? "" : "neg"}`}>{pol}</span>
             <span className="what"><b>{e.buyer_id ?? "harness"}</b> {describe(e)}{e.product_id ? <span style={{ color: "var(--muted)" }}> · {e.product_id}</span> : null}</span>
           </li>
         );
@@ -63,10 +63,12 @@ export function GuardrailLog({ events }: { events: NegotiationEvent[] }) {
     <ul className="glog">
       {rows.map((e, i) => {
         const p = e.payload as Record<string, unknown>;
+        // E1 tags each block: routine (normal price clamps) is dimmed so attacks and catches stand out.
+        const routine = p.severity === "routine";
         return (
-          <li key={i}>
+          <li key={i} className={routine ? "routine" : undefined} title={typeof p.severity === "string" ? p.severity : undefined}>
             <time>{time(e.ts)}</time>
-            <span className="pill bad">{String(p.rule ?? "blocked")}</span>
+            <span className={`pill ${routine ? "" : "bad"}`}>{String(p.rule ?? "blocked")}</span>
             <span>{String(p.reason ?? "")}{typeof p.clamped_to_cents === "number" ? ` → held at ${usd(p.clamped_to_cents)}` : ""}</span>
           </li>
         );
