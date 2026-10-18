@@ -63,7 +63,7 @@ export async function runBuyer(task: LlmBuyerTask, brain: Brain, gw: Gateway, ru
       if (done) return JSON.stringify({ error: "You have already finished shopping." });
       switch (name) {
         case "search_products": {
-          const ls = await gw.search(ctx, String(a.query ?? ""), a.max_price ? Math.round(a.max_price * 100) : undefined);
+          const ls = await gw.search(ctx, String(a.query ?? ""), a.max_price ? Math.round(a.max_price * 100) : undefined, undefined, task.profile);
           ls.forEach((l) => { sellers.set(l.product_id, l.seller_name); listPrices.set(l.product_id, l.list_price_cents); });
           ev("search", "buyer", { payload: { query: a.query, results: ls.length } });
           return JSON.stringify({ listings: ls.map((l) => ({ product_id: l.product_id, seller: l.seller_name, title: l.title,

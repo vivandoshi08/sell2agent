@@ -31,6 +31,8 @@ pnpm --filter @sa/dashboard eval --n 50 --models claude --seller-voice   # add ,
 ```
 Events stream to Supabase while it runs, and the live dashboard updates. At the end it writes `runs.result` for each policy and saves the run for `?local`. Through the deployed gateway instead: add `--gateway https://<deployed>/mcp`.
 
+The Results view shows the latest eval whose static and negotiating arms both finished, preferring ones with ≥ 50 buyers per arm. For the demo, pin the Bridge 2 run: `http://localhost:3000/?eval=b2dep_haiku100#proof`. To check the live pipe without counting as a real buyer, call the gateway with `run_id` `s2-test-<anything>` and open `/?tests#live`: test runs show on the Live view, never in the real-buyer numbers.
+
 ## 4. Re-score a run later
 ```bash
 pnpm --filter @sa/dashboard run-result <run_id> --write   # judge + private costs → runs.result

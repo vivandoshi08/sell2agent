@@ -5,7 +5,10 @@
  *   - McpGateway (mcp.ts): the real deployed gateway over MCP (S1/Esha). Set GATEWAY_URL to use it.
  * Shapes follow packages/shared (MakeOfferOutput, AcceptDealOutput, BuyerContext). Money is cents.
  */
-import type { BuyerContext } from "@sa/shared";
+import type { BuyerContext, LeverName } from "@sa/shared";
+
+/** The buyer's lever profile as search preferences: 0..1 weights per lever (S1's search_products ranks by fit to them). */
+export type GwPreferences = Partial<Record<LeverName, number>>;
 
 export interface GwListing {
   product_id: string;
@@ -50,7 +53,8 @@ export interface Gateway {
   readonly kind: "local" | "mcp" | "exchange";
   /** True when the exchange behind the gateway logs offer_made / offers / deals itself (E1's does). The runner then logs only search, questions, wallet blocks and walk-aways. */
   readonly sellerEventsLogged?: boolean;
-  search(ctx: BuyerContext, query: string, max_price_cents?: number, must_have?: string[]): Promise<GwListing[]>;
+  /** @param preferences the persona's lever profile; McpGateway sends it to search_products, the in-process gateways ignore it. */
+  search(ctx: BuyerContext, query: string, max_price_cents?: number, must_have?: string[], preferences?: GwPreferences): Promise<GwListing[]>;
   getListing(ctx: BuyerContext, product_id: string): Promise<GwListing | null>;
   ask(ctx: BuyerContext, product_id: string, question: string): Promise<{ answer: string; grounded: boolean }>;
   offer(ctx: BuyerContext, a: GwOfferArgs): Promise<GwOfferResult>;

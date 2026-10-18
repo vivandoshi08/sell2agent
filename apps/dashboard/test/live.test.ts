@@ -58,3 +58,65 @@ test("buyer-model filter keeps whole buyers of that model, plus run-level rows",
   assert.deepEqual(defaultSelection(listRuns([...evs, ...live])).sort(), ["r1"]);
   assert.deepEqual(defaultSelection(listRuns(live)), ["live"]);
 });
+
+// Signed eval runs (eval_<eval_id>_<policy>.<sig>): the smoke tests through the gateway never log a run_started,
+// so evalRunIds() doesn't see them; they must still stay out of "real buyers".
+const signed = (run_id: string, policy: string | null, buyers: number, planned: number | null, minute: number) => {
+  const at = (s: number) => new Date(Date.UTC(2026, 9, 18, 8, minute, s)).toISOString();
+  const rows: NegotiationEvent[] = [];
+  if (policy) rows.push(ev(run_id, "run_started", { actor: "harness" as any, buyer_id: null, negotiation_id: null, ts: at(0) }, { policy, ...(planned != null ? { buyers: planned } : {}) }));
+  for (let i = 0; i < buyers; i++) {
+    const b = `b${i}`, n = `n_${run_id}_${i}`;
+    rows.push(ev(run_id, "offer_made", { actor: "buyer", buyer_id: b, negotiation_id: n, price_cents: 10000, ts: at(1 + i) }));
+    if (i % 2 === 0) rows.push(ev(run_id, "deal_accepted", { buyer_id: b, negotiation_id: n, price_cents: 11000, ts: at(1 + i) }, { deal_id: `d_${run_id}_${i}`, total_cents: 11000, list_price_cents: 12900, unit_cost_cents: 7000 }));
+  }
+  return rows;
+};
+
+test("eval_ runs never count as live traffic, with or without a run_started; tests stay out unless asked", () => {
+  const smoke = [...signed("eval_e1-test-smoke-013211-static.74dcfd42cf5f4176", null, 2, null, 30), ...signed("eval_s1-prodcheck-1792311574357.8ad7ab5b0d5b87dc", null, 1, null, 31)];
+  const full = [...signed("eval_b2dep_haiku100_static.ba8171f3e84da354", "static", 4, 4, 40), ...signed("eval_b2dep_haiku100_negotiating.65edf002461dcaad", "negotiating", 4, 4, 41)];
+  const tests = [...signed("s1-unsigned", null, 1, null, 32), ...signed("verify_s1", null, 1, null, 33), ...signed("s2-test-realtime", null, 1, null, 34)];
+  const all = [...live, ...smoke, ...full, ...tests];
+
+  const l = liveTraffic(all);
+  assert.deepEqual(l.run_ids, ["live"]);
+  assert.equal(l.deals, 2);
+  // ?tests shows teammates' test runs on the Live view; eval runs still never.
+  assert.deepEqual(liveTraffic(all, { includeTests: true }).run_ids.sort(), ["live", "s1-test-pay-1", "s1-unsigned", "s2-test-realtime", "verify_s1"]);
+
+  // Eval runs that logged run_started with a policy are still what the KPIs compare; the smoke runs aren't policy arms.
+  const kpis = policyKpis(all, { resamples: 20 });
+  assert.deepEqual(kpis.map((k) => [k.policy, k.buyers, k.run_ids]), [
+    ["static", 4, ["eval_b2dep_haiku100_static.ba8171f3e84da354"]],
+    ["negotiating", 4, ["eval_b2dep_haiku100_negotiating.65edf002461dcaad"]],
+  ]);
+});
+
+test("default comparison: the latest complete eval, proof-sized (≥ 50 buyers/arm) over smoke checks; ?eval pins one", async () => {
+  const { defaultSelection, listRuns, evalIdOf } = await import("../src/data/runs");
+  assert.equal(evalIdOf("eval_b2dep_haiku100_static.ba8171f3e84da354", "static"), "b2dep_haiku100");
+  assert.equal(evalIdOf("eval_run_202610180924_negotiating.11979f7956640be7", "negotiating"), "run_202610180924");
+  assert.equal(evalIdOf("live", "live"), null);
+
+  const runs = listRuns([
+    ...signed("eval_b2dep_haiku100_static.ba8171f3e84da354", "static", 50, 50, 10),
+    ...signed("eval_b2dep_haiku100_negotiating.65edf002461dcaad", "negotiating", 49, 50, 11),
+    // Later: an eval whose negotiating arm died after 1 of 50 buyers, a lone negotiating arm with no static,
+    // an unsigned smoke run, and a complete but smoke-sized eval (5 buyers per arm).
+    ...signed("eval_b2dep_claude100_static.221ba3e36c06c5d8", "static", 50, 50, 12),
+    ...signed("eval_b2dep_claude100_negotiating.584803cc7a9d7d93", "negotiating", 1, 50, 13),
+    ...signed("eval_run_202610180924_negotiating.11979f7956640be7", "negotiating", 20, 20, 14),
+    ...signed("eval_e1smoke_0130_static.bd441653cd2fe52d", null, 3, null, 15),
+    ...signed("eval_run_202610180942_static.a74549c7cc2d94b6", "static", 5, 5, 16),
+    ...signed("eval_run_202610180942_negotiating.c767fd59d031b064", "negotiating", 5, 5, 17),
+    ...live,
+  ]);
+  assert.deepEqual(defaultSelection(runs).sort(), ["eval_b2dep_haiku100_negotiating.65edf002461dcaad", "eval_b2dep_haiku100_static.ba8171f3e84da354"]);
+  assert.deepEqual(defaultSelection(runs, "b2dep_claude100").sort(), ["eval_b2dep_claude100_negotiating.584803cc7a9d7d93", "eval_b2dep_claude100_static.221ba3e36c06c5d8"]);
+  // An unknown pin falls back to the default.
+  assert.deepEqual(defaultSelection(runs, "nope").sort(), defaultSelection(runs).sort());
+  // With only smoke-sized evals complete, the latest of those.
+  const small = runs.filter((r) => !r.eval_id?.startsWith("b2dep_haiku100"));
+  assert.deepEqual(defaultSelection(small).sort(), ["eval_run_202610180942_negotiating.c767fd59d031b064", "eval_run_202610180942_static.a74549c7cc2d94b6"]);
+});

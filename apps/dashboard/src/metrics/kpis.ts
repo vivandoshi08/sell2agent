@@ -123,8 +123,10 @@ export function buyerOutcomes(events: Ev[]): BuyerOutcome[] {
 const rate = (xs: boolean[]) => (xs.length ? xs.filter(Boolean).length / xs.length : 0);
 const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0);
 
-/** Teammates' test traffic (S1's gateway tests, S2's console check, …): never counted anywhere. */
-export const isTestRun = (run_id: string) => /^(s1|s2|e1|e2)-test/.test(run_id) || run_id.startsWith("s2-console");
+/** Teammates' test traffic (S1's gateway tests and unsigned/verify checks, S2's console check, …): never counted anywhere. */
+export const isTestRun = (run_id: string) => /^(s1|s2|e1|e2)-(test|unsigned)/.test(run_id) || run_id.startsWith("s2-console") || run_id.startsWith("verify_");
+/** Signed eval runs (`eval_<eval_id>_<policy>.<sig>`) are never real shoppers, even the smoke tests that never log a run_started. */
+export const isEvalRunId = (run_id: string) => run_id.startsWith("eval_");
 const isState = (e: Ev) => e.run_id === "exchange_state" || (e.type as string) === "exchange_snapshot";
 
 /** Runs started by the eval harness (they log run_started with a policy). Everything else is real traffic. */
@@ -198,7 +200,7 @@ export function leverWinsByPersona(kpis: PolicyKpis[]): LeverWin[] {
   return leverWins(kpis.flatMap((k) => k.outcomes.map((o) => ({ persona: o.persona, policy: k.policy, converted: o.converted, levers: o.levers }))));
 }
 
-/** Real buyers on the deployed gateway (runs with no eval run_started, minus tests): what actually happened. */
+/** Real buyers on the deployed gateway (no eval run_started, no `eval_` run_id, minus tests): what actually happened. */
 export interface LiveTraffic {
   run_ids: string[];
   negotiations: number;
@@ -215,9 +217,10 @@ export interface LiveTraffic {
   recent_deals: { ts: string; product_id: string | null; product_title: string | null; price_cents: number; list_price_cents: number | null; paid: boolean }[];
 }
 
-export function liveTraffic(all: Ev[]): LiveTraffic {
+/** `includeTests` (the dashboard's `?tests`) keeps teammates' test runs, for checking the live pipe; eval runs never count. */
+export function liveTraffic(all: Ev[], opts: { includeTests?: boolean } = {}): LiveTraffic {
   const evals = evalRunIds(all);
-  const evs = all.filter((e) => !isState(e) && !isTestRun(e.run_id) && !evals.has(e.run_id) && !e.run_id.startsWith("s2-fake-"));
+  const evs = all.filter((e) => !isState(e) && (opts.includeTests || !isTestRun(e.run_id)) && !evals.has(e.run_id) && !isEvalRunId(e.run_id) && !e.run_id.startsWith("s2-fake-"));
   const deals = evs.filter((e) => e.type === "deal_accepted");
   const paidIds = new Set(evs.filter((e) => e.type === "payment_succeeded").map((e) => p(e).deal_id as string));
   const discounts = deals.map((e) => { const list = p(e).list_price_cents; return typeof list === "number" && e.price_cents != null && list > 0 ? 1 - e.price_cents / list : null; })
