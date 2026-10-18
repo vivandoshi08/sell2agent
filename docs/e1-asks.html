@@ -78,7 +78,7 @@ details[open] > summary { margin-bottom: 10px; }
 
 <div class="wrap">
   <header style="display:grid;gap:8px">
-    <span class="eyebrow">sales-agent · E1 exchange &amp; safety · Vivan · updated Sun Oct 18, 1:24 am PT</span>
+    <span class="eyebrow">sales-agent · E1 exchange &amp; safety · Vivan · updated Sun Oct 18, 1:27 am PT</span>
     <h1>What E1 needs from you</h1>
     <p class="lede">Bridge 1 is closed: real ChatGPT bought a keyboard end to end at 12:23 am. We're now heading for <b>Bridge 2</b>: simulated buyers run through the <b>deployed</b> gateway, and the dashboard shows static vs. negotiating from real events. Below is where each of us stands, the two gaps no PR closes yet, and what I need from you. Mark each ask <b>Done</b> or <b>Push back</b> with a note.</p>
     <div class="summary" id="summary"></div>
@@ -87,7 +87,7 @@ details[open] > summary { margin-bottom: 10px; }
   </header>
 
   <section class="box">
-    <h2>Bridge 2 board <small>main 1e5e289 · production 825bc111 (a98e99a) · checked 1:24 am</small></h2>
+    <h2>Bridge 2 board <small>main 1e5e289 · production 825bc111 (a98e99a) · checked 1:27 am</small></h2>
     <p class="why"><b>Done when:</b> simulated buyers run through the deployed gateway, and the dashboard shows static vs. negotiating from real events. <b>Not met yet.</b> E2's 200-buyer run is real and safe, but it went through the exchange in-process with Claude buyers only.</p>
     <p class="why"><b>Production (1:00 am):</b> Vivan redeployed main a98e99a (Manufact deployment 825bc111). Smoke test on the live URL: <code>make_offer</code> takes <code>strategy</code>; no "Extras:" in search text; discovery files 200. Signed <code>static</code> held $129 for 4 rounds; signed <code>negotiating</code> went $129 → $124; unsigned and forged run_ids ignored <code>strategy</code>. About 3.5 s per <code>make_offer</code> with the Claude seller voice.</p>
     <div class="table-wrap"><table>
@@ -163,7 +163,7 @@ details[open] > summary { margin-bottom: 10px; }
         <tr><td>Ananya</td><td>Row Level Security (<code>apps/dashboard/ops/rls-proposal.sql</code>)</td><td><b>Applied by Ananya (#72, 08:20 UTC).</b> E1 re-checked: the anon key reads <code>events</code>, <code>products</code>, <code>sellers</code> and gets 0 rows from <code>seller_policies</code>, <code>deals</code>, <code>negotiations</code>, <code>seller_memory</code>, <code>runs</code>; the service role still reads <code>seller_policies</code>; the live gateway still writes (a test <code>search</code> event landed at 08:23). <code>events</code> stays public, so signed eval run_ids remain readable there (low risk). Scripts without <code>SUPABASE_SERVICE_ROLE_KEY</code> in <code>.env</code> can no longer write</td><td><span class="pill done">Applied (#72)</span></td></tr>
         <tr><td>Ananya</td><td>Drop <code>unit_cost_cents</code> from <code>deal_accepted</code> payloads</td><td>OK once S2's <code>run-result</code> joins costs server-side for every panel</td><td><span class="pill open">To do</span></td></tr>
         <tr><td>Neel</td><td>Add <code>summary</code> and <code>list_price_cents</code> to <code>ExchangeResponse</code>; call <code>offerSummary()</code> / <code>dealSummary()</code> from <code>@sa/seller-mcp/sellers</code> (#67) in <code>respond()</code></td><td>Contract v3 P0 fields are optional, so nothing breaks meanwhile. Done in #69: <code>respond()</code> fills both, and seller events carry <code>summary</code> too</td><td><span class="pill open">Review #69</span></td></tr>
-        <tr><td>Ananya</td><td>One lever-to-buyer-value table</td><td>Search (#54), S2's buyer fit and E2's decide each map levers differently. Proposal: E1 exports one map from <code>@sa/seller-mcp/exchange</code></td><td><span class="pill open">Decide</span></td></tr>
+        <tr><td>Ananya</td><td>One lever-to-buyer-value table</td><td>#73: <code>@sa/seller-mcp/extras</code> is the one map (five hand-copied maps disagreed). <code>bundle_discount</code> = price, as S1 and S2 agreed in #72. Owners switch over: b2e6, b2a8, b2n8</td><td><span class="pill open">Merge #73</span></td></tr>
       </tbody>
     </table></div>
   </section>
@@ -173,6 +173,7 @@ details[open] > summary { margin-bottom: 10px; }
     <div class="table-wrap"><table>
       <thead><tr><th>PR</th><th>Who</th><th>Verdict</th><th>Notes</th></tr></thead>
       <tbody>
+        <tr><td class="num"><a href="https://github.com/vivandoshi08/sales-agent/pull/73">#73</a></td><td>Vivan</td><td><span class="pill done">Merge</span></td><td>One shared extras map at <code>@sa/seller-mcp/extras</code> (<code>extraLever</code>, <code>extraLabel</code>, <code>extraPhrase</code>, <code>extrasPackage</code>); <code>free_shipping</code> serves delivery, <code>bundle_discount</code> and <code>volume_discount</code> serve price. Costs stay private. Main + #73 + #69: 0 type errors, seller 90/90, marketplace 51/51, dashboard 25/25, harness 8/8, gate PASS. Each owner adopts it (asks below)</td></tr>
         <tr><td class="num"><a href="https://github.com/vivandoshi08/sales-agent/pull/72">#72</a></td><td>Ananya</td><td><span class="pill done">Merged</span></td><td>RLS applied to the shared Supabase and verified; <code>bundle_discount</code> counts as a price lever (agreed with S1). E1 re-verified access per key and a live gateway write after RLS</td></tr>
         <tr><td class="num"><a href="https://github.com/vivandoshi08/sales-agent/pull/71">#71</a></td><td>Neel</td><td><span class="pill done">Merged</span></td><td><code>McpGateway(url, strategy)</code> sends <code>strategy</code> on <code>make_offer</code>; <code>buyers-cli</code> passes each run's policy (skips <code>lever_policy</code>). Neel's local-gateway check: static closed 8/8 at list ($115), negotiating at $110. Harness 8/8. Closes b2n2</td></tr>
         <tr><td class="num"><a href="https://github.com/vivandoshi08/sales-agent/pull/70">#70</a></td><td>Ananya</td><td><span class="pill done">Merged</span></td><td>Dashboard: default run selection compares eval runs only, once any exist</td></tr>
@@ -240,6 +241,7 @@ const PEOPLE = [
     { id: "b2n4", when: "now", t: "Make LeverProfile a partial object in the contract", d: "On zod 4 in production, z.record(LeverName, …) requires all six levers, so partial profiles fail. The gateway pads with zeros for now (Esha, #54)." },
     { id: "b2n5", when: "now", t: "Apply 0002_contract_v2.sql to the shared Supabase", d: "No offers table and no lever_menu on seller_policies yet. The console runs in v1 mode, and the single-catalog decision waits on it." },
     { id: "b2n6", when: "now", t: "Share the E2 Claude Doc with Vivan and Esha", d: "Vivan now reads the E2 page at claude.ai/artifact/6JBAwPz1VYkMi7WARBEZvM. Esha may still need it." },
+    { id: "b2n8", when: "after #73", t: "Use the shared extras map in summaries", d: "summary.ts LEVER_LABELS → extraPhrase from @sa/seller-mcp/extras, so \"the accessory bundle\" reads \"a bundle discount\" like everywhere else." },
     { id: "b2n7", when: "now", t: "Refresh the E2 page", d: "Refreshed at 1:12 am, thanks. Still out of date: #9, #11, #35 and #57 are all merged; ask_question and get_listing are live (#51). Please add that production (a98e99a) honours strategy for signed eval runs, so McpGateway can send it now." }
   ]},
   { who: "Esha", role: "S1 gateway & deploy", why: "Every Bridge 2 number has to come through your deployed gateway.", phase: 2, asks: [
@@ -247,6 +249,7 @@ const PEOPLE = [
     { id: "b2e2", when: "Bridge 2", t: "Redeploy after #54 and #53 merge, and post the deployed commit on your page", d: "Then we can tell which build served any live event." },
     { id: "b2e3", when: "now", t: "Confirm SUPABASE_SERVICE_ROLE_KEY is set on the Manufact server", d: "Precondition for turning on RLS: packages/shared/src/db.ts falls back to the anon key, and the gateway would stop logging once RLS is on." },
     { id: "b2e5", when: "Bridge 2", t: "Keep extras out of the model-facing search text for now", d: "E2's A/B (#58): offering extras costs sellers −$11.10/buyer, because buyers ask for free shipping on nearly every deal. Keep levers_offered in structuredContent if you like, but drop the \"Extras: …\" line ChatGPT reads until a lever policy beats price pacing. Push back if you disagree." },
+    { id: "b2e6", when: "after #73", t: "Use the shared extras map in search", d: "search.ts LEVER_OF → extraLever, labels → extraLabel from @sa/seller-mcp/extras. This moves free shipping from convenience to delivery for ranking." },
     { id: "b2e4", when: "before #52", t: "Tighten auto-deploy before it goes live", d: "Run seller-mcp tests too (it deploys that code), wait on the deployment id the deploy step returns instead of row 2 of the list, and switch it off at the 7 am freeze." }
   ]},
   { who: "Ananya", role: "S2 UI & proof", why: "The dashboard is the Bridge 2 proof.", phase: 2, asks: [
@@ -256,6 +259,7 @@ const PEOPLE = [
     { id: "b2a5", when: "now", block: true, t: "Share the live demo plan doc with Vivan", d: "Resolved 1:20 am: Vivan pasted it; mirrored at docs/live/s2-contract-v3.md on e1/live-log. Sharing the doc with other orgs' accounts would still help Neel and Esha's sessions." },
     { id: "b2a4", when: "now", t: "Rebase #27 on main and keep #60's guardrail changes", d: "#27 now uses liveTraffic and ModelFilter (thanks), but conflicts with #60 in Panels.tsx and styles.css. Keep #60's dimming of severity: routine rows, and add a label for the new payment_refused rule (refusals are no longer payment_failed)." },
     { id: "b2a6", when: "Bridge 2", block: true, t: "Sign run_id in eval --gateway", d: "#62 signs eval run_ids only in buyers-cli. apps/dashboard/scripts/eval.ts --gateway needs signEvalRun(run_id) from @sa/seller-mcp/exchange (and EXCHANGE_HMAC_SECRET in .env); otherwise the deployed exchange treats the run as live traffic and ignores strategy. E1 wrote it in #69 (two lines in eval.ts, plus McpGateway sends strategy): please review." },
+    { id: "b2a8", when: "after #73", t: "Use the shared extras map in the console and metrics", d: "Console LEVER_CATALOG → EXTRAS; metrics LEVER_SERVES → extraLever (bundle_discount becomes price, as agreed in #72); deal-card labels → extraLabel." },
     { id: "b2a7", when: "Bridge 2", t: "Keep signed eval runs out of the live-traffic panel", d: "liveTraffic() counts any run without a run_started+policy row as a real buyer, and isTestRun only knows s1/s2/e1/e2-test. Signed eval run_ids start with eval_ and are never real shoppers: exclude that prefix too. Vivan's 1:00 am smoke test left 4 such negotiations (walked away) in events." }
   ]},
   { who: "Anyone", role: "setup", why: "Small things that keep the shared setup safe.", phase: 2, asks: [
