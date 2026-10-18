@@ -1,11 +1,14 @@
 /** Presentational panels. Props only, so the look can change without touching data or metrics. */
+import { useState } from "react";
 import type { NegotiationEvent } from "@sa/shared";
 import type { PolicyKpis } from "../metrics/kpis";
 import { personaGrid } from "../metrics/kpis";
+import { clock, personaLabel, policyLabel } from "./labels";
+import { ruleLabel } from "./Seller";
 
 export const usd = (cents: number) => (cents / 100).toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: cents >= 100_000 ? 0 : 2 });
 export const pct = (x: number) => `${Math.round(x * 100)}%`;
-const time = (iso?: string) => (iso ? new Date(iso).toLocaleTimeString("en-US", { hour12: false }) : "");
+const time = clock;
 const human = (s: string) => s.replace(/_/g, " ");
 
 export function SafetyTile({ kpis }: { kpis: PolicyKpis[] }) {
@@ -67,12 +70,17 @@ export function LiveFeed({ events, policyOf, freshFrom }: { events: NegotiationE
   );
 }
 
+const GLOG_FIRST = 5;
+
 export function GuardrailLog({ events }: { events: NegotiationEvent[] }) {
+  const [all, setAll] = useState(false);
   const rows = events.filter((e) => e.type === "guardrail_blocked").slice(-30).reverse();
   if (!rows.length) return <p className="empty">No blocks yet. Every move the seller code stops shows up here with the rule that fired.</p>;
+  const more = rows.length - GLOG_FIRST;
   return (
-    <ul className="glog">
-      {rows.map((e, i) => {
+    <>
+    <ul className={`glog${all ? " all" : ""}`}>
+      {(all ? rows : rows.slice(0, GLOG_FIRST)).map((e, i) => {
         const p = e.payload as Record<string, unknown>;
         // E1 tags each block: routine (normal price clamps) is dimmed so attacks and catches stand out.
         const routine = p.severity === "routine";
@@ -80,7 +88,7 @@ export function GuardrailLog({ events }: { events: NegotiationEvent[] }) {
           <li key={i} className={routine ? "routine" : undefined} title={typeof p.severity === "string" ? p.severity : undefined}>
             <time className="num">{time(e.ts)}</time>
             <span className="glog-body">
-              <span className={`pill ${routine ? "" : "bad"}`}>{human(String(p.rule ?? "blocked"))}</span>
+              <span className={`pill ${routine ? "" : "bad"}`}>{ruleLabel(String(p.rule ?? "blocked"))}</span>
               <span className="reason">{String(p.reason ?? "")}</span>
             </span>
             <span className="held num">{typeof p.clamped_to_cents === "number" ? <>held at<br /><b>{usd(p.clamped_to_cents)}</b></> : ""}</span>
@@ -88,6 +96,8 @@ export function GuardrailLog({ events }: { events: NegotiationEvent[] }) {
         );
       })}
     </ul>
+    {more > 0 && <button type="button" className="glog-more" onClick={() => setAll((x) => !x)}>{all ? "Show fewer" : `Show ${more} more`}</button>}
+    </>
   );
 }
 
@@ -98,11 +108,11 @@ export function PersonaGrid({ kpis }: { kpis: PolicyKpis[] }) {
   return (
     <div className="scroll">
       <table className="pgrid">
-        <thead><tr><th>Buyer type</th>{kpis.map((k) => <th key={k.policy}>{human(k.policy)} · bought</th>)}</tr></thead>
+        <thead><tr><th>Buyer type</th>{kpis.map((k) => <th key={k.policy}>{policyLabel(k.policy)} · bought</th>)}</tr></thead>
         <tbody>
           {rows.map((r) => (
             <tr key={r.persona}>
-              <td className="persona">{human(r.persona)}</td>
+              <td className="persona">{personaLabel(r.persona)}</td>
               {r.cells.map((c) => (
                 <td key={c.policy}>
                   <span className={`cell num${c.n < SMALL_N ? " few" : ""}`} title={c.n < SMALL_N ? `Only ${c.n} buyers: treat as a hint, not a result` : undefined}>

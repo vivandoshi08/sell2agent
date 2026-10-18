@@ -8,11 +8,18 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { NegotiationEvent } from "@sa/shared";
 import type { LiveTraffic } from "../metrics/kpis";
 import { pct, usd } from "./Panels";
+import { clock } from "./labels";
+
+/** Two-letter monogram + tint per assistant, so ChatGPT and Claude don't both show a black "C". */
+const AGENT_MARK: Record<string, [string, string]> = {
+  ChatGPT: ["GP", "chatgpt"], Claude: ["Cl", "claude"], Instinct: ["In", "instinct"], Gemini: ["Ge", "gemini"], Grok: ["Gk", "grok"], Muse: ["Mu", "muse"],
+};
+export const agentMark = (name: string): [string, string] => AGENT_MARK[name] ?? [name.slice(0, 2), "other"];
 
 type P = Record<string, unknown>;
 const pl = (e: NegotiationEvent) => (e.payload ?? {}) as P;
 const str = (v: unknown) => (typeof v === "string" && v.trim() ? v : undefined);
-const time = (iso?: string) => (iso ? new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", second: "2-digit" }) : "");
+const time = clock;
 
 /** "kb_quietpro_75" → "Quietpro 75". Catalog titles aren't in events; this keeps the card readable. */
 export function productName(id: string | null) {
@@ -110,14 +117,16 @@ export function NegotiationCard({ n, fresh }: { n: ReturnType<typeof useNegotiat
   const dealPrices = new Set(n.evs.filter((e) => e.type === "deal_accepted").map((e) => e.price_cents));
   const moves = n.evs.filter((e) => !(e.type === "offer_accepted" && dealPrices.has(e.price_cents))).map(toMove).filter(Boolean) as Move[];
   const shown = moves.slice(-6);
+  const earlier = moves.length - shown.length;
   return (
     <article className={`neg-card${fresh ? " fresh" : ""}`} aria-label={`${n.agent} negotiating for ${n.product}`}>
       <header className="neg-h">
-        <span className="agent-av" aria-hidden="true">{n.agent.charAt(0)}</span>
+        <span className={`agent-av a-${agentMark(n.agent)[1]}`} aria-hidden="true">{agentMark(n.agent)[0]}</span>
         <div className="neg-who"><b>{n.agent}</b><span>{n.product ? <>buying <b>{n.product}</b></> : "browsing your catalog"}</span></div>
         <span className={`status s-${n.status.replace(" ", "-").toLowerCase()}`}>{n.status}</span>
       </header>
       <ol className="moves">
+        {earlier > 0 && <li className="move earlier" aria-label={`${earlier} earlier moves not shown`}><span className="dot" aria-hidden="true" /><div className="mv"><span className="mv-why">{earlier} earlier move{earlier > 1 ? "s" : ""}</span></div></li>}
         {shown.map((m) => (
           <li key={m.key} className={`move ${m.who} ${m.tone}`}>
             <span className="dot" aria-hidden="true" />
@@ -152,7 +161,7 @@ export function SaleToasts({ events }: { events: NegotiationEvent[] }) {
   return (
     <div className="toasts" role="status" aria-live="polite">
       {toasts.map((t) => (
-        <div key={t.id} className="toast"><span className="toast-mk" aria-hidden="true">✓</span><div><b>{t.title}</b><span>{t.body}</span></div></div>
+        <div key={t.id} className="toast"><span className="toast-mk" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 4.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></span><div><b>{t.title}</b><span>{t.body}</span></div></div>
       ))}
     </div>
   );
