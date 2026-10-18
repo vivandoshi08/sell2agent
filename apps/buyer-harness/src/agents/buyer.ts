@@ -35,10 +35,12 @@ export interface BuyerOutcome {
 
 const dollars = (c: number) => Math.round(c) / 100;
 
-export async function runBuyer(task: LlmBuyerTask, brain: Brain, gw: Gateway, run_id: string, emit: Emit, maxSteps = 30): Promise<BuyerOutcome> {
+/** @param policy seller policy label for this run; goes in every event payload (S2 reads `payload.policy`). */
+export async function runBuyer(task: LlmBuyerTask, brain: Brain, gw: Gateway, run_id: string, emit: Emit, maxSteps = 30, policy?: string): Promise<BuyerOutcome> {
   const ctx: BuyerContext = { run_id, buyer_id: task.buyer_id, buyer_model: brain.model };
   const t0 = Date.now();
   const sellers = new Map<string, string>(); // product → seller name
+  const listPrices = new Map<string, number>(); // product → list price (cents)
   const negs = new Map<string, { id: string; last_price: number }>(); // product → negotiation
   const o: BuyerOutcome = {
     buyer_id: task.buyer_id, buyer_model: brain.model, persona: task.persona, adversary: task.adversary ?? null, closed: false,
@@ -49,7 +51,10 @@ export async function runBuyer(task: LlmBuyerTask, brain: Brain, gw: Gateway, ru
   let firstGatewayError: string | undefined;
   const ev = (type: NegotiationEvent["type"], actor: NegotiationEvent["actor"], extra: Partial<NegotiationEvent> = {}) =>
     emit({ run_id, buyer_id: task.buyer_id, buyer_model: brain.model, seller_id: null, product_id: null, negotiation_id: null,
-      actor, type, price_cents: null, payload: { persona: task.persona, adversary: task.adversary ?? null }, ...extra });
+      actor, type, price_cents: null, ...extra,
+      // Keys S2's dashboard reads (apps/dashboard/DONE.md, "Event payload keys S2 reads").
+      payload: { policy: policy ?? null, buyer_persona: task.adversary ? "adversarial" : task.persona, persona: task.persona,
+        adversary: task.adversary ?? null, lever_profile: task.profile, ...(extra.payload ?? {}) } });
 
   const exec = async (name: string, a: Record<string, any>): Promise<string> => {
     o.steps++;
@@ -58,7 +63,7 @@ export async function runBuyer(task: LlmBuyerTask, brain: Brain, gw: Gateway, ru
       switch (name) {
         case "search_products": {
           const ls = await gw.search(ctx, String(a.query ?? ""), a.max_price ? Math.round(a.max_price * 100) : undefined);
-          ls.forEach((l) => sellers.set(l.product_id, l.seller_name));
+          ls.forEach((l) => { sellers.set(l.product_id, l.seller_name); listPrices.set(l.product_id, l.list_price_cents); });
           ev("search", "buyer", { payload: { query: a.query, results: ls.length } });
           return JSON.stringify({ listings: ls.map((l) => ({ product_id: l.product_id, seller: l.seller_name, title: l.title,
             description: l.description, specs: l.specs, list_price: dollars(l.list_price_cents), shipping_days: l.shipping_days, negotiable: l.negotiable })) });
@@ -86,7 +91,7 @@ export async function runBuyer(task: LlmBuyerTask, brain: Brain, gw: Gateway, ru
           const r = await gw.offer(ctx, { product_id: String(a.product_id), negotiation_id: negs.get(a.product_id)?.id, offer_price_cents: cents, message: a.message });
           negs.set(a.product_id, { id: r.negotiation_id, last_price: r.price_cents });
           ev(r.status === "accept" ? "offer_accepted" : r.status === "counter" ? "offer_countered" : "offer_rejected", "seller",
-            { product_id: a.product_id, negotiation_id: r.negotiation_id, price_cents: r.price_cents, payload: { round: r.round, final: r.final, message: r.message } });
+            { product_id: a.product_id, negotiation_id: r.negotiation_id, price_cents: r.price_cents, payload: { round: r.round, final: r.final, message: r.message, lever_package: [], expires_at: null } });
           return JSON.stringify({ status: r.status, seller_price: dollars(r.price_cents), round: r.round, rounds_left: r.rounds_left, final: r.final, seller_message: r.message });
         }
         case "accept_deal": {
@@ -107,7 +112,8 @@ export async function runBuyer(task: LlmBuyerTask, brain: Brain, gw: Gateway, ru
             o.profit_cents = r.final_price_cents - terms.unit_cost_cents;
             o.below_floor = r.final_price_cents < terms.floor_price_cents;
           } catch { /* product not in the local catalog (remote gateway) */ }
-          ev("deal_accepted", "buyer", { product_id: pid, negotiation_id: n.id, price_cents: r.final_price_cents, payload: { deal_id: r.deal_id } });
+          ev("deal_accepted", "buyer", { product_id: pid, negotiation_id: n.id, price_cents: r.final_price_cents,
+            payload: { deal_id: r.deal_id, lever_package: [], list_price_cents: listPrices.get(pid) ?? null } });
           return JSON.stringify({ ok: true, deal_id: r.deal_id, price: dollars(r.final_price_cents) });
         }
         case "walk_away": {
