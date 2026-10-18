@@ -45,6 +45,20 @@ if (db) {
 const sellerLlm = f["seller-voice"] ? defaultLlm() : null;
 if (f["seller-voice"] && !sellerLlm) throw new Error("--seller-voice needs ANTHROPIC_API_KEY");
 const harnessRuns = resolve(import.meta.dirname, "../../buyer-harness/runs");
+
+/**
+ * Through a deployed gateway the exchange logs the seller's events (offers, deal_accepted, guardrail blocks) straight to
+ * Supabase, so the harness's local jsonl only has the buyer side and scores 0 deals. Read the run's whole stream there.
+ */
+async function dbEvents(run_id: string): Promise<NegotiationEvent[]> {
+  const out: NegotiationEvent[] = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await db!.from("events").select("*").eq("run_id", run_id).order("ts", { ascending: true }).range(from, from + 999);
+    if (error) throw new Error(`events for ${run_id}: ${error.message}`);
+    out.push(...((data ?? []) as NegotiationEvent[]));
+    if (!data || data.length < 1000) return out;
+  }
+}
 const outDir = resolve(import.meta.dirname, "../public/runs");
 mkdirSync(outDir, { recursive: true });
 
@@ -69,7 +83,8 @@ for (const policy of policies) {
     process.stdout.write("\n");
   }
   const file = resolve(harnessRuns, `${run_id}.events.jsonl`);
-  const events: NegotiationEvent[] = existsSync(file) ? readFileSync(file, "utf8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l))
+  const events: NegotiationEvent[] = gatewayUrl && db ? await dbEvents(run_id)
+    : existsSync(file) ? readFileSync(file, "utf8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l))
     : saved.filter((e) => e.run_id === run_id && (e.type as string) !== "judged"); // drop old verdicts; the judge re-runs below
   const report = await computeRunResult(run_id, events, costs, { label: policy });
   allEvents.push(...report.events);
