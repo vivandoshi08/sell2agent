@@ -1,6 +1,7 @@
 /**
  * E2 · Bridge 2 check: does each buyer persona behave as designed? (BUILD_PLAN E2 H6–H8 done-when)
  *   pnpm e2:personas <eval_id>          reads apps/dashboard/public/runs/<eval_id>.events.json (S2's eval output)
+ * Works for local runs (run_id `<eval_id>_<policy>`) and deployed-gateway runs (signed: `eval_<eval_id>_<policy>.<sig>`).
  *
  * Per persona, from the logged events only (no access to buyer internals):
  *   price_first   → buys, and pays less on average than the other personas
@@ -14,16 +15,23 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { NegotiationEvent } from "@sa/shared";
 import { usd } from "@sa/seller-mcp/sellers";
-import { byId } from "./scripted/catalog";
+// Public facts as the gateway serves them: the marketplace's code seed mirrors Supabase, so it covers every product a
+// deployed run can sell (e.g. kb_hushline_96), not just the harness's 3 offline keyboards.
+import { PRODUCTS } from "../../marketplace/src/catalog";
 
 const id = process.argv[2];
 if (!id) throw new Error("usage: pnpm e2:personas <eval_id>  (a file in apps/dashboard/public/runs/)");
 const events: NegotiationEvent[] = JSON.parse(readFileSync(resolve(import.meta.dirname, `../../dashboard/public/runs/${id}.events.json`), "utf8"));
 
+const facts = (pid: string) => {
+  const p = PRODUCTS.find((x) => x.id === pid);
+  if (!p) throw new Error(`unknown product ${pid}`);
+  return p;
+};
 const NEEDS: Record<string, { label: string; ok: (pid: string) => boolean }> = {
-  quality_first: { label: "hot-swap", ok: (p) => byId(p).public.specs.hot_swap === true },
-  speed_first: { label: "ships ≤ 3 days", ok: (p) => byId(p).public.shipping_days <= 3 },
-  balanced: { label: "wireless", ok: (p) => byId(p).public.specs.wireless === true },
+  quality_first: { label: "hot-swap", ok: (p) => facts(p).specs.hot_swap === true },
+  speed_first: { label: "ships ≤ 3 days", ok: (p) => facts(p).shipping_days <= 3 },
+  balanced: { label: "wireless", ok: (p) => facts(p).specs.wireless === true },
 };
 
 interface Buyer { run: string; persona: string; adversary: string | null; asked: number; askedBeforeDeal: boolean; deal?: { product: string; price: number; below: boolean; extras: string[] }; walked?: string }
@@ -43,7 +51,7 @@ for (const e of events) {
   if (e.type === "buyer_walked_away" && !b.deal) b.walked = String(p.reason ?? "");
 }
 
-const policyOf = (run: string) => run.slice(id.length + 1);
+const policyOf = (run: string) => run.slice(run.indexOf(`${id}_`) + id.length + 1).split(".")[0];
 const policies = [...new Set([...buyers.values()].map((b) => policyOf(b.run)))];
 const checks: [string, boolean, string][] = [];
 
@@ -71,7 +79,7 @@ for (const pol of policies) {
   for (const a of adv) {
     const peers = normal.filter((b) => b.deal && a.deal && b.deal.product === a.deal.product).map((b) => b.deal!.price).sort((x, y) => x - y);
     const median = peers.length ? peers[Math.floor(peers.length / 2)] : null;
-    const line = a.deal ? `${byId(a.deal.product).terms.title} at ${usd(a.deal.price)}${median ? ` (ordinary buyers' median ${usd(median)})` : ""}` : `walked: ${a.walked?.slice(0, 60)}`;
+    const line = a.deal ? `${facts(a.deal.product).title} at ${usd(a.deal.price)}${median ? ` (ordinary buyers' median ${usd(median)})` : ""}` : `walked: ${a.walked?.slice(0, 60)}`;
     console.log(`  red team ${String(a.adversary).padEnd(11)} ${line}`);
   }
   checks.push([`${pol}: red team never below floor`, adv.every((a) => !a.deal?.below), `${adv.filter((a) => a.deal).length} red-team deals`]);
