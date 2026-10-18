@@ -1,0 +1,374 @@
+{
+  "version": 1,
+  "trained_at": "2026-10-18T13:15:41.639Z",
+  "arms": [
+    "negotiating",
+    "balanced",
+    "lever_policy",
+    "pkg:free_shipping",
+    "pkg:extended_warranty",
+    "pkg:bundle_discount"
+  ],
+  "epsilon": 0.1,
+  "stats": {
+    "price": {
+      "balanced": {
+        "n": 214,
+        "sum": 134430,
+        "sumSq": 716809010,
+        "w": 884.9831997932289,
+        "wsum": 555926.5960196439
+      },
+      "lever_policy": {
+        "n": 185,
+        "sum": 38513,
+        "sumSq": 1057909473,
+        "w": 765.0555699147072,
+        "wsum": 159268.02791418988
+      },
+      "pkg:free_shipping": {
+        "n": 185,
+        "sum": -172101,
+        "sumSq": 2042067049,
+        "w": 765.0555699147072,
+        "wsum": -711712.5872318432
+      },
+      "pkg:extended_warranty": {
+        "n": 29,
+        "sum": 7354,
+        "sumSq": 85502804,
+        "w": 885.4961832061092,
+        "wsum": 224549.61832061116
+      },
+      "negotiating": {
+        "n": 187,
+        "sum": 41803,
+        "sumSq": 1115459833,
+        "w": 773.3264409408122,
+        "wsum": 172873.61075213278
+      }
+    },
+    "unknown": {
+      "balanced": {
+        "n": 509,
+        "sum": 365282,
+        "sumSq": 1408836092,
+        "w": 2112.471467109357,
+        "wsum": 1516007.4704295574
+      },
+      "negotiating": {
+        "n": 480,
+        "sum": 179977,
+        "sumSq": 2310283037,
+        "w": 1992.1145465864242,
+        "wsum": 746947.4994812227
+      },
+      "lever_policy": {
+        "n": 480,
+        "sum": 83648,
+        "sumSq": 3033487028,
+        "w": 1992.1145465864242,
+        "wsum": 347159.16165179847
+      },
+      "pkg:free_shipping": {
+        "n": 468,
+        "sum": -308513,
+        "sumSq": 4543417137,
+        "w": 1942.3116829217638,
+        "wsum": -1280402.573147965
+      },
+      "pkg:extended_warranty": {
+        "n": 63,
+        "sum": -48212,
+        "sumSq": 758282888,
+        "w": 1740.3314917126975,
+        "wsum": -1331823.2044198813
+      }
+    },
+    "quality": {
+      "negotiating": {
+        "n": 97,
+        "sum": 31840,
+        "sumSq": 462827360,
+        "w": 403.74609781477636,
+        "wsum": 132528.6160249739
+      },
+      "balanced": {
+        "n": 99,
+        "sum": 90005,
+        "sumSq": 178688645,
+        "w": 412.07075962539034,
+        "wsum": 374630.5931321532
+      },
+      "pkg:free_shipping": {
+        "n": 89,
+        "sum": -46044,
+        "sumSq": 797990276,
+        "w": 370.44745057232046,
+        "wsum": -191650.36420395403
+      },
+      "lever_policy": {
+        "n": 99,
+        "sum": 51361,
+        "sumSq": 439775881,
+        "w": 412.07075962539034,
+        "wsum": 213781.4776274711
+      },
+      "pkg:extended_warranty": {
+        "n": 16,
+        "sum": -53334,
+        "sumSq": 510488316,
+        "w": 410.256410256411,
+        "wsum": -1367538.4615384634
+      }
+    },
+    "delivery": {
+      "balanced": {
+        "n": 108,
+        "sum": 70217,
+        "sumSq": 303971267,
+        "w": 447.2049689440993,
+        "wsum": 290753.62318840536
+      },
+      "negotiating": {
+        "n": 103,
+        "sum": 40723,
+        "sumSq": 479068573,
+        "w": 426.50103519668727,
+        "wsum": 168625.25879917166
+      },
+      "pkg:free_shipping": {
+        "n": 89,
+        "sum": -47095,
+        "sumSq": 905921325,
+        "w": 368.53002070393364,
+        "wsum": -195010.35196687345
+      },
+      "lever_policy": {
+        "n": 93,
+        "sum": -40975,
+        "sumSq": 959048215,
+        "w": 385.09316770186325,
+        "wsum": -169668.73706004123
+      },
+      "pkg:extended_warranty": {
+        "n": 7,
+        "sum": -4618,
+        "sumSq": 74880132,
+        "w": 205.8823529411767,
+        "wsum": -135823.52941176487
+      }
+    },
+    "trust": {
+      "lever_policy": {
+        "n": 103,
+        "sum": 34749,
+        "sumSq": 576753459,
+        "w": 430.2872062663184,
+        "wsum": 145165.5352480415
+      },
+      "pkg:free_shipping": {
+        "n": 105,
+        "sum": -43273,
+        "sumSq": 797438487,
+        "w": 438.6422976501304,
+        "wsum": -180774.93472584838
+      },
+      "negotiating": {
+        "n": 93,
+        "sum": 65611,
+        "sumSq": 252927271,
+        "w": 388.51174934725833,
+        "wsum": 274092.9503916445
+      },
+      "balanced": {
+        "n": 88,
+        "sum": 70630,
+        "sumSq": 209367170,
+        "w": 367.6240208877283,
+        "wsum": 295060.0522193206
+      },
+      "pkg:extended_warranty": {
+        "n": 11,
+        "sum": 2386,
+        "sumSq": 87411636,
+        "w": 258.8235294117651,
+        "wsum": 56141.17647058831
+      }
+    }
+  },
+  "choice": {
+    "price": "balanced",
+    "unknown": "balanced",
+    "quality": "balanced",
+    "delivery": "balanced",
+    "trust": "balanced"
+  },
+  "min_sessions": 10,
+  "curve": [
+    {
+      "epoch": 1,
+      "bandit": 704,
+      "negotiating": 375,
+      "balanced": 724
+    },
+    {
+      "epoch": 2,
+      "bandit": 575,
+      "negotiating": 375,
+      "balanced": 724
+    },
+    {
+      "epoch": 3,
+      "bandit": 704,
+      "negotiating": 375,
+      "balanced": 724
+    },
+    {
+      "epoch": 4,
+      "bandit": 646,
+      "negotiating": 375,
+      "balanced": 724
+    },
+    {
+      "epoch": 5,
+      "bandit": 646,
+      "negotiating": 375,
+      "balanced": 724
+    },
+    {
+      "epoch": 6,
+      "bandit": 646,
+      "negotiating": 375,
+      "balanced": 724
+    },
+    {
+      "epoch": 7,
+      "bandit": 646,
+      "negotiating": 375,
+      "balanced": 724
+    },
+    {
+      "epoch": 8,
+      "bandit": 574,
+      "negotiating": 375,
+      "balanced": 724
+    },
+    {
+      "epoch": 9,
+      "bandit": 574,
+      "negotiating": 375,
+      "balanced": 724
+    },
+    {
+      "epoch": 10,
+      "bandit": 574,
+      "negotiating": 375,
+      "balanced": 724
+    },
+    {
+      "epoch": 11,
+      "bandit": 554,
+      "negotiating": 375,
+      "balanced": 724
+    },
+    {
+      "epoch": 12,
+      "bandit": 574,
+      "negotiating": 375,
+      "balanced": 724
+    },
+    {
+      "epoch": 13,
+      "bandit": 554,
+      "negotiating": 375,
+      "balanced": 724
+    },
+    {
+      "epoch": 14,
+      "bandit": 704,
+      "negotiating": 375,
+      "balanced": 724
+    },
+    {
+      "epoch": 15,
+      "bandit": 704,
+      "negotiating": 375,
+      "balanced": 724
+    },
+    {
+      "epoch": 16,
+      "bandit": 704,
+      "negotiating": 375,
+      "balanced": 724
+    },
+    {
+      "epoch": 17,
+      "bandit": 704,
+      "negotiating": 375,
+      "balanced": 724
+    },
+    {
+      "epoch": 18,
+      "bandit": 724,
+      "negotiating": 375,
+      "balanced": 724
+    },
+    {
+      "epoch": 19,
+      "bandit": 724,
+      "negotiating": 375,
+      "balanced": 724
+    },
+    {
+      "epoch": 20,
+      "bandit": 724,
+      "negotiating": 375,
+      "balanced": 724
+    }
+  ],
+  "gate": {
+    "passed": false,
+    "best_fixed_policy": "",
+    "learned_minus_best_fixed_cents": 0,
+    "holdout_buyers": 0,
+    "diff_vs_negotiating_cents": 0,
+    "ci95_cents": [
+      0,
+      0
+    ],
+    "below_floor": 0,
+    "source": "pending: score on held-out buyers with pnpm e2:learned --policy-file <this file> --gate"
+  },
+  "trained_on": {
+    "source": "logged, mixture IPS",
+    "sessions": 2000,
+    "runs": [
+      "b4S_learned"
+    ],
+    "by_source": {
+      "real": 0,
+      "sim": 2000
+    },
+    "contexts": {
+      "price": {
+        "real": 0,
+        "sim": 800
+      },
+      "quality": {
+        "real": 0,
+        "sim": 400
+      },
+      "delivery": {
+        "real": 0,
+        "sim": 400
+      },
+      "trust": {
+        "real": 0,
+        "sim": 400
+      }
+    },
+    "reward": "50% profit + 50% revenue",
+    "baseline": "listing"
+  }
+}

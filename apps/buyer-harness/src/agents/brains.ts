@@ -4,6 +4,7 @@
  *   OpenAIBrain  · OpenAI tool calling  (OPENAI_API_KEY, BUYER_GPT_MODEL; OPENAI_BASE_URL works for OpenRouter)
  *   ScriptedBrain· no LLM; deterministic E11-style haggler, for offline tests of the plumbing
  */
+import type { BuyerLeverProfile } from "@sa/seller-mcp/sellers";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { BUYER_TOOLS, buyerSystemPrompt } from "./tools";
@@ -73,7 +74,20 @@ export class OpenAIBrain implements Brain {
 /**
  * No-LLM buyer for offline tests. E11 scripted behavior: open at ~82% of walk-away, close 35% of the gap each
  * round, accept a counter at or below the next bid, bid the walk-away last, then accept or walk.
+ *
+ * Perks have a known value (the ground truth for checking the learner): an extra in the seller's offer is worth
+ * PERK_VALUE_CENTS × how much this buyer weighs the value it serves, and counts against the ask when deciding whether
+ * to take it now. It never lifts the walk-away (a hard cap on price). Listing: a seeded pick among those in budget.
  */
+export const PERK_VALUE_CENTS: Record<string, { lever: keyof BuyerLeverProfile; cents: number }> = {
+  free_shipping: { lever: "delivery", cents: 1500 },
+  extended_warranty: { lever: "warranty", cents: 2000 },
+  bundle_discount: { lever: "price", cents: 1500 },
+};
+export function perkValueCents(extras: readonly string[], profile: BuyerLeverProfile): number {
+  return extras.reduce((v, x) => v + (PERK_VALUE_CENTS[x] ? (profile[PERK_VALUE_CENTS[x].lever] ?? 0) * PERK_VALUE_CENTS[x].cents : 0), 0);
+}
+const seeded = (id: string) => { let h = 2166136261; for (const c of id) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return (h >>> 0) / 2 ** 32; };
 export class ScriptedBrain implements Brain {
   readonly model = "scripted";
   async run(task: LlmBuyerTask, exec: Exec, isDone: () => boolean, maxSteps: number): Promise<BrainRun> {
@@ -82,7 +96,9 @@ export class ScriptedBrain implements Brain {
     const found = await call("search_products", { query: task.goal, max_price: task.walkaway_cents / 100 });
     const listings: any[] = found.listings ?? [];
     if (!listings.length) { await call("walk_away", { reason: "nothing found" }); return { steps, done: true, input_tokens: 0, output_tokens: 0 }; }
-    const pick = [...listings].sort((a, b) => a.list_price - b.list_price)[0];
+    const affordable = listings.filter((l) => l.list_price * 100 <= task.walkaway_cents * 1.15);
+    const pool = affordable.length ? affordable : listings;
+    const pick = pool[Math.floor(seeded(task.buyer_id) * pool.length)];
     await call("ask_question", { product_id: pick.product_id, question: task.hard_needs[0] ? `Is it ${task.hard_needs[0]}?` : "What warranty does it come with?" });
 
     const walk = Math.min(task.walkaway_cents / 100, pick.list_price); // never bid above the sticker price
@@ -97,6 +113,9 @@ export class ScriptedBrain implements Brain {
       if (r.status === "accept") { lastAsk = r.seller_price; break; }
       if (r.status === "reject") break;
       lastAsk = r.seller_price;
+      // a perk in the offer is worth something to this buyer: take it now if the ask, net of the perk, is within the next bid
+      const perk = perkValueCents(r.included_extras ?? [], task.profile) / 100;
+      if (perk > 0 && lastAsk !== undefined && lastAsk <= walk && lastAsk - perk <= Math.floor(bid + 0.35 * (walk - bid))) break;
     }
     if (lastAsk !== undefined && lastAsk <= walk) await call("accept_deal", { product_id: pick.product_id });
     if (!isDone()) await call("walk_away", { reason: "price above my maximum" });

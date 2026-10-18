@@ -1,0 +1,93 @@
+{
+  "source": "docs/results/b3-learned/runs/b3C_learned.events.jsonl.gz",
+  "run_id": "b3C_learned",
+  "negotiation_id": "neg_aa7ec222-1672-407d-a51a-de9271034615",
+  "buyer_model": "claude-haiku-5-5",
+  "persona": "speed_first",
+  "profile": {
+    "delivery": 1,
+    "price": 0.5
+  },
+  "product": {
+    "id": "kb_keyforge_quiet75",
+    "title": "KeyForge Quiet 75",
+    "list_price_cents": 12900,
+    "unit_cost_cents": 6000
+  },
+  "arm": "balanced",
+  "context": "delivery",
+  "propensity": 0.9333333333333333,
+  "arm_probs": {
+    "negotiating": 0.03333333333333333,
+    "balanced": 0.9333333333333333,
+    "lever_policy": 0.03333333333333333
+  },
+  "policy_version": 3,
+  "steps": [
+    {
+      "by": "buyer",
+      "price_cents": 9500,
+      "message": "Ships in 3 days is required. Would you accept $95 for the KeyForge Quiet 75?",
+      "reason_code": null
+    },
+    {
+      "by": "seller",
+      "price_cents": 12900,
+      "message": "We open at our list price of $129. We move gradually from there over the next rounds.",
+      "reason_code": "pacing"
+    },
+    {
+      "by": "buyer",
+      "price_cents": 10500,
+      "message": "I'm at $105 firm-ish for the 3-day shipping KeyForge. Can you meet it?",
+      "reason_code": null
+    },
+    {
+      "by": "seller",
+      "price_cents": 12700,
+      "message": "We can come down from $129 to $127 this round. We concede gradually as the negotiation goes on.",
+      "reason_code": "pacing"
+    },
+    {
+      "by": "buyer",
+      "price_cents": 9800,
+      "message": "My budget is $98. Please meet it and I'll buy now.",
+      "reason_code": null
+    },
+    {
+      "by": "seller",
+      "price_cents": 12400,
+      "message": "We can come down from $127 to $124 this round. We concede gradually as the negotiation goes on.",
+      "reason_code": "pacing"
+    },
+    {
+      "by": "buyer",
+      "price_cents": 10400,
+      "message": "Last round from me: $104 for the KeyForge Quiet 75 with 3-day shipping.",
+      "reason_code": null
+    },
+    {
+      "by": "seller",
+      "price_cents": 11700,
+      "message": "We can come down from $124 to $117 this round. We concede gradually as the negotiation goes on.",
+      "reason_code": "pacing"
+    },
+    {
+      "by": "buyer",
+      "price_cents": 10700,
+      "message": "$107 final for the 3-day KeyForge Quiet 75.",
+      "reason_code": null
+    },
+    {
+      "by": "seller",
+      "price_cents": 10700,
+      "message": "Your offer of $107 is at or above what we'd ask right now, so we accept.",
+      "reason_code": "buyer_met_ask"
+    }
+  ],
+  "deal": {
+    "price_cents": 10700,
+    "profit_cents": 4700,
+    "revenue_cents": 10700
+  }
+}

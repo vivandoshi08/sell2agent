@@ -16,6 +16,14 @@ import "./console.css";
 
 const usd = (c: number) => `$${(c / 100).toFixed(c % 100 ? 2 : 0)}`;
 const toCents = (s: string) => Math.round(Number(s) * 100);
+/** Same blend as the seller's objectiveFormula (apps/seller-mcp/src/sellers/bandit.ts); kept here so the console stays browser-only. */
+function goalFormula(o: Partial<Objective>): string {
+  const m = o.margin ?? 0.5, c = (o.conversion ?? 0.5) + (o.clear_stock ?? 0);
+  if (m + c <= 0) return "100% profit";
+  const pm = Math.round((100 * m) / (m + c));
+  return `${pm}% profit + ${100 - pm}% revenue`;
+}
+
 const OBJECTIVES: { key: keyof Objective; label: string }[] = [
   { key: "margin", label: "Margin" }, { key: "conversion", label: "Conversion" }, { key: "clear_stock", label: "Clear stock" },
   { key: "repeat_customers", label: "Repeat customers" }, { key: "premium_image", label: "Premium image" },
@@ -152,7 +160,7 @@ export function Console() {
                       <input type="range" min={0} max={1} step={0.05} value={draft.objective[o.key] ?? 0} onChange={(e) => edit((d) => ({ ...d, objective: { ...d.objective, [o.key]: Number(e.target.value) } }))} />
                       <b className="num">{(draft.objective[o.key] ?? 0).toFixed(2)}</b></label>
                   ))}
-                  <p className="cx-note">Saved to the contract's objective field. Today's policies don't read it yet; E2's learned policy will.</p>
+                  <p className="cx-note">The learned seller is trained to maximize this: <b>{goalFormula(draft.objective)}</b> per negotiation. Margin weights profit, conversion and clear stock weight revenue (any sale counts). Every negotiation logs these weights, and the next retrain scores it with them.</p>
                 </div>
               </div>
 

@@ -70,6 +70,10 @@ export interface SellerPolicy {
   lever_menu?: Lever[];
   /** lever_policy only: a buyer must value a lever at least this much (0..1) to be offered it. Default 0.6. */
   lever_weight_threshold?: number;
+  /** lever_policy only: the concession curve under the levers (default negotiating; package arms use balanced). */
+  base_tactic?: "negotiating" | "balanced";
+  /** lever_policy only: "profile" (default) says the buyer asked for it; "offer" (a learned package) just offers it. */
+  lever_pitch?: "profile" | "offer";
 }
 
 /** Why the seller is doing what it does. The voice must say THIS reason (E5: no reason → invented limits). */

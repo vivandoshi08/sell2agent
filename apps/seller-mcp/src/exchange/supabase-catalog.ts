@@ -29,10 +29,10 @@ export interface SupabaseCatalogOptions {
   timeout_ms?: number;
 }
 
-/** The seller_policies columns build() reads (v2 adds lever_menu + policy). */
+/** The seller_policies columns build() reads (v2 adds lever_menu + policy + objective, all from 0002). */
 const POLICY_COLUMNS_V1 = "product_id,floor_price_cents,unit_cost_cents,allowed_concessions";
-const POLICY_COLUMNS = `${POLICY_COLUMNS_V1},lever_menu,policy`;
-const V2_MISSING = /lever_menu|\.policy\b|"policy"|column policy\b/;
+const POLICY_COLUMNS = `${POLICY_COLUMNS_V1},lever_menu,policy,objective`;
+const V2_MISSING = /lever_menu|objective|\.policy\b|"policy"|column policy\b/;
 
 const STRATEGIES =["static", "negotiating", "balanced", "learned"] as const;
 const DEFAULT_MAX_ROUNDS = 6;
@@ -156,6 +156,7 @@ export class SupabaseCatalog implements Catalog {
       unit_cost_cents: unit,
       allowed_levers: [...new Set(allowed)],
       ...(lever_costs ? { lever_costs } : {}),
+      ...(objectiveOf(pol.objective) ? { objective: objectiveOf(pol.objective)! } : {}),
       strategy: (STRATEGIES as readonly unknown[]).includes(pol.policy) ? (pol.policy as ProductConfig["strategy"]) : withProd.strategy,
       max_rounds: base.max_rounds, // never from the DB (see header)
     };
@@ -172,4 +173,15 @@ export async function supabaseCatalogFromEnv(opts: SupabaseCatalogOptions = {}):
   if (!process.env.SUPABASE_URL) return null;
   const { db } = await import("@sa/shared/db");
   return new SupabaseCatalog(db, opts);
+}
+
+/** seller_policies.objective → the 0..1 weights the console saved; anything else is ignored (reward falls back to default). */
+function objectiveOf(o: unknown): Record<string, number> | null {
+  if (!o || typeof o !== "object") return null;
+  const out: Record<string, number> = {};
+  for (const k of ["margin", "conversion", "clear_stock", "repeat_customers", "premium_image"]) {
+    const v = (o as Record<string, unknown>)[k];
+    if (typeof v === "number" && v >= 0 && v <= 1) out[k] = v;
+  }
+  return Object.keys(out).length ? out : null;
 }

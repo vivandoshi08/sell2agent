@@ -5,7 +5,7 @@ import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Exchange, MemorySink, MemoryStore, StaticCatalog, SEED_PRODUCTS, leverCost, setLearnedPolicy, readLearnedPolicy, LEARNED_POLICY_FILE } from "../src/exchange";
-import { Bandit, type LearnedPolicy, type BuyerLeverProfile } from "../src/sellers";
+import { ARMS, Bandit, armsFor, chooseArm, objectiveFormula, objectiveReward, type LearnedPolicy, type BuyerLeverProfile } from "../src/sellers";
 
 const QUALITY: BuyerLeverProfile = { quality: 1, warranty: 0.8, price: 0.3 };
 const PRICE: BuyerLeverProfile = { price: 1, quality: 0.3 };
@@ -167,4 +167,63 @@ test("learned: a buyer with no lever profile (every live gateway buyer) gets the
   setLearnedPolicy(undefined);
   const committed = readLearnedPolicy();
   if (committed.policy) assert.ok(committed.policy.choice.unknown, "committed policy has a choice for buyers who send no profile");
+});
+
+// ---- lever packages (pkg:<extra>) and the seller's goal as reward
+
+function pkgPolicy(choice: LearnedPolicy["choice"], epsilon = 0): LearnedPolicy {
+  return { ...policy(choice, epsilon), arms: [...ARMS] };
+}
+
+test("learned → pkg:free_shipping: leads with free shipping for any buyer, holds floor + its cost, says so plainly", async () => {
+  setLearnedPolicy(pkgPolicy({ price: "pkg:free_shipping" }));
+  const { ex, events } = setup();
+  const { offers } = await haggle(ex, "b-pkg", PRICE);
+  assert.ok(offers.some((o) => o.levers.includes("free_shipping")), JSON.stringify(offers));
+  // leads with it: the first seller move below list is the perk, not a price cut
+  const firstMove = offers.findIndex((o, i) => i > 0 && (o.levers.length > 0 || o.price < offers[0].price));
+  assert.ok(firstMove > 0 && offers[firstMove].levers.includes("free_shipping") && offers[firstMove].price === offers[firstMove - 1].price, JSON.stringify(offers));
+  assert.ok(offers.every((o) => !o.levers.includes("extended_warranty")), "only the package's extra");
+  for (const o of offers) assert.ok(o.price >= tw.floor_price_cents + leverCost(o.levers), JSON.stringify(o));
+  const countered = events.events.filter((e) => e.type === "offer_countered");
+  assert.ok(countered.every((e) => e.payload.arm === "pkg:free_shipping"));
+});
+
+test("learned: a package arm is never drawn on a listing that doesn't offer its extra; propensity is over playable arms", async () => {
+  setLearnedPolicy(pkgPolicy({ price: "pkg:extended_warranty" }, 0.6));
+  const { ex, events } = setup();
+  // ClackCo TKL offers only free_shipping
+  for (let i = 0; i < 40; i++) await ex.handle({ kind: "offer", ctx: { run_id: "pkg", buyer_id: `c${i}`, buyer_model: "scripted" }, product_id: "kb_clackco_tkl", offer_price_cents: 8000, buyer_profile: PRICE });
+  const first = events.events.filter((e) => e.type === "offer_countered");
+  assert.equal(first.length, 40);
+  for (const e of first) {
+    assert.ok(!["pkg:extended_warranty", "pkg:bundle_discount"].includes(e.payload.arm as string), String(e.payload.arm));
+    const probs = e.payload.arm_probs as Record<string, number>;
+    assert.ok(Math.abs(Object.values(probs).reduce((a, b) => a + b, 0) - 1) < 1e-9);
+    assert.equal(probs["pkg:extended_warranty"], undefined);
+  }
+});
+
+test("chooseArm: an unplayable greedy choice falls back to the best playable arm by the policy's own stats", () => {
+  const lp = pkgPolicy({ delivery: "pkg:extended_warranty" });
+  lp.stats = { delivery: { balanced: { n: 20, sum: 20 * 4000, sumSq: 0 }, negotiating: { n: 20, sum: 20 * 3000, sumSq: 0 } } };
+  const c = chooseArm(lp, { delivery: 1 }, () => 0.99, armsFor(["free_shipping"], lp.arms));
+  assert.equal(c.arm, "balanced");
+});
+
+test("objectiveReward: margin weight → profit, conversion weight → revenue; default half and half", () => {
+  assert.equal(objectiveReward(4000, 12000, { margin: 1, conversion: 0 }), 4000);
+  assert.equal(objectiveReward(4000, 12000, { margin: 0, conversion: 1 }), 12000);
+  assert.equal(objectiveReward(4000, 12000, undefined), 8000);
+  assert.equal(objectiveReward(0, 0, { margin: 0.7, conversion: 0.3 }), 0);
+  assert.equal(objectiveFormula({ margin: 0.7, conversion: 0.3 }), "70% profit + 30% revenue");
+});
+
+test("the console's objective is logged on the negotiation's events", async () => {
+  setLearnedPolicy(pkgPolicy({ price: "balanced" }));
+  const events = new MemorySink();
+  const cat = new StaticCatalog(SEED_PRODUCTS.map((p) => ({ ...p, objective: { margin: 0.8, conversion: 0.2 } })), { strategy: "learned" });
+  const ex = new Exchange({ store: new MemoryStore(), catalog: cat, sink: events.sink });
+  await ex.handle({ kind: "offer", ctx: { run_id: "obj", buyer_id: "o1", buyer_model: "scripted" }, product_id: TW, offer_price_cents: 9000, buyer_profile: PRICE });
+  assert.deepEqual(events.events.find((e) => e.type === "offer_countered")!.payload.objective, { margin: 0.8, conversion: 0.2 });
 });

@@ -8,7 +8,7 @@
 import { randomUUID } from "node:crypto";
 import { BuyerChannel, BuyerContext, type NegotiationEvent } from "@sa/shared";
 import { decide as e2decide, voice as e2voice, offerSummary, dealSummary, type Llm, type ProposedMove, type SellerPolicy, type SellerState,
-  type BuyerLeverProfile, type VoiceContext, type VoiceResult, type PolicyName, DEFAULT_SOFT_FLOOR_BUFFER, softFloor, chooseArm, contextOf, DEFAULT_ARM } from "../sellers";
+  type BuyerLeverProfile, type VoiceContext, type VoiceResult, type PolicyName, DEFAULT_SOFT_FLOOR_BUFFER, softFloor, chooseArm, contextOf, DEFAULT_ARM, armExtra, armsFor, type Arm } from "../sellers";
 import { StaticCatalog } from "./catalog";
 import { guardMove } from "./decision-guard";
 import { Deals, lockDeal } from "./deals";
@@ -214,14 +214,21 @@ export class Exchange {
 
     // decide → guard
     const prevSeller = lastSeller(n);
-    const name = this.policyName(n, p.strategy, m.buyer_profile); // `learned`: the arm drawn for this negotiation
+    const profile = m.buyer_profile ?? n.buyer_profile;
+    const arm = this.policyName(n, p.strategy, profile, base.allowed_levers); // `learned`: the arm drawn for this negotiation
     if (n.learned) refs.push(`arm:${n.learned.arm}`);
+    // a learned lever package (pkg:<extra>): balanced pricing that leads with that one extra instead of a cut
+    const pkgExtra = arm === "static" ? null : armExtra(arm);
+    const name: PolicyName = pkgExtra ? "lever_policy" : (arm as PolicyName);
+    const menu = name === "lever_policy" ? leverMenu(base).filter((l) => !pkgExtra || l.id === pkgExtra) : undefined;
+    const lever = pkgExtra ? menu?.[0] : undefined;
+    const decideProfile = lever ? ({ [lever.lever]: 1, price: 0 } as BuyerLeverProfile) : profile;
     const added = n.learned?.added_levers ?? []; // extras lever_policy put in; it prices them itself (floor below excludes them)
     const proposed = this.decideFn(
       { round: n.round, terms: { product_id: p.product_id, title: p.title, list_price_cents: p.list_price_cents, floor_price_cents: p.floor_price_cents - leverCost(added, base.lever_costs),
         unit_cost_cents: p.unit_cost_cents, max_rounds: p.max_rounds }, history: markLevers(n.history.slice(0, -1), added), buyer_offer_cents: m.offer_price_cents },
       { name, soft_floor_buffer: this.buffer, final_round_accept_zone: !n.frozen && this.breaker.open(breakerKey(base.product_id, n.run_id)),
-        ...(name === "lever_policy" ? { lever_menu: leverMenu(base) } : {}) }, m.buyer_profile);
+        ...(menu ? { lever_menu: menu } : {}), ...(pkgExtra ? { base_tactic: "balanced" as const, lever_pitch: "offer" as const } : {}) }, decideProfile);
     // lever_policy can hold the price and add an extra instead of a cut: it joins the package and the floor rises by its cost, before the guard
     const extra = (proposed.lever_package ?? []).map((l) => l.id).filter((id) => !n.levers.includes(id) && base.allowed_levers.includes(id));
     if (extra.length) {
@@ -358,12 +365,13 @@ export class Exchange {
   }
 
   /** Strategy → decide() policy. `learned` draws one arm per negotiation (ε-greedy, chooseArm) and keeps it; no usable file → negotiating. */
-  private policyName(n: Negotiation, s: Strategy, profile?: BuyerLeverProfile): PolicyName {
+  private policyName(n: Negotiation, s: Strategy, profile: BuyerLeverProfile | undefined, allowed: string[]): Arm | "static" {
     if (s !== "learned") return s;
     if (!n.learned) {
       const got = learnedPolicy();
-      const c = got.policy ? chooseArm(got.policy, profile) : { arm: DEFAULT_ARM, propensity: 1, context: contextOf(profile), probs: { [DEFAULT_ARM]: 1 } };
-      n.learned = { arm: c.arm, propensity: c.propensity, context: c.context, probs: c.probs, version: got.policy?.version ?? null, ...(got.fallback ? { fallback: got.fallback } : {}) };
+      // package arms only on listings that offer their extra; the propensity is over the arms this listing can play
+      const c = got.policy ? chooseArm(got.policy, profile, Math.random, armsFor(allowed, got.policy.arms)) : { arm: DEFAULT_ARM, propensity: 1, context: contextOf(profile), probs: { [DEFAULT_ARM]: 1 } };
+      n.learned = { arm: c.arm, propensity: c.propensity, context: c.context, probs: c.probs as Record<string, number>, version: got.policy?.version ?? null, ...(got.fallback ? { fallback: got.fallback } : {}) };
     }
     return n.learned.arm;
   }
@@ -378,7 +386,8 @@ export class Exchange {
   private newNegotiation(m: OfferMove, p: ProductConfig, qty: number): Negotiation {
     const t = new Date(this.now()).toISOString();
     return { id: `neg_${randomUUID()}`, run_id: m.ctx.run_id, buyer_id: m.ctx.buyer_id, buyer_model: m.ctx.buyer_model, seller_id: p.seller_id,
-      product_id: p.product_id, quantity: qty, state: "open", round: 0, history: [], attack_flags: 0, frozen: false, escalations: [], levers: [], created_at: t, updated_at: t };
+      product_id: p.product_id, quantity: qty, state: "open", round: 0, history: [], attack_flags: 0, frozen: false, escalations: [], levers: [], created_at: t, updated_at: t,
+      ...(p.objective ? { objective: { ...p.objective } } : {}) };
   }
 
   private newOffer(n: Negotiation, move: ProposedMove, qty: number, status: StandingOffer["status"]): StandingOffer {
@@ -474,9 +483,10 @@ export class Exchange {
         payload: { ...payload, ...(type === "guardrail_blocked" ? { severity: guardrailSeverity(payload.rule), seller_message: payload.seller_message ?? sellerMessage(payload.rule) } : {}),
           ...(n.product_title ? { product_title: n.product_title } : {}), ...(n.channel ? { channel: n.channel } : {}),
           ...(n.agent_operator ? { agent_operator: n.agent_operator } : {}), state: n.state,
+          ...(n.objective ? { objective: n.objective } : {}),
           // `learned`: what was drawn and with what probability, so retraining can IPS-weight logged outcomes (pnpm e2:retrain)
           ...(n.learned ? { policy: "learned", arm: n.learned.arm, propensity: n.learned.propensity, arm_probs: n.learned.probs, bandit_context: n.learned.context,
-            policy_version: n.learned.version, ...(n.learned.fallback ? { learned_fallback: n.learned.fallback } : {}) } : {}) } });
+            policy_version: n.learned.version, arm_rev: ARM_REV, ...(n.learned.fallback ? { learned_fallback: n.learned.fallback } : {}) } : {}) } });
     } catch (e) {
       console.error("[exchange] event sink failed", (e as Error).message);
     }
@@ -491,6 +501,9 @@ const REASON_REF: Partial<Record<ProposedMove["reason"], string>> = {
 function ruleRefs(refs: string[], move: ProposedMove, p: ProductConfig, o: StandingOffer): string[] {
   return [...refs, REASON_REF[move.reason] ?? move.reason, `policy:${p.strategy}`, ...(o.final && move.action === "offer" ? ["last_round"] : []), ...o.levers.map((l) => `lever:${l}`)];
 }
+
+/** Arm semantics revision on learned events. 2 = package arms lead with their perk (before: only when the cut exceeded its cost). */
+export const ARM_REV = 2;
 
 /** lever_policy reads the extras already promised from the last seller entry of the history. */
 function markLevers(h: Negotiation["history"], levers: string[]): SellerState["history"] {

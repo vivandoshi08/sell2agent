@@ -8,8 +8,8 @@
  * TODO(Neel, contract owner): NegotiationState, StandingOffer and LockedDeal are asked for in
  * packages/shared (docs/e1-asks.html n1–n5). They live here until then; move them as-is.
  */
-import type { BuyerContext } from "@sa/shared";
-import type { BuyerLeverProfile } from "../sellers";
+import type { BuyerContext, SellerObjective } from "@sa/shared";
+import type { Arm, BuyerLeverProfile } from "../sellers";
 
 /** Seller strategy per product. `learned` picks one vetted policy per negotiation from learned_policy.json (exchange/learned.ts). */
 export type Strategy = "static" | "negotiating" | "balanced" | "learned";
@@ -129,8 +129,10 @@ export interface Negotiation {
   /** Eval A/B override (signed eval runs only); absent = the product's catalog strategy. */
   strategy?: Strategy;
   /** `learned` strategy: the arm drawn for this negotiation (kept for every turn), its probability, and the policy version. */
-  learned?: { arm: "negotiating" | "balanced" | "lever_policy"; propensity: number; context: string; version: number | null; probs?: Record<string, number>;
+  learned?: { arm: Arm; propensity: number; context: string; version: number | null; probs?: Record<string, number>;
     fallback?: "no_policy" | "gate_failed" | "bad_policy"; added_levers?: string[] };
+  /** The seller's console goals when this negotiation started (logged on events; retraining scores the session with them). */
+  objective?: Partial<SellerObjective>;
   /** Seller-facing event fields (Instinct demo): public listing title, and how the buyer reached us (from ctx). */
   product_title?: string;
   channel?: string; // "messaging" (Instinct) | "mcp_app" (ChatGPT/Claude) | "web" | "harness"
@@ -207,6 +209,8 @@ export interface ProductConfig {
   allowed_levers: string[];
   lever_costs?: Record<string, number>; // seller cost per lever, cents (default DEFAULT_LEVER_COSTS)
   strategy: Strategy;
+  /** The seller's goals from the console (seller_policies.objective); the learned seller is trained on this reward. */
+  objective?: Partial<SellerObjective>;
 }
 export interface Catalog {
   get(product_id: string): Promise<ProductConfig | null>;
