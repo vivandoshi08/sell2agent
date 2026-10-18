@@ -117,6 +117,7 @@ details[open] > summary { margin-bottom: 10px; }
       <li><b>Then, on the bridge computer:</b> <code>pnpm --filter @sa/seller-mcp anon:reset --all</code> (no args = dry run that lists live memory). Any agent that sends no buyer_id shares the anonymous start limit and endpoint, and that memory lives in Supabase, so it survives redeploys. Skipping it froze anonymous prices in the first stale-offer run.</li>
       <li>Run the eval or rehearsal right after, so no stray anonymous chat lands in between.</li>
     </ol>
+    <p class="why"><b>Seller voice is Haiku in production now (since 8ae24ca9, 2:30 am).</b> Vivan set <code>SELLER_VOICE_MODEL=claude-haiku-5-5</code> on the Manufact server at 2:29 am to save money, and the #82 redeploy picked it up. Same 20 buyers, local A/B: Sonnet 3/81 messages rewritten by the output guard (4%); Haiku 12/80 (15%: 5 tries to state a cost/floor figure, 7 false "final"). 0 leaks in the final text either way, but Haiku falls back to the plain template about 4× as often, and the guardrail log will show more <code>catch</code> rows. To revert: <code>mcp-use servers env unset dark-zero-mesv5 SELLER_VOICE_MODEL --org org-d75cfa99-2fsyc</code>, then redeploy.</p>
   </section>
 
   <section class="box alert">
