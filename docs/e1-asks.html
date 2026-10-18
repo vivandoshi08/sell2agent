@@ -78,7 +78,7 @@ details[open] > summary { margin-bottom: 10px; }
 
 <div class="wrap">
   <header style="display:grid;gap:8px">
-    <span class="eyebrow">sales-agent · E1 exchange &amp; safety · Vivan · updated Sun Oct 18, 12:45 am PT</span>
+    <span class="eyebrow">sales-agent · E1 exchange &amp; safety · Vivan · updated Sun Oct 18, 12:50 am PT</span>
     <h1>What E1 needs from you</h1>
     <p class="lede">Bridge 1 is closed: real ChatGPT bought a keyboard end to end at 12:23 am. We're now heading for <b>Bridge 2</b>: simulated buyers run through the <b>deployed</b> gateway, and the dashboard shows static vs. negotiating from real events. Below is where each of us stands, the two gaps no PR closes yet, and what I need from you. Mark each ask <b>Done</b> or <b>Push back</b> with a note.</p>
     <div class="summary" id="summary"></div>
@@ -86,18 +86,18 @@ details[open] > summary { margin-bottom: 10px; }
   </header>
 
   <section class="box">
-    <h2>Bridge 2 board <small>main b3ca3e3 · checked 12:40 am</small></h2>
+    <h2>Bridge 2 board <small>main 4b4ec7e · checked 12:50 am</small></h2>
     <p class="why"><b>Done when:</b> simulated buyers run through the deployed gateway, and the dashboard shows static vs. negotiating from real events. <b>Not met yet.</b> E2's 200-buyer run is real and safe, but it went through the exchange in-process with Claude buyers only.</p>
     <div class="table-wrap"><table>
       <thead><tr><th>Role</th><th>Bridge 2 piece</th><th>State</th><th>Where</th></tr></thead>
       <tbody>
-        <tr><td>Esha · S1</td><td>Search ranked by lever profile; discovery files (<code>/.well-known/ucp</code>, MCP server card, <code>/openrpc.json</code>)</td><td><span class="pill open">In review</span></td><td>PR #54, live on the gateway per S1's page. Left: ~4-seller catalog (waits on E1's catalog decision); A2A card moves to Bridge 3</td></tr>
-        <tr><td>Ananya · S2</td><td>Dashboard on real events: KPIs with CIs, guardrail log, buyer fit, levers by buyer type, live feed</td><td><span class="pill open">In review</span></td><td>Mostly on main; PR #53 adds the real-buyer panel and model filter. <code>runs.result</code> written for <code>bridge2_claude_100</code>. Left: realtime timing, transcript link, eval-runner UI</td></tr>
-        <tr><td>Vivan · E1</td><td>Buyer memory, soft floor, noisy concession steps, payment validator</td><td><span class="pill done">On main</span></td><td>PRs #14 #30 #39 #47 #50. Open: eval strategy override (blocker 1), <code>below_floor</code> false positive, items under "What E1 owes"</td></tr>
-        <tr><td>Neel · E2</td><td>5 lever-profile personas, walk-aways, red team, Claude + GPT, <code>runAll()</code> through the deployed gateway</td><td><span class="pill push">Partial</span></td><td>PR #56 merged: 200 Claude negotiations, negotiating $47.55/buyer (83% bought) vs static $31.61 (49%), 0 unsafe, persona checks 12/12. In-process only; no GPT yet</td></tr>
+        <tr><td>Esha · S1</td><td>Search ranked by lever profile; discovery files (<code>/.well-known/ucp</code>, MCP server card, <code>/openrpc.json</code>)</td><td><span class="pill done">Merged</span></td><td>PR #54 merged (5906698), live on the gateway per S1's page. Left: ~4-seller catalog (waits on E1's catalog decision); A2A card moves to Bridge 3</td></tr>
+        <tr><td>Ananya · S2</td><td>Dashboard on real events: KPIs with CIs, guardrail log, buyer fit, levers by buyer type, live feed</td><td><span class="pill done">Merged</span></td><td>#53 merged (9c14bb3): real-buyer panel and model filter, not yet placed in <code>App.tsx</code>. <code>runs.result</code> written for <code>bridge2_claude_100</code>. Left: realtime timing, transcript link, eval-runner UI</td></tr>
+        <tr><td>Vivan · E1</td><td>Buyer memory, soft floor, noisy concession steps, payment validator</td><td><span class="pill done">On main</span></td><td>PRs #14 #30 #39 #47 #50. Open: eval strategy override (blocker 1); <code>below_floor</code> fix is Neel's #57 (ready to merge); items under "What E1 owes"</td></tr>
+        <tr><td>Neel · E2</td><td>5 lever-profile personas, walk-aways, red team, Claude + GPT, <code>runAll()</code> through the deployed gateway</td><td><span class="pill push">Partial</span></td><td>PR #56 merged: 200 Claude negotiations, negotiating $47.55/buyer (83% bought) vs static $31.61 (49%), 0 unsafe, persona checks 12/12. In-process only; no GPT yet. #58: buyer-requested extras cost sellers −$11.10/buyer, so they are opt-in (<code>E2_BUYER_EXTRAS=on</code>)</td></tr>
       </tbody>
     </table></div>
-    <p class="why">Merged-tree check (main + #54 + #53): no conflicts, typecheck clean; marketplace 49/49, dashboard 25/25, seller-mcp 64/64, harness 7/7.</p>
+    <p class="why">Checks: main + #54 + #53 passed everything before merge (marketplace 49/49, dashboard 25/25, harness 7/7). Latest main + #57: seller 65/65, gate PASS. #26 + #27 merge cleanly on top.</p>
   </section>
 
   <section class="box alert">
@@ -111,12 +111,12 @@ details[open] > summary { margin-bottom: 10px; }
       </div>
       <div class="blocker">
         <span class="owner">E2 (Neel)</span>
-        <h3>The harness misreads deployed search</h3>
-        <p class="why">#54 returns extras at <code>results[].levers_offered[].id</code>. <code>McpGateway.listing</code> reads <code>listing.extras</code>, so buyers on the deployed gateway see no extras. The harness also never sends <code>preferences</code>, so the personas skip #54's lever-profile ranking.</p>
-        <p class="why"><b>Fix:</b> a few lines in <code>apps/buyer-harness/src/gateway/mcp.ts</code>.</p>
+        <h3>Extras: deployed search and the harness disagree</h3>
+        <p class="why">E2's A/B (#58): offering extras costs the seller <b>−$11.10/buyer</b> (95% CI −$17.46 to −$4.74), so the in-process harness turns them off. But deployed search (#54) prints "Extras: Free shipping" to ChatGPT, and <code>McpGateway</code> still forwards <code>levers</code> without the opt-in. The harness also never sends <code>preferences</code>, so personas skip #54's ranking.</p>
+        <p class="why"><b>Fix:</b> Esha keeps extras out of the model-facing search text until a lever policy wins; Neel sends <code>preferences</code> and gates <code>McpGateway</code> levers on <code>E2_BUYER_EXTRAS</code>, so deployed and in-process runs match.</p>
       </div>
     </div>
-    <p class="why"><b>Then:</b> merge #54 and #53, redeploy, and run from Vivan's Mac (cloud workspaces get a 403): <code>pnpm --filter @sa/dashboard eval --gateway https://dark-zero-mesv5.run.mcp-use.com/mcp --models claude,gpt --n 100</code> with Supabase on.</p>
+    <p class="why"><b>Then:</b> merge #57, redeploy, and run from Vivan's Mac (cloud workspaces get a 403): <code>pnpm --filter @sa/dashboard eval --gateway https://dark-zero-mesv5.run.mcp-use.com/mcp --models claude,gpt --n 100</code> with Supabase on.</p>
   </section>
 
   <div id="people"></div>
@@ -127,7 +127,7 @@ details[open] > summary { margin-bottom: 10px; }
       <thead><tr><th>Asked by</th><th>Ask</th><th>E1 finding / plan</th><th>State</th></tr></thead>
       <tbody>
         <tr><td>Bridge 2 review</td><td>Static vs. negotiating on the deployed gateway</td><td>Strategy override for eval runs only (blocker 1)</td><td><span class="pill push">Blocker</span></td></tr>
-        <tr><td>Ananya</td><td>Live deal flagged <code>below_floor: true</code> (06:55 UTC, KeyForge Quiet 75, $117 with free shipping)</td><td><b>False positive, no deal went below floor.</b> When the seller accepts a buyer's bid (<code>exchange.ts:230</code>), <code>lock()</code> gets the floor with the extras' cost already added (line 165), then line 348 subtracts that cost again. $117 − $8 = $109 &lt; $105 + $8. Fix: compare against the catalog floor.</td><td><span class="pill open">To fix</span></td></tr>
+        <tr><td>Ananya</td><td>Live deal flagged <code>below_floor: true</code> (06:55 UTC, KeyForge Quiet 75, $117 with free shipping)</td><td><b>False positive, no deal went below floor.</b> When the seller accepts a buyer's bid (<code>exchange.ts:230</code>), <code>lock()</code> gets the floor with the extras' cost already added (line 165), then line 348 subtracts that cost again. Fix in Neel's #57: <code>lock(n, base, offer)</code>, with a regression test. Verified on latest main: seller 65/65, gate PASS.</td><td><span class="pill open">Merge #57</span></td></tr>
         <tr><td>Neel</td><td><code>concession_cap</code> clamps produce cents prices (e.g. $116.60)</td><td>At 06:55 the log shows a clamp to $119.40 and an offer of $120.00. Check whether rounding already happens after the clamp, and round the logged value too</td><td><span class="pill open">To check</span></td></tr>
         <tr><td>Ananya + Neel</td><td>Issue #41: static marks every move <code>final</code>; negotiating exceeds the concession cap</td><td>E2's #35 (static <code>final</code> only on the last round) and E1's #39 (<code>max_rounds: 6</code>) should cover it. Re-run and close #41</td><td><span class="pill open">To verify</span></td></tr>
         <tr><td>Esha + Ananya</td><td>One catalog source: the exchange reads <code>seller_policies</code> from Supabase</td><td>Deployed exchange uses <code>StaticCatalog</code> (seed in code); console edits never reach live negotiations. Needs <code>0002_contract_v2.sql</code> applied for <code>lever_menu</code>. Gates S1's catalog expansion and the Bridge 3 console</td><td><span class="pill open">Decide</span></td></tr>
@@ -144,10 +144,12 @@ details[open] > summary { margin-bottom: 10px; }
     <div class="table-wrap"><table>
       <thead><tr><th>PR</th><th>Who</th><th>Verdict</th><th>Notes</th></tr></thead>
       <tbody>
+        <tr><td class="num"><a href="https://github.com/vivandoshi08/sales-agent/pull/57">#57</a></td><td>Neel</td><td><span class="pill done">Merge</span></td><td>E1 fix: <code>below_floor</code> double-counted lever cost on seller-accepted package deals. One line plus a regression test; seller 65/65, gate PASS on latest main. Vivan's file, so Vivan merges</td></tr>
+        <tr><td class="num"><a href="https://github.com/vivandoshi08/sales-agent/pull/58">#58</a> · <a href="https://github.com/vivandoshi08/sales-agent/pull/59">#59</a></td><td>Neel</td><td><span class="pill done">Merged</span></td><td>Extras A/B on 30 Claude buyers: −$11.10/buyer when offered; buyer-requested extras now opt-in, but only in <code>ExchangeGateway</code>. <code>McpGateway</code> still forwards them, and deployed search still advertises them</td></tr>
         <tr><td class="num"><a href="https://github.com/vivandoshi08/sales-agent/pull/56">#56</a></td><td>Neel</td><td><span class="pill done">Merged</span></td><td>Persona check, buyers trade extras, 200-negotiation results. Code is fine; results are in-process and Claude-only. Its <code>McpGateway</code> extras mapping doesn't match #54 (blocker 2)</td></tr>
         <tr><td class="num"><a href="https://github.com/vivandoshi08/sales-agent/pull/55">#55</a></td><td>Vivan</td><td><span class="pill done">Merged</span></td><td>Deal card tells the chat after a successful payment</td></tr>
-        <tr><td class="num"><a href="https://github.com/vivandoshi08/sales-agent/pull/54">#54</a></td><td>Esha</td><td><span class="pill done">Merge</span></td><td>Lever-profile search + discovery files. Covers S1's Bridge 2 piece. <code>LEVERS_OFFERED</code> is a third hand-copied extras list (after seed.sql and the exchange catalog). Partial <code>LeverProfile</code> fails on zod 4 in production; Neel to make it partial</td></tr>
-        <tr><td class="num"><a href="https://github.com/vivandoshi08/sales-agent/pull/53">#53</a></td><td>Ananya</td><td><span class="pill done">Merge</span></td><td>Real-buyer panel, model filter, console v1 fallback, RLS draft. KPIs compare eval runs only (the harness logs <code>run_started</code> with a policy); <code>e1-test-*</code> runs are filtered out</td></tr>
+        <tr><td class="num"><a href="https://github.com/vivandoshi08/sales-agent/pull/54">#54</a></td><td>Esha</td><td><span class="pill done">Merged</span></td><td>Lever-profile search + discovery files. Covers S1's Bridge 2 piece. <code>LEVERS_OFFERED</code> is a third hand-copied extras list (after seed.sql and the exchange catalog). Partial <code>LeverProfile</code> fails on zod 4 in production; Neel to make it partial</td></tr>
+        <tr><td class="num"><a href="https://github.com/vivandoshi08/sales-agent/pull/53">#53</a></td><td>Ananya</td><td><span class="pill done">Merged</span></td><td>Real-buyer panel, model filter, console v1 fallback, RLS draft. KPIs compare eval runs only (the harness logs <code>run_started</code> with a policy); <code>e1-test-*</code> runs are filtered out</td></tr>
         <tr><td class="num"><a href="https://github.com/vivandoshi08/sales-agent/pull/52">#52</a></td><td>Esha</td><td><span class="pill open">Hold</span></td><td>Auto-deploy on merge. Runs only marketplace tests though it also deploys seller-mcp. Waits on row 2 of <code>deployments list</code>, so it can pass on the old deploy. Needs <code>MANUFACT_API_KEY</code> from Vivan. Switch off at the 7 am freeze</td></tr>
         <tr><td class="num"><a href="https://github.com/vivandoshi08/sales-agent/pull/27">#27</a> · <a href="https://github.com/vivandoshi08/sales-agent/pull/26">#26</a></td><td>Ananya</td><td><span class="pill done">Merge</span></td><td>Dashboard and deal-card restyles (UI only, dark-only for the projector). Merge cleanly with #53 + #54; dashboard typecheck clean, 25/25. Neither places #53's <code>LiveTrafficPanel</code> or <code>ModelFilter</code> in <code>App.tsx</code></td></tr>
         <tr><td class="num"><a href="https://github.com/vivandoshi08/sales-agent/pull/21">#21</a></td><td>Neel</td><td><span class="pill open">Close</span></td><td>Main already blanked the key (b4826e1); the diff is whitespace. The key is still in git history: rotate it</td></tr>
@@ -192,7 +194,7 @@ details[open] > summary { margin-bottom: 10px; }
 // Bridge 2 asks first; Bridge 1 asks stay in the store under their old ids and render in a closed section.
 const PEOPLE = [
   { who: "Neel", role: "E2 + contract owner", why: "The harness is how Bridge 2 gets its numbers through the deployed gateway.", phase: 2, asks: [
-    { id: "b2n1", when: "Bridge 2", block: true, t: "Read deployed search extras and send preferences in McpGateway", d: "apps/buyer-harness/src/gateway/mcp.ts: map results[].levers_offered[].id into extras (today it reads listing.extras, which the gateway doesn't send), and pass the persona's lever profile as preferences to search_products." },
+    { id: "b2n1", when: "Bridge 2", block: true, t: "Make McpGateway match ExchangeGateway", d: "apps/buyer-harness/src/gateway/mcp.ts: send the persona's lever profile as preferences to search_products, and gate levers on E2_BUYER_EXTRAS like #58 does in-process (if extras go on, read them from results[].levers_offered[].id, not listing.extras)." },
     { id: "b2n2", when: "Bridge 2", block: true, t: "Send the eval policy from McpGateway once E1's override lands", d: "The exchange will honour a strategy override only for eval run_ids. I'll post the field name here when it's on main." },
     { id: "b2n3", when: "Bridge 2", t: "Run Bridge 2 through the deployed gateway, Claude + GPT", d: "From Vivan's Mac (cloud workspaces get a 403): pnpm --filter @sa/dashboard eval --gateway https://dark-zero-mesv5.run.mcp-use.com/mcp --models claude,gpt --n 100, with Supabase on." },
     { id: "b2n4", when: "now", t: "Make LeverProfile a partial object in the contract", d: "On zod 4 in production, z.record(LeverName, …) requires all six levers, so partial profiles fail. The gateway pads with zeros for now (Esha, #54)." },
@@ -203,17 +205,19 @@ const PEOPLE = [
     { id: "b2e1", when: "Bridge 2", block: true, t: "Pass the eval policy field from make_offer to the exchange", d: "Same field as Neel's b2n2. Only eval run_ids use it; ChatGPT traffic never does." },
     { id: "b2e2", when: "Bridge 2", t: "Redeploy after #54 and #53 merge, and post the deployed commit on your page", d: "Then we can tell which build served any live event." },
     { id: "b2e3", when: "now", t: "Confirm SUPABASE_SERVICE_ROLE_KEY is set on the Manufact server", d: "Precondition for turning on RLS: packages/shared/src/db.ts falls back to the anon key, and the gateway would stop logging once RLS is on." },
+    { id: "b2e5", when: "Bridge 2", t: "Keep extras out of the model-facing search text for now", d: "E2's A/B (#58): offering extras costs sellers −$11.10/buyer, because buyers ask for free shipping on nearly every deal. Keep levers_offered in structuredContent if you like, but drop the \"Extras: …\" line ChatGPT reads until a lever policy beats price pacing. Push back if you disagree." },
     { id: "b2e4", when: "before #52", t: "Tighten auto-deploy before it goes live", d: "Run seller-mcp tests too (it deploys that code), wait on the deployment id the deploy step returns instead of row 2 of the list, and switch it off at the 7 am freeze." }
   ]},
   { who: "Ananya", role: "S2 UI & proof", why: "The dashboard is the Bridge 2 proof.", phase: 2, asks: [
-    { id: "b2a1", when: "now", t: "Treat the 06:55 below_floor flag as a false positive", d: "No deal went below floor. The exchange subtracts the extras' cost twice on seller-accepts-bid deals. The fix is coming from E1; until then don't count it as unsafe." },
+    { id: "b2a1", when: "now", t: "Treat the 06:55 below_floor flag as a false positive", d: "No deal went below floor. The exchange subtracted the extras' cost twice on seller-accepts-bid deals. Fixed in Neel's #57 (Vivan merging); older rows keep the wrong flag, so don't count them as unsafe." },
     { id: "b2a2", when: "Bridge 2", t: "Show which gateway each eval run used", d: "run_started already logs payload.gateway. Label in-process vs deployed runs, so the Bridge 2 slide says which it is." },
     { id: "b2a3", when: "Bridge 2", t: "Re-run the eval once the deployed run lands", d: "Point the run picker at the deployed Claude + GPT run as the default comparison." },
     { id: "b2a4", when: "Bridge 2", t: "Place LiveTrafficPanel and ModelFilter in App.tsx", d: "#53 adds them but nothing renders them, and the #27 restyle doesn't either. #26, #27, #53 and #54 merge cleanly together (dashboard 25/25)." }
   ]},
   { who: "Anyone", role: "setup", why: "Small things that keep the shared setup safe.", phase: 2, asks: [
     { id: "b2g1", when: "now", t: "Rotate the Anthropic key leaked in 3ff7b84, then close #21", d: "Main is clean (b4826e1), but the key is still in git history." },
-    { id: "b2g2", when: "now", t: "Merge #54 and #53", d: "Pair-partner review is done; merged together they pass typecheck and every test." }
+    { id: "b2g2", when: "now", t: "Merge #54 and #53", d: "Pair-partner review is done; merged together they pass typecheck and every test." },
+    { id: "b2g3", when: "now", t: "Merge #57 (below_floor fix)", d: "E1's file, so Vivan merges. Seller 65/65 and gate PASS on latest main." }
   ]},
   { who: "Neel", role: "Bridge 1 asks", phase: 1, asks: [
     { id: "n1", when: "H1", t: "offer_id, final, expires_at on MakeOfferOutput", d: "Accept by buyer-bound offer_id." },
