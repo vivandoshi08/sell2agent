@@ -388,6 +388,29 @@ test("seller-facing payloads: reason, rule_refs, product_title, channel, seller_
   assert.equal(pe.product_title, "KeyForge Quiet 75");
 });
 
+test("a paid deal clears that buyer's memory for that product: the next chat starts from list, no reset needed", async () => {
+  const { ex, store } = setup();
+  for (const id of ["anon_paid1", "oai_paid1", "named_paid1"]) {
+    let r = await ex.handle({ kind: "offer", ctx: ctx(id), product_id: P, offer_price_cents: 9000 });
+    while (r.allowed_actions.includes("offer")) r = await ex.handle({ kind: "offer", ctx: ctx(id), product_id: P, negotiation_id: r.negotiation_id, offer_price_cents: 9000 });
+    assert.ok(await store.getBuyerMemory(memoryKey(id, P, "e1-test-run")), `${id}: memory after the haggle`);
+    const acc = await ex.handle({ kind: "accept", ctx: ctx(id), negotiation_id: r.negotiation_id!, offer_id: r.standing_offer!.offer_id });
+    assert.ok(await store.getBuyerMemory(memoryKey(id, P, "e1-test-run")), `${id}: an unpaid deal keeps memory`);
+    await ex.markPaid(acc.deal!.deal_id, `pi_${id}`);
+    assert.equal(await store.getBuyerMemory(memoryKey(id, P, "e1-test-run")), null, `${id}: paid clears memory`);
+    const next = await ex.handle({ kind: "offer", ctx: ctx(id), product_id: P, offer_price_cents: 9000 });
+    assert.equal(next.round, 1); assert.equal(next.standing_offer!.final, false, `${id}: next chat can haggle`);
+    assert.ok(next.standing_offer!.price_cents >= 10500, "still never below floor");
+  }
+  // a walk-away still keeps memory (anti-bisection unchanged)
+  let w = await ex.handle({ kind: "offer", ctx: ctx("anon_walk1"), product_id: P, offer_price_cents: 9000 });
+  while (w.allowed_actions.includes("offer")) w = await ex.handle({ kind: "offer", ctx: ctx("anon_walk1"), product_id: P, negotiation_id: w.negotiation_id, offer_price_cents: 9000 });
+  await ex.handle({ kind: "walk", ctx: ctx("anon_walk1"), negotiation_id: w.negotiation_id! });
+  const back = await ex.handle({ kind: "offer", ctx: ctx("anon_walk1"), product_id: P, offer_price_cents: 9000 });
+  assert.ok(back.standing_offer!.price_cents <= w.standing_offer!.price_cents && back.standing_offer!.price_cents >= w.standing_offer!.price_cents - 100);
+  assert.ok(back.round > 1, "walk-away resumes, not a fresh start");
+});
+
 test("clearBuyerMemory (anon:reset): the next anon chat starts from list", async () => {
   const { ex, store } = setup();
   let r = await ex.handle({ kind: "offer", ctx: ctx("anon_x1"), product_id: P, offer_price_cents: 9000 });
