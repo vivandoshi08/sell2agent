@@ -115,11 +115,18 @@ export type SearchResponse = z.infer<typeof SearchResponse>;
 
 // ---------- Seller MCP tools (apps/seller-mcp) ----------
 // Every tool input carries session context so the seller can log + remember.
+// added (contract v3, P0): how the buyer reaches us. Instinct = "messaging"; ChatGPT/Claude = "mcp_app".
+export const BuyerChannel = z.enum(["mcp_app", "messaging", "web", "harness"]);
+export type BuyerChannel = z.infer<typeof BuyerChannel>;
+
 export const BuyerContext = z.object({
   run_id: z.string(),
   buyer_id: z.string(),
   buyer_model: z.string(), // e.g. "claude-sonnet-5-5", "gpt-x", "gemini-x"
   lever_profile: LeverProfile.optional(), // added (contract v2): what this buyer values
+  // added (contract v3, P0): gateway fills for real buyers; harness sends "harness"
+  channel: BuyerChannel.optional(),
+  agent_operator: z.string().optional(), // "instinct" | "chatgpt" | "claude" | "harness"
 });
 export type BuyerContext = z.infer<typeof BuyerContext>;
 
@@ -176,6 +183,10 @@ export const MakeOfferOutput = z.object({
   final: z.boolean(), // set by code, never by the LLM
   expires_at: z.string().datetime().nullable(), // after this, the offer can't be accepted
   lever_package: LeverPackage.default([]),
+  // added (contract v3, P0): one plain line a text-only agent (Instinct) can relay verbatim.
+  // Built by code from the structured offer only (E2 offerSummary): never floor, cost or margin.
+  summary: z.string().max(280).optional(),
+  list_price_cents: z.number().int().positive().optional(),
 });
 export type MakeOfferOutput = z.infer<typeof MakeOfferOutput>;
 
@@ -192,6 +203,10 @@ export const AcceptDealOutput = z.object({
   // added (contract v2, n4)
   lever_package: LeverPackage.default([]),
   expires_at: z.string().datetime().nullable().optional(),
+  // added (contract v3, P0)
+  summary: z.string().max(280).optional(), // "Deal locked: KeyForge Quiet 75, $119, free shipping. Approve: <url>" (E2 dealSummary)
+  total_cents: z.number().int().positive().optional(),
+  approve_url: z.string().url().optional(), // hosted approve page (S1), signed with the deal's HMAC (deals.signature)
 });
 export type AcceptDealOutput = z.infer<typeof AcceptDealOutput>;
 
@@ -207,6 +222,11 @@ export const PayDealOutput = z.object({
   payment_intent_id: z.string().optional(),
   reasons: z.array(z.string()).optional(),
   fix: z.string().optional(),
+  // added (contract v3, P0): what the approve page and a text reply can show
+  card: z.string().optional(), // "visa ****4242"
+  already_paid: z.boolean().optional(), // a retry on a paid deal returns the original result
+  code: z.string().optional(),
+  message: z.string().optional(),
 });
 export type PayDealOutput = z.infer<typeof PayDealOutput>;
 
@@ -282,6 +302,29 @@ export const NegotiationEvent = z.object({
   ts: z.string().datetime().optional(), // DB default now()
 });
 export type NegotiationEvent = z.infer<typeof NegotiationEvent>;
+
+// added (contract v3, P0): payload keys on existing events, so the seller's Live view can say WHY.
+// No new event types. All optional; `payload` stays an open record. Parse with SellerMovePayload.safeParse(e.payload).
+//   offer_countered | offer_accepted | deal_accepted: reason, rule_refs, product_title, lever_package, channel, agent_operator, summary
+//   guardrail_blocked: rule (+ severity) and seller_message
+//   question_answered: question, grounded
+export const SellerMovePayload = z.object({
+  reason: z.string().optional(), // one plain sentence, never floor or cost
+  rule_refs: z.array(z.string()).optional(), // e.g. ["floor", "lever:extended_warranty"]
+  product_title: z.string().optional(), // public listing title, so cards don't show raw ids
+  lever_package: z.array(z.string()).optional(),
+  channel: BuyerChannel.optional(),
+  agent_operator: z.string().optional(),
+  summary: z.string().max(280).optional(),
+  // guardrail_blocked
+  rule: z.string().optional(),
+  severity: z.enum(["routine", "catch", "attack"]).optional(),
+  seller_message: z.string().optional(),
+  // question_answered
+  question: z.string().optional(),
+  grounded: z.boolean().optional(),
+}).passthrough();
+export type SellerMovePayload = z.infer<typeof SellerMovePayload>;
 
 // ---------- Eval runs ----------
 export const BuyerTask = z.object({

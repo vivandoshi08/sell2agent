@@ -17,5 +17,7 @@ export { voice, checkMessage, templateMessage, dollarsInText } from "./voice";
 export type { VoiceContext, VoiceResult } from "./voice";
 export { answerQuestion, lookupAnswer } from "./answers";
 export type { Answer, PublicProduct } from "./answers";
+export { offerSummary, dealSummary, checkSummary, leverLabel, LEVER_LABELS, SUMMARY_MAX } from "./summary";
+export type { OfferSummaryInput, DealSummaryInput } from "./summary";
 export { defaultLlm, SELLER_VOICE_MODEL } from "./llm";
 export type { Llm } from "./llm";
