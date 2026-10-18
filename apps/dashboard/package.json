@@ -15,7 +15,8 @@
     "eval": "tsx --env-file-if-exists=../../.env scripts/eval.ts",
     "preview:html:eval": "node scripts/build-preview.mjs --local",
     "pay-smoke": "tsx --env-file-if-exists=../../.env scripts/pay-smoke.ts",
-    "armature:dryrun": "tsx --env-file-if-exists=../../.env scripts/armature-dryrun.ts"
+    "armature:dryrun": "tsx --env-file-if-exists=../../.env scripts/armature-dryrun.ts",
+    "console:e2e": "tsx --env-file-if-exists=../../.env scripts/console-e2e.ts"
   },
   "dependencies": {
     "@sa/buyer-harness": "workspace:*",
