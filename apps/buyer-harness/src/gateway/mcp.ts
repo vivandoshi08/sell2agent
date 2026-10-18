@@ -21,7 +21,10 @@ export class McpGateway implements Gateway {
   private client?: Client;
   private book = new NegotiationBook();
 
-  /** @param strategy eval A/B: seller strategy sent on make_offer; the exchange honours it only for a signed eval run_id (E1 #62/#64). */
+  /**
+   * @param strategy seller strategy for eval A/B runs. S1 passes it through make_offer (#64) and E1 honours it only for a
+   * signed eval run_id (signEvalRun, #62); for any other run_id it's ignored, so live buyers never set it.
+   */
   constructor(private url: string, private strategy?: "static" | "negotiating" | "balanced") {}
 
   private async c(): Promise<Client> {
@@ -73,7 +76,8 @@ export class McpGateway implements Gateway {
 
   async offer(ctx: BuyerContext, a: GwOfferArgs): Promise<GwOfferResult> {
     const resp = (await this.call("make_offer", { ...this.ids(ctx), product_id: a.product_id, negotiation_id: a.negotiation_id,
-      offer_price_cents: a.offer_price_cents, quantity: 1, message: a.message, levers: a.levers, ...(this.strategy ? { strategy: this.strategy } : {}) })) as ExchangeLike;
+      offer_price_cents: a.offer_price_cents, quantity: 1, message: a.message, levers: a.levers,
+      ...(this.strategy ? { strategy: this.strategy } : {}) })) as ExchangeLike;
     return this.book.record(resp, a.product_id, a.offer_price_cents);
   }
 
