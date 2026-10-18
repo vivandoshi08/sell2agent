@@ -88,6 +88,7 @@ th { font-family: var(--font-data); font-size: .7rem; letter-spacing: .06em; tex
         <tr><td>Everyone</td><td>events</td><td><code>offer_made</code>, <code>offer_countered</code>, <code>offer_accepted</code>, <code>deal_accepted</code>, <code>buyer_walked_away</code>, <code>guardrail_blocked</code> with <code>payload.rule</code>, <code>proposed_price_cents</code>, <code>clamped_to_cents</code>, <code>reason</code>; every payload carries <code>state</code></td></tr>
       </tbody>
     </table></div>
+    <p class="why"><b>Stage 2 (PR e1/stage2):</b> make_offer takes optional <code>levers: ["free_shipping", …]</code>. Only the listing's allowed levers, price always covers floor + lever cost, and the deal carries them (Ananya: show <code>deal.levers</code> on the card). New error codes <code>bad_lever</code> and <code>rate_limited</code> (4 starts per buyer per product per day). Anti-probing from E11: per-buyer jittered endpoints, and a probe breaker that closes the last-round accept zone for 24 h after a near-miss bid or an abandoned deal.</p>
     <p class="why"><b>Decision on accept vs. pay:</b> <code>accept</code> only locks the deal. Charging happens in Ananya's pay handler on Approve &amp; Pay, which matches FINAL_ARCHITECTURE.</p>
   </section>
 

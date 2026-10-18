@@ -156,15 +156,67 @@ test("bad input rejected", async () => {
 test("buyer memory: restarting never gets a better price (E11 bisection)", async () => {
   const { ex } = setup();
   const prices: number[] = [];
-  for (let s = 0; s < 6; s++) {
+  for (let s = 0; s < 4; s++) {
     let r = await ex.handle({ kind: "offer", ctx: ctx("prober"), product_id: P, offer_price_cents: 9000 });
     while (r.allowed_actions.includes("offer")) r = await ex.handle({ kind: "offer", ctx: ctx("prober"), product_id: P, negotiation_id: r.negotiation_id, offer_price_cents: 9000 });
     prices.push(r.standing_offer!.price_cents);
     await ex.handle({ kind: "walk", ctx: ctx("prober"), negotiation_id: r.negotiation_id! });
   }
+  const fifth = await ex.handle({ kind: "offer", ctx: ctx("prober"), product_id: P, offer_price_cents: 9000 });
+  assert.equal(fifth.error?.code, "rate_limited", "start limit: 4 per day");
   const oneSession = prices[0];
   assert.ok(prices.every((p) => p >= oneSession - 1 && p <= oneSession), `restarts moved price: ${prices}`);
   const fresh = await ex.handle({ kind: "offer", ctx: ctx("returning"), product_id: P, offer_price_cents: 9000 });
   const back = await ex.handle({ kind: "offer", ctx: ctx("returning"), product_id: P, offer_price_cents: 9000 });
   assert.ok(back.standing_offer!.price_cents <= fresh.standing_offer!.price_cents, "returning buyer never quoted higher");
+});
+
+test("jitter: per-buyer endpoints differ, all at or above the soft floor; steps not a fixed curve", async () => {
+  const { ex } = setup();
+  const finals: number[] = [];
+  for (let b = 0; b < 12; b++) {
+    let r = await ex.handle({ kind: "offer", ctx: ctx(`j${b}`), product_id: P, offer_price_cents: 8000 });
+    while (r.allowed_actions.includes("offer")) r = await ex.handle({ kind: "offer", ctx: ctx(`j${b}`), product_id: P, negotiation_id: r.negotiation_id, offer_price_cents: 8000 });
+    finals.push(r.standing_offer!.price_cents);
+  }
+  assert.ok(finals.every((f) => f >= 10572), `below soft floor: ${finals}`);
+  assert.ok(new Set(finals).size > 1, `no jitter: ${finals}`);
+});
+
+test("probe breaker: near-miss deadline bid closes the accept zone for everyone", async () => {
+  const { ex } = setup();
+  const runTo = async (id: string, bid: number) => {
+    let r = await ex.handle({ kind: "offer", ctx: ctx(id), product_id: P, offer_price_cents: bid });
+    while (r.allowed_actions.includes("offer") && r.state === "negotiating")
+      r = await ex.handle({ kind: "offer", ctx: ctx(id), product_id: P, negotiation_id: r.negotiation_id, offer_price_cents: bid });
+    return r;
+  };
+  const zone = await runTo("z1", 10520); // between hard floor 10500 and soft floor: accepted in the final round while zone open
+  assert.equal(zone.state, "agreed");
+  assert.equal(ex.breaker.open(P), true);
+  await runTo("probe", 10400); // near miss below the floor
+  assert.equal(ex.breaker.open(P), false);
+  const after = await runTo("z2", 10520);
+  assert.notEqual(after.state, "agreed", "zone closed after a probe");
+});
+
+test("abandoned deal trips the breaker", async () => {
+  const { ex, now } = setup();
+  const r = await ex.handle({ kind: "offer", ctx: ctx("ab"), product_id: P, offer_price_cents: 12900 });
+  now.t += 31 * 60_000;
+  await ex.deals.validateForPayment(r.deal!.deal_id, "ab");
+  assert.equal(ex.breaker.open(P), false);
+});
+
+test("lever packages: only allowed levers; price covers floor + lever cost; deal carries levers", async () => {
+  const { ex } = setup();
+  const bad = await ex.handle({ kind: "offer", ctx: ctx("lv"), product_id: P, offer_price_cents: 9000, levers: ["extended_warranty"] });
+  assert.equal(bad.error?.code, "bad_lever");
+  let r = await ex.handle({ kind: "offer", ctx: ctx("lv"), product_id: P, offer_price_cents: 8000, levers: ["free_shipping"] });
+  while (r.allowed_actions.includes("offer")) r = await ex.handle({ kind: "offer", ctx: ctx("lv"), product_id: P, negotiation_id: r.negotiation_id, offer_price_cents: 8000 });
+  assert.deepEqual(r.standing_offer!.levers, ["free_shipping"]);
+  assert.ok(r.standing_offer!.price_cents - 800 >= 10500, `margin after lever: ${r.standing_offer!.price_cents}`);
+  const acc = await ex.handle({ kind: "accept", ctx: ctx("lv"), negotiation_id: r.negotiation_id!, offer_id: r.standing_offer!.offer_id });
+  assert.deepEqual(acc.deal!.levers, ["free_shipping"]);
+  assert.equal((await ex.deals.validateForPayment(acc.deal!.deal_id, "lv")).ok, true);
 });

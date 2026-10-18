@@ -65,8 +65,8 @@ export function guardMove(g: GuardInput): GuardedMove {
   if (price < soft) { block("clamp_low", soft, "offer below the soft floor"); price = soft; }
   const prev = g.prev_seller_offer_cents;
   if (prev !== undefined) {
-    if (price > prev) { block("monotone", prev, "offers never go back up"); price = prev; }
-    if (g.frozen && price < prev) { block("price_freeze", prev, "circuit breaker: price frozen at the current ask"); price = prev; }
+    if (price > prev && prev >= soft) { block("monotone", prev, "offers never go back up"); price = prev; }
+    if (g.frozen && price < prev && prev >= soft) { block("price_freeze", prev, "circuit breaker: price frozen at the current ask"); price = prev; }
     const maxStep = Math.ceil(CONCESSION_CAP * gap);
     if (prev - price > maxStep) { block("concession_cap", prev - maxStep, "concession larger than the per-round cap"); price = Math.max(soft, prev - maxStep); }
   }
