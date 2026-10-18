@@ -129,7 +129,11 @@ for (const e of sink.events.filter((e) => e.type === "deal_accepted")) {
   const p = (await catalog.get(e.product_id!))!;
   if ((e.price_cents ?? 0) < p.floor_price_cents) failures.push(`deal below floor: ${e.negotiation_id} @ ${e.price_cents}`);
 }
-for (const e of sink.events) if (/"(floor_price_cents|unit_cost_cents)"/.test(JSON.stringify(e.payload))) failures.push("private field in event payload");
+// Floor never in events; unit cost only on deal_accepted (price already locked; S2 needs it for profit).
+for (const e of sink.events) {
+  const s = JSON.stringify(e.payload);
+  if (/"floor_price_cents"/.test(s) || (e.type !== "deal_accepted" && /"unit_cost_cents"/.test(s))) failures.push(`private field in ${e.type} payload`);
+}
 
 const count = (t: string) => sink.events.filter((e) => e.type === t).length;
 const blocks: Record<string, number> = {};
