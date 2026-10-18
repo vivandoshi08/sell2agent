@@ -11,7 +11,8 @@
     "test": "node --import tsx --test test/*.test.ts",
     "e2:lever-gate": "tsx src/e2-lever-gate.ts",
     "e2:bandit": "tsx src/e2-bandit.ts",
-    "e2:personas": "tsx src/persona-check.ts"
+    "e2:personas": "tsx src/persona-check.ts",
+    "e2:summaries": "tsx src/e2-summaries.ts"
   },
   "dependencies": {
     "@sa/shared": "workspace:*",
