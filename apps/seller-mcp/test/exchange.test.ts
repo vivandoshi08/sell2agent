@@ -31,7 +31,12 @@ test("happy path: offer → counter → accept by offer_id → deal locked → p
   assert.equal(st.state, "paid");
   const types = events.events.map((e) => e.type);
   for (const t of ["offer_made", "offer_countered", "offer_accepted", "deal_accepted"]) assert.ok(types.includes(t as any), t);
-  assert.ok(events.events.every((e) => !JSON.stringify(e.payload).includes("10500") && !JSON.stringify(e.payload).includes("6000")), "no floor/cost in events");
+  assert.ok(events.events.every((e) => !JSON.stringify(e.payload).includes("10500")), "no floor in events");
+  assert.ok(events.events.every((e) => e.type === "deal_accepted" || !JSON.stringify(e.payload).includes("6000")), "cost only on deal_accepted");
+  const deal = events.events.find((e) => e.type === "deal_accepted")!;
+  assert.equal(deal.payload.unit_cost_cents, 6000);
+  assert.equal(deal.payload.lever_cost_cents, 0);
+  assert.equal(deal.payload.below_floor, false);
 });
 
 test("accept only the live offer_id bound to this buyer", async () => {
@@ -209,7 +214,7 @@ test("abandoned deal trips the breaker", async () => {
 });
 
 test("lever packages: only allowed levers; price covers floor + lever cost; deal carries levers", async () => {
-  const { ex } = setup();
+  const { ex, events } = setup();
   const bad = await ex.handle({ kind: "offer", ctx: ctx("lv"), product_id: P, offer_price_cents: 9000, levers: ["extended_warranty"] });
   assert.equal(bad.error?.code, "bad_lever");
   let r = await ex.handle({ kind: "offer", ctx: ctx("lv"), product_id: P, offer_price_cents: 8000, levers: ["free_shipping"] });
@@ -219,4 +224,7 @@ test("lever packages: only allowed levers; price covers floor + lever cost; deal
   const acc = await ex.handle({ kind: "accept", ctx: ctx("lv"), negotiation_id: r.negotiation_id!, offer_id: r.standing_offer!.offer_id });
   assert.deepEqual(acc.deal!.levers, ["free_shipping"]);
   assert.equal((await ex.deals.validateForPayment(acc.deal!.deal_id, "lv")).ok, true);
+  const dealEv = events.events.find((e) => e.type === "deal_accepted")!;
+  assert.equal(dealEv.payload.lever_cost_cents, 800, "S2 profit needs the lever cost");
+  assert.equal(dealEv.payload.below_floor, false);
 });
