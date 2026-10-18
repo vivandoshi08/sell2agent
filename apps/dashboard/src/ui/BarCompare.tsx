@@ -9,7 +9,7 @@ const LABEL: Record<string, string> = { static: "static", negotiating: "negotiat
 export function BarCompare({ bars, format, max, height = 34, compact = false }: { bars: Bar[]; format: (v: number) => string; max?: number; height?: number; compact?: boolean }) {
   const pid = useId().replace(/:/g, "");
   // Compact charts drop the policy labels (color + legend carry them) so text stays legible when the chart is small.
-  const W = compact ? 220 : 420, L = compact ? 2 : 118, R = compact ? 74 : 96, gap = compact ? 10 : 14;
+  const W = compact ? 230 : 440, L = compact ? 2 : 130, R = compact ? 92 : 124, gap = compact ? 10 : 14;
   const top = Math.max(1e-9, max ?? Math.max(...bars.flatMap((b) => [b.value ?? 0, b.ci?.hi ?? 0])) * 1.05);
   const x = (v: number) => L + (Math.max(0, Math.min(v, top)) / top) * (W - L - R);
   const H = bars.length * (height + gap) + 4;

@@ -5,6 +5,7 @@ import { policyKpis, runPolicies } from "./metrics/kpis";
 import { BarCompare } from "./ui/BarCompare";
 import { GuardrailLog, LiveFeed, PersonaGrid, SafetyTile, pct, usd } from "./ui/Panels";
 import { WaveField } from "./ui/WaveField";
+import "./ui/fonts";
 
 const feed = pickFeed();
 
