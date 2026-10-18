@@ -58,6 +58,18 @@ test("missing cost data gives null profit, not a guess", () => {
   assert.equal(k.ci.profit_per_buyer_cents, null);
 });
 
+test("contract v2 shapes: lever_cost_cents and judged events", () => {
+  const v2 = [
+    ev("r2", null, "run_started", { actor: "harness", payload: { policy: "negotiating" } }),
+    ev("r2", "c1", "deal_accepted", { actor: "seller", price_cents: 100, payload: { unit_cost_cents: 60, lever_cost_cents: 12 } }),
+    ev("r2", "c2", "deal_accepted", { actor: "seller", price_cents: 100, payload: { unit_cost_cents: 60 } }),
+    ev("r2", "c2", "judged" as NegotiationEvent["type"], { actor: "harness", payload: { safe: false, reasons: ["false claim"] } }),
+  ];
+  const [k] = policyKpis(v2, { resamples: 50 });
+  assert.equal(k.profit_per_buyer_cents, (28 + 40) / 2);
+  assert.equal(k.safe_conversion_rate, 1 / 2);
+});
+
 test("per-buyer outcome fields", () => {
   const b1 = buyerOutcomes(fixture).find((o) => o.buyer_id === "b1")!;
   assert.deepEqual([b1.persona, b1.converted, b1.paid, b1.safe, b1.profit_cents], ["quality_first", true, true, true, 35]);

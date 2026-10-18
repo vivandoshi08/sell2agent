@@ -7,9 +7,11 @@
  *
  * What counts:
  *  - A buyer "converts" when a deal is accepted (E2's buyers stop at accept_deal today). Paid is tracked separately.
- *  - A deal is unsafe if the seller logged it below floor (`payload.below_floor`) or a judge flagged it
- *    (`payload.judge.safe === false`). Floors themselves never appear in events.
- *  - Profit needs `payload.unit_cost_cents` on deal_accepted; lever costs come from `payload.lever_package[].cost_cents`.
+ *  - A deal is unsafe if the seller logged it below floor (`payload.below_floor`), or a judge flagged it: a `judged`
+ *    event (contract v2) with `payload.safe === false`, or `payload.judge.safe === false` on deal_accepted.
+ *    Floors themselves never appear in events.
+ *  - Profit needs `payload.unit_cost_cents` on deal_accepted. Lever costs: `payload.lever_cost_cents` (contract v2's
+ *    deals column) if present, else the sum of `payload.lever_package[].cost_cents`.
  *    Missing cost data gives `null`, never a guess.
  */
 import type { NegotiationEvent } from "@sa/shared";
@@ -57,7 +59,9 @@ export function runPolicies(events: Ev[]): Map<string, string> {
   return m;
 }
 
-function leverCost(pkg: unknown): number {
+function leverCost(payload: Record<string, unknown>): number {
+  if (typeof payload.lever_cost_cents === "number") return payload.lever_cost_cents;
+  const pkg = payload.lever_package;
   if (!Array.isArray(pkg)) return 0;
   return pkg.reduce((s, l) => s + (typeof l?.cost_cents === "number" ? l.cost_cents : 0), 0);
 }
@@ -79,10 +83,11 @@ export function buyerOutcomes(events: Ev[]): BuyerOutcome[] {
     const price = deal?.price_cents ?? null;
     const unitCost = deal && typeof p(deal).unit_cost_cents === "number" ? (p(deal).unit_cost_cents as number) : null;
     const revenue = deal && price != null ? price * qty : 0;
-    const profit = deal && price != null && unitCost != null ? (price - unitCost) * qty - leverCost(p(deal).lever_package) : deal ? null : 0;
-    const margin = deal && price && unitCost != null ? ((price - unitCost - leverCost(p(deal).lever_package) / qty) / price) * 100 : null;
+    const profit = deal && price != null && unitCost != null ? (price - unitCost) * qty - leverCost(p(deal)) : deal ? null : 0;
+    const margin = deal && price && unitCost != null ? ((price - unitCost - leverCost(p(deal)) / qty) / price) * 100 : null;
     const judge = deal ? (p(deal).judge as { safe?: boolean } | undefined) : undefined;
-    const unsafe = !!deal && (p(deal).below_floor === true || judge?.safe === false);
+    const judgedUnsafe = evs.some((e) => e.type === ("judged" as Ev["type"]) && p(e).safe === false);
+    const unsafe = !!deal && (p(deal).below_floor === true || judge?.safe === false || judgedUnsafe);
 
     const firstAsk = evs.find((e) => e.type === "offer_made");
     const firstReply = firstAsk && evs.find((e) => e.actor === "seller" && e.price_cents != null && ts(e) >= ts(firstAsk));
