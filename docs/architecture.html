@@ -167,7 +167,7 @@ footer { color: var(--muted); font-size: 0.85rem; }
 <script>
 const DATA = {
   updated: "2026-10-17",
-  commit: "b0c9a32",
+  commit: "fe657e2",
   layers: [
     { name: "Buyer agent", status: "decided", who: "Demo buyer",
       design: ["Claude with a persona: need, budget, private walk-away price.", "Its wallet enforces the person's spend cap and asks for approval, then mints a Stripe token capped at the deal total (simulated in test mode)."],
@@ -185,10 +185,10 @@ const DATA = {
       design: ["Official Python MCP SDK 2.3, stateless HTTP, hosted on Manufact Cloud.", "Tools: <code>list_products</code>, <code>get_product</code>, <code>make_offer</code> (structured price and add-ons, plus an optional message), <code>accept_offer</code>, <code>review_deal</code> (widget), <code>pay_deal</code>. <code>request_quote</code> is dropped: the first offer returns the opening quote.", "Titles, safety annotations, typed outputs, short results. No login tonight; payment is gated by the token cap and human approval.", "Armature MCP Analytics on the live server: an LLM judge scores every real session. It adds a telemetry field to each tool, so we A/B it against E1 before keeping it."],
       evidence: "E1: 116 real Claude buyers, 0 invalid arguments, 1 recoverable error; nobody called request_quote or get_product. Free-text messages earned the seller $499 more per deal, so make_offer keeps an optional message. Manufact guide: mcp-use's Python package needs an older MCP library and can't do widgets; Manufact's CTO documents this exact Python setup. Armature guide: annotations, safe retries, short receipts.",
       open: "Do the Manufact judges want mcp-use itself? Gateway timeout vs. 10–30 s seller turns." },
-    { name: "Selling agent", status: "leaning", who: "Our core",
-      design: ["Code picks the price move each turn; the LLM writes the message.", "Hold list when the buyer can clearly pay it.", "Guard add-on margin when bundling; no \"best price\" bluffs.", "Never call a price firm or final unless it is the strategy's final offer.", "No quote-matching rules. When a buyer cites a competitor, stay on strategy; the floor stays absolute."],
-      evidence: "E2: +54% profit per session over a static page, but 0 of 42 deals at list and margin down from 28.8% to 20.1%. E7: with four sellers competing, the negotiating seller won 57.5% of deals and fixed-price sellers sold nothing; a beat-any-quote-by-$100 pricing rule got exploited ($3,501 vs. $5,170 per session). E6 phase 1: split-the-difference is the best fixed strategy on scripted buyers.",
-      open: "E5 picks the strategy." },
+    { name: "Selling agent", status: "decided", who: "Our core",
+      design: ["Concede slowly on a Boulware schedule (t³ from list toward the floor), offering the warranty before discounting. Code computes each round's target and states the true reason; the LLM voices it; the policy engine holds the floor.", "Hold list when the buyer can clearly pay it.", "Guard add-on margin when bundling; no \"best price\" bluffs.", "Never call a price firm or final unless it is the strategy's final offer.", "No quote-matching rules. When a buyer cites a competitor, stay on strategy; the floor stays absolute."],
+      evidence: "E5: Boulware in the prompt earned $8,870 per session vs. $7,668 for the default negotiator (+15.7%) at the same conversion; bundle-first $8,464; fixed price $7,807 beat the default negotiator; code-priced sellers invented reasons in 13 of 70 sessions. E2: +54% profit per session over a static page, but 0 of 42 deals at list and margin down from 28.8% to 20.1%. E7: with four sellers competing, the negotiating seller won 57.5% of deals and fixed-price sellers sold nothing; a beat-any-quote-by-$100 pricing rule got exploited ($3,501 vs. $5,170 per session). E6 phase 1: split-the-difference is the best fixed strategy on scripted buyers.",
+      open: "E6: can a learned policy beat $8,870 per session against LLM buyers? Also stop the LLM inventing reasons for code-picked prices." },
     { name: "Policy engine", status: "decided", who: "Stripe: merchant control",
       design: ["Plain code. Checks every seller offer before it goes out, and again at <code>pay_deal</code>.", "Floors, allowed add-ons, payment terms."],
       evidence: "E2: blocked 8 below-floor attempts; 0 closed deals broke a rule. E1: blocked an Opus seller accepting $29,200 against a $29,700 floor, so prompt-only rules leak even on the strongest model.",
@@ -218,6 +218,8 @@ const DATA = {
     ["2026-10-17", "Selling agent", "Never call a price firm or final unless it is the final offer (13 of 147 seller transcripts were flagged for this).", "E7"],
     ["2026-10-17", "Selling agent", "No quote-matching rules: buyers carried each quote to the other seller until one hit its floor.", "E7"],
     ["2026-10-17", "Discovery", "Broker / marketplace mode stays out of the build: buyers shop sellers themselves, and a broker only cut price by about 1 point.", "E7"],
+    ["2026-10-17", "Selling agent", "Strategy decided: slow Boulware concession with warranty-before-discount. Code computes the target and the true reason, the LLM voices it, and the policy engine holds the floor.", "E5"],
+    ["2026-10-17", "Selling agent", "Fixed price is the baseline to beat, not open-ended negotiation: the default negotiator earned less than fixed price.", "E5"],
     ["2026-10-17", "Front door", "request_quote dropped (unused in 116 runs); make_offer keeps structured fields plus an optional message, since free text earned the seller $499 more per deal.", "E1"],
     ["2026-10-17", "Policy engine", "Confirmed as required, not optional: it stopped a below-floor accept from an Opus seller.", "E1"],
     ["2026-10-17", "Discovery", "Armature removed from this layer: its discoverability product measures which dev tools coding agents pick; it is not a discovery channel.", "Sponsor docs check"],
@@ -227,7 +229,6 @@ const DATA = {
   pending: [
     ["E3 · Buyer behavior", "Budget-leak probe; write-up", "Buyer agent, haggle"],
     ["E4 · Red team", "Attacks on prompt-only vs. code rules", "Policy engine"],
-    ["E5 · Strategies", "Which haggling strategy wins", "Selling agent"],
     ["E6 · RL", "Learned policy vs. LLM buyers", "Learning loop"]
   ]
 };
