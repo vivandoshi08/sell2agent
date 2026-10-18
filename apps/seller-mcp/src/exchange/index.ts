@@ -20,7 +20,7 @@ export { StaticCatalog, SEED_PRODUCTS } from "./catalog";
 export { MemorySink, defaultSink, guardrailSeverity } from "./events";
 export type { EventSink, GuardrailSeverity } from "./events";
 export { TRANSITIONS, canTransition, allowedActions } from "./state";
-export { guardMove, CONCESSION_CAP } from "./decision-guard";
+export { guardMove, capClamp, CONCESSION_CAP } from "./decision-guard";
 export { inspectInput, delimit } from "./input-guard";
 export { checkOutput, fallbackMessage } from "./output-guard";
 export { ProbeBreaker, StartLimiter, buyerEndpoint, jitterStep, leverCost, DEFAULT_LEVER_COSTS, START_LIMIT, ANON_START_LIMIT, OAI_START_LIMIT, startLimitFor } from "./probing";
