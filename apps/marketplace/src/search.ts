@@ -116,8 +116,16 @@ function qualityPoints(p: CatalogProduct): number {
 
 const span = (v: number, lo: number, hi: number) => (hi === lo ? 1 : (v - lo) / (hi - lo));
 
+/** Stated warranty in years from specs.warranty ("2 years", "18 months", "1-year limited"); 0 when none. */
+export function warrantyYears(p: Pick<Product, "specs">): number {
+  const m = /(\d+(?:\.\d+)?)\s*-?\s*(year|yr|month|mo)/i.exec(String(p.specs.warranty ?? ""));
+  if (!m) return 0;
+  return /^m/i.test(m[2]) ? Number(m[1]) / 12 : Number(m[1]);
+}
+
 /**
  * Per-lever scores 0..1 for each product, relative to the others in the pool (so "cheap" means cheap among these).
+ * warranty: an extended-warranty extra 1; else the stated warranty (1 year 0.45, 2+ years 0.7); none 0.2.
  * trust: no seller ratings yet, so every seller scores the same and trust never changes the order.
  */
 function leverScores(pool: CatalogProduct[], cat: CatalogSnapshot): Map<string, Record<LeverName, number>> {
@@ -130,7 +138,8 @@ function leverScores(pool: CatalogProduct[], cat: CatalogSnapshot): Map<string, 
       price: Math.min(1, 1 - span(p.list_price_cents, pLo, pHi) + priceExtra),
       quality: span(qualityPoints(p), qLo, qHi),
       delivery: 1 - span(p.shipping_days, dLo, dHi),
-      warranty: offers.has("warranty") ? 1 : 0.2,
+      // An extended-warranty extra beats any stated warranty; a stated one beats none (trust-first buyers ask).
+      warranty: offers.has("warranty") ? 1 : Math.min(0.7, 0.2 + 0.25 * warrantyYears(p)),
       trust: 0.5,
       convenience: offers.has("convenience") ? 1 : 0.3,
     }];

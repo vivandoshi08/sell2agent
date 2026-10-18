@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { searchProducts, resolveCategory, MAX_RESULTS } from "../src/search.js";
+import { searchProducts, resolveCategory, warrantyYears, MAX_RESULTS } from "../src/search.js";
 
 const URL = "http://localhost:3002/mcp";
 const ids = (out: ReturnType<typeof searchProducts>) => out.results.map((r) => r.listing.id);
@@ -48,7 +48,7 @@ test("returns at most MAX_RESULTS", () => {
 test("hard needs and budget filter out misses", () => {
   const out = searchProducts({ category: "mechanical_keyboard", max_price_cents: 13000, must_have: ["silent"] }, URL);
   assert.equal(out.relaxed, false);
-  assert.deepEqual(ids(out), ["kb_keyforge_quiet75"]);
+  assert.deepEqual(ids(out), ["kb_hushline_96", "kb_keyforge_quiet75"]); // TypeWell ($139) is over budget
 });
 
 test("a false spec flag does not match its name", () => {
@@ -70,7 +70,7 @@ test("ChatGPT's phrasing finds the quiet keyboards", () => {
     URL,
   );
   assert.equal(out.relaxed, false);
-  assert.deepEqual(new Set(ids(out)), new Set(["kb_keyforge_quiet75", "kb_typewell_65"]));
+  assert.deepEqual(new Set(ids(out)), new Set(["kb_keyforge_quiet75", "kb_typewell_65", "kb_hushline_96"]));
 });
 
 test("quiet matches silent", () => {
@@ -124,7 +124,7 @@ test("hard needs still filter before ranking", () => {
 test("no preferences: no fit_score, previous ordering", () => {
   const out = searchProducts({ q: "quiet", ...KB }, URL);
   assert.ok(out.results.every((r) => r.fit_score === undefined));
-  assert.equal(ids(out)[0], "kb_keyforge_quiet75");
+  assert.equal(ids(out)[0], "kb_hushline_96"); // all match "quiet" (silent); cheapest first
 });
 
 test("levers offered are public labels only, never costs", () => {
@@ -144,4 +144,24 @@ test("a partial lever profile filled with zeros ranks the same as the partial on
   const filled = searchProducts({ ...KB, preferences: { price: 0, quality: 1, delivery: 0, warranty: 0.8, trust: 0, convenience: 0 } }, URL);
   assert.deepEqual(ids(filled), ids(partial));
   assert.deepEqual(filled.results.map((r) => r.fit_score), partial.results.map((r) => r.fit_score));
+});
+
+// ---- Catalog expansion: four competing keyboard sellers, each states a warranty ----
+test("four keyboard sellers compete, and every keyboard states a warranty", () => {
+  const out = searchProducts(KB, URL);
+  assert.equal(new Set(out.results.map((r) => r.listing.seller_id)).size, 4);
+  for (const r of out.results) assert.ok(warrantyYears(r.listing) >= 1, `${r.listing.id} states no warranty`);
+});
+
+test("warranty buyer: extended-warranty extra first, then the longest stated warranty", () => {
+  const out = ids(searchProducts({ ...KB, preferences: { warranty: 1 } }, URL));
+  assert.equal(out[0], "kb_typewell_65");
+  assert.equal(out.at(-1), "kb_keyforge_quiet75"); // 1 year, no extra
+});
+
+test("warrantyYears reads loose phrasings", () => {
+  assert.equal(warrantyYears({ specs: { warranty: "2 years" } }), 2);
+  assert.equal(warrantyYears({ specs: { warranty: "1-year limited" } }), 1);
+  assert.equal(warrantyYears({ specs: { warranty: "18 months" } }), 1.5);
+  assert.equal(warrantyYears({ specs: {} }), 0);
 });
