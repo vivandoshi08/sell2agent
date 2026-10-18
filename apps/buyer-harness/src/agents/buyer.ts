@@ -139,6 +139,7 @@ export async function runBuyer(task: LlmBuyerTask, brain: Brain, gw: Gateway, ru
   } catch (e) {
     o.error = (e as Error).message;
   }
-  if (!o.closed && !o.error && firstGatewayError) o.error = `gateway: ${firstGatewayError}`;
+  // A gateway failure only counts as an error if the buyer neither bought nor chose to walk.
+  if (!o.closed && !o.error && !o.walked_reason && firstGatewayError) o.error = `gateway: ${firstGatewayError}`;
   return o;
 }
