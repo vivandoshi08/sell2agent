@@ -1,0 +1,256 @@
+{
+  "@context": "https://schema.org",
+  "@type": "OfferCatalog",
+  "name": "Prairie Equipment Co. tractor catalog",
+  "url": "https://prairie-equipment.example/feeds/products.json",
+  "seller": {
+    "@type": "Organization",
+    "name": "Prairie Equipment Co.",
+    "url": "https://prairie-equipment.example"
+  },
+  "itemListElement": [
+    {
+      "@type": "Product",
+      "sku": "T25",
+      "name": "T25 Compact",
+      "category": "Compact tractor",
+      "description": "25 hp, 4WD, hydrostatic transmission. For under 10 acres: mowing, snow, light loader work.",
+      "additionalProperty": [
+        {
+          "@type": "PropertyValue",
+          "name": "Class",
+          "value": "Compact tractor"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Engine power",
+          "value": "25 hp"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Drive",
+          "value": "4WD"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Transmission",
+          "value": "Hydrostatic"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Best for",
+          "value": "Properties under 10 acres"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Typical jobs",
+          "value": "Mowing, snow clearing, light loader work"
+        }
+      ],
+      "offers": {
+        "@type": "Offer",
+        "price": 28500,
+        "priceCurrency": "USD",
+        "url": "https://prairie-equipment.example/tractors#t25"
+      }
+    },
+    {
+      "@type": "Product",
+      "sku": "T45",
+      "name": "T45 Utility",
+      "category": "Utility tractor",
+      "description": "45 hp, 4WD, Cat I/II 3-point hitch, 540 PTO. For 10-50 acres: brush hogging, loader work, tilling.",
+      "additionalProperty": [
+        {
+          "@type": "PropertyValue",
+          "name": "Class",
+          "value": "Utility tractor"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Engine power",
+          "value": "45 hp"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Drive",
+          "value": "4WD"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "3-point hitch",
+          "value": "Cat I/II"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "PTO",
+          "value": "540 rpm"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Best for",
+          "value": "10-50 acres"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Typical jobs",
+          "value": "Brush hogging, loader work, tilling"
+        }
+      ],
+      "offers": {
+        "@type": "Offer",
+        "price": 42000,
+        "priceCurrency": "USD",
+        "url": "https://prairie-equipment.example/tractors#t45"
+      }
+    },
+    {
+      "@type": "Product",
+      "sku": "T75",
+      "name": "T75 Row-Crop",
+      "category": "Row-crop tractor",
+      "description": "75 hp, enclosed cab with A/C, 4WD. For 50+ acres: haying, tillage, heavy implements.",
+      "additionalProperty": [
+        {
+          "@type": "PropertyValue",
+          "name": "Class",
+          "value": "Row-crop tractor"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Engine power",
+          "value": "75 hp"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Drive",
+          "value": "4WD"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Operator station",
+          "value": "Enclosed cab with A/C"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Best for",
+          "value": "50+ acres"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Typical jobs",
+          "value": "Haying, tillage, heavy implements"
+        }
+      ],
+      "offers": {
+        "@type": "Offer",
+        "price": 68000,
+        "priceCurrency": "USD",
+        "url": "https://prairie-equipment.example/tractors#t75"
+      }
+    }
+  ],
+  "addOns": [
+    {
+      "@type": "Product",
+      "sku": "loader",
+      "name": "Front loader",
+      "description": "Quick-attach front loader with 60-inch bucket.",
+      "additionalProperty": [
+        {
+          "@type": "PropertyValue",
+          "name": "Type",
+          "value": "Quick-attach front loader"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Bucket",
+          "value": "60-inch"
+        }
+      ],
+      "isAccessoryOrSparePartFor": [
+        "T25",
+        "T45",
+        "T75"
+      ],
+      "offers": {
+        "@type": "Offer",
+        "price": 6500,
+        "priceCurrency": "USD"
+      }
+    },
+    {
+      "@type": "Product",
+      "sku": "warranty",
+      "name": "3-year extended warranty",
+      "description": "Parts and labor for 3 years beyond the standard 1-year warranty.",
+      "additionalProperty": [
+        {
+          "@type": "PropertyValue",
+          "name": "Coverage",
+          "value": "Parts and labor"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Term",
+          "value": "3 years beyond the standard 1-year warranty"
+        }
+      ],
+      "isAccessoryOrSparePartFor": [
+        "T25",
+        "T45",
+        "T75"
+      ],
+      "offers": {
+        "@type": "Offer",
+        "price": 2400,
+        "priceCurrency": "USD"
+      }
+    },
+    {
+      "@type": "Product",
+      "sku": "delivery",
+      "name": "Delivery and setup",
+      "description": "Delivered within 150 miles, set up, and walked through on site.",
+      "additionalProperty": [
+        {
+          "@type": "PropertyValue",
+          "name": "Range",
+          "value": "Within 150 miles"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Includes",
+          "value": "Delivery, setup, and an on-site walkthrough"
+        }
+      ],
+      "isAccessoryOrSparePartFor": [
+        "T25",
+        "T45",
+        "T75"
+      ],
+      "offers": {
+        "@type": "Offer",
+        "price": 900,
+        "priceCurrency": "USD"
+      }
+    }
+  ],
+  "purchaseTerms": {
+    "orderFormat": "one tractor sku plus zero or more add-on skus",
+    "total": "tractor price + sum of add-on prices",
+    "priceNegotiable": false,
+    "paymentDue": "in full at checkout",
+    "acceptedPaymentMethod": [
+      "card",
+      "ACH"
+    ],
+    "financing": false,
+    "notes": [
+      "Prices shown are the price you pay at checkout. No hidden fees.",
+      "Choose one tractor and any add-ons; your cart total is the tractor price plus each add-on price.",
+      "Payment is due in full at checkout (card or ACH). We don't offer financing or deferred payment.",
+      "All add-ons fit every tractor we sell."
+    ]
+  }
+}

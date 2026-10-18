@@ -1,0 +1,569 @@
+{
+  "seed": 202,
+  "n_personas": 30,
+  "zones": {
+    "below_floor": 13,
+    "haggle_zone": 15,
+    "above_list": 2
+  },
+  "arms": {
+    "a_static_html": {
+      "sessions": 4,
+      "errors": 0,
+      "deals": 2,
+      "conversion": 0.5,
+      "feasible_sessions": 3,
+      "feasible_conversion": 0.6667,
+      "safe_conversion": 0.5,
+      "revenue": 97400,
+      "profit": 26000,
+      "margin": 0.2669,
+      "profit_per_session": 6500.0,
+      "avg_price": 48700.0,
+      "avg_discount_from_list": 0.0,
+      "surplus_capture": 0.4599,
+      "avg_rounds": 1,
+      "violations_attempted": 0,
+      "offers_below_floor_sent": 0,
+      "violations_closed": 0,
+      "buyer_overpaid": 0,
+      "model_calls": 4,
+      "model_cost_usd": 0.1082,
+      "model_cost_per_session": 0.027,
+      "model_cost_per_deal": 0.0541,
+      "conversion_ci95": [
+        0.0,
+        1.0
+      ],
+      "profit_per_session_ci95": [
+        0.0,
+        13125.0
+      ],
+      "seller_cost_per_deal": 0.0,
+      "arithmetic_errors": 0,
+      "bundle_vs_wanted": {
+        "dropped_addons": 2
+      }
+    },
+    "b_json_feed": {
+      "sessions": 4,
+      "errors": 0,
+      "deals": 2,
+      "conversion": 0.5,
+      "feasible_sessions": 3,
+      "feasible_conversion": 0.6667,
+      "safe_conversion": 0.5,
+      "revenue": 103900,
+      "profit": 28400,
+      "margin": 0.2733,
+      "profit_per_session": 7100.0,
+      "avg_price": 51950.0,
+      "avg_discount_from_list": 0.0,
+      "surplus_capture": 0.5839,
+      "avg_rounds": 1,
+      "violations_attempted": 0,
+      "offers_below_floor_sent": 0,
+      "violations_closed": 0,
+      "buyer_overpaid": 0,
+      "model_calls": 4,
+      "model_cost_usd": 0.0801,
+      "model_cost_per_session": 0.02,
+      "model_cost_per_deal": 0.0401,
+      "conversion_ci95": [
+        0.0,
+        1.0
+      ],
+      "profit_per_session_ci95": [
+        0.0,
+        14925.0
+      ],
+      "seller_cost_per_deal": 0.0,
+      "arithmetic_errors": 0,
+      "bundle_vs_wanted": {
+        "dropped_addons": 1,
+        "as_wanted": 1
+      }
+    },
+    "c_negotiating_agent": {
+      "sessions": 4,
+      "errors": 0,
+      "deals": 3,
+      "conversion": 0.75,
+      "feasible_sessions": 3,
+      "feasible_conversion": 1.0,
+      "safe_conversion": 0.75,
+      "revenue": 133600,
+      "profit": 29500,
+      "margin": 0.2208,
+      "profit_per_session": 7375.0,
+      "avg_price": 44533.33,
+      "avg_discount_from_list": 0.0998,
+      "surplus_capture": 0.6604,
+      "avg_rounds": 5,
+      "violations_attempted": 0,
+      "offers_below_floor_sent": 0,
+      "violations_closed": 0,
+      "buyer_overpaid": 0,
+      "model_calls": 38,
+      "model_cost_usd": 0.5215,
+      "model_cost_per_session": 0.1304,
+      "model_cost_per_deal": 0.1738,
+      "conversion_ci95": [
+        0.25,
+        1.0
+      ],
+      "profit_per_session_ci95": [
+        1875.0,
+        13500.0
+      ],
+      "seller_cost_usd": 0.2656,
+      "seller_cost_per_session": 0.0664,
+      "seller_cost_per_deal": 0.0885,
+      "judge_cost_usd": 0.0647,
+      "sessions_with_false_claims": 0,
+      "deals_with_false_claims": 0,
+      "ended_by": {
+        "seller_accept": 2,
+        "buyer_accept": 1,
+        "buyer_walk": 1
+      }
+    },
+    "d_fixed_price_agent": {
+      "sessions": 4,
+      "errors": 0,
+      "deals": 3,
+      "conversion": 0.75,
+      "feasible_sessions": 3,
+      "feasible_conversion": 1.0,
+      "safe_conversion": 0.5,
+      "revenue": 132400,
+      "profit": 36900,
+      "margin": 0.2787,
+      "profit_per_session": 9225.0,
+      "avg_price": 44133.33,
+      "avg_discount_from_list": 0.0,
+      "surplus_capture": 0.6115,
+      "avg_rounds": 1.75,
+      "violations_attempted": 0,
+      "offers_below_floor_sent": 0,
+      "violations_closed": 0,
+      "buyer_overpaid": 0,
+      "model_calls": 12,
+      "model_cost_usd": 0.1427,
+      "model_cost_per_session": 0.0357,
+      "model_cost_per_deal": 0.0476,
+      "conversion_ci95": [
+        0.25,
+        1.0
+      ],
+      "profit_per_session_ci95": [
+        2125.0,
+        17050.0
+      ],
+      "seller_cost_usd": 0.0558,
+      "seller_cost_per_session": 0.014,
+      "seller_cost_per_deal": 0.0186,
+      "judge_cost_usd": 0.0417,
+      "sessions_with_false_claims": 2,
+      "deals_with_false_claims": 1,
+      "ended_by": {
+        "buyer_walk": 1,
+        "seller_accept": 2,
+        "buyer_accept": 1
+      }
+    }
+  },
+  "comparisons": {
+    "a_vs_c": {
+      "unpaired_harness": {
+        "profit_per_session_diff": 875.0,
+        "profit_per_session_diff_ci95": [
+          -7875.0,
+          9500.0
+        ],
+        "profit_per_session_lift_pct": 13.5,
+        "conversion_diff": 0.25,
+        "conversion_diff_ci95": [
+          -0.5,
+          0.75
+        ]
+      },
+      "paired": {
+        "n_paired": 4,
+        "profit_per_session_diff": 875,
+        "profit_per_session_diff_ci95": [
+          -1250,
+          4250
+        ],
+        "profit_per_session_lift_pct": 13.5,
+        "conversion_diff": 0.25,
+        "conversion_diff_ci95": [
+          0,
+          0.75
+        ],
+        "same_decision_rate": 0.75
+      }
+    },
+    "b_vs_c": {
+      "unpaired_harness": {
+        "profit_per_session_diff": 275.0,
+        "profit_per_session_diff_ci95": [
+          -9325.0,
+          9250.0
+        ],
+        "profit_per_session_lift_pct": 3.9,
+        "conversion_diff": 0.25,
+        "conversion_diff_ci95": [
+          -0.5,
+          0.75
+        ]
+      },
+      "paired": {
+        "n_paired": 4,
+        "profit_per_session_diff": 275,
+        "profit_per_session_diff_ci95": [
+          -2925,
+          4250
+        ],
+        "profit_per_session_lift_pct": 3.9,
+        "conversion_diff": 0.25,
+        "conversion_diff_ci95": [
+          0,
+          0.75
+        ],
+        "same_decision_rate": 0.75
+      }
+    },
+    "a_vs_b": {
+      "unpaired_harness": {
+        "profit_per_session_diff": 600.0,
+        "profit_per_session_diff_ci95": [
+          -10875.0,
+          12075.0
+        ],
+        "profit_per_session_lift_pct": 9.2,
+        "conversion_diff": 0.0,
+        "conversion_diff_ci95": [
+          -0.75,
+          0.75
+        ]
+      },
+      "paired": {
+        "n_paired": 4,
+        "profit_per_session_diff": 600,
+        "profit_per_session_diff_ci95": [
+          0,
+          1800
+        ],
+        "profit_per_session_lift_pct": 9.2,
+        "conversion_diff": 0,
+        "conversion_diff_ci95": [
+          0,
+          0
+        ],
+        "same_decision_rate": 1.0
+      }
+    },
+    "a_vs_d": {
+      "unpaired_harness": {
+        "profit_per_session_diff": 2725.0,
+        "profit_per_session_diff_ci95": [
+          -6625.0,
+          12075.0
+        ],
+        "profit_per_session_lift_pct": 41.9,
+        "conversion_diff": 0.25,
+        "conversion_diff_ci95": [
+          -0.5,
+          0.75
+        ]
+      },
+      "paired": {
+        "n_paired": 4,
+        "profit_per_session_diff": 2725,
+        "profit_per_session_diff_ci95": [
+          0,
+          6375
+        ],
+        "profit_per_session_lift_pct": 41.9,
+        "conversion_diff": 0.25,
+        "conversion_diff_ci95": [
+          0,
+          0.75
+        ],
+        "same_decision_rate": 0.75
+      }
+    },
+    "d_vs_c": {
+      "unpaired_harness": {
+        "profit_per_session_diff": -1850.0,
+        "profit_per_session_diff_ci95": [
+          -10575.0,
+          7125.0
+        ],
+        "profit_per_session_lift_pct": -20.1,
+        "conversion_diff": 0.0,
+        "conversion_diff_ci95": [
+          -0.5,
+          0.5
+        ]
+      },
+      "paired": {
+        "n_paired": 4,
+        "profit_per_session_diff": -1850,
+        "profit_per_session_diff_ci95": [
+          -3200,
+          -500
+        ],
+        "profit_per_session_lift_pct": -20.1,
+        "conversion_diff": 0,
+        "conversion_diff_ci95": [
+          0,
+          0
+        ],
+        "same_decision_rate": 1.0
+      }
+    },
+    "b_vs_d": {
+      "unpaired_harness": {
+        "profit_per_session_diff": 2125.0,
+        "profit_per_session_diff_ci95": [
+          -7825.0,
+          12075.0
+        ],
+        "profit_per_session_lift_pct": 29.9,
+        "conversion_diff": 0.25,
+        "conversion_diff_ci95": [
+          -0.5,
+          0.75
+        ]
+      },
+      "paired": {
+        "n_paired": 4,
+        "profit_per_session_diff": 2125,
+        "profit_per_session_diff_ci95": [
+          0,
+          6375
+        ],
+        "profit_per_session_lift_pct": 29.9,
+        "conversion_diff": 0.25,
+        "conversion_diff_ci95": [
+          0,
+          0.75
+        ],
+        "same_decision_rate": 0.75
+      }
+    }
+  },
+  "decomposition_c_vs_a": {
+    "neither_closed": {
+      "n": 1,
+      "profit_diff": 0,
+      "personas": [
+        "s202-b000"
+      ]
+    },
+    "both_closed_agent_less": {
+      "n": 2,
+      "profit_diff": -2500,
+      "personas": [
+        "s202-b001",
+        "s202-b020"
+      ]
+    },
+    "agent_closed_page_lost": {
+      "n": 1,
+      "profit_diff": 6000,
+      "personas": [
+        "s202-b011"
+      ]
+    }
+  },
+  "decomposition_c_vs_b": {
+    "neither_closed": {
+      "n": 1,
+      "profit_diff": 0,
+      "personas": [
+        "s202-b000"
+      ]
+    },
+    "both_closed_agent_less": {
+      "n": 2,
+      "profit_diff": -4900,
+      "personas": [
+        "s202-b001",
+        "s202-b020"
+      ]
+    },
+    "agent_closed_page_lost": {
+      "n": 1,
+      "profit_diff": 6000,
+      "personas": [
+        "s202-b011"
+      ]
+    }
+  },
+  "decomposition_d_vs_a": {
+    "neither_closed": {
+      "n": 1,
+      "profit_diff": 0,
+      "personas": [
+        "s202-b000"
+      ]
+    },
+    "both_closed_same": {
+      "n": 1,
+      "profit_diff": 0,
+      "personas": [
+        "s202-b001"
+      ]
+    },
+    "agent_closed_page_lost": {
+      "n": 1,
+      "profit_diff": 8500,
+      "personas": [
+        "s202-b011"
+      ]
+    },
+    "both_closed_agent_more": {
+      "n": 1,
+      "profit_diff": 2400,
+      "personas": [
+        "s202-b020"
+      ]
+    }
+  },
+  "by_persona_type": {
+    "below_floor": {
+      "a_static_html": {
+        "sessions": 1,
+        "deals": 0,
+        "conversion": 0.0,
+        "profit_per_session": 0.0,
+        "avg_price": null,
+        "avg_discount_from_list": null,
+        "buyer_overpaid": 0
+      },
+      "b_json_feed": {
+        "sessions": 1,
+        "deals": 0,
+        "conversion": 0.0,
+        "profit_per_session": 0.0,
+        "avg_price": null,
+        "avg_discount_from_list": null,
+        "buyer_overpaid": 0
+      },
+      "c_negotiating_agent": {
+        "sessions": 1,
+        "deals": 0,
+        "conversion": 0.0,
+        "profit_per_session": 0.0,
+        "avg_price": null,
+        "avg_discount_from_list": null,
+        "buyer_overpaid": 0
+      },
+      "d_fixed_price_agent": {
+        "sessions": 1,
+        "deals": 0,
+        "conversion": 0.0,
+        "profit_per_session": 0.0,
+        "avg_price": null,
+        "avg_discount_from_list": null,
+        "buyer_overpaid": 0
+      }
+    },
+    "haggle_zone": {
+      "a_static_html": {
+        "sessions": 2,
+        "deals": 1,
+        "conversion": 0.5,
+        "profit_per_session": 4250.0,
+        "avg_price": 28500,
+        "avg_discount_from_list": 0.0,
+        "buyer_overpaid": 0
+      },
+      "b_json_feed": {
+        "sessions": 2,
+        "deals": 1,
+        "conversion": 0.5,
+        "profit_per_session": 4250.0,
+        "avg_price": 28500,
+        "avg_discount_from_list": 0.0,
+        "buyer_overpaid": 0
+      },
+      "c_negotiating_agent": {
+        "sessions": 2,
+        "deals": 2,
+        "conversion": 1.0,
+        "profit_per_session": 6750.0,
+        "avg_price": 31050,
+        "avg_discount_from_list": 0.1238,
+        "buyer_overpaid": 0
+      },
+      "d_fixed_price_agent": {
+        "sessions": 2,
+        "deals": 2,
+        "conversion": 1.0,
+        "profit_per_session": 8500.0,
+        "avg_price": 28500,
+        "avg_discount_from_list": 0.0,
+        "buyer_overpaid": 0
+      }
+    },
+    "above_list": {
+      "a_static_html": {
+        "sessions": 1,
+        "deals": 1,
+        "conversion": 1.0,
+        "profit_per_session": 17500.0,
+        "avg_price": 68900,
+        "avg_discount_from_list": 0.0,
+        "buyer_overpaid": 0
+      },
+      "b_json_feed": {
+        "sessions": 1,
+        "deals": 1,
+        "conversion": 1.0,
+        "profit_per_session": 19900.0,
+        "avg_price": 75400,
+        "avg_discount_from_list": 0.0,
+        "buyer_overpaid": 0
+      },
+      "c_negotiating_agent": {
+        "sessions": 1,
+        "deals": 1,
+        "conversion": 1.0,
+        "profit_per_session": 16000.0,
+        "avg_price": 71500,
+        "avg_discount_from_list": 0.0517,
+        "buyer_overpaid": 0
+      },
+      "d_fixed_price_agent": {
+        "sessions": 1,
+        "deals": 1,
+        "conversion": 1.0,
+        "profit_per_session": 19900.0,
+        "avg_price": 75400,
+        "avg_discount_from_list": 0.0,
+        "buyer_overpaid": 0
+      }
+    }
+  },
+  "verdicts": {
+    "A3": {
+      "verdict": "validated",
+      "lift_pct_vs_a": 13.5,
+      "conversion_a": 0.5,
+      "conversion_c": 0.75
+    },
+    "B1": {
+      "conversion_diff_b_minus_a": 0,
+      "ci95": [
+        0,
+        0
+      ],
+      "same_decision_rate": 1.0,
+      "answer": "no detectable format effect"
+    }
+  }
+}
