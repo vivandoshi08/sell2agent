@@ -81,7 +81,7 @@ export async function ensureSellerAccount(seller_id: string, opts: { email?: str
       address: { line1: "address_full_match", city: "San Francisco", state: "CA", postal_code: "94107", country: "US" },
     },
     external_account: { object: "bank_account", country: "US", currency: "usd", routing_number: "110000000", account_number: "000123456789" } as unknown as string,
-  });
+  }, { idempotencyKey: `acct-${seller_id}-${opts.email ?? ""}-${opts.name ?? ""}`.slice(0, 255) }); // a double click must not make two accounts
   const acct = toSeller(a, seller_id);
   cache.set(seller_id, { at: Date.now(), acct });
   return acct;
@@ -181,11 +181,19 @@ export interface SellerPayment {
   created: number;
 }
 
-/** Recent payments for one seller, newest first (filters the platform's last 100 PaymentIntents). */
+/**
+ * Payments for one seller, newest first. Search finds them by metadata however many other PaymentIntents the
+ * platform has (eval runs make thousands); the recent list covers search's indexing lag for a sale made a moment ago.
+ */
 export async function sellerPayments(seller_id: string): Promise<SellerPayment[]> {
-  const list = await stripe().paymentIntents.list({ limit: 100 });
-  return list.data
-    .filter((p) => p.metadata?.seller_id === seller_id)
+  if (!/^[\w-]+$/.test(seller_id)) return [];
+  const [found, recent] = await Promise.all([
+    stripe().paymentIntents.search({ query: `metadata['seller_id']:'${seller_id}'`, limit: 100 }),
+    stripe().paymentIntents.list({ limit: 100 }),
+  ]);
+  const byId = new Map([...found.data, ...recent.data].filter((p) => p.metadata?.seller_id === seller_id).map((p) => [p.id, p]));
+  return [...byId.values()]
+    .sort((a, b) => b.created - a.created)
     .map((p) => {
       const fee = p.application_fee_amount ?? 0;
       const state = p.status === "requires_capture" ? "held" : p.status === "succeeded" ? "paid" : p.status === "canceled" ? "released" : "other";
