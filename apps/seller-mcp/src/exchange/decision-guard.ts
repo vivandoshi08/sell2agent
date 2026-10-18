@@ -4,9 +4,9 @@
  *
  *  - offers clamped to [soft floor, list], never above our previous offer
  *  - accepts below the hard floor masked into a counter
- *  - per-round concession cap (35% of the list–floor gap)
+ *  - per-round concession cap (35% of the list–floor gap); the clamped price is rounded UP to whole dollars
  *  - circuit breaker freeze: price held at the current ask, and the move is truthfully final
- *  - "final" only when it is (last round or frozen)
+ *  - "final" only when it is (last round or frozen); a static seller holding list is normalized without a block
  */
 import { softFloor, DEFAULT_SOFT_FLOOR_BUFFER, usd, type ProposedMove } from "../sellers";
 import type { ProductConfig } from "./types";
@@ -30,6 +30,15 @@ export interface Block {
 export interface GuardedMove {
   move: ProposedMove;
   blocks: Block[];
+}
+
+/**
+ * Concession-cap clamp in whole dollars, the safe way (E2 ask: no "$116.60" offers). Rounds UP, so the concession is
+ * never more than the cap allows; never below the soft floor (whole dollars already, see softFloor); never above
+ * our previous offer (if rounding up would pass it, we hold at prev).
+ */
+export function capClamp(prev: number, maxStep: number, soft: number): number {
+  return Math.min(prev, Math.max(soft, Math.ceil((prev - maxStep) / 100) * 100));
 }
 
 export function guardMove(g: GuardInput): GuardedMove {
@@ -68,10 +77,17 @@ export function guardMove(g: GuardInput): GuardedMove {
     if (price > prev && prev >= soft) { block("monotone", prev, "offers never go back up"); price = prev; }
     if (g.frozen && price < prev && prev >= soft) { block("price_freeze", prev, "circuit breaker: price frozen at the current ask"); price = prev; }
     const maxStep = Math.ceil(CONCESSION_CAP * gap);
-    if (prev - price > maxStep) { block("concession_cap", prev - maxStep, "concession larger than the per-round cap"); price = Math.max(soft, prev - maxStep); }
+    if (prev - price > maxStep) {
+      const to = capClamp(prev, maxStep, soft);
+      block("concession_cap", to, "concession larger than the per-round cap");
+      price = to;
+    }
   }
   const final = isLast || g.frozen;
-  if (m.final && !final) block("final_not_final", price, "move marked final before the last round");
+  // A static seller never moves off list, so its "final" is true in substance: normalize the flag silently
+  // rather than logging a block (issue #41: 118 noise blocks, not catches). Real early bluffs still block.
+  const staticHold = p.strategy === "static" && price === list;
+  if (m.final && !final && !staticHold) block("final_not_final", price, "move marked final before the last round");
   if (price !== m.price_cents || final !== m.final) {
     m = { ...m, price_cents: price, final,
       reason_text: g.frozen

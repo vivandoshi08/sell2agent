@@ -230,7 +230,7 @@ export class Exchange {
       const offer = this.newOffer(n, move, qty, "accepted");
       await this.supersede(standing);
       await this.store.putOffer(offer);
-      const deal = await this.lock(n, p, offer);
+      const deal = await this.lock(n, base, offer); // base floor: lock() subtracts lever cost itself (p's floor already includes it)
       await this.emit(n, "offer_accepted", "seller", move.price_cents, { offer_id: offer.offer_id, lever_package: offer.levers, message, final: true, expires_at: deal.expires_at });
       return this.respond(n, p, offer, { ok: true, status: "accept", message, reason: move.reason, deal });
     }

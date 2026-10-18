@@ -1,7 +1,7 @@
 // E1 exchange: protocol, decision guard, deal lock. Offline (memory store, template voice). Run: pnpm --filter @sa/seller-mcp test
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { Exchange, MemorySink, MemoryStore, StaticCatalog, guardMove, guardrailSeverity, canTransition, TRANSITIONS, SEED_PRODUCTS, ANON_MEMORY_TTL_MS, ANON_START_LIMIT, OAI_START_LIMIT, START_LIMIT, memoryKey, signEvalRun, isEvalRun, type Decider } from "../src/exchange";
+import { Exchange, MemorySink, MemoryStore, StaticCatalog, guardMove, capClamp, jitterStep, guardrailSeverity, canTransition, TRANSITIONS, SEED_PRODUCTS, ANON_MEMORY_TTL_MS, ANON_START_LIMIT, OAI_START_LIMIT, START_LIMIT, memoryKey, signEvalRun, isEvalRun, type Decider } from "../src/exchange";
 import type { ProposedMove } from "../src/sellers";
 
 const ctx = (buyer_id = "b1") => ({ run_id: "e1-test-run", buyer_id, buyer_model: "scripted" });
@@ -104,12 +104,54 @@ test("guardMove: concession cap, monotone, final only on last round", () => {
   const product = { product_id: P, seller_id: "s", title: "t", list_price_cents: 12900, floor_price_cents: 10500, unit_cost_cents: 6000, max_rounds: 4, allowed_levers: [], strategy: "negotiating" as const };
   const mv = (price: number, final = false): ProposedMove => ({ action: "offer", price_cents: price, final, reason: "pacing", reason_text: "x", conceded_fraction: 0 });
   const cap = guardMove({ move: mv(10600), product, round: 2, prev_seller_offer_cents: 12900, frozen: false });
-  assert.equal(cap.move.price_cents, 12900 - Math.ceil(0.35 * 2400));
+  assert.equal(cap.move.price_cents, 12100); // 12900 − 840 = 12060, rounded UP to whole dollars
+  assert.equal(cap.blocks[0].rule, "concession_cap"); assert.equal(cap.blocks[0].clamped_to_cents, 12100);
   assert.equal(guardMove({ move: mv(12900), product, round: 2, prev_seller_offer_cents: 12000, frozen: false }).move.price_cents, 12000);
   const bluff = guardMove({ move: mv(12000, true), product, round: 2, prev_seller_offer_cents: 12900, frozen: false });
   assert.equal(bluff.move.final, false);
   const frozen = guardMove({ move: mv(11000), product, round: 2, prev_seller_offer_cents: 12500, frozen: true });
   assert.equal(frozen.move.price_cents, 12500); assert.equal(frozen.move.final, true);
+});
+
+test("guardMove: concession-cap clamp is whole dollars, within cap, >= soft floor, <= prev", () => {
+  const product = { product_id: P, seller_id: "s", title: "t", list_price_cents: 12900, floor_price_cents: 10500, unit_cost_cents: 6000, max_rounds: 6, allowed_levers: [], strategy: "negotiating" as const };
+  const mv = (price: number): ProposedMove => ({ action: "offer", price_cents: price, final: false, reason: "pacing", reason_text: "x", conceded_fraction: 0 });
+  const maxStep = Math.ceil(0.35 * 2400), soft = 10600; // softFloor(12900, 10500) = ceil(10572 / 100) * 100
+  for (const prev of [12900, 12817, 12060, 11800, 11433, 11000, 10650]) {
+    const price = guardMove({ move: mv(10500), product, round: 3, prev_seller_offer_cents: prev, frozen: false }).move.price_cents;
+    assert.ok(price <= prev, `monotone at prev ${prev}`);
+    assert.ok(prev - price <= maxStep, `within cap at prev ${prev}`);
+    assert.ok(price >= soft, `soft floor at prev ${prev}`);
+    assert.ok(price % 100 === 0 || price === prev, `whole dollars (or held at prev) at prev ${prev}: ${price}`);
+  }
+  assert.equal(guardMove({ move: mv(10500), product, round: 3, prev_seller_offer_cents: 12817, frozen: false }).move.price_cents, 12000); // 11977 → 12000
+  // E2 ask: a "$109.60"-style clamp now lands on $110
+  const wide = { ...product, list_price_cents: 15000, floor_price_cents: 10000 }; // cap step 1750
+  assert.equal(guardMove({ move: mv(10200), product: wide, round: 3, prev_seller_offer_cents: 12710, frozen: false }).move.price_cents, 11000);
+  // rounding up would pass prev → hold at prev
+  assert.equal(capClamp(12790, 70, 12000), 12790);
+  assert.equal(capClamp(12900, 840, 12500), 12500); // soft floor still wins
+});
+
+test("guardMove: static seller holding list with final=true is normalized, not blocked (issue #41)", () => {
+  const product = { product_id: P, seller_id: "s", title: "t", list_price_cents: 12900, floor_price_cents: 10500, unit_cost_cents: 6000, max_rounds: 6, allowed_levers: [], strategy: "static" as const };
+  const mv: ProposedMove = { action: "offer", price_cents: 12900, final: true, reason: "fixed_price", reason_text: "fixed", conceded_fraction: 0 };
+  const r = guardMove({ move: mv, product, round: 2, prev_seller_offer_cents: 12900, frozen: false });
+  assert.equal(r.move.final, false); assert.equal(r.move.price_cents, 12900);
+  assert.equal(r.blocks.length, 0);
+  // a negotiating seller bluffing "final" early is still a real catch
+  const neg = guardMove({ move: { ...mv, price_cents: 12000 }, product: { ...product, strategy: "negotiating" }, round: 2, prev_seller_offer_cents: 12900, frozen: false });
+  assert.ok(neg.blocks.some((b) => b.rule === "final_not_final"));
+  // last round: static final stays final
+  assert.equal(guardMove({ move: mv, product, round: 6, prev_seller_offer_cents: 12900, frozen: false }).move.final, true);
+});
+
+test("jitterStep: whole dollars, within cap, never above prev", () => {
+  for (const [prev, price] of [[12900, 12000], [12817, 11000], [12060, 11900], [12900, 10000]] as const) {
+    const out = jitterStep(prev, price, `k|${prev}|${price}`, 10600, 840);
+    assert.ok(out <= prev && prev - out <= 840 && out >= 10600, `${prev}→${out}`);
+    assert.ok(out % 100 === 0 || out === prev, `${prev}→${out}`);
+  }
 });
 
 test("circuit breaker: 2 injected messages freeze the price", async () => {
@@ -372,4 +414,19 @@ test("lever packages: only allowed levers; price covers floor + lever cost; deal
   const dealEv = events.events.find((e) => e.type === "deal_accepted")!;
   assert.equal(dealEv.payload.lever_cost_cents, 800, "S2 profit needs the lever cost");
   assert.equal(dealEv.payload.below_floor, false);
+});
+
+test("deal_accepted.below_floor doesn't double-count lever cost when the seller accepts a package offer", async () => {
+  const { Exchange, MemorySink, StaticCatalog, SEED_PRODUCTS } = await import("../src/exchange");
+  const sink = new MemorySink();
+  const ex = new Exchange({ catalog: new StaticCatalog(SEED_PRODUCTS), sink: sink.sink });
+  const ctx = { run_id: "t_bf", buyer_id: "b_bf", buyer_model: "test" };
+  // ClackCo: floor $95, free_shipping costs $8 → $106 nets $98, above floor.
+  let r: any = await ex.handle({ kind: "offer", ctx, product_id: "kb_clackco_tkl", offer_price_cents: 10600, levers: ["free_shipping"] });
+  for (let i = 0; i < 6 && r.status === "counter"; i++) r = await ex.handle({ kind: "offer", ctx, negotiation_id: r.negotiation_id, product_id: "kb_clackco_tkl", offer_price_cents: 10600 });
+  if (r.status !== "accept") r = await ex.handle({ kind: "accept", ctx, negotiation_id: r.negotiation_id, offer_id: r.standing_offer.offer_id });
+  const d = sink.events.find((e: any) => e.type === "deal_accepted");
+  assert.ok(d, "deal locked");
+  assert.equal((d!.payload as any).lever_cost_cents, 800);
+  assert.equal((d!.payload as any).below_floor, (d!.price_cents! - 800) < 9500);
 });
