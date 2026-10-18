@@ -67,6 +67,14 @@ Per buyer type on the gate (learned − balanced): quality +$3.27 ±4.22, price 
 **trust −$4.97 ±7.99**. The trust-first free-shipping pick did not hold up on fresh buyers; it is within noise either way.
 v5's 10% exploration keeps testing it, and the next retrain (which can include the b5G runs) will decide.
 
+## Production default switched to Balanced (Sun Oct 18, ~6:55 am PT)
+
+All 9 rows in the live `seller_policies` went from `negotiating` to `balanced` (Vivan's go). Reason: Balanced beat Negotiating
+on all three held-out tests (+$5–6/buyer) and ties `learned`, without its 10% exploration during the demo. Verified on the
+deployed gateway with a signed eval run (`eval_verifybal_…`): seller events carry `policy:balanced` for the K2 and the
+KeyForge Quiet 75. No redeploy needed (the gateway re-reads the catalog every 5 s). To undo:
+`update seller_policies set policy = 'negotiating'`.
+
 ## Where it shows
 
 Dashboard tab **What it learned** (`#learned`): the three lessons, training sources and goal, how one negotiation teaches the
