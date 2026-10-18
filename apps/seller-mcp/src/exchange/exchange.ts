@@ -16,8 +16,8 @@ import { defaultSink, type EventSink } from "./events";
 import { inspectInput } from "./input-guard";
 import { checkOutput, fallbackMessage, type OutputContext } from "./output-guard";
 import { allowedActions, assertTransition } from "./state";
-import { MemoryStore, isAnon, liveMemory, memoryKey, probeId, type ExchangeStore } from "./store";
-import { ANON_START_LIMIT, ProbeBreaker, START_LIMIT, StartLimiter, buyerEndpoint, jitterStep, leverCost, NEAR_MISS_BAND } from "./probing";
+import { MemoryStore, liveMemory, memoryKey, probeId, type ExchangeStore } from "./store";
+import { ProbeBreaker, StartLimiter, startLimitFor, buyerEndpoint, jitterStep, leverCost, NEAR_MISS_BAND } from "./probing";
 import { CONCESSION_CAP } from "./decision-guard";
 import { Outreach, type Sender } from "./outreach";
 import type { AcceptMove, Catalog, ExchangeError, ExchangeResponse, Move, Negotiation, NegotiationState, OfferMove,
@@ -131,7 +131,7 @@ export class Exchange {
     if (!m.negotiation_id) {
       p = await this.catalog.get(m.product_id);
       if (!p) return fail("unknown_product", `no product ${m.product_id}; use search_products to find one`);
-      if (!this.limiter.allow(memoryKey(m.ctx.buyer_id, p.product_id), isAnon(m.ctx.buyer_id) ? ANON_START_LIMIT : START_LIMIT))
+      if (!this.limiter.allow(memoryKey(m.ctx.buyer_id, p.product_id), startLimitFor(m.ctx.buyer_id)))
         return fail("rate_limited", "too many negotiations started on this product today; continue an existing negotiation_id instead");
       n = this.newNegotiation(m, p, qty);
       // E11 buyer memory: a returning buyer resumes where they left off. Never quoted higher than before,

@@ -32,19 +32,24 @@ export interface BuyerMemory {
  */
 export const ANON_PREFIX = "anon_";
 export const isAnon = (buyer_id: string) => buyer_id.startsWith(ANON_PREFIX);
+/** ChatGPT users: the gateway hashes `openai/subject` to `oai_<hex>` (S1 #48). Own bucket per person, but client-asserted. */
+export const OAI_PREFIX = "oai_";
+/** Ids the gateway derives from what the client reports (not a verified account): memory expires for these. */
+export const isClientAsserted = (buyer_id: string) => isAnon(buyer_id) || buyer_id.startsWith(OAI_PREFIX);
 export const probeId = (buyer_id: string) => (isAnon(buyer_id) ? "anon" : buyer_id);
 export const memoryKey = (buyer_id: string, product_id: string) => `${probeId(buyer_id)}::${product_id}`;
 
 /**
- * The shared anon memory expires 30 min after its last update (override: EXCHANGE_ANON_MEMORY_TTL_MS). Without it,
- * one chat that reached the final round froze every later ChatGPT/Claude chat on that product at a round-1 "final
- * offer", forever (the memory lives in Supabase). Within the window a fresh chat still can't beat the last one.
+ * Memory for client-asserted ids (the shared anon bucket and per-person `oai_` ids) expires 30 min after its last
+ * update (override: EXCHANGE_ANON_MEMORY_TTL_MS). Without it, one chat that reached the final round froze every later
+ * chat on that product (anon: every user; oai_: that ChatGPT user, e.g. the demo account) at a round-1 "final offer",
+ * forever (the memory lives in Supabase). Within the window a fresh chat still can't beat the last one.
  */
 export const ANON_MEMORY_TTL_MS = Number(process.env.EXCHANGE_ANON_MEMORY_TTL_MS) || 30 * 60_000;
 
-/** Memory still in force: a named buyer's never expires; the anon bucket's expires ANON_MEMORY_TTL_MS after its last update. */
+/** Memory still in force: a named buyer's never expires; a client-asserted id's expires ANON_MEMORY_TTL_MS after its last update. */
 export function liveMemory(buyer_id: string, m: BuyerMemory | null, now: number): BuyerMemory | null {
-  if (!m || !isAnon(buyer_id)) return m;
+  if (!m || !isClientAsserted(buyer_id)) return m;
   return now - Date.parse(m.updated_at) < ANON_MEMORY_TTL_MS ? m : null;
 }
 
