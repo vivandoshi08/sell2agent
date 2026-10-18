@@ -4,9 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "tsx src/index.ts",
+    "start": "tsx src/buyers-cli.ts",
     "typecheck": "tsc -p .",
-    "e2:gate": "tsx src/e2-gate.ts"
+    "e2:gate": "tsx src/e2-gate.ts",
+    "buyers": "tsx src/buyers-cli.ts",
+    "test": "node --import tsx --test test/*.test.ts"
   },
   "dependencies": {
     "@sa/shared": "workspace:*",
@@ -20,5 +22,9 @@
     "typescript": "^5.6.0",
     "tsx": "^4.19.0",
     "@types/node": "^22.0.0"
+  },
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
   }
 }

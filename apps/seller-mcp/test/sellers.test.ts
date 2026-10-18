@@ -31,6 +31,13 @@ test("accepts a bid at or above the current ask", () => {
   assert.equal(m.action, "accept"); assert.equal(m.price_cents, 12900);
 });
 
+test("never charges above list, even if the buyer offers more", () => {
+  for (const name of ["static", "negotiating", "balanced"] as const) {
+    const m = decide(st(1, [], 15000), { name });
+    assert.deepEqual([m.action, m.price_cents], ["accept", 12900], name);
+  }
+});
+
 test("never accepts below hard floor, even on the final round with the accept zone", () => {
   const m = decide(st(8, [], 10400), { name: "negotiating", final_round_accept_zone: true });
   assert.equal(m.action, "offer");

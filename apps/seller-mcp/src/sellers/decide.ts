@@ -14,7 +14,7 @@
  *                Beat the balanced Boulware by $913/session in E10. The build default.
  *   balanced     E5/E10 Boulware t^3 to the floor by the last answerable round. For comparison.
  */
-import type { PolicyName, ProposedMove, SellerPolicy, SellerState } from "./types";
+import type { BuyerLeverProfile, PolicyName, ProposedMove, SellerPolicy, SellerState } from "./types";
 
 interface Tactic {
   exponent: number;
@@ -62,9 +62,14 @@ export function askPrice(state: SellerState, tactic: Tactic, buffer = DEFAULT_SO
   return { ask, frac: list === floor ? 0 : (list - ask) / (list - floor) };
 }
 
-export function decide(state: SellerState, policy: SellerPolicy): ProposedMove {
+/**
+ * Signature agreed with E1 (docs/e1-asks.html n8): decide(state, sellerPolicy, buyerProfile).
+ * buyerProfile is unused by static/negotiating/balanced; the gated lever policy (E2 H9+) will read it.
+ */
+export function decide(state: SellerState, policy: SellerPolicy, _buyerProfile?: BuyerLeverProfile): ProposedMove {
   const { list_price_cents: list, floor_price_cents: floor, max_rounds } = state.terms;
-  const bid = state.buyer_offer_cents;
+  // Never charge more than our own list price, even if the buyer offers more.
+  const bid = state.buyer_offer_cents === undefined ? undefined : Math.min(state.buyer_offer_cents, list);
   const isFinal = state.round >= max_rounds;
 
   // ---- static: list price, no haggling
