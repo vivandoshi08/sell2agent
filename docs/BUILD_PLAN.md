@@ -8,6 +8,55 @@
 - Manufact's framework (mcp-use) is TypeScript-first. The deal-card widget is a React view in mcp-use TS, and the Python version has no widgets.
 - The Python experiment harness (`sales_agent/`, `experiments/`) keeps working as an outside evaluator. It talks to any MCP server over HTTP, so it can test the TypeScript seller unchanged.
 
+## Stages: everything ships, in this order
+
+Everything we've discussed is in scope for the hackathon. These stages set the order, so the most important thing works first and each stage builds on the last. Times line up with CLAUDE.md's checkpoints.
+
+| Stage | By | What works at the end | Who |
+|---|---|---|---|
+| **S1. Core loop** | ~20:30 (CLAUDE.md checkpoint) | One real buyer: search → negotiate with the fixed negotiating policy (hold list, slow concession, warranty first) → code guardrails → Stripe test payment, all logged to `events` | A, B, C, D on mocks, then real |
+| **S2. Proof** | ~01:00 | Eval runner: static vs. negotiating at scale, several buyer models, buyers that drop add-ons and walk away. Dashboard with KPIs and the guardrail log. Seller deployed on Manufact; Armature evals against the URL | D, B, A |
+| **S3. Learning loop (RL)** | ~04:00 | The seller learns from its own logged negotiations. See "The learning loop" below | A + coordinator |
+| **S4. Depth** | ~05:30 | Payment token capped at the deal total (Stripe), deal-card widget (Manufact MCP App), E11 features (levers before discounts, claims library, cross-session memory), seller priority as config (E10) | A, B, C |
+| **S5. Every other aspect** | ~06:45 | Everything else we discussed, listed below with owners. Built in the listed order; each item is small on its own. | all |
+| **S6. Freeze and demo** | 07:00 → 09:00 | Code freeze, rehearsal, 2-minute video, submission | everyone |
+
+## The learning loop (S3)
+
+E6 showed what the learning loop needs to work, so S3 builds it with those fixes in place.
+
+1. **Data:** every negotiation in `events` (offers, counters, accepts, walk-aways, final price) plus Manufact session replays. S1 and S2 produce this for free.
+2. **Simulator upgrade first:** scripted buyers that drop add-ons, change quantity, and walk away from stubborn sellers. E6 found LLM buyers do this in 36% of sessions, and the old simulator couldn't, which is why its policy didn't transfer.
+3. **Train (Python, reusing `experiments/e6_rl_haggling/`):** start with a bandit over whole strategies (static, Boulware, hold-list, warranty-first); E6's bandit matched the best fixed strategy within ~30k episodes. Then tabular Q-learning over per-round moves (hold, concede 5/15/35% of the gap, add a concession, final offer, accept). Reward: profit on a deal, 0 on a walk-away, a penalty below that for any move the guardrails would block.
+4. **Safety:** actions are masked so the policy can't pick a price below the soft floor; the code guardrails still check every move.
+5. **Ship it as a seller strategy:** export the learned policy as JSON; `seller-mcp` loads it as a third strategy, `learned`, next to `static` and `negotiating`.
+6. **Prove it:** the eval runner adds a `learned` arm on the dashboard, against at least two buyer model families. E6 showed results can flip between models.
+7. **Prompt-level learning alongside:** `seller_memory` (already a stretch in the seller brief) writes one insight per closed or lost negotiation and feeds recent ones back into the prompt. Watch for overfitting to our own buyer generator (E6 phase 3 did).
+
+## S5: every other aspect we discussed
+
+Nothing discussed is dropped. These were marked "out of the build", "stretch" or "roadmap" earlier; they're back, in priority order. Experiment notes say how to build each one well.
+
+| # | Aspect | What to build | Owner | Notes from experiments and research |
+|---|---|---|---|---|
+| 1 | **Marketplace broker mode** (Inkbox-style) | Marketplace sends one buyer request to every seller and returns their bids each round; buyer counters through it | C | E7: broker cut prices ~1 point and buyers ran bidding wars. Show it as a buyer-friendly mode next to direct |
+| 2 | **Dynamic pricing seller** | A seller strategy whose price reacts to demand, inventory, and competitor quotes it actually sees (never invented) | A | E7: lost to the plain negotiator because "beat any quote by $100" got exploited. Build it without quote-matching |
+| 3 | **Adaptive seller** (reads buyer type) | Infers price-first / quality-first / balanced and switches tactics; selectable strategy `adaptive` | A | E10: lost $707/session vs. the profit stance; misread balanced buyers. Judge by what buyers choose, not whether they haggle |
+| 4 | **Inventory-aware priority** (Nash `inventory_note`) | Per-product priority from stock: overstocked items concede more, never break needs-fit | A, C | Extends E10's priority dial |
+| 5 | **Per-buyer listing** (dynamic interface) | `get_listing` emphasizes what this buyer asked about and has been offered | A | North star point 5; B7 |
+| 6 | **A2A protocol endpoint** | An A2A agent card plus an A2A endpoint that maps tasks onto the same negotiation engine (counteroffer = `input_required`) | C, A | E8: no shopping agent reads A2A cards yet, but the whiteboard had A2A. Inkbox gives hosted A2A identities and a directory |
+| 7 | **Discovery files** | `/.well-known/ucp`, agent card, `llms.txt`, `agents.md`, MCP server card, a `nash.v1`-compatible `negotiate.json` | C | E8: UCP is the live standard. Nash insight 7 |
+| 8 | **GET-first HTTP mirror** (Nash) | Plain HTTP endpoints with a `next` link for agents that can only web-fetch | A | Nash insight 5 |
+| 9 | **OAuth on the seller** | Resource-server OAuth gating `accept_deal` / payment (mcp-use TS has OAuth providers) | A | Manufact guide §3; Claude directory wants it for listing |
+| 10 | **Full UCP / ACP checkout tools** | Accept a UCP-style payment instrument; optionally ACP's 5 checkout tools | A, B | Stripe guide §3 |
+| 11 | **Real human approval via Link wallet** | Link spend-request for a ≤$500 deposit that locks the negotiated price | B | Stripe guide §2: Link caps $500 per request |
+| 12 | **Stripe MCP as the merchant's ops view** | "List today's agent payments" through mcp.stripe.com in the demo | D | Stripe guide §5 |
+| 13 | **Merchant escalation channel** | Out-of-policy asks (financing, big discounts) go to the human merchant by email (Primitive) or text (Inkbox) instead of the agent agreeing | A | Guardrail "escalate to a human" (E9) |
+| 14 | **Async quotes by email** | Buyer can request a written quote; seller replies with a PDF quote | C | Primitive idea; B2B-style tractors / bulk orders |
+| 15 | **Human-facing chat channel** | Same seller agent in a chat widget for human shoppers | D | Nash insight 8: one agent, two channels |
+| 16 | **Armature analytics SDK** | Judged sessions on the live server, if the SDK supports mcp-use; A/B it against no SDK | A | Armature guide; telemetry field changes the tool surface |
+| 17 | **Business answers for the pitch** | Who pays, pricing model (share of uplift / per transaction / subscription), what a merchant needs to see before turning it on | D | The "Parked" list in OPEN_QUESTIONS.md |
+
 ## Findings by app
 
 ### `apps/seller-mcp` (Person A): the product
@@ -64,6 +113,7 @@
 | `accept_deal` takes an optional `payment_token` (Stripe Shared Payment Token) and returns `PaymentResult`-style `status`, `reasons`, `fix` | Stripe track: buyer's spend cap enforced by Stripe, refusals explainable | medium |
 | Event types `guardrail_blocked` with `payload.rule` (`accept_below_floor`, `price_in_text_mismatch`, `floor_disclosure`, `unpriced_concession`, `false_final`, `injection_flag`) | Dashboard guardrail log and safe-conversion scoring | small |
 | (Stretch) `review_deal` tool with an MCP App widget | Manufact track; a human approves before payment | medium |
+| `Seller.strategy` enum adds `"learned"` | S3: the learned policy ships as a selectable seller strategy | small |
 
 ## Sponsor integration by app
 
