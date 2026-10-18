@@ -16,6 +16,8 @@ export interface GwListing {
   list_price_cents: number;
   shipping_days: number;
   negotiable: boolean;
+  /** Extras the seller can include instead of (or with) a price cut, e.g. free_shipping, extended_warranty. */
+  extras?: string[];
 }
 
 export interface GwOfferResult {
@@ -26,18 +28,34 @@ export interface GwOfferResult {
   rounds_left: number;
   final: boolean;
   message: string;
+  /** Extras included in the seller's current offer. */
+  extras?: string[];
 }
 
 export type GwAcceptResult =
   | { ok: true; deal_id: string; final_price_cents: number; product_id: string }
   | { ok: false; error: string };
 
+export interface GwOfferArgs {
+  product_id: string;
+  negotiation_id?: string;
+  offer_price_cents: number;
+  message?: string;
+  buyer_profile?: Record<string, number>; // the buyer's lever profile (exchange passes it to E2's decide)
+  /** Extras the buyer wants included (must be in the listing's extras). Omit to keep the current package. */
+  levers?: string[];
+}
+
 export interface Gateway {
-  readonly kind: "local" | "mcp";
-  search(ctx: BuyerContext, query: string, max_price_cents?: number): Promise<GwListing[]>;
+  readonly kind: "local" | "mcp" | "exchange";
+  /** True when the exchange behind the gateway logs offer_made / offers / deals itself (E1's does). The runner then logs only search, questions, wallet blocks and walk-aways. */
+  readonly sellerEventsLogged?: boolean;
+  search(ctx: BuyerContext, query: string, max_price_cents?: number, must_have?: string[]): Promise<GwListing[]>;
   getListing(ctx: BuyerContext, product_id: string): Promise<GwListing | null>;
   ask(ctx: BuyerContext, product_id: string, question: string): Promise<{ answer: string; grounded: boolean }>;
-  offer(ctx: BuyerContext, a: { product_id: string; negotiation_id?: string; offer_price_cents: number; message?: string }): Promise<GwOfferResult>;
+  offer(ctx: BuyerContext, a: GwOfferArgs): Promise<GwOfferResult>;
   accept(ctx: BuyerContext, negotiation_id: string): Promise<GwAcceptResult>;
+  /** runAll hands the gateway the run's event sink, so seller-side events land in the same log. */
+  attach?(emit: (e: import("@sa/shared").NegotiationEvent) => void): void;
   close?(): Promise<void>;
 }

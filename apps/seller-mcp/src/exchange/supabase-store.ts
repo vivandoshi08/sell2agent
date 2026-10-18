@@ -74,6 +74,8 @@ export class SupabaseStore implements ExchangeStore {
 
   async getBuyerMemory(k: string) { return this.read<BuyerMemory>(`mem:${k}`); }
   async putBuyerMemory(k: string, m: BuyerMemory) { await this.write(`mem:${k}`, m); }
+  /** Append-only: a null record is a tombstone, so the newest row reads back as "no memory". */
+  async clearBuyerMemory(k: string) { await this.write(`mem:${k}`, null); }
 }
 
 /** SupabaseStore when SUPABASE_URL is set, else null (caller falls back to MemoryStore). */

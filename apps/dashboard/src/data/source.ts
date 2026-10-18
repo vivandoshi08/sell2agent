@@ -7,9 +7,11 @@ import { createClient } from "@supabase/supabase-js";
 import type { NegotiationEvent } from "@sa/shared";
 import { fakeComparison } from "./fake";
 
-export type Mode = "live" | "sample";
+export type Mode = "live" | "local" | "sample";
 export interface Feed {
   mode: Mode;
+  /** What the data badge says, e.g. "Live · Supabase", "Eval run · eval_2310", "Sample data". */
+  label: string;
   /** Calls back with the full event list whenever it grows. Returns an unsubscribe. */
   start(onEvents: (all: NegotiationEvent[]) => void, onError: (msg: string) => void): () => void;
 }
@@ -22,14 +24,47 @@ export function isActivity(e: NegotiationEvent): boolean {
 const URL_ = import.meta.env.SA_SUPABASE_URL as string | undefined;
 const KEY = import.meta.env.SA_SUPABASE_ANON_KEY as string | undefined;
 
+/**
+ * Live Supabase when keys are set; `?local` shows the latest S2 eval run saved by `pnpm --filter @sa/dashboard eval`
+ * (public/runs/latest.json); `?sample` or nothing else available → labelled sample data.
+ */
 export function pickFeed(): Feed {
-  const forceSample = new URLSearchParams(location.search).has("sample");
-  return URL_ && KEY && !forceSample ? liveFeed(URL_, KEY) : sampleFeed();
+  const q = new URLSearchParams(location.search);
+  if (q.has("sample")) return sampleFeed();
+  if (q.has("local") || "__SA_EVAL__" in globalThis) return localFeed(q.get("local") || "latest");
+  return URL_ && KEY ? liveFeed(URL_, KEY) : sampleFeed();
+}
+
+function localFeed(which: string): Feed {
+  const feed: Feed = {
+    mode: "local",
+    label: "Eval run",
+    start(onEvents, onError) {
+      let stopped = false;
+      (async () => {
+        try {
+          // A single-file preview (preview:html --local) embeds the run instead of fetching it.
+          const embedded = (globalThis as { __SA_EVAL__?: { eval_id: string; events: NegotiationEvent[] } }).__SA_EVAL__;
+          if (embedded) { feed.label = `Eval run · ${embedded.eval_id}`; if (!stopped) onEvents(embedded.events.filter(isActivity)); return; }
+          const manifest = await (await fetch(`./runs/${which === "latest" ? "latest" : which}.json`)).json();
+          const file = manifest.events ?? `${which}.events.json`;
+          feed.label = `Eval run · ${manifest.eval_id ?? which}`;
+          const events = (await (await fetch(`./runs/${file}`)).json()) as NegotiationEvent[];
+          if (!stopped) onEvents(events.filter(isActivity));
+        } catch {
+          onError("No saved eval run found. Run `pnpm --filter @sa/dashboard eval` first, then reload with ?local.");
+        }
+      })();
+      return () => { stopped = true; };
+    },
+  };
+  return feed;
 }
 
 function liveFeed(url: string, key: string): Feed {
   return {
     mode: "live",
+    label: "Live · Supabase",
     start(onEvents, onError) {
       const db = createClient(url, key);
       let all: NegotiationEvent[] = [];
@@ -57,6 +92,7 @@ function liveFeed(url: string, key: string): Feed {
 function sampleFeed(): Feed {
   return {
     mode: "sample",
+    label: "Sample data",
     start(onEvents) {
       const all = fakeComparison(60);
       let shown = Math.floor(all.length * 0.55);

@@ -2,7 +2,7 @@
  * Keyboard catalog for the scripted E2 gate. Mirrors supabase/seed.sql (products + seller_policies)
  * so the gate runs with no database. If seed.sql changes, update this too (or load from Supabase).
  */
-import type { ProductTerms, PublicProduct } from "@sa/seller-mcp/sellers";
+import type { Lever, ProductTerms, PublicProduct } from "@sa/seller-mcp/sellers";
 
 export interface CatalogItem {
   terms: ProductTerms;
@@ -24,6 +24,16 @@ export const CATALOG: CatalogItem[] = [
     { layout: "TKL", switch: "tactile", hot_swap: false, wireless: false }, 11500, 9500, 5500, 5),
   item("kb_typewell_65", "TypeWell 65 Silent", "65% compact, silent tactile switches, wireless, hot-swap.",
     { layout: "65%", switch: "silent tactile", hot_swap: true, wireless: true, battery_hours: 120 }, 13900, 11000, 6500, 2),
+];
+
+/**
+ * Lever menu each keyboard seller can offer (lever_policy). Costs are the seller's (PRIVATE);
+ * buyer_value_cents is what the extra would cost a buyer separately. Same idea as E11's LEVERS, keyboard-sized.
+ */
+export const LEVER_MENU: Lever[] = [
+  { id: "warranty_2y", lever: "warranty", label: "a 2-year warranty", cost_cents: 600, buyer_value_cents: 2000 },
+  { id: "ship_2day", lever: "delivery", label: "free 2-day shipping", cost_cents: 800, buyer_value_cents: 1500 },
+  { id: "keycaps", lever: "quality", label: "an extra keycap set", cost_cents: 700, buyer_value_cents: 1800 },
 ];
 
 export const byId = (id: string) => {

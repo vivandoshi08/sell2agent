@@ -8,7 +8,10 @@
     "typecheck": "tsc -p .",
     "e2:gate": "tsx src/e2-gate.ts",
     "buyers": "tsx src/buyers-cli.ts",
-    "test": "node --import tsx --test test/*.test.ts"
+    "test": "node --import tsx --test test/*.test.ts",
+    "e2:lever-gate": "tsx src/e2-lever-gate.ts",
+    "e2:bandit": "tsx src/e2-bandit.ts",
+    "e2:personas": "tsx src/persona-check.ts"
   },
   "dependencies": {
     "@sa/shared": "workspace:*",

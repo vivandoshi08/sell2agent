@@ -19,6 +19,8 @@ export interface RunReport {
   judgements: Judgement[];
   /** Deals whose unit cost couldn't be found; their profit is left out of profit_cents. */
   missing_cost_deals: string[];
+  /** The run's events with costs and judge results folded in (seller-side use only: the dashboard and evals). */
+  events: NegotiationEvent[];
 }
 
 const p = (e: NegotiationEvent) => (e.payload ?? {}) as Record<string, unknown>;
@@ -64,5 +66,5 @@ export async function computeRunResult(run_id: string, all: NegotiationEvent[], 
     avg_margin_pct: margins.length ? margins.reduce((a, b) => a + b, 0) / margins.length : 0,
     avg_rounds: rounds.size ? [...rounds.values()].reduce((a, b) => a + b, 0) / rounds.size : 0,
   });
-  return { result, judgements, missing_cost_deals: missing };
+  return { result, judgements, missing_cost_deals: missing, events: enriched };
 }

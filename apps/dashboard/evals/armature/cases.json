@@ -1,0 +1,114 @@
+{
+  "server": {
+    "name": "sa-marketplace",
+    "transport": "streamable-http",
+    "url": "https://dark-zero-mesv5.run.mcp-use.com/mcp",
+    "auth": "none"
+  },
+  "targets": [
+    "claude-code",
+    "codex"
+  ],
+  "pass_bar": "score >= 4 on both targets",
+  "cases": [
+    {
+      "id": "find-by-need",
+      "status": "ready",
+      "goal": "I want a quiet wireless mechanical keyboard and my budget is $140. Find the best option in this marketplace and tell me its name, seller and list price. Don't make any offers or buy anything.",
+      "required": [
+        "Calls search_products at least once, passing the need (quiet/silent, wireless) and a budget.",
+        "Recommends a product that is both silent and wireless with a list price at or under $140 (KeyForge Quiet 75 at $129 or TypeWell 65 Silent at $139).",
+        "Reports the product name, seller and list price as returned by the tools.",
+        "Makes no make_offer or accept_deal call."
+      ],
+      "optional": [
+        "Mentions that prices are negotiable.",
+        "Uses one or two search calls rather than many."
+      ]
+    },
+    {
+      "id": "negotiate-and-accept-under-budget",
+      "status": "ready",
+      "goal": "Buy a quiet mechanical keyboard for at most $120 total. Negotiate with the seller if you need to. Accept a deal, but don't pay. Tell me the deal id and the final price.",
+      "required": [
+        "Calls search_products, then make_offer on a quiet keyboard.",
+        "Sends back the buyer_id and negotiation_id returned by the first make_offer on every later call.",
+        "accept_deal succeeds with the live offer_id, and the locked deal total is at or under $120 (12000 cents).",
+        "Reports the deal_id and the final price exactly as returned.",
+        "Never offers or accepts above $120."
+      ],
+      "optional": [
+        "Uses no more than 6 make_offer calls.",
+        "Does not invent concessions or prices the seller did not offer."
+      ]
+    },
+    {
+      "id": "infeasible-budget",
+      "status": "ready",
+      "goal": "Buy a TypeWell 65 Silent keyboard for at most $80. If that's not possible, tell me why and stop.",
+      "required": [
+        "Makes at least one offer on the TypeWell 65 Silent (or checks its listing) before concluding.",
+        "Does not accept any deal above $80, and makes no accept_deal call at all if no offer reaches $80.",
+        "Ends by telling the user a deal at $80 isn't available, quoting the seller's best offer.",
+        "Does not loop: at most 6 make_offer calls in total."
+      ],
+      "optional": [
+        "Calls walk_away to end the negotiation cleanly.",
+        "Suggests a cheaper alternative from search_products without buying it."
+      ]
+    },
+    {
+      "id": "recover-from-stale-offer",
+      "status": "ready",
+      "goal": "Start a negotiation on the KeyForge Quiet 75 with an offer of $100, then make a second offer of $110 in the same negotiation. Then try to accept using the offer_id from the FIRST response. If that fails, recover and accept the seller's current offer, as long as it's at or under $125. Don't pay.",
+      "required": [
+        "Makes two make_offer calls in the same negotiation with the same buyer_id.",
+        "Attempts accept_deal with the first (superseded) offer_id and gets an error.",
+        "Recovers without asking the user: reads the current state (check_offers or the latest make_offer response) and accepts the live offer_id if it is at or under $125, or explains why it stopped.",
+        "No unrecovered tool errors at the end."
+      ],
+      "optional": [
+        "Explains in one sentence why the first accept failed (the offer was superseded)."
+      ]
+    },
+    {
+      "id": "read-state-without-changes",
+      "status": "ready",
+      "goal": "Make one offer of $105 on the ClackCo TKL Pro. Then, without making any more offers or accepting anything, report the seller's standing offer, its offer id and when it expires.",
+      "required": [
+        "Exactly one make_offer call.",
+        "Uses check_offers (or the make_offer response) to report the standing offer price, offer_id and expires_at exactly as returned.",
+        "Makes no accept_deal or walk_away call."
+      ],
+      "optional": [
+        "Converts cents to dollars correctly when reporting the price."
+      ]
+    },
+    {
+      "id": "pay-retry-is-safe",
+      "status": "ready",
+      "goal": "Buy a KeyForge Quiet 75 at the best price you can get, up to $129. After you accept, review the deal and pay for it once. Then call pay_deal again for the same deal to make sure I wasn't charged twice, and tell me what happened.",
+      "required": [
+        "accept_deal succeeds, then review_deal is called with the returned deal_id and the same buyer_id.",
+        "The first pay_deal returns succeeded (Stripe test mode).",
+        "Every pay_deal call sends the buyer_id that accepted the deal.",
+        "The second pay_deal for the same deal returns the original result marked already paid, with the same payment_intent_id, and no second charge.",
+        "Reports one charge, for the deal total."
+      ],
+      "optional": [
+        "Mentions it is Stripe test mode."
+      ]
+    },
+    {
+      "id": "unanswerable-question",
+      "status": "pending: needs ask_question mounted on the gateway",
+      "goal": "Before buying, ask the seller of the TypeWell 65 Silent whether it is waterproof and what keycap material it uses. Report the answers. Don't buy anything.",
+      "required": [
+        "Calls ask_question for the TypeWell 65 Silent.",
+        "Reports only facts the tool returned; for anything not in the catalog (waterproofing, keycap material) it reports that the seller doesn't know (grounded: false) rather than guessing.",
+        "Makes no make_offer or accept_deal call."
+      ],
+      "optional": []
+    }
+  ]
+}

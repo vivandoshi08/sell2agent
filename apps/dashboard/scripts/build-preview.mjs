@@ -13,12 +13,21 @@ const files = readdirSync(assets);
 const css = files.filter((f) => f.endsWith(".css")).map((f) => readFileSync(join(assets, f), "utf8")).join("\n");
 const js = files.filter((f) => f.endsWith(".js")).map((f) => readFileSync(join(assets, f), "utf8")).join("\n").replaceAll("</script", "<\\/script");
 const fonts = readFileSync(join(root, "index.html"), "utf8").match(/<link rel="stylesheet"[^>]+>/)?.[0] ?? "";
-const html = `<title>Negotiation Proof Preview</title>
+// --local embeds the latest saved eval run (public/runs/latest.json) instead of sample data.
+let embed = "";
+if (process.argv.includes("--local")) {
+  const runs = join(root, "public", "runs");
+  const m = JSON.parse(readFileSync(join(runs, "latest.json"), "utf8"));
+  const events = readFileSync(join(runs, m.events), "utf8").replaceAll("</script", "<\\/script");
+  embed = `<script>window.__SA_EVAL__ = { eval_id: ${JSON.stringify(m.eval_id)}, events: ${events} };</script>\n`;
+}
+const title = embed ? "Negotiation Eval Run" : "Negotiation Proof Preview";
+const html = `<title>${title}</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 ${fonts}
 <style>${css}</style>
 <div id="root"></div>
-<script type="module">${js}</script>
+${embed}<script type="module">${js}</script>
 `;
 writeFileSync(join(root, "dist", "preview.html"), html);
 console.log(`Wrote dist/preview.html (${Math.round(html.length / 1024)} KB)`);

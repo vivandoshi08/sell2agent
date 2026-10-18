@@ -12,12 +12,12 @@ import { decide as e2decide, voice as e2voice, type Llm, type ProposedMove, type
 import { StaticCatalog } from "./catalog";
 import { guardMove } from "./decision-guard";
 import { Deals, lockDeal } from "./deals";
-import { defaultSink, type EventSink } from "./events";
+import { defaultSink, guardrailSeverity, type EventSink } from "./events";
 import { inspectInput } from "./input-guard";
 import { checkOutput, fallbackMessage, type OutputContext } from "./output-guard";
 import { allowedActions, assertTransition } from "./state";
-import { MemoryStore, memoryKey, type ExchangeStore } from "./store";
-import { ProbeBreaker, StartLimiter, buyerEndpoint, jitterStep, leverCost, NEAR_MISS_BAND } from "./probing";
+import { MemoryStore, liveMemory, memoryKey, probeId, type ExchangeStore } from "./store";
+import { ProbeBreaker, StartLimiter, startLimitFor, buyerEndpoint, jitterStep, leverCost, NEAR_MISS_BAND } from "./probing";
 import { CONCESSION_CAP } from "./decision-guard";
 import { Outreach, type Sender } from "./outreach";
 import type { AcceptMove, Catalog, ExchangeError, ExchangeResponse, Move, Negotiation, NegotiationState, OfferMove,
@@ -78,7 +78,7 @@ export class Exchange {
     if (got.n.state !== "walked_away") return fail("not_allowed", "follow-ups are only offered after walking away");
     this.outreach.consent(got.n, consent);
     await this.store.putNegotiation(got.n);
-    return { ok: true, negotiation_id, state: got.n.state, allowed_actions: ["status"], message: `OK. We'll send at most one later offer to ${consent.reply_to}. Reply STOP any time.` };
+    return { ok: true, negotiation_id, buyer_id, state: got.n.state, allowed_actions: ["status"], message: `OK. We'll send at most one later offer to ${consent.reply_to}. Reply STOP any time.` };
   }
 
   /** Inbound reply on the messaging door → structured move or a clarifying question. */
@@ -131,12 +131,12 @@ export class Exchange {
     if (!m.negotiation_id) {
       p = await this.catalog.get(m.product_id);
       if (!p) return fail("unknown_product", `no product ${m.product_id}; use search_products to find one`);
-      if (!this.limiter.allow(memoryKey(m.ctx.buyer_id, p.product_id)))
+      if (!this.limiter.allow(memoryKey(m.ctx.buyer_id, p.product_id), startLimitFor(m.ctx.buyer_id)))
         return fail("rate_limited", "too many negotiations started on this product today; continue an existing negotiation_id instead");
       n = this.newNegotiation(m, p, qty);
       // E11 buyer memory: a returning buyer resumes where they left off. Never quoted higher than before,
       // and the concession clock doesn't restart, so restarting can't bisect toward the floor.
-      const mem = await this.store.getBuyerMemory(memoryKey(n.buyer_id, p.product_id));
+      const mem = liveMemory(n.buyer_id, await this.store.getBuyerMemory(memoryKey(n.buyer_id, p.product_id)), this.now());
       if (mem) {
         n.round = Math.min(mem.round, p.max_rounds - 1);
         n.frozen = mem.round >= p.max_rounds; // deadline already used: one final offer per buyer, at their best price
@@ -203,10 +203,11 @@ export class Exchange {
     // E11 jitter: noisy steps toward a private per-buyer endpoint (not when frozen: a frozen price is final)
     if (move.action === "offer" && !n.frozen) {
       const soft = softFloor(p.list_price_cents, p.floor_price_cents, this.buffer);
-      const end = buyerEndpoint(n.buyer_id, base.product_id, soft, p.list_price_cents, p.floor_price_cents);
+      const who = probeId(n.buyer_id); // anon buyers share one endpoint + jitter stream per product
+      const end = buyerEndpoint(who, base.product_id, soft, p.list_price_cents, p.floor_price_cents);
       const maxStep = Math.ceil(CONCESSION_CAP * (p.list_price_cents - p.floor_price_cents));
       let price = prevSeller === undefined ? Math.max(move.price_cents, end)
-        : jitterStep(prevSeller, move.price_cents, `${n.buyer_id}|${base.product_id}|${n.round}`, end, maxStep);
+        : jitterStep(prevSeller, move.price_cents, `${who}|${base.product_id}|${n.round}`, end, maxStep);
       if (prevSeller !== undefined && prevSeller >= soft) price = Math.min(price, prevSeller);
       if (price !== move.price_cents) move = { ...move, price_cents: price, reason_text: `We can offer ${usd(price)} this round.` };
     }
@@ -317,7 +318,7 @@ export class Exchange {
 
   private async remember(n: Negotiation, offer_cents: number) {
     const k = memoryKey(n.buyer_id, n.product_id);
-    const prev = await this.store.getBuyerMemory(k);
+    const prev = liveMemory(n.buyer_id, await this.store.getBuyerMemory(k), this.now()); // expired anon memory starts over
     await this.store.putBuyerMemory(k, { lowest_offer_cents: Math.min(offer_cents, prev?.lowest_offer_cents ?? offer_cents),
       round: Math.max(n.round, prev?.round ?? 0), sessions: (prev?.sessions ?? 0) + (n.round === 1 || !prev ? 1 : 0), updated_at: new Date(this.now()).toISOString() });
   }
@@ -377,7 +378,7 @@ export class Exchange {
     const live = o && (o.status === "live" || o.status === "accepted") ? o : null;
     const { signature: _s, ...deal } = (r.deal ?? {}) as LockedDeal;
     return {
-      ok: r.ok ?? true, negotiation_id: n.id, state: n.state, status: r.status,
+      ok: r.ok ?? true, negotiation_id: n.id, buyer_id: n.buyer_id, state: n.state, status: r.status,
       standing_offer: live ? { offer_id: live.offer_id, price_cents: live.price_cents, quantity: live.quantity, levers: live.levers, final: live.final, expires_at: live.expires_at, round: live.round } : undefined,
       deal: r.deal ? deal : undefined,
       round: n.round, rounds_left: Math.max(0, p.max_rounds - n.round),
@@ -390,7 +391,8 @@ export class Exchange {
     const sink = await this.sinkP;
     try {
       await sink({ run_id: n.run_id, buyer_id: n.buyer_id, buyer_model: n.buyer_model, seller_id: n.seller_id, product_id: n.product_id,
-        negotiation_id: n.id, actor, type, price_cents: price, payload: { ...payload, state: n.state } });
+        negotiation_id: n.id, actor, type, price_cents: price,
+        payload: { ...payload, ...(type === "guardrail_blocked" ? { severity: guardrailSeverity(payload.rule) } : {}), state: n.state } });
     } catch (e) {
       console.error("[exchange] event sink failed", (e as Error).message);
     }
