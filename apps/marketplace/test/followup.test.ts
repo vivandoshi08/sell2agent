@@ -203,3 +203,30 @@ test("timer: off when OUTREACH_TICK_MS=0 or in production by default", () => {
   assert.equal(typeof stop, "function");
   stop!();
 });
+
+test("security: a signed Inkbox email from a stranger quoting someone's offer_id is unrouted; no deal, no approve link", async () => {
+  const { clock, ex, door, logCourier } = rig();
+  // victim A: live offer over MCP, no walk-away, no consent (its offer_id is in public events)
+  const v = await ex.handle({ kind: "offer", ctx: ctx("victimA"), product_id: P, offer_price_cents: 10000 });
+  // victim B: consented follow-up to their own address
+  await walkAway(ex, "victimB");
+  clock.t += FOLLOWUP_DELAY_MS + 1;
+  await door.cron(req());
+  const bOffer = logCourier.outbox[0].text.match(/offer_id: (off_[0-9a-f-]+)/)![1];
+  const ts = String(Math.floor(Date.now() / 1000));
+  const signedFrom = (from: string, text: string, eid: string) => {
+    const body = JSON.stringify({ id: eid, event_type: "message.received", data: { message: { direction: "inbound", from_address: from, email_address: "seller@inkboxmail.com", subject: "Re: offer", body: text } } });
+    const sig = `sha256=${createHmac("sha256", SIGNING).update(`req_${eid}.${ts}.${body}`).digest("hex")}`;
+    return req({ params: { channel: "email" }, body, auth: null, headers: { "x-inkbox-request-id": `req_${eid}`, "x-inkbox-timestamp": ts, "x-inkbox-signature": sig } });
+  };
+  for (const [offer, eid] of [[v.standing_offer!.offer_id, "evt_atk1"], [bOffer, "evt_atk2"]]) {
+    const r = out(await door.inbound(signedFrom("attacker@evil.test", `ACCEPT ${offer}`, eid)));
+    assert.equal(r.routed, false, `offer ${offer} must not route for a stranger`);
+    assert.equal(r.approve_url, undefined);
+    assert.ok(!logCourier.outbox.some((m) => m.text.includes("/deal/")), "no approve link mailed to anyone");
+  }
+  assert.equal((await ex.handle({ kind: "status", ctx: ctx("victimA"), negotiation_id: v.negotiation_id! })).state, "negotiating");
+  // the consented sender still can
+  const ok = out(await door.inbound(signedFrom("victimB@agents.example.test", `ACCEPT ${bOffer}`, "evt_b")));
+  assert.equal(ok.state, "agreed");
+});

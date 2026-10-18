@@ -18,7 +18,7 @@ import { checkOutput, fallbackMessage, type OutputContext } from "./output-guard
 import { allowedActions, assertTransition } from "./state";
 import { MemoryStore, liveMemory, memoryKey, limitKey, breakerKey, probeId, isEvalRun, type ExchangeStore } from "./store";
 import { ProbeBreaker, StartLimiter, startLimitFor, buyerEndpoint, jitterStep, leverCost, NEAR_MISS_BAND } from "./probing";
-import { CONCESSION_CAP } from "./decision-guard";
+import { CONCESSION_CAP, holdAtCap } from "./decision-guard";
 import { Outreach, type InboundMeta, type Sender } from "./outreach";
 import type { AcceptMove, Catalog, ExchangeError, ExchangeResponse, Move, Negotiation, NegotiationState, OfferMove,
   ProductConfig, StandingOffer, StatusMove, WalkMove, LockedDeal } from "./types";
@@ -210,9 +210,12 @@ export class Exchange {
       { name: p.strategy, soft_floor_buffer: this.buffer, final_round_accept_zone: !n.frozen && this.breaker.open(breakerKey(base.product_id, n.run_id)) }, m.buyer_profile);
     let { move, blocks } = guardMove({ move: proposed, product: p, round: n.round, prev_seller_offer_cents: prevSeller, frozen: n.frozen, soft_floor_buffer: this.buffer });
     for (const b of blocks) { refs.push(ruleRef(b.rule)); await this.emit(n, "guardrail_blocked", "seller", move.price_cents, { ...b }); }
+    // past the round cap (a counter to a follow-up): hold the price already offered, no extra round below it
+    const held = n.round > p.max_rounds && prevSeller !== undefined;
+    if (held) move = holdAtCap(move, prevSeller!, m.offer_price_cents, softFloor(p.list_price_cents, p.floor_price_cents, this.buffer), p.list_price_cents);
 
     // E11 jitter: noisy steps toward a private per-buyer endpoint (not when frozen: a frozen price is final)
-    if (move.action === "offer" && !n.frozen) {
+    if (move.action === "offer" && !n.frozen && !held) {
       const soft = softFloor(p.list_price_cents, p.floor_price_cents, this.buffer);
       const who = probeId(n.buyer_id, n.run_id); // anon buyers share one endpoint + jitter stream per product
       const end = buyerEndpoint(who, base.product_id, soft, p.list_price_cents, p.floor_price_cents);

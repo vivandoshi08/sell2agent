@@ -72,7 +72,9 @@ export function createFollowupDoor(d: DoorDeps) {
     if (msg.from && (msg.from === msg.to_self || (self && msg.from.toLowerCase() === self.toLowerCase()))) return json(200, { ok: true, ignored: "our own message" });
     if (msg.event_id && (await store.getFollowupMark(`inbound:${msg.event_id}`))) return json(200, { ok: true, duplicate: true });
 
-    const route = await ex.outreach.resolve({ negotiation_id: msg.negotiation_id, buyer_id: msg.buyer_id, text: msg.text, channel: msg.channel, from: msg.from });
+    // Inkbox mail/SMS is untrusted: it routes only to a negotiation this sender's address consented on (see resolve()).
+    const trusted = msg.source === "json" && auth === "secret";
+    const route = await ex.outreach.resolve({ negotiation_id: msg.negotiation_id, buyer_id: msg.buyer_id, text: msg.text, channel: msg.channel, from: msg.from, trusted });
     if (!route) return unrouted(ex, msg);
     const r = await ex.inbound(route.negotiation_id, route.buyer_id, msg.text, { channel: msg.channel, from: msg.from });
     const approve_url = r.deal && d.approveOrigin ? safe(() => approveUrl(d.approveOrigin!, r.deal!.deal_id, route.buyer_id)) : undefined;

@@ -19,6 +19,12 @@ export interface InboundContext {
 
 const OFFER_ID = /\boff_[0-9a-f-]{8,}\b/gi;
 const MONEY = /(?:\$|usd\s?)\s?(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d{1,2}))?(?!\s?%)/gi;
+/**
+ * A decline in words. A decline that names a price ("I'm not accepting $110", "I can't accept $115, too much") is
+ * mixed (walk + price), so it gets a question; read as a counter it could lock a deal on a "no".
+ */
+const DECLINE = /\b(no thanks|not interested|pass|i'?ll pass|i'?m passing|passing on|declin(?:e|ed|ing)|no deal|not accept(?:ing)?|can'?t accept|cannot accept|won'?t (?:buy|accept|pay|proceed|take)|not (?:going to|gonna) (?:buy|accept|pay|take)|not buying|don'?t want (?:it|this|to buy))\b/i;
+const NEGATED_ACCEPT = /\b(not|don'?t|won'?t|can'?t|cannot|never)\s+(?:be\s+)?(?:accept|take)/i;
 const LEVER_WORDS: Record<string, RegExp> = {
   free_shipping: /\bfree (?:shipping|delivery)\b/i,
   extended_warranty: /\b(?:extended|longer|2[- ]year) warranty\b/i,
@@ -39,13 +45,13 @@ export function parseInbound(raw: string, ctx: InboundContext): InboundIntent {
 
   const ids = [...new Set([...text.matchAll(OFFER_ID)].map((m) => m[0].toLowerCase()))];
   const prices = [...new Set([...text.matchAll(MONEY)].map((m) => Number(m[1].replace(/,/g, "")) * 100 + Number((m[2] ?? "0").padEnd(2, "0"))))];
-  const wantsAccept = /\b(accept|deal|i'?ll take it|sounds good|yes)\b/i.test(text) && !/\b(not|don'?t|won'?t|can'?t)\s+(?:accept|take)/i.test(text);
-  const wantsWalk = /\b(no thanks|not interested|pass\b|i'?ll pass|decline|no deal)\b/i.test(text);
+  const wantsWalk = DECLINE.test(text);
+  const wantsAccept = /\b(accept|deal|i'?ll take it|sounds good|yes)\b/i.test(text) && !NEGATED_ACCEPT.test(text);
   const wantsCounter = prices.length > 0 || /\b(counter|offer|can you do|how about)\b/i.test(text);
   const levers = Object.entries(LEVER_WORDS).filter(([, re]) => re.test(text)).map(([l]) => l);
 
   const intents = [wantsAccept && "accept", wantsWalk && "walk", prices.length > 0 && "counter"].filter(Boolean);
-  if (intents.length > 1 && !(intents.includes("accept") && ids.length && !prices.length))
+  if (intents.length > 1)
     return clarify("mixed intents: " + intents.join(" + "),
       "Your reply reads as more than one thing. Reply ACCEPT <offer_id> to take the offer, or COUNTER $<price> with one price.");
 
