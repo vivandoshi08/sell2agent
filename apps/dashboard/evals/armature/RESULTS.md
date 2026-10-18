@@ -24,3 +24,16 @@ Run Sun Oct 18, 12:35–12:58 am PT in Armature workspace `acommerce` (Ananya), 
 
 **Re-running:** run the anonymous negotiation cases one target at a time. Both testers share the `anon` bucket, so
 running them in parallel can freeze each other's offers.
+
+## Cross-check against our own server log (Oct 18, after the run)
+
+The gateway's `events` rows (`run_id = live`, 12:30–1:05 am PT) line up with the cases: the $100 → $110 stale-offer
+pattern, two $80 TypeWell walk-aways at the seller's $117 final, $105 ClackCo offers, one `payment_succeeded` per
+paid deal (no double charge), and an `anon_intruder` pay attempt refused with `wrong_buyer`. Testers send no
+`buyer_model`, so the log can't tell Claude Code runs from Codex runs; per-target verdicts come from Armature.
+
+**Found, which the eval passed anyway:** `ask_question` matched words from the product's own name as catalog fields.
+"Is the TypeWell 65 Silent waterproof?" hit `switch` via "Silent" and came back `grounded: true` with the switch
+spec. The testers only got the honest "I don't know" after re-asking with the bare word ("waterproof"). Titles with
+"Quiet" or "TKL" had the same problem. Fixed in `apps/seller-mcp/src/sellers/answers.ts` (`withoutTitle`): runs of
+2+ title words are dropped before matching. Re-run `unanswerable-question` after the gateway redeploys.

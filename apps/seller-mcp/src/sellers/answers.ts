@@ -56,8 +56,31 @@ function facts(p: PublicProduct): Record<string, string> {
   return out;
 }
 
-export function lookupAnswer(p: PublicProduct, question: string): Answer | null {
+/**
+ * Drops the product's name from the question so its words don't count as field hits:
+ * "Is the TypeWell 65 Silent waterproof?" must not match `switch` via "silent"
+ * (seen in the Armature run, 2026-10-18). Removes runs of 2+ consecutive title words,
+ * so a lone "Is it silent?" still matches.
+ */
+function withoutTitle(question: string, title: string): string {
+  const titleWords = new Set(title.toLowerCase().match(/[a-z0-9]+/g) ?? []);
   const q = question.toLowerCase();
+  const tokens = [...q.matchAll(/[a-z0-9]+/g)];
+  let out = "", last = 0;
+  for (let i = 0; i < tokens.length; ) {
+    let j = i;
+    while (j < tokens.length && titleWords.has(tokens[j][0]) && (j === i || /^[\s'-]*$/.test(q.slice(tokens[j - 1].index! + tokens[j - 1][0].length, tokens[j].index)))) j++;
+    if (j - i >= 2) {
+      out += q.slice(last, tokens[i].index) + " ";
+      last = tokens[j - 1].index! + tokens[j - 1][0].length;
+      i = j;
+    } else i++;
+  }
+  return out + q.slice(last);
+}
+
+export function lookupAnswer(p: PublicProduct, question: string): Answer | null {
+  const q = withoutTitle(question, p.title);
   const f = facts(p);
   const hit = Object.keys(f).filter((k) => {
     const words = SYNONYMS[k] ?? [k.replace(/_/g, " ")];

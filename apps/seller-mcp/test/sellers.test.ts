@@ -79,6 +79,16 @@ test("grounded lookup answers from specs", () => {
   const a = lookupAnswer(prod, "Is it wireless and how is the battery?")!;
   assert.equal(a.grounded, true); assert.match(a.answer, /wireless: yes/); assert.match(a.answer, /200/);
 });
+test("words from the product's name don't count as field hits", async () => {
+  const silent: PublicProduct = { ...prod, title: "TypeWell 65 Silent" };
+  for (const q of ["Is the TypeWell 65 Silent waterproof?", "What material are the keycaps on the TypeWell Silent made of?"]) {
+    assert.equal(lookupAnswer(silent, q), null, q);
+    assert.equal((await answerQuestion(silent, q, null)).grounded, false, q);
+  }
+  assert.equal(lookupAnswer({ ...prod, title: "ClackCo TKL Pro" }, "Does the ClackCo TKL Pro come in pink?"), null);
+  assert.deepEqual(lookupAnswer(silent, "Is the TypeWell 65 Silent quiet?")!.fields, ["switch"]);
+  assert.deepEqual(lookupAnswer(silent, "Is it silent?")!.fields, ["switch"]);
+});
 test("unknown questions get an honest I don't know", async () => {
   const a = await answerQuestion(prod, "Does it come in pink?", null);
   assert.equal(a.grounded, false); assert.match(a.answer, /don't know/);
