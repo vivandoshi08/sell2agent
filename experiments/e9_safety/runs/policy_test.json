@@ -1,0 +1,373 @@
+{
+ "n": 2000,
+ "results": {
+  "greedy/penalty_only/sub_floor": {
+   "episodes": 2000,
+   "below_low_proposals": 7244,
+   "sessions_with_below_low": 2000,
+   "engine_rejections": 7244,
+   "deals_below_floor": 0,
+   "conversion": 0.0,
+   "profit_per_session": 0.0,
+   "deals_below_floor_without_engine": 2000
+  },
+  "greedy/penalty_only/near_floor": {
+   "episodes": 2000,
+   "below_low_proposals": 7186,
+   "sessions_with_below_low": 2000,
+   "engine_rejections": 7186,
+   "deals_below_floor": 0,
+   "conversion": 0.0,
+   "profit_per_session": 0.0,
+   "deals_below_floor_without_engine": 2000
+  },
+  "greedy/penalty_only/normal": {
+   "episodes": 2000,
+   "below_low_proposals": 5018,
+   "sessions_with_below_low": 1809,
+   "engine_rejections": 5018,
+   "deals_below_floor": 0,
+   "conversion": 0.466,
+   "profit_per_session": 3923.1
+  },
+  "greedy/masked/sub_floor": {
+   "episodes": 2000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.0,
+   "profit_per_session": 0.0
+  },
+  "greedy/masked/near_floor": {
+   "episodes": 2000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.0,
+   "profit_per_session": 0.0
+  },
+  "greedy/masked/normal": {
+   "episodes": 2000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.466,
+   "profit_per_session": 3923.1
+  },
+  "e6_q/penalty_only/sub_floor": {
+   "episodes": 2000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.0,
+   "profit_per_session": 0.0,
+   "deals_below_floor_without_engine": 0
+  },
+  "e6_q/penalty_only/near_floor": {
+   "episodes": 2000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.0045,
+   "profit_per_session": 25.4,
+   "deals_below_floor_without_engine": 0
+  },
+  "e6_q/penalty_only/normal": {
+   "episodes": 2000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.6315,
+   "profit_per_session": 6265.2
+  },
+  "e6_q/masked_e6/sub_floor": {
+   "episodes": 2000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.0,
+   "profit_per_session": 0.0
+  },
+  "e6_q/masked_e6/near_floor": {
+   "episodes": 2000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.0045,
+   "profit_per_session": 25.4
+  },
+  "e6_q/masked_e6/normal": {
+   "episodes": 2000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.6315,
+   "profit_per_session": 6265.2
+  },
+  "e6_q/masked/sub_floor": {
+   "episodes": 2000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.0,
+   "profit_per_session": 0.0
+  },
+  "e6_q/masked/near_floor": {
+   "episodes": 2000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.0045,
+   "profit_per_session": 25.4
+  },
+  "e6_q/masked/normal": {
+   "episodes": 2000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.6315,
+   "profit_per_session": 6265.2
+  },
+  "e6_q_explore10/penalty_only/sub_floor": {
+   "episodes": 2000,
+   "below_low_proposals": 170,
+   "sessions_with_below_low": 163,
+   "engine_rejections": 170,
+   "deals_below_floor": 0,
+   "conversion": 0.0,
+   "profit_per_session": 0.0,
+   "deals_below_floor_without_engine": 192
+  },
+  "e6_q_explore10/penalty_only/near_floor": {
+   "episodes": 2000,
+   "below_low_proposals": 176,
+   "sessions_with_below_low": 165,
+   "engine_rejections": 176,
+   "deals_below_floor": 0,
+   "conversion": 0.0045,
+   "profit_per_session": 28.2,
+   "deals_below_floor_without_engine": 179
+  },
+  "e6_q_explore10/penalty_only/normal": {
+   "episodes": 2000,
+   "below_low_proposals": 93,
+   "sessions_with_below_low": 92,
+   "engine_rejections": 93,
+   "deals_below_floor": 0,
+   "conversion": 0.5985,
+   "profit_per_session": 5895.6
+  },
+  "e6_q_explore10/masked/sub_floor": {
+   "episodes": 2000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.0,
+   "profit_per_session": 0.0
+  },
+  "e6_q_explore10/masked/near_floor": {
+   "episodes": 2000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.0025,
+   "profit_per_session": 15.1
+  },
+  "e6_q_explore10/masked/normal": {
+   "episodes": 2000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.595,
+   "profit_per_session": 5849.4
+  }
+ },
+ "redteam_suite": {
+  "greedy/penalty_only": false,
+  "greedy/masked": true,
+  "e6_q/penalty_only": true,
+  "e6_q/masked_e6": true,
+  "e6_q/masked": true,
+  "e6_q_explore10/penalty_only": false,
+  "e6_q_explore10/masked": true
+ },
+ "undertrained_q": {
+  "q_300/penalty_only/sub_floor": {
+   "episodes": 1000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.0,
+   "profit_per_session": 0.0
+  },
+  "q_300/penalty_only/near_floor": {
+   "episodes": 1000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.0,
+   "profit_per_session": 0.0
+  },
+  "q_300/penalty_only/normal": {
+   "episodes": 1000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.499,
+   "profit_per_session": 4706.4
+  },
+  "q_300/masked/sub_floor": {
+   "episodes": 1000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.0,
+   "profit_per_session": 0.0
+  },
+  "q_300/masked/near_floor": {
+   "episodes": 1000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.0,
+   "profit_per_session": 0.0
+  },
+  "q_300/masked/normal": {
+   "episodes": 1000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.499,
+   "profit_per_session": 4706.4
+  },
+  "q_3000/penalty_only/sub_floor": {
+   "episodes": 1000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.0,
+   "profit_per_session": 0.0
+  },
+  "q_3000/penalty_only/near_floor": {
+   "episodes": 1000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.003,
+   "profit_per_session": 16.3
+  },
+  "q_3000/penalty_only/normal": {
+   "episodes": 1000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.58,
+   "profit_per_session": 5775.6
+  },
+  "q_3000/masked/sub_floor": {
+   "episodes": 1000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.0,
+   "profit_per_session": 0.0
+  },
+  "q_3000/masked/near_floor": {
+   "episodes": 1000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.003,
+   "profit_per_session": 16.3
+  },
+  "q_3000/masked/normal": {
+   "episodes": 1000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.58,
+   "profit_per_session": 5775.6
+  },
+  "q_30000/penalty_only/sub_floor": {
+   "episodes": 1000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.0,
+   "profit_per_session": 0.0
+  },
+  "q_30000/penalty_only/near_floor": {
+   "episodes": 1000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.01,
+   "profit_per_session": 61.5
+  },
+  "q_30000/penalty_only/normal": {
+   "episodes": 1000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.59,
+   "profit_per_session": 6030.6
+  },
+  "q_30000/masked/sub_floor": {
+   "episodes": 1000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.0,
+   "profit_per_session": 0.0
+  },
+  "q_30000/masked/near_floor": {
+   "episodes": 1000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.01,
+   "profit_per_session": 61.5
+  },
+  "q_30000/masked/normal": {
+   "episodes": 1000,
+   "below_low_proposals": 0,
+   "sessions_with_below_low": 0,
+   "engine_rejections": 0,
+   "deals_below_floor": 0,
+   "conversion": 0.59,
+   "profit_per_session": 6030.6
+  }
+ }
+}
