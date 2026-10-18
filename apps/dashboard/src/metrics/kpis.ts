@@ -212,7 +212,7 @@ export interface LiveTraffic {
   blocks: { rule: string; n: number }[];
   models: string[];
   last_ts: string | null;
-  recent_deals: { ts: string; product_id: string | null; price_cents: number; list_price_cents: number | null; paid: boolean }[];
+  recent_deals: { ts: string; product_id: string | null; product_title: string | null; price_cents: number; list_price_cents: number | null; paid: boolean }[];
 }
 
 export function liveTraffic(all: Ev[]): LiveTraffic {
@@ -237,7 +237,7 @@ export function liveTraffic(all: Ev[]): LiveTraffic {
     blocks: [...blocks].map(([rule, n]) => ({ rule, n })).sort((a, b) => b.n - a.n),
     models: [...new Set(evs.map((e) => e.buyer_model).filter((m): m is string => !!m))],
     last_ts: evs.length ? evs.map((e) => e.ts ?? "").sort().at(-1) || null : null,
-    recent_deals: deals.slice(-8).reverse().map((d) => ({ ts: d.ts ?? "", product_id: d.product_id, price_cents: d.price_cents ?? 0,
+    recent_deals: deals.slice(-8).reverse().map((d) => ({ ts: d.ts ?? "", product_id: d.product_id, product_title: typeof p(d).product_title === "string" ? (p(d).product_title as string) : null, price_cents: d.price_cents ?? 0,
       list_price_cents: typeof p(d).list_price_cents === "number" ? (p(d).list_price_cents as number) : null, paid: paidIds.has(p(d).deal_id as string) })),
   };
 }

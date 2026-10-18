@@ -136,7 +136,7 @@ export function LiveTrafficPanel({ live }: { live: LiveTraffic }) {
             <tbody>{live.recent_deals.map((d, i) => (
               <tr key={i}>
                 <td className="num" style={muted}>{d.ts ? new Date(d.ts).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : ""}</td>
-                <td>{titleOf(d.product_id)}</td>
+                <td>{d.product_title ?? titleOf(d.product_id)}</td>
                 <td className="num">{usd(d.price_cents)}</td>
                 <td className="num" style={muted}>{d.list_price_cents == null ? "—" : usd(d.list_price_cents)}</td>
                 <td>{d.paid ? <span className="pill neg">paid</span> : <span style={muted}>not yet</span>}</td>
