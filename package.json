@@ -16,7 +16,8 @@
     "buyers": "pnpm --filter @sa/buyer-harness buyers",
     "e2:lever-gate": "pnpm --filter @sa/buyer-harness e2:lever-gate",
     "e2:bandit": "pnpm --filter @sa/buyer-harness e2:bandit",
-    "e2:personas": "pnpm --filter @sa/buyer-harness e2:personas"
+    "e2:personas": "pnpm --filter @sa/buyer-harness e2:personas",
+    "e2:summaries": "pnpm --filter @sa/buyer-harness e2:summaries"
   },
   "devDependencies": {
     "tsx": "^4.19.0",

@@ -176,6 +176,8 @@ test("offerSummary: final, accept, no list when at list, expired offer has no ho
   assert.equal(offerSummary({ title: "ClackCo TKL Pro", price_cents: 11500, list_price_cents: 11500, final: true, expires_at: new Date(NOW - 1).toISOString() }, NOW),
     "ClackCo TKL Pro: $115. Final offer.");
   assert.equal(offerSummary({ title: "TypeWell 65 Silent", price_cents: 12450, status: "accept" }, NOW), "TypeWell 65 Silent: the seller accepts $124.50.");
+  // an accept never says "Final offer" or "Offer holds" (found by pnpm e2:summaries)
+  assert.equal(offerSummary({ title: "ClackCo TKL Pro", price_cents: 11000, status: "accept", final: true, expires_at: in15 }, NOW), "ClackCo TKL Pro: the seller accepts $110.");
 });
 test("dealSummary: locked with approve link, paid, multi-unit", () => {
   assert.equal(dealSummary({ title: "KeyForge Quiet 75", total_cents: 11900, levers: ["free_shipping"], approve_url: "https://gw.example/deal/d1?t=abc" }),

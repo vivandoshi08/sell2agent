@@ -75,8 +75,9 @@ export function offerSummary(o: OfferSummaryInput, now = Date.now()): string {
     o.final ? "Final offer." : "",
     mins ? `Offer holds ${mins} min.` : "",
   ].filter(Boolean).join(" ");
+  // An accept closes the haggling: "Final offer" / "Offer holds" would contradict it (the deal line carries what's next).
   return fit((t) => o.status === "accept"
-    ? `${t}: the seller accepts ${usd(o.price_cents)}${qty}${withExtras}.${tail ? " " + tail : ""}`
+    ? `${t}: the seller accepts ${usd(o.price_cents)}${qty}${withExtras}.`
     : `${t}: ${usd(o.price_cents)}${qty}${withExtras}${list}.${tail ? " " + tail : ""}`, o.title);
 }
 
