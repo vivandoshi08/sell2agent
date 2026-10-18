@@ -165,3 +165,11 @@ test("unknown product → null; returned configs are copies", async () => {
   assert.deepEqual(again!.allowed_levers, ["free_shipping", "volume_discount"]);
   assert.equal(again!.floor_price_cents, 10500);
 });
+
+test("a tampered row can't take a seed product below the seed's unit cost", async () => {
+  const db = fakeDb({ ...v1Rows(), seller_policies: [{ product_id: "kb_keyforge_quiet75", floor_price_cents: 1, unit_cost_cents: 1, target_margin_pct: 0, max_rounds: 4, allowed_concessions: [] }] });
+  const c = new SupabaseCatalog(db);
+  const p = (await c.get("kb_keyforge_quiet75"))!;
+  assert.equal(p.unit_cost_cents, 6000);
+  assert.equal(p.floor_price_cents, 6000);
+});

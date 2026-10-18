@@ -8,7 +8,7 @@
  *                      else v1 `allowed_concessions`; lever costs from `lever_menu`; strategy from v2 `policy`
  *  - max_rounds      → ALWAYS the seed (6 for DB-only products). The DB column is stale (3–4, pre-E2 pacing) and
  *                      the console doesn't edit it; reading it would re-clamp E2's curve (see catalog.ts).
- * Safety, in code: floor is raised to unit cost; a row with floor > list or a non-positive / non-integer number is
+ * Safety, in code: floor is raised to unit cost (never below the seed's unit cost for seed products, beside RLS); a row with floor > list or a non-positive / non-integer number is
  * ignored for that product (seed kept, or product skipped if not in the seed) with one warning; a lever the exchange
  * can't price is never offered. A failed load keeps the last good snapshot (the seed if none). get() never throws.
  */
@@ -116,7 +116,9 @@ export class SupabaseCatalog implements Catalog {
     if (!pol) return problem(withProd) ? seed ?? null : withProd;
 
     let floor = (pol.floor_price_cents ?? withProd.floor_price_cents) as number;
-    const unit = (pol.unit_cost_cents ?? withProd.unit_cost_cents) as number;
+    // Defense in depth (beside RLS): for seed products the code's unit cost is a lower bound on cost and floor, so a
+    // tampered row (e.g. floor and cost set to 1¢) can't sell below the seed's cost. The console never edits unit cost.
+    const unit = Math.max((pol.unit_cost_cents ?? withProd.unit_cost_cents) as number, seed?.unit_cost_cents ?? 0);
     if (typeof floor === "number" && typeof unit === "number" && floor < unit) {
       this.warn(`${id}: floor ${floor} is below unit cost ${unit}; raised to ${unit}`);
       floor = unit;
