@@ -129,7 +129,7 @@ export interface Negotiation {
   /** Eval A/B override (signed eval runs only); absent = the product's catalog strategy. */
   strategy?: Strategy;
   /** `learned` strategy: the arm drawn for this negotiation (kept for every turn), its probability, and the policy version. */
-  learned?: { arm: "negotiating" | "balanced" | "lever_policy"; propensity: number; context: string; version: number | null;
+  learned?: { arm: "negotiating" | "balanced" | "lever_policy"; propensity: number; context: string; version: number | null; probs?: Record<string, number>;
     fallback?: "no_policy" | "gate_failed" | "bad_policy"; added_levers?: string[] };
   /** Seller-facing event fields (Instinct demo): public listing title, and how the buyer reached us (from ctx). */
   product_title?: string;

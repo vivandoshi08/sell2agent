@@ -157,7 +157,7 @@ test("bandit tries every arm, then prefers the best one", () => {
 test("chooseArm logs the right propensity and falls back to negotiating", () => {
   const lp = new Bandit(["negotiating", "balanced"], 0.2).export(1);
   lp.choice.price = "balanced";
-  assert.deepEqual(chooseArm(lp, { price: 1 }, () => 0.9), { arm: "balanced", propensity: 0.9, context: "price" });
+  assert.deepEqual(chooseArm(lp, { price: 1 }, () => 0.9), { arm: "balanced", propensity: 0.9, context: "price", probs: { negotiating: 0.1, balanced: 0.9 } });
   assert.equal(chooseArm(null, { price: 1 }).arm, "negotiating");
   assert.equal(chooseArm(lp, { trust: 1 }, () => 0.9).arm, "negotiating");
 });

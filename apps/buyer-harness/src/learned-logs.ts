@@ -3,7 +3,9 @@
  *
  * A session = one negotiation. Its arm + propensity come from the exchange's seller events: `payload.arm` /
  * `payload.propensity` for the `learned` strategy, else the fixed policy from rule_refs `policy:<name>` with
- * propensity 1 (a fixed policy always plays its arm). Context = payload.bandit_context, else contextOf() of the
+ * propensity 1 (a fixed policy always plays its arm). `probs` = the logging policy's probability for every arm:
+ * payload.arm_probs, else rebuilt (fixed: one-hot; older learned logs: ε-greedy around the arm logged with the highest
+ * propensity in that run and context). Context = payload.bandit_context, else contextOf() of the
  * buyer's lever_profile from the harness events. Reward = seller profit on the session's deal (price − unit cost −
  * extras' cost, × quantity), 0 when it didn't close. Profit comes from the exchange's deal_accepted, so extras count.
  */
@@ -30,6 +32,8 @@ export interface Session {
   ts: string;
   arm: Arm | null; // null: static or unknown (not a bandit arm)
   propensity: number;
+  /** The logging policy's probability for each arm in this context (sums to 1). */
+  probs: Partial<Record<Arm, number>>;
   context: string;
   reward_cents: number;
   closed: boolean;
@@ -57,18 +61,28 @@ export function sessions(events: Ev[]): Session[] {
     if (!seller.length) continue;
     const learned = seller.find((e) => typeof (e.payload as { arm?: unknown }).arm === "string");
     const fixed = seller.flatMap((e) => ((e.payload as { rule_refs?: string[] }).rule_refs ?? [])).find((r) => r.startsWith("policy:"))?.slice(7);
-    const lp = learned?.payload as { arm: Arm; propensity: number; bandit_context?: string; policy_version?: number | null } | undefined;
+    const lp = learned?.payload as { arm: Arm; propensity: number; arm_probs?: Partial<Record<Arm, number>>; bandit_context?: string; policy_version?: number | null } | undefined;
     const armName = lp?.arm ?? fixed;
     const arm = ARMS.includes(armName as Arm) ? (armName as Arm) : null;
     const deal = es.find((e) => e.type === "deal_accepted");
     const first = es[0];
     out.push({
       run_id: first.run_id, negotiation_id: nid, buyer_id: first.buyer_id!, ts: first.ts ?? "",
-      arm, propensity: lp?.propensity ?? 1,
+      arm, propensity: lp?.propensity ?? 1, probs: lp?.arm_probs ?? (lp || !arm ? {} : { [arm]: 1 }),
       context: lp?.bandit_context ?? contextOf(profileOf.get(`${first.run_id}|${first.buyer_id}`)),
       reward_cents: deal ? dealProfit(deal) : 0, closed: !!deal, below_floor: (deal?.payload as { below_floor?: boolean } | undefined)?.below_floor === true,
       policy_version: lp?.policy_version ?? null,
     });
+  }
+  // older learned logs without arm_probs: ε-greedy around the most likely arm seen in that run + context
+  const greedyOf = new Map<string, { arm: Arm; p: number }>();
+  for (const s of out) if (s.arm && !Object.keys(s.probs).length) {
+    const k = `${s.run_id}|${s.context}`, g = greedyOf.get(k);
+    if (!g || s.propensity > g.p) greedyOf.set(k, { arm: s.arm, p: s.propensity });
+  }
+  for (const s of out) if (s.arm && !Object.keys(s.probs).length) {
+    const g = greedyOf.get(`${s.run_id}|${s.context}`)!;
+    s.probs = Object.fromEntries(ARMS.map((a) => [a, a === g.arm ? g.p : (1 - g.p) / (ARMS.length - 1)]));
   }
   return out.sort((a, b) => a.ts.localeCompare(b.ts));
 }

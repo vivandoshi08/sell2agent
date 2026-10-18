@@ -3,11 +3,17 @@
  *
  *   pnpm e2:retrain --runs b3A_learned,b3A_negotiating,b3A_balanced          # runs/<id>.events.jsonl
  *   pnpm e2:retrain --runs eval_x_learned --from-db                           # Supabase `events` (needs SUPABASE_URL + service key)
- *   options: --epsilon 0.1  --epochs 20  --out ../seller-mcp/learned_policy.json
+ *   options: --epsilon 0.1  --epochs 20  --min-sessions 10  --weighting mixture|logged  --out ../seller-mcp/learned_policy.json
  *
  * Each negotiation is one session: arm + propensity from the exchange's seller events (learned: payload.arm/propensity;
  * fixed policies: rule_refs policy:<name>, propensity 1), reward = seller profit on its deal (0 if no deal).
- * Per (buyer context, arm) the policy keeps the self-normalized IPS mean Σ r/p ÷ Σ 1/p and picks the best arm.
+ * Per (buyer context, arm) the policy keeps the self-normalized IPS mean Σ w·r ÷ Σ w and picks the best arm among arms
+ * with at least --min-sessions sessions there.
+ *   w = 1 / π(arm | context). `logged` (plain IPS): π = the propensity logged with that session. `mixture` (default,
+ *   multiple-logger IPS): π = the average logging probability of that arm over every session in that context, across all
+ *   runs. Logs usually mix policies (fixed A/B runs at p=1 plus an ε-greedy run where an explored arm has p=0.1); plain
+ *   IPS then lets a handful of explored sessions outweigh a hundred fixed-policy ones. The mixture weight is unbiased
+ *   too and has far lower variance.
  *
  * Writes a NEW version (previous + 1) with the learning curve. Its gate starts as not passed (so the exchange falls back
  * to negotiating) until a held-out run scores it: pnpm e2:learned --policy-file <out> --gate.
@@ -26,6 +32,7 @@ try { process.loadEnvFile(resolve(import.meta.dirname, "../../../.env")); } catc
 
 const { values: f } = parseArgs({ options: {
   runs: { type: "string" }, "from-db": { type: "boolean" }, epsilon: { type: "string", default: "0.1" }, epochs: { type: "string", default: "20" },
+  "min-sessions": { type: "string", default: "10" }, weighting: { type: "string", default: "mixture" },
   out: { type: "string" },
 } });
 if (!f.runs) throw new Error("--runs <run id,...> is required");
@@ -51,7 +58,11 @@ const all: Session[] = [];
 for (let i = 0; perRun.some((xs) => i < xs.length); i++) for (const xs of perRun) if (i < xs.length) all.push(xs[i]);
 if (!all.length) throw new Error("no bandit sessions in those runs (need seller events from the exchange)");
 
-const train = (xs: Session[]) => { const b = new Bandit(ARMS, Number(f.epsilon)); for (const s of xs) b.update(s.context, s.arm!, s.reward_cents, 1 / s.propensity); return b; };
+if (!["mixture", "logged"].includes(f.weighting!)) throw new Error("--weighting is mixture or logged");
+const mix: Record<string, Partial<Record<Arm, number>>> = {}, count: Record<string, number> = {};
+for (const s of all) { count[s.context] = (count[s.context] ?? 0) + 1; for (const a of ARMS) (mix[s.context] ??= {})[a] = (mix[s.context][a] ?? 0) + (s.probs[a] ?? 0); }
+const weight = (s: Session) => (f.weighting === "logged" ? 1 / s.propensity : count[s.context] / mix[s.context][s.arm!]!);
+const train = (xs: Session[]) => { const b = new Bandit(ARMS, Number(f.epsilon), Number(f["min-sessions"])); for (const s of xs) b.update(s.context, s.arm!, s.reward_cents, weight(s)); return b; };
 const full = train(all);
 const share: Record<string, number> = {};
 for (const s of all) share[s.context] = (share[s.context] ?? 0) + 1 / all.length;
@@ -70,11 +81,11 @@ const lp: LearnedPolicy = {
   curve,
   gate: { passed: false, best_fixed_policy: "", learned_minus_best_fixed_cents: 0, holdout_buyers: 0, diff_vs_negotiating_cents: 0, ci95_cents: [0, 0], below_floor: 0,
     source: "pending: score on held-out buyers with pnpm e2:learned --policy-file <this file> --gate" },
-  trained_on: { source: `logged${f["from-db"] ? " (supabase)" : ""}`, sessions: all.length, runs, ...(prev ? { previous_version: prev.version } : {}) },
+  trained_on: { source: `logged${f["from-db"] ? " (supabase)" : ""}, ${f.weighting} IPS`, sessions: all.length, runs, ...(prev ? { previous_version: prev.version } : {}) },
 };
 
 // ---- report
-console.log(`\nRetrained from ${all.length} logged negotiations in ${runs.length} runs → v${lp.version}${prev ? ` (was v${prev.version})` : ""}\n`);
+console.log(`\nRetrained from ${all.length} logged negotiations in ${runs.length} runs → v${lp.version}${prev ? ` (was v${prev.version})` : ""} · ${f.weighting} IPS · min ${f["min-sessions"]} sessions per arm\n`);
 console.log("Per buyer type: IPS mean profit per negotiation (sessions) → choice");
 for (const ctx of Object.keys(lp.stats).sort()) {
   const cells = ARMS.map((a) => { const s = lp.stats[ctx][a]; return `${a} ${s?.n ? usd(Math.round(full.mean(ctx, a))) : "—"} (${s?.n ?? 0})`; }).join("   ");

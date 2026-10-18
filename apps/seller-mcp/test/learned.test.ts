@@ -68,6 +68,8 @@ test("learned: ε exploration logs the true probability of the arm it drew", asy
   const first = events.events.filter((e) => e.type === "offer_countered");
   assert.equal(first.length, 60);
   for (const e of first) assert.ok(Math.abs((e.payload.propensity as number) - (e.payload.arm === "balanced" ? 0.8 : 0.1)) < 1e-9, `${e.payload.arm} ${e.payload.propensity}`);
+  const probs = first[0].payload.arm_probs as Record<string, number>;
+  for (const [a, p] of Object.entries({ negotiating: 0.1, balanced: 0.8, lever_policy: 0.1 })) assert.ok(Math.abs(probs[a] - p) < 1e-9, `${a} ${probs[a]}`);
   assert.ok(first.some((e) => e.payload.arm !== "balanced"), "explores sometimes");
 });
 
@@ -126,4 +128,16 @@ test("Bandit IPS: weighted mean uses 1/propensity weights; raw n/sum stay counts
   assert.ok(Math.abs(b.mean("price", "balanced") - (1000 * 1.25) / (1.25 + 10)) < 1e-9);
   const plain = new Bandit(); plain.update("price", "negotiating", 500); plain.update("price", "negotiating", 1500);
   assert.equal(plain.mean("price", "negotiating"), 1000);
+});
+
+test("Bandit min_sessions: a lucky arm with too few sessions doesn't take a context; alone it still counts", () => {
+  const b = new Bandit(undefined, 0.1, 10);
+  for (let i = 0; i < 30; i++) b.update("trust", "balanced", 2000);
+  for (let i = 0; i < 3; i++) b.update("trust", "lever_policy", 6000);
+  assert.equal(b.greedy("trust"), "balanced");
+  for (let i = 0; i < 7; i++) b.update("trust", "lever_policy", 6000);
+  assert.equal(b.greedy("trust"), "lever_policy");
+  const lone = new Bandit(undefined, 0.1, 10); lone.update("price", "lever_policy", 100);
+  assert.equal(lone.greedy("price"), "lever_policy");
+  assert.equal(lone.export(1).min_sessions, 10);
 });

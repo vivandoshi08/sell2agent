@@ -351,8 +351,8 @@ export class Exchange {
     if (s !== "learned") return s;
     if (!n.learned) {
       const got = learnedPolicy();
-      const c = got.policy ? chooseArm(got.policy, profile) : { arm: DEFAULT_ARM, propensity: 1, context: contextOf(profile) };
-      n.learned = { arm: c.arm, propensity: c.propensity, context: c.context, version: got.policy?.version ?? null, ...(got.fallback ? { fallback: got.fallback } : {}) };
+      const c = got.policy ? chooseArm(got.policy, profile) : { arm: DEFAULT_ARM, propensity: 1, context: contextOf(profile), probs: { [DEFAULT_ARM]: 1 } };
+      n.learned = { arm: c.arm, propensity: c.propensity, context: c.context, probs: c.probs, version: got.policy?.version ?? null, ...(got.fallback ? { fallback: got.fallback } : {}) };
     }
     return n.learned.arm;
   }
@@ -464,7 +464,7 @@ export class Exchange {
           ...(n.product_title ? { product_title: n.product_title } : {}), ...(n.channel ? { channel: n.channel } : {}),
           ...(n.agent_operator ? { agent_operator: n.agent_operator } : {}), state: n.state,
           // `learned`: what was drawn and with what probability, so retraining can IPS-weight logged outcomes (pnpm e2:retrain)
-          ...(n.learned ? { policy: "learned", arm: n.learned.arm, propensity: n.learned.propensity, bandit_context: n.learned.context,
+          ...(n.learned ? { policy: "learned", arm: n.learned.arm, propensity: n.learned.propensity, arm_probs: n.learned.probs, bandit_context: n.learned.context,
             policy_version: n.learned.version, ...(n.learned.fallback ? { learned_fallback: n.learned.fallback } : {}) } : {}) } });
     } catch (e) {
       console.error("[exchange] event sink failed", (e as Error).message);
