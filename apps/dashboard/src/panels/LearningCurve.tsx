@@ -94,7 +94,7 @@ export function LearningCurve({ data = LP, events }: { data?: Learned; events?: 
           </table>
         </div>
       </details>
-      <p className="empty">Playbooks: {data.arms.map((a) => `${armName(a)} ${ARM[a]?.how ?? ""}`.trim()).join("; ")}. Trained {new Date(data.trained_at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })} on simulated lever-profile buyers; explores {Math.round(data.epsilon * 100)}% of the time in deployment, and logs the odds of every pick so retraining stays unbiased.</p>
+      <p className="empty">Playbooks: {data.arms.map((a) => `${armName(a)} ${ARM[a]?.how ?? ""}`.trim()).join("; ")}. Trained {new Date(data.trained_at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })} {data.trained_on?.source.startsWith("logged") ? `on ${data.trained_on.sessions} logged negotiations with AI buyers` : "on simulated lever-profile buyers"}; explores {Math.round(data.epsilon * 100)}% of the time in deployment, and logs the odds of every pick so retraining stays unbiased.</p>
     </section>
   );
 }
