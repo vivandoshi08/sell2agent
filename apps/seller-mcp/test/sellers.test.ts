@@ -84,3 +84,77 @@ test("LLM answers with numbers not in the catalog are rejected", async () => {
   const a = await answerQuestion(prod, "What's the weight?", async () => '{"grounded":true,"answer":"It weighs 850 g.","fields":["layout"]}');
   assert.equal(a.grounded, false);
 });
+
+// ---------------- lever_policy ----------------
+import { decideLever, pickLever } from "../src/sellers";
+import type { Lever, SellerPolicy } from "../src/sellers";
+
+const MENU: Lever[] = [
+  { id: "warranty_2y", lever: "warranty", label: "a 2-year warranty", cost_cents: 600, buyer_value_cents: 2000 },
+  { id: "ship_2day", lever: "delivery", label: "free 2-day shipping", cost_cents: 800, buyer_value_cents: 1500 },
+  { id: "keycaps", lever: "quality", label: "an extra keycap set", cost_cents: 700, buyer_value_cents: 1800 },
+];
+const LP: SellerPolicy = { name: "lever_policy", lever_menu: MENU };
+const runRounds = (profile: Record<string, number> | undefined, policy: SellerPolicy, bid = 9000) => {
+  const hist: SellerState["history"] = []; const moves: ProposedMove[] = [];
+  for (let r = 1; r <= 8; r++) {
+    const m = decide(st(r, hist, bid), policy, profile as any);
+    moves.push(m);
+    hist.push({ by: "seller", round: r, price_cents: m.price_cents, levers: m.lever_package?.map((l) => l.id) });
+  }
+  return moves;
+};
+
+test("lever_policy = negotiating for a price-first buyer", () => {
+  const a = runRounds({ price: 1, quality: 0.3 }, LP).map((m) => [m.price_cents, m.lever_package?.length ?? 0]);
+  const b = runRounds({ price: 1, quality: 0.3 }, { name: "negotiating" }).map((m) => [m.price_cents, 0]);
+  assert.deepEqual(a, b);
+});
+
+test("quality/warranty buyer gets an extra instead of a cut, and keeps it", () => {
+  const moves = runRounds({ quality: 1, warranty: 0.8, price: 0.3 }, LP);
+  const first = moves.findIndex((m) => m.reason === "lever_instead_of_cut");
+  assert.ok(first > 0, "should substitute a lever at some round");
+  assert.equal(moves[first].price_cents, moves[first - 1].price_cents, "price held that round");
+  for (let i = first; i < moves.length; i++) assert.ok((moves[i].lever_package?.length ?? 0) >= 1, `lever dropped at round ${i + 1}`);
+});
+
+test("price never goes below soft floor + cost of included levers", () => {
+  for (const m of runRounds({ quality: 1, warranty: 0.9, delivery: 0.9, price: 0.2 }, LP, 1)) {
+    assert.ok(m.price_cents >= softFloor(12900, 10500) + (m.lever_cost_cents ?? 0), `${m.price_cents} with levers ${m.lever_cost_cents}`);
+  }
+});
+
+test("pickLever: never when the extra costs more than the cut, or the buyer values price more", () => {
+  assert.equal(pickLever(MENU, new Set(), { warranty: 0.9, price: 0.3 }, 500), null); // $6 lever vs $5 cut
+  assert.equal(pickLever(MENU, new Set(), { warranty: 0.6, price: 0.8 }, 5000), null); // price-first
+  assert.equal(pickLever(MENU, new Set(), { warranty: 0.9, price: 0.3 }, 5000)?.id, "warranty_2y");
+});
+
+test("message check: an extra named in text must be in the offer", () => {
+  const plain: ProposedMove = { ...move };
+  assert.ok(checkMessage("$125, and I'll throw in a warranty.", plain, ctx).some((w) => w.includes("warranty")));
+  const withW: ProposedMove = { ...move, lever_package: [{ id: "warranty_2y", lever: "warranty", label: "a 2-year warranty" }] };
+  assert.deepEqual(checkMessage(templateMessage(withW, ctx), withW, ctx), []);
+});
+
+// ---------------- bandit ----------------
+import { Bandit, chooseArm, contextOf } from "../src/sellers";
+
+test("contextOf picks the strongest lever", () => {
+  assert.equal(contextOf({ quality: 1, warranty: 0.8, price: 0.3 }), "quality");
+  assert.equal(contextOf(undefined), "unknown");
+});
+test("bandit tries every arm, then prefers the best one", () => {
+  const b = new Bandit(["negotiating", "balanced"], 0.1);
+  for (let i = 0; i < 200; i++) { const a = b.chooseTraining("price"); b.update("price", a, a === "balanced" ? 5000 : 3000); }
+  assert.equal(b.greedy("price"), "balanced");
+  assert.ok(b.stats.price.negotiating.n >= 1);
+});
+test("chooseArm logs the right propensity and falls back to negotiating", () => {
+  const lp = new Bandit(["negotiating", "balanced"], 0.2).export(1);
+  lp.choice.price = "balanced";
+  assert.deepEqual(chooseArm(lp, { price: 1 }, () => 0.9), { arm: "balanced", propensity: 0.9, context: "price" });
+  assert.equal(chooseArm(null, { price: 1 }).arm, "negotiating");
+  assert.equal(chooseArm(lp, { trust: 1 }, () => 0.9).arm, "negotiating");
+});
