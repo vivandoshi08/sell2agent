@@ -12,7 +12,7 @@ import { decide as e2decide, voice as e2voice, type Llm, type ProposedMove, type
 import { StaticCatalog } from "./catalog";
 import { guardMove } from "./decision-guard";
 import { Deals, lockDeal } from "./deals";
-import { defaultSink, type EventSink } from "./events";
+import { defaultSink, guardrailSeverity, type EventSink } from "./events";
 import { inspectInput } from "./input-guard";
 import { checkOutput, fallbackMessage, type OutputContext } from "./output-guard";
 import { allowedActions, assertTransition } from "./state";
@@ -391,7 +391,8 @@ export class Exchange {
     const sink = await this.sinkP;
     try {
       await sink({ run_id: n.run_id, buyer_id: n.buyer_id, buyer_model: n.buyer_model, seller_id: n.seller_id, product_id: n.product_id,
-        negotiation_id: n.id, actor, type, price_cents: price, payload: { ...payload, state: n.state } });
+        negotiation_id: n.id, actor, type, price_cents: price,
+        payload: { ...payload, ...(type === "guardrail_blocked" ? { severity: guardrailSeverity(payload.rule) } : {}), state: n.state } });
     } catch (e) {
       console.error("[exchange] event sink failed", (e as Error).message);
     }
