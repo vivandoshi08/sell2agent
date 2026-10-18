@@ -42,6 +42,9 @@ export interface Session {
   context: string;
   /** The seller's goal (objectiveReward); what the bandit maximizes. */
   reward_cents: number;
+  /** reward − the mean reward of every session on the same listing: compares arms like for like (see listingAdvantage). */
+  advantage_cents?: number;
+  product_id: string | null;
   profit_cents: number;
   revenue_cents: number;
   objective: Partial<SellerObjective> | null;
@@ -76,7 +79,9 @@ export function sessions(events: Ev[]): Session[] {
     const fixed = seller.flatMap((e) => ((e.payload as { rule_refs?: string[] }).rule_refs ?? [])).find((r) => r.startsWith("policy:"))?.slice(7);
     const lp = learned?.payload as { arm: Arm; propensity: number; arm_probs?: Partial<Record<Arm, number>>; bandit_context?: string; policy_version?: number | null } | undefined;
     const armName = lp?.arm ?? fixed;
-    const arm = isArm(armName) ? armName : null;
+    // package arms logged before arm_rev 2 rarely offered their perk (see ARM_REV); they don't measure the package
+    const staleArm = !!armName?.startsWith("pkg:") && (learned?.payload as { arm_rev?: number } | undefined)?.arm_rev !== 2;
+    const arm = isArm(armName) && !staleArm ? armName : null;
     const deal = es.find((e) => e.type === "deal_accepted");
     const first = es[0];
     const objective = (seller.find((e) => (e.payload as { objective?: unknown }).objective)?.payload as { objective?: Partial<SellerObjective> } | undefined)?.objective ?? null;
@@ -86,7 +91,7 @@ export function sessions(events: Ev[]): Session[] {
       arm, propensity: lp?.propensity ?? 1, probs: lp?.arm_probs ?? (lp || !arm ? {} : { [arm]: 1 }),
       context: lp?.bandit_context ?? contextOf(profileOf.get(`${first.run_id}|${first.buyer_id}`)),
       reward_cents: deal ? objectiveReward(profit, revenue, objective) : 0, profit_cents: profit, revenue_cents: revenue, objective,
-      source: first.run_id === "live" ? "real" : "sim", closed: !!deal, below_floor: (deal?.payload as { below_floor?: boolean } | undefined)?.below_floor === true,
+      source: first.run_id === "live" ? "real" : "sim", closed: !!deal, product_id: first.product_id ?? seller[0].product_id ?? null, below_floor: (deal?.payload as { below_floor?: boolean } | undefined)?.below_floor === true,
       policy_version: lp?.policy_version ?? null,
     });
   }
@@ -136,4 +141,15 @@ export function paired(a: Map<string, BuyerScore>, b: Map<string, BuyerScore>) {
   const ids = [...a.keys()].filter((id) => b.has(id));
   const d = ids.map((id) => a.get(id)!.profit_cents - b.get(id)!.profit_cents);
   return { n: ids.length, mean: mean(d), ci: ci95(d) };
+}
+
+/**
+ * Listing baseline. A package arm can only be drawn on listings that offer its extra, so raw rewards compare arms across
+ * different listings (prices, margins). Subtracting each listing's mean reward (over all its sessions, IPS-weighted by
+ * `weight`) leaves how much better or worse an arm did than average on the same listing.
+ */
+export function listingAdvantage(xs: Session[], weight: (s: Session) => number): void {
+  const acc = new Map<string, { w: number; ws: number }>();
+  for (const s of xs) { const k = s.product_id ?? "?"; const a = acc.get(k) ?? { w: 0, ws: 0 }; const w = weight(s); a.w += w; a.ws += w * s.reward_cents; acc.set(k, a); }
+  for (const s of xs) { const a = acc.get(s.product_id ?? "?")!; s.advantage_cents = Math.round(s.reward_cents - a.ws / a.w); }
 }

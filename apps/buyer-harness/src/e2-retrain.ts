@@ -33,13 +33,13 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { ARMS, Bandit, objectiveFormula, usd, type Arm, type LearnedPolicy } from "@sa/seller-mcp/sellers";
-import { readEvents, sessions, type Ev, type Session } from "./learned-logs";
+import { listingAdvantage, readEvents, sessions, type Ev, type Session } from "./learned-logs";
 
 try { process.loadEnvFile(resolve(import.meta.dirname, "../../../.env")); } catch { /* optional */ }
 
 const { values: f } = parseArgs({ options: {
   runs: { type: "string" }, "from-db": { type: "boolean" }, live: { type: "boolean" }, since: { type: "string" }, epsilon: { type: "string", default: "0.1" }, epochs: { type: "string", default: "20" },
-  "min-sessions": { type: "string", default: "10" }, weighting: { type: "string", default: "mixture" }, order: { type: "string", default: "time" },
+  "min-sessions": { type: "string", default: "10" }, baseline: { type: "string", default: "listing" }, weighting: { type: "string", default: "mixture" }, order: { type: "string", default: "time" },
   out: { type: "string" },
 } });
 if (!f.runs && !f.live) throw new Error("--runs <run id,...> and/or --live is required");
@@ -78,11 +78,15 @@ const mixAll: Partial<Record<Arm, number>> = {};
 for (const s of all) for (const a of ARMS) mixAll[a] = (mixAll[a] ?? 0) + (s.probs[a] ?? 0);
 const weight = (s: Session) => (f.weighting === "logged" ? 1 / s.propensity : count[s.context] / mix[s.context][s.arm!]!);
 const weightAll = (s: Session) => (f.weighting === "logged" ? 1 / s.propensity : all.length / mixAll[s.arm!]!);
+// --baseline listing (default): train on reward minus the listing's mean (listingAdvantage); --baseline none: raw reward
+if (!["listing", "none"].includes(f.baseline!)) throw new Error("--baseline is listing or none");
+if (f.baseline === "listing") listingAdvantage(all, weightAll);
+const val = (s: Session) => (f.baseline === "listing" ? s.advantage_cents! : s.reward_cents);
 const train = (xs: Session[]) => {
   const b = new Bandit([...ARMS], Number(f.epsilon), Number(f["min-sessions"]));
   for (const s of xs) {
-    if (s.context !== "unknown") b.update(s.context, s.arm!, s.reward_cents, weight(s));
-    b.update("unknown", s.arm!, s.reward_cents, weightAll(s)); // pooled: the choice when the buyer's type isn't known
+    if (s.context !== "unknown") b.update(s.context, s.arm!, val(s), weight(s));
+    b.update("unknown", s.arm!, val(s), weightAll(s)); // pooled: the choice when the buyer's type isn't known
   }
   return b;
 };
@@ -110,13 +114,14 @@ const lp: LearnedPolicy = {
   gate: { passed: false, best_fixed_policy: "", learned_minus_best_fixed_cents: 0, holdout_buyers: 0, diff_vs_negotiating_cents: 0, ci95_cents: [0, 0], below_floor: 0,
     source: "pending: score on held-out buyers with pnpm e2:learned --policy-file <this file> --gate" },
   trained_on: { source: `logged${f["from-db"] || f.live ? " (supabase)" : ""}, ${f.weighting} IPS`, sessions: all.length, runs: [...runs, ...(f.live ? ["live"] : [])],
-    ...(prev ? { previous_version: prev.version } : {}), by_source: bySource, contexts, reward: rewardText },
+    ...(prev ? { previous_version: prev.version } : {}), by_source: bySource, contexts, reward: rewardText,
+    baseline: f.baseline === "listing" ? "listing" : "none" },
 };
 
 // ---- report
 console.log(`\nSessions: ${bySource.real} real (live marketplace) + ${bySource.sim} simulated · reward = ${rewardText}`);
 console.log(`\nRetrained from ${all.length} logged negotiations in ${runs.length} runs → v${lp.version}${prev ? ` (was v${prev.version})` : ""} · ${f.weighting} IPS · min ${f["min-sessions"]} sessions per arm\n`);
-console.log("Per buyer type: IPS mean goal value per negotiation (sessions; no-deal = 0) → choice   (unknown = all sessions pooled: buyers who send no profile)");
+console.log(f.baseline === "listing" ? "Per buyer type: IPS mean goal value vs the listing's average (sessions)" : "Per buyer type: IPS mean goal value per negotiation (sessions; no-deal = 0) → choice   (unknown = all sessions pooled: buyers who send no profile)");
 for (const ctx of Object.keys(lp.stats).sort()) {
   const cells = ARMS.map((a) => { const s = lp.stats[ctx][a]; return `${a} ${s?.n ? usd(Math.round(full.mean(ctx, a))) : "—"} (${s?.n ?? 0})`; }).join("   ");
   console.log(`  ${ctx.padEnd(9)} ${(lp.choice[ctx] + (prev?.choice[ctx] && prev.choice[ctx] !== lp.choice[ctx] ? ` (was ${prev.choice[ctx]})` : "")).padEnd(28)} | ${cells}`);

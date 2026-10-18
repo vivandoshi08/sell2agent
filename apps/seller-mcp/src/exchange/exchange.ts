@@ -486,7 +486,7 @@ export class Exchange {
           ...(n.objective ? { objective: n.objective } : {}),
           // `learned`: what was drawn and with what probability, so retraining can IPS-weight logged outcomes (pnpm e2:retrain)
           ...(n.learned ? { policy: "learned", arm: n.learned.arm, propensity: n.learned.propensity, arm_probs: n.learned.probs, bandit_context: n.learned.context,
-            policy_version: n.learned.version, ...(n.learned.fallback ? { learned_fallback: n.learned.fallback } : {}) } : {}) } });
+            policy_version: n.learned.version, arm_rev: ARM_REV, ...(n.learned.fallback ? { learned_fallback: n.learned.fallback } : {}) } : {}) } });
     } catch (e) {
       console.error("[exchange] event sink failed", (e as Error).message);
     }
@@ -501,6 +501,9 @@ const REASON_REF: Partial<Record<ProposedMove["reason"], string>> = {
 function ruleRefs(refs: string[], move: ProposedMove, p: ProductConfig, o: StandingOffer): string[] {
   return [...refs, REASON_REF[move.reason] ?? move.reason, `policy:${p.strategy}`, ...(o.final && move.action === "offer" ? ["last_round"] : []), ...o.levers.map((l) => `lever:${l}`)];
 }
+
+/** Arm semantics revision on learned events. 2 = package arms lead with their perk (before: only when the cut exceeded its cost). */
+export const ARM_REV = 2;
 
 /** lever_policy reads the extras already promised from the last seller entry of the history. */
 function markLevers(h: Negotiation["history"], levers: string[]): SellerState["history"] {

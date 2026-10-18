@@ -22,8 +22,11 @@ const listLabels = (ls: Lever[]) => ls.map((l) => l.label).join(" and ");
 const withLevers = (ls: Lever[]) => (ls.length ? `, including ${listLabels(ls)}` : "");
 
 /** The extra (if any) worth offering instead of a price cut of `cut` cents. Pure; exported for tests. */
-export function pickLever(menu: Lever[], included: Set<string>, profile: BuyerLeverProfile | undefined, cut: number, threshold = DEFAULT_LEVER_THRESHOLD): Lever | null {
+export function pickLever(menu: Lever[], included: Set<string>, profile: BuyerLeverProfile | undefined, cut: number, threshold = DEFAULT_LEVER_THRESHOLD, lead = false): Lever | null {
   if (!profile || cut <= 0) return null;
+  // A learned package (lead): offer its one extra at the first concession, whatever that cut is. Without this the
+  // extra only fired when the cut happened to exceed its cost, which the balanced curve's small early cuts rarely do.
+  if (lead) return menu.find((l) => !included.has(l.id)) ?? null;
   const priceWeight = profile.price ?? 0.5;
   const eligible = menu.filter((l) => {
     const w = profile[l.lever] ?? 0;
@@ -61,7 +64,7 @@ export function decideLever(state: SellerState, policy: SellerPolicy, profile?: 
   // The substitution: hold price, add a valued extra that costs us less than the cut we'd otherwise make.
   if (!isFinal && prev !== undefined) {
     const cut = prev - ask;
-    const lever = pickLever(menu, new Set(included.map((l) => l.id)), profile, cut, policy.lever_weight_threshold);
+    const lever = pickLever(menu, new Set(included.map((l) => l.id)), profile, cut, policy.lever_weight_threshold, policy.lever_pitch === "offer");
     if (lever && prev >= softFloor(list, floor, buffer) + includedCost + lever.cost_cents) {
       const pkg = [...included, lever];
       return { ...base, action: "offer", price_cents: prev, final: false, reason: "lever_instead_of_cut",

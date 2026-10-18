@@ -93,7 +93,9 @@ export interface LearnedPolicy {
     /** The reward each session was scored with, e.g. "50% profit + 50% revenue" (from the sellers' console goals). */
     reward?: string;
     /** Sessions per context per source, for the dashboard. */
-    contexts?: Record<string, { real: number; sim: number }> };
+    contexts?: Record<string, { real: number; sim: number }>;
+    /** "listing": stats are goal value minus the listing's average (arms compared like for like); else raw goal value. */
+    baseline?: "listing" | "none" };
 }
 
 /** The buyer's strongest non-trivial lever; ties broken by a fixed order. */

@@ -180,6 +180,9 @@ test("learned → pkg:free_shipping: leads with free shipping for any buyer, hol
   const { ex, events } = setup();
   const { offers } = await haggle(ex, "b-pkg", PRICE);
   assert.ok(offers.some((o) => o.levers.includes("free_shipping")), JSON.stringify(offers));
+  // leads with it: the first seller move below list is the perk, not a price cut
+  const firstMove = offers.findIndex((o, i) => i > 0 && (o.levers.length > 0 || o.price < offers[0].price));
+  assert.ok(firstMove > 0 && offers[firstMove].levers.includes("free_shipping") && offers[firstMove].price === offers[firstMove - 1].price, JSON.stringify(offers));
   assert.ok(offers.every((o) => !o.levers.includes("extended_warranty")), "only the package's extra");
   for (const o of offers) assert.ok(o.price >= tw.floor_price_cents + leverCost(o.levers), JSON.stringify(o));
   const countered = events.events.filter((e) => e.type === "offer_countered");
