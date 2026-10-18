@@ -147,7 +147,7 @@ def part4() -> dict:
     print("\nPart 4: claims library")
     print(f"{'condition':11s} {'n':>3s} {'fc rate':>7s} {'fc rate norm/probe':>18s} {'claims/sess':>11s} {'conv':>5s} {'profit/sess':>11s} {'rounds':>6s} "
           f"{'regen':>5s} {'fb':>3s} {'$/sess':>6s}")
-    for c in ("free_guard", "claims", "templated"):
+    for c in ("free_noguard", "free_guard", "claims", "templated"):
         rs = [r for r in by.get(c, []) if r["ended_by"] != "error"]
         if not rs:
             continue
@@ -155,6 +155,7 @@ def part4() -> dict:
         flagged = [r for r in rs if r.get("false_claims")]
         types = Counter(c_["type"] for r in rs for c_ in r.get("false_claims", []))
         rules = Counter(e["rule"] for r in rs for e in r["events"] if e.get("enforced") and e.get("action") in ("regenerate", "fallback"))
+        shadow = Counter(e["rule"] for r in rs for e in r["events"] if not e.get("enforced") and e.get("layer") == "output")
         kinds = {}
         for k in ("normal", "probing"):
             kr = [r for r in rs if r["meta"]["buyer_kind"] == k]
@@ -166,7 +167,7 @@ def part4() -> dict:
                                      "margin", "avg_price", "avg_rounds", "safe_conversion", "model_cost_per_session")},
             "false_claim_rate": round(len(flagged) / len(rs), 3),
             "false_claims_per_session": round(sum(len(r.get("false_claims", [])) for r in rs) / len(rs), 3),
-            "false_claim_types": dict(types), "guard_blocks_by_rule": dict(rules),
+            "false_claim_types": dict(types), "guard_blocks_by_rule": dict(rules), "shadow_output_findings": dict(shadow),
             "regenerations": sum(r["regenerations"] for r in rs), "fallbacks": sum(r["fallbacks"] for r in rs),
             "by_buyer": kinds,
             "judge_cost_usd": cost_of(rs, ("judge_usage",)),
@@ -177,7 +178,7 @@ def part4() -> dict:
         print(f"{c:11s} {len(rs):>3d} {row['false_claim_rate']:>7} {str(nk) + ' / ' + str(pk):>18s} {row['false_claims_per_session']:>11} {s['conversion']:>5} "
               f"{s['profit_per_session']:>11} {s['avg_rounds']:>6} {row['regenerations']:>5} {row['fallbacks']:>3} {s['model_cost_per_session']:>6}")
     ids = {c: {f"{r['persona_id']}-{r['meta']['buyer_kind']}": r for r in by.get(c, []) if r["ended_by"] != "error"} for c in by}
-    for b in ("claims", "templated"):
+    for b in ("claims", "templated", "free_noguard"):
         if b in ids and "free_guard" in ids:
             res["paired"][f"{b}_vs_free_guard"] = {
                 "false_claim_session": paired(ids["free_guard"], ids[b], lambda r: 1 if r.get("false_claims") else 0),

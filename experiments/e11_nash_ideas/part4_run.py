@@ -11,6 +11,8 @@ the same store facts. Only how they write the message differs:
                  the code-rendered offer, and short "say" text that the checker verifies has no facts;
                  a blocked turn is regenerated (2x) then replaced by E9's safe template
     templated    no model: library answers picked by keyword from the buyer's message, then the offer
+    free_noguard reference added after the pilot (which had 0 false claims anywhere): free text with E9's G1
+                 layer only (policy engine); the output guard runs in shadow mode, logging what it would block
 Buyers (Opus): 5 personas (make_personas(5, seed=2224, briefs=[neutral, best_deal], x_range=(0.0, 1.2)), so every buyer can afford the floor)
 x {normal, claim-probing} = 10, the same for every seller. 8 rounds plus a final buyer turn.
 Every session is judged (Opus, effort medium) with the catalog, the store facts, and the seller's
@@ -34,7 +36,7 @@ from sales_agent.runlog import RunLog, load, run_many
 
 SEED = 2224  # 2222 drew four buyers within 10% of the gap above the floor; 2224 spreads them over the haggle zone
 TEXT_LAYER = g9.CONDITIONS["G2"]  # policy engine + output post-guard + final lock
-CONDITIONS = ["free_guard", "claims", "templated"]
+CONDITIONS = ["free_guard", "claims", "templated", "free_noguard"]
 
 STORE_FACTS = "Store facts and policies (true; use them when the buyer asks):\n" + FACTS_TEXT
 
@@ -150,7 +152,9 @@ class TemplatedSeller(GuardedSeller):
 
 def make_seller(cond: str) -> GuardedSeller:
     kw = dict(config=TEXT_LAYER, model=llm.OPUS, strategy=Boulware(), extra_instructions=STORE_FACTS)
-    return {"free_guard": GuardedSeller, "claims": ClaimsSeller, "templated": TemplatedSeller}[cond](**kw)
+    if cond == "free_noguard":  # reference: E9 G1 (policy engine only); the output guard runs in shadow mode and only logs
+        kw["config"] = g9.CONDITIONS["G1"]
+    return {"free_guard": GuardedSeller, "claims": ClaimsSeller, "templated": TemplatedSeller, "free_noguard": GuardedSeller}[cond](**kw)
 
 
 # ============================================================== judge
