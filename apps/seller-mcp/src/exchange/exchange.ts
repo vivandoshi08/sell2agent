@@ -310,8 +310,11 @@ export class Exchange {
     n.deal_id = deal.deal_id;
     n.standing_offer_id = o.offer_id;
     await this.setState(n, "agreed");
+    // Costs go on deal_accepted only, once the price is locked, so S2 can compute profit. The floor value never goes in events.
+    const lever_cost_cents = leverCost(deal.levers, p.lever_costs);
     await this.emit(n, "deal_accepted", "seller", deal.unit_price_cents, { deal_id: deal.deal_id, offer_id: o.offer_id, lever_package: deal.levers,
-      list_price_cents: p.list_price_cents, total_cents: deal.total_cents, quantity: deal.quantity, expires_at: deal.expires_at });
+      list_price_cents: p.list_price_cents, total_cents: deal.total_cents, quantity: deal.quantity, expires_at: deal.expires_at,
+      unit_cost_cents: p.unit_cost_cents, lever_cost_cents, below_floor: deal.unit_price_cents - lever_cost_cents < p.floor_price_cents });
     return deal;
   }
 
