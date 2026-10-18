@@ -161,3 +161,43 @@ test("chooseArm logs the right propensity and falls back to negotiating", () => 
   assert.equal(chooseArm(null, { price: 1 }).arm, "negotiating");
   assert.equal(chooseArm(lp, { trust: 1 }, () => 0.9).arm, "negotiating");
 });
+
+// ---------------- summary lines (contract v3 P0) ----------------
+import { offerSummary, dealSummary, checkSummary, SUMMARY_MAX } from "../src/sellers";
+
+const NOW = Date.parse("2026-10-18T08:00:00Z");
+const in15 = new Date(NOW + 15 * 60_000).toISOString();
+test("offerSummary: price, extras, list, hold time; only allowed figures", () => {
+  const s = offerSummary({ title: "KeyForge Quiet 75", price_cents: 11900, list_price_cents: 12900, levers: ["free_shipping", "extended_warranty"], expires_at: in15 }, NOW);
+  assert.equal(s, "KeyForge Quiet 75: $119 with free shipping and an extended warranty (list $129). Offer holds 15 min.");
+  assert.deepEqual(checkSummary(s, [11900, 12900]), []);
+});
+test("offerSummary: final, accept, no list when at list, expired offer has no hold time", () => {
+  assert.equal(offerSummary({ title: "ClackCo TKL Pro", price_cents: 11500, list_price_cents: 11500, final: true, expires_at: new Date(NOW - 1).toISOString() }, NOW),
+    "ClackCo TKL Pro: $115. Final offer.");
+  assert.equal(offerSummary({ title: "TypeWell 65 Silent", price_cents: 12450, status: "accept" }, NOW), "TypeWell 65 Silent: the seller accepts $124.50.");
+});
+test("dealSummary: locked with approve link, paid, multi-unit", () => {
+  assert.equal(dealSummary({ title: "KeyForge Quiet 75", total_cents: 11900, levers: ["free_shipping"], approve_url: "https://gw.example/deal/d1?t=abc" }),
+    "Deal locked: KeyForge Quiet 75, $119, free shipping. Approve: https://gw.example/deal/d1?t=abc");
+  assert.equal(dealSummary({ title: "KeyForge Quiet 75", total_cents: 11900, paid: true }), "Bought: KeyForge Quiet 75, $119. Paid.");
+  assert.match(dealSummary({ title: "X", total_cents: 23800, quantity: 2, unit_price_cents: 11900 }), /2 × \$119 = \$238/);
+});
+test("summaries never exceed 280 chars; long titles are shortened, numbers kept", () => {
+  const s = offerSummary({ title: "Very Long Name ".repeat(30), price_cents: 11900, list_price_cents: 12900, levers: ["free_shipping"], expires_at: in15 }, NOW);
+  assert.ok(s.length <= SUMMARY_MAX); assert.match(s, /\$119 with free shipping \(list \$129\)\. Offer holds 15 min\.$/);
+});
+test("checkSummary flags floor talk and stray figures", () => {
+  assert.ok(checkSummary("$105 is our floor", [10500]).some((p) => p.includes("floor")));
+  assert.ok(checkSummary("Only $99 today", [11900]).some((p) => p.includes("$99")));
+});
+test("summary never states the floor, for every policy round", () => {
+  const hist: SellerState["history"] = [];
+  for (let r = 1; r <= 8; r++) {
+    const m = decide(st(r, hist, 9000), neg);
+    hist.push({ by: "seller", round: r, price_cents: m.price_cents });
+    const s = offerSummary({ title: terms.title, price_cents: m.price_cents, list_price_cents: terms.list_price_cents, final: m.final, expires_at: in15 }, NOW);
+    assert.deepEqual(checkSummary(s, [m.price_cents, terms.list_price_cents]), [], s);
+    assert.ok(!s.includes("$105"), s);
+  }
+});

@@ -37,7 +37,8 @@ const dollars = (c: number) => Math.round(c) / 100;
 
 /** @param policy seller policy label for this run; goes in every event payload (S2 reads `payload.policy`). */
 export async function runBuyer(task: LlmBuyerTask, brain: Brain, gw: Gateway, run_id: string, emit: Emit, maxSteps = 30, policy?: string): Promise<BuyerOutcome> {
-  const ctx: BuyerContext = { run_id, buyer_id: task.buyer_id, buyer_model: brain.model };
+  // contract v3: simulated buyers identify as the harness (the gateway fills these for real buyers).
+  const ctx: BuyerContext = { run_id, buyer_id: task.buyer_id, buyer_model: brain.model, channel: "harness", agent_operator: "harness" };
   const t0 = Date.now();
   const sellers = new Map<string, string>(); // product → seller name
   const listPrices = new Map<string, number>(); // product → list price (cents)
