@@ -79,7 +79,7 @@ code { font-family: var(--font-data); font-size: .85em; background: var(--all-bg
   <header style="display:grid;gap:6px">
     <span class="eyebrow">sales-agent · build plan · draft for the team</span>
     <h1>Team Build Plan</h1>
-    <p class="lede">Four people, two pairs. The Surface pair owns infrastructure, MCP, UI and outside services; the Engine pair owns the negotiation brain. Each starts on its riskiest piece and builds against a mock of the other, then the pairs bridge. Switch plans to compare idle time and collisions. Click any block or bridge for its owner, files, mocks, and the test that says it's done. Hours are relative (H0 = start).</p>
+    <p class="lede">Four people, two pairs: Esha on S1, Ananya on S2, Vivan on E1, Neel on E2 (and contract owner, a side duty). The Surface pair owns infrastructure, MCP, UI and outside services; the Engine pair owns the negotiation brain. Each starts on its riskiest piece and builds against a mock of the other, then the pairs bridge. Switch plans to compare idle time and collisions. Click any block or bridge for its owner, files, mocks, and the test that says it's done. Hours are relative (H0 = start).</p>
   </header>
 
   <div class="seg" role="group" aria-label="Plan">
@@ -151,27 +151,27 @@ code { font-family: var(--font-data); font-size: .85em; background: var(--all-bg
       <div class="table-wrap"><table>
         <thead><tr><th>Person</th><th>Owns</th><th>Builds against</th></tr></thead>
         <tbody>
-          <tr><td><b>S1</b> gateway &amp; deploy</td><td><code>apps/marketplace</code>, Manufact config, discovery files, Inkbox adapter</td><td>mock exchange until Bridge 1</td></tr>
-          <tr><td><b>S2</b> UI &amp; proof</td><td><code>apps/dashboard</code>, deal-card widget, wiring <code>packages/payments</code>, Armature evals</td><td>fake <code>events</code> rows until Bridge 2</td></tr>
-          <tr><td><b>E1</b> exchange &amp; safety</td><td><code>apps/seller-mcp</code> exchange module, guardrails, buyer memory, outreach</td><td>a test script calling the exchange directly</td></tr>
-          <tr><td><b>E2</b> policy &amp; buyers</td><td><code>apps/seller-mcp</code> seller module, <code>apps/buyer-harness</code>, bandit / learning</td><td>scripted buyers until simulated buyers land</td></tr>
-          <tr><td><b>Contract owner</b></td><td><code>packages/shared</code>, <code>supabase/migrations</code> (frozen after H1)</td><td>the seam both pairs code to</td></tr>
+          <tr><td><b>S1</b> gateway &amp; deploy<br><small>Esha</small></td><td><code>apps/marketplace</code>, Manufact config, discovery files, Inkbox adapter</td><td>mock exchange until Bridge 1</td></tr>
+          <tr><td><b>S2</b> UI &amp; proof<br><small>Ananya</small></td><td><code>apps/dashboard</code>, deal-card widget, wiring <code>packages/payments</code>, Armature evals</td><td>fake <code>events</code> rows until Bridge 2</td></tr>
+          <tr><td><b>E1</b> exchange &amp; safety<br><small>Vivan</small></td><td><code>apps/seller-mcp</code> exchange module, guardrails, buyer memory, outreach</td><td>a test script calling the exchange directly</td></tr>
+          <tr><td><b>E2</b> policy &amp; buyers<br><small>Neel</small></td><td><code>apps/seller-mcp</code> seller module, <code>apps/buyer-harness</code>, bandit / learning</td><td>scripted buyers until simulated buyers land</td></tr>
+          <tr><td><b>Contract owner</b><br><small>Neel, side duty alongside E2</small></td><td><code>packages/shared</code>, <code>supabase/migrations</code> (frozen after H1)</td><td>the seam both pairs code to; busy only H0–H1, then reviews change requests</td></tr>
         </tbody>
       </table></div>
-      <p class="lede" style="font-size:.86rem">Only one shared file set: the contract, frozen at H1 with one owner. E1 and E2 share <code>apps/seller-mcp</code> but in separate modules, joined by one interface: <code>decide(state) → move</code>.</p>
+      <p class="lede" style="font-size:.86rem">Only one shared file set: the contract, frozen at H1 with one owner (Neel, alongside E2; not a fifth person). E1 and E2 share <code>apps/seller-mcp</code> but in separate modules, joined by one interface: <code>decide(state) → move</code>.</p>
     </section>
   </div>
 </div>
 
 <script>
 const LANES = [
-  { id: "S1", name: "S1 · Gateway & deploy", pair: "Surface" },
-  { id: "S2", name: "S2 · UI & proof", pair: "Surface" },
-  { id: "E1", name: "E1 · Exchange & safety", pair: "Engine" },
-  { id: "E2", name: "E2 · Policy & buyers", pair: "Engine" },
+  { id: "S1", name: "S1 · Gateway & deploy", pair: "Surface", person: "Esha" },
+  { id: "S2", name: "S2 · UI & proof", pair: "Surface", person: "Ananya" },
+  { id: "E1", name: "E1 · Exchange & safety", pair: "Engine", person: "Vivan" },
+  { id: "E2", name: "E2 · Policy & buyers", pair: "Engine", person: "Neel" },
 ];
 const B = (id, lane, start, end, kind, title, d) => ({ id, lane, start, end, kind, title, ...d });
-const CONTRACT = { owner: "Contract owner, with all four", files: "packages/shared (zod), supabase/migrations", mock: "none", deps: "none",
+const CONTRACT = { owner: "All, Neel leads", files: "packages/shared (zod), supabase/migrations", mock: "none", deps: "none",
   gate: "Exchange interface frozen: Move in → Response out, event shape, lever-profile and lever-menu fields. A mock exchange returns valid responses for every tool. Everyone has pulled it." };
 
 const PLANS = {
@@ -270,7 +270,7 @@ function render() {
   let html = '<div></div>' + Array.from({ length: 14 }, (_, h) => `<div class="hour">H${h}</div>`).join("");
   LANES.forEach((l, i) => {
     const row = i + 2;
-    html += `<div class="lane" style="grid-row:${row};grid-column:1">${esc(l.name)}<small>${l.pair} pair</small></div>`;
+    html += `<div class="lane" style="grid-row:${row};grid-column:1">${esc(l.name)}<small>${esc(l.person)} · ${l.pair} pair</small></div>`;
     P.blocks.filter((b) => b.lane === l.id).forEach((b) => {
       html += `<button class="blk ${b.kind}" data-id="${b.id}" aria-pressed="${selected === b.id}" style="grid-row:${row};grid-column:${b.start + 2} / ${b.end + 2}">${esc(b.title)}<span class="tag">${esc(b.owner)}</span></button>`;
     });
