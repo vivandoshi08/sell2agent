@@ -6,7 +6,8 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { NegotiationEvent } from "@sa/shared";
-import { usd } from "./Panels";
+import type { LiveTraffic } from "../metrics/kpis";
+import { pct, usd } from "./Panels";
 
 type P = Record<string, unknown>;
 const pl = (e: NegotiationEvent) => (e.payload ?? {}) as P;
@@ -15,7 +16,7 @@ const time = (iso?: string) => (iso ? new Date(iso).toLocaleTimeString("en-US", 
 
 /** "kb_quietpro_75" → "Quietpro 75". Catalog titles aren't in events; this keeps the card readable. */
 export function productName(id: string | null) {
-  if (!id) return "a product";
+  if (!id) return "";
   const s = id.replace(/^(kb|p|prod|sku)_/i, "").replace(/_/g, " ");
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
@@ -94,13 +95,15 @@ export function useNegotiations(events: NegotiationEvent[], limit = 6) {
 }
 
 export function NegotiationCard({ n, fresh }: { n: ReturnType<typeof useNegotiations>[number]; fresh: boolean }) {
-  const moves = n.evs.map(toMove).filter(Boolean) as Move[];
+  // The exchange logs offer_accepted and deal_accepted for the same close; show the deal once.
+  const dealPrices = new Set(n.evs.filter((e) => e.type === "deal_accepted").map((e) => e.price_cents));
+  const moves = n.evs.filter((e) => !(e.type === "offer_accepted" && dealPrices.has(e.price_cents))).map(toMove).filter(Boolean) as Move[];
   const shown = moves.slice(-6);
   return (
     <article className={`neg-card${fresh ? " fresh" : ""}`} aria-label={`${n.agent} negotiating for ${n.product}`}>
       <header className="neg-h">
         <span className="agent-av" aria-hidden="true">{n.agent.charAt(0)}</span>
-        <div className="neg-who"><b>{n.agent}</b><span>buying <b>{n.product}</b></span></div>
+        <div className="neg-who"><b>{n.agent}</b><span>{n.product ? <>buying <b>{n.product}</b></> : "browsing your catalog"}</span></div>
         <span className={`status s-${n.status.replace(" ", "-").toLowerCase()}`}>{n.status}</span>
       </header>
       <ol className="moves">
@@ -129,7 +132,7 @@ export function SaleToasts({ events }: { events: NegotiationEvent[] }) {
     const fresh = paid.slice(seen.current);
     seen.current = paid.length;
     if (!fresh.length) return;
-    const add = fresh.map((e, i) => ({ id: `${e.negotiation_id ?? e.run_id}-${paid.length}-${i}`, title: `Sold: ${productName(e.product_id)} for ${e.price_cents != null ? usd(e.price_cents) : ""}`, body: `To ${agentName(events.filter((x) => x.buyer_id === e.buyer_id && x.run_id === e.run_id))}'s shopper. Paid in Stripe test mode.` }));
+    const add = fresh.map((e, i) => ({ id: `${e.negotiation_id ?? e.run_id}-${paid.length}-${i}`, title: `Sold: ${productName(e.product_id) || "an order"} for ${e.price_cents != null ? usd(e.price_cents) : ""}`, body: `To ${agentName(events.filter((x) => x.buyer_id === e.buyer_id && x.run_id === e.run_id))}'s shopper. Paid in Stripe test mode.` }));
     setToasts((t) => [...add, ...t].slice(0, 3));
     const timer = setTimeout(() => setToasts((t) => t.filter((x) => !add.some((a) => a.id === x.id))), 6000);
     return () => clearTimeout(timer);
@@ -157,6 +160,20 @@ export function Tally({ events }: { events: NegotiationEvent[] }) {
       <div><span>Deals agreed</span><b className="num">{agreed.length}</b></div>
       <div><span>Negotiations</span><b className="num">{live}</b></div>
       <div><span>Unsafe moves blocked</span><b className="num">{blocks}</b></div>
+    </div>
+  );
+}
+
+/** Real-buyer numbers from the S2 data session's liveTraffic() (live gateway runs only). */
+export function LiveTally({ live }: { live: LiveTraffic }) {
+  return (
+    <div className="tally">
+      <div><span>Negotiations</span><b className="num">{live.negotiations}</b></div>
+      <div><span>Deals agreed</span><b className="num">{live.deals}</b></div>
+      <div><span>Paid</span><b className="num">{live.paid}{live.payment_failures ? ` · ${live.payment_failures} failed` : ""}</b></div>
+      <div><span>Revenue (test)</span><b className="num">{usd(live.revenue_cents)}</b></div>
+      <div><span>Avg off list</span><b className="num">{live.avg_discount == null ? "—" : pct(live.avg_discount)}</b></div>
+      <div><span>Below floor</span><b className={`num${live.below_floor ? " bad" : ""}`}>{live.below_floor}</b></div>
     </div>
   );
 }

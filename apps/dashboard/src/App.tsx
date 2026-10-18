@@ -2,12 +2,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { NegotiationEvent } from "@sa/shared";
 import { pickFeed } from "./data/source";
 import { useRunSelection } from "./data/runs";
-import { policyKpis } from "./metrics/kpis";
+import { liveTraffic, policyKpis } from "./metrics/kpis";
 import { BarCompare } from "./ui/BarCompare";
 import { GuardrailLog, PersonaGrid, SafetyTile, pct, usd } from "./ui/Panels";
-import { NegotiationCard, SaleToasts, Tally, useNegotiations } from "./ui/Seller";
+import { LiveTally, NegotiationCard, SaleToasts, Tally, useNegotiations } from "./ui/Seller";
 import { Contours, Mark } from "./ui/Brand";
-import { BuyerFit, LeverWins, RunPicker } from "./panels/S2Panels";
+import { BuyerFit, LeverWins, ModelFilter, RunPicker } from "./panels/S2Panels";
 import { LearningCurve } from "./panels/LearningCurve";
 import "./ui/fonts";
 
@@ -24,7 +24,14 @@ export function App() {
   useEffect(() => feed.start((all) => setEvents(all), setError), []);
   useEffect(() => { const on = () => setView(viewFromHash()); window.addEventListener("hashchange", on); return () => window.removeEventListener("hashchange", on); }, []);
 
-  const negs = useNegotiations(events, 6);
+  // Live view shows real buyers on the deployed gateway when there are any (an Instinct, ChatGPT, Claude…);
+  // otherwise it replays whatever the feed has (eval run or sample) so the screen is never empty.
+  const live = useMemo(() => liveTraffic(events), [events]);
+  const liveEvents = useMemo(() => { if (!live.negotiations) return events; const ids = new Set(live.run_ids); return events.filter((e) => ids.has(e.run_id)); }, [events, live]);
+  const negs = useNegotiations(liveEvents, 6);
+  const [model, setModel] = useState<string | null>(null);
+  const models = useMemo(() => [...new Set(events.map((e) => e.buyer_model).filter((m): m is string => !!m))].sort(), [events]);
+  const scoped = useMemo(() => (model ? events.filter((e) => e.buyer_model === model || e.actor === "harness" && !e.buyer_id) : events), [events, model]);
   const freshIds = useMemo(() => {
     const now = new Set(negs.map((n) => `${n.id}|${n.evs.length}`));
     const fresh = new Set([...now].filter((k) => !prevIds.current.has(k)).map((k) => k.split("|")[0]));
@@ -32,7 +39,7 @@ export function App() {
     return fresh;
   }, [negs]);
 
-  const { runs, selected, setSelected, filtered, isDefault } = useRunSelection(events);
+  const { runs, selected, setSelected, filtered, isDefault } = useRunSelection(scoped);
   const kpis = useMemo(() => policyKpis(filtered, { resamples: 600 }), [filtered]);
   const base = kpis.find((k) => k.policy === "static");
   const neg = kpis.find((k) => k.policy !== "static");
@@ -61,7 +68,7 @@ export function App() {
         <main className="page" id="live">
           <section className="head">
             <Contours />
-            <p className="meta">Your seller agent · live</p>
+            <p className="meta">{live.negotiations ? `Your seller agent · live on the gateway · ${live.models.filter((m) => m !== "unknown").join(", ") || "buyer agents"}` : "Your seller agent · no live shoppers yet, replaying " + feed.label.toLowerCase()}</p>
             <h1>AI shoppers are negotiating with Keyforge right now.</h1>
             <p className="lede">Every move your agent makes, why it made it, and the rule that kept it safe. Payments are Stripe test mode.</p>
           </section>
@@ -72,11 +79,11 @@ export function App() {
               )}
             </section>
             <aside className="side" aria-label="Today">
-              <section className="card"><h2>Today</h2><Tally events={events} /></section>
-              <section className="card"><h2>Blocked by your rules</h2><GuardrailLog events={events} /></section>
+              <section className="card"><h2>{live.negotiations ? "Real shoppers today" : "Today"}</h2>{live.negotiations ? <LiveTally live={live} /> : <Tally events={liveEvents} />}</section>
+              <section className="card"><h2>Blocked by your rules</h2><GuardrailLog events={liveEvents} /></section>
             </aside>
           </div>
-          <SaleToasts events={events} />
+          <SaleToasts events={liveEvents} />
         </main>
       ) : (
         <main className="page" id="proof">
@@ -86,6 +93,7 @@ export function App() {
             <h1>{ratio != null ? <>Negotiating sellers earn <em>{ratio.toFixed(1)}×</em> more profit per buyer</> : <>Negotiating sellers vs. fixed prices</>}{unsafe === 0 && buyers > 0 ? ", with no rule broken." : "."}</h1>
             <p className="lede">Same catalog, same buyers. One group saw fixed listings; the other negotiated with the seller agent inside the seller's floors and perks.</p>
           </section>
+          <div className="filters"><ModelFilter models={models} model={model} onChange={setModel} /></div>
           <RunPicker runs={runs} selected={selected} onChange={setSelected} isDefault={isDefault} />
 
           <section className="strip" aria-label="Key metrics">
