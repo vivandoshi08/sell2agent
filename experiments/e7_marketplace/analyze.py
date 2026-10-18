@@ -266,6 +266,92 @@ def a8(table: dict) -> dict:
     return res
 
 
+def disc(price, lst):
+    return 1 - price / lst
+
+
+def capture(price, floor, walk):
+    room = walk - floor
+    return None if room <= 0 else min(1.0, max(0.0, (price - floor) / room))
+
+
+def paired_market_vs_o2o(market: list[dict], o2o: list[dict]) -> dict:
+    """Same persona: deal in the market (any winner) vs. deal one-to-one with the negotiating seller."""
+    base = {o["persona_id"]: o for o in o2o if o.get("ended_by") != "error" and o["deal"]}
+    rows = []
+    for r in market:
+        b = base.get(r["persona"]["id"])
+        if r.get("ended_by") == "error" or not r["deal"] or not b:
+            continue
+        rows.append({
+            "persona": r["persona"]["id"], "winner": r["winner"],
+            "market_price": r["price"], "o2o_price": b["price"],
+            "market_disc": disc(r["price"], r["list_total"]), "o2o_disc": disc(b["price"], b["list_total"]),
+            "market_margin": r["profit"] / r["price"], "o2o_margin": b["profit"] / b["price"],
+            "market_capture": capture(r["price"], r["floor_total"], r["persona"]["walk_away"]),
+            "o2o_capture": capture(b["price"], b["floor_total"], b["walk_away"]),
+            "same_basket": r["product_id"] == b["product_id"] and sorted(r["addons"]) == sorted(b["addons"]),
+        })
+    def m(key, xs=rows):
+        vals = [x[key] for x in xs if x[key] is not None]
+        return r4(mean(vals)) if vals else None
+    same = [x for x in rows if x["same_basket"]]
+    return {
+        "n": len(rows), "same_basket_n": len(same),
+        "mean_market_discount": m("market_disc"), "mean_o2o_discount": m("o2o_disc"),
+        "mean_market_margin": m("market_margin"), "mean_o2o_margin": m("o2o_margin"),
+        "mean_market_capture": m("market_capture"), "mean_o2o_capture": m("o2o_capture"),
+        "same_basket_mean_price_diff": r4(mean(x["market_price"] - x["o2o_price"] for x in same)) if same else None,
+        "same_basket_market_cheaper": sum(1 for x in same if x["market_price"] < x["o2o_price"]),
+        "same_basket_o2o_cheaper": sum(1 for x in same if x["market_price"] > x["o2o_price"]),
+        "rows": rows,
+    }
+
+
+def paired_broker_vs_direct(direct: list[dict], broker: list[dict]) -> dict:
+    d = {r["persona"]["id"]: r for r in direct if r.get("ended_by") != "error" and r["deal"]}
+    rows = []
+    for r in broker:
+        x = d.get(r["persona"]["id"])
+        if r.get("ended_by") == "error" or not r["deal"] or not x:
+            continue
+        rows.append({
+            "persona": r["persona"]["id"], "direct_price": x["price"], "broker_price": r["price"],
+            "direct_disc": disc(x["price"], x["list_total"]), "broker_disc": disc(r["price"], r["list_total"]),
+            "same_basket": r["product_id"] == x["product_id"] and sorted(r["addons"]) == sorted(x["addons"]),
+            "direct_winner": x["winner"], "broker_winner": r["winner"],
+        })
+    same = [x for x in rows if x["same_basket"]]
+    return {
+        "n": len(rows), "same_basket_n": len(same),
+        "mean_direct_discount": r4(mean(x["direct_disc"] for x in rows)) if rows else None,
+        "mean_broker_discount": r4(mean(x["broker_disc"] for x in rows)) if rows else None,
+        "same_basket_mean_price_diff_broker_minus_direct": r4(mean(x["broker_price"] - x["direct_price"] for x in same)) if same else None,
+        "same_basket_broker_cheaper": sum(1 for x in same if x["broker_price"] < x["direct_price"]),
+        "same_basket_direct_cheaper": sum(1 for x in same if x["broker_price"] > x["direct_price"]),
+        "same_winner": sum(1 for x in rows if x["direct_winner"] == x["broker_winner"]),
+        "rows": rows,
+    }
+
+
+def valueag_undercut(recs: list[dict]) -> dict:
+    """How deals compare with ValueAg's fixed list for the same basket (the buyer's public fallback)."""
+    deals = [r for r in recs if r.get("ended_by") != "error" and r["deal"]]
+    rows = []
+    for r in deals:
+        va = my_list_total(SPECS["valueag"], r["product_id"], r["addons"])
+        could_afford = r["persona"]["walk_away"] >= my_list_total(SPECS["valueag"], r["persona"]["target_product"], r["persona"]["wants_addons"])
+        rows.append({"below": r["price"] < va, "gap": va - r["price"], "gap_pct": (va - r["price"]) / va, "could_afford_valueag": could_afford})
+    aff = [x for x in rows if x["could_afford_valueag"]]
+    return {
+        "deals": len(rows),
+        "below_valueag_list": sum(1 for x in rows if x["below"]),
+        "mean_gap_below_valueag_pct": r4(mean(x["gap_pct"] for x in rows)) if rows else None,
+        "deals_where_buyer_could_afford_valueag": len(aff),
+        "mean_gap_pct_when_could_afford": r4(mean(x["gap_pct"] for x in aff)) if aff else None,
+    }
+
+
 def md_sellers(table: dict) -> str:
     keys = ["wins", "deal_share", "contact_rate", "win_rate_when_contacted", "avg_price", "avg_discount_from_list",
             "profit", "profit_per_session", "margin", "margin_if_sold_at_valueag_list", "false_claim_transcripts"]
@@ -295,6 +381,7 @@ def main() -> None:
             "market": summarize([r["market"] for r in recs], bootstrap=2000),
             "first_contact": first_contact(recs),
             "a8": a8(table),
+            "vs_valueag_list": valueag_undercut(recs),
         }
         print(f"\n## {mode} (n={len(recs)})\n")
         print(md_sellers(table))
@@ -319,6 +406,9 @@ def main() -> None:
         for mode in results["modes"]:
             recs = load(RUNS / f"{args.tag}_{mode}.jsonl")
             results["k2"][mode] = k2(recs, o2o)
+            results["k2"][mode]["paired_any_winner"] = paired_market_vs_o2o(recs, o2o)
+            pw = results["k2"][mode]["paired_any_winner"]
+            print(f"paired market({mode}) vs o2o:", json.dumps({k: v for k, v in pw.items() if k != "rows"}))
             print(f"k2 {mode}:", json.dumps({k: v for k, v in results["k2"][mode].items() if k != "paired"}, indent=1))
 
     # Pooled across both modes.
@@ -331,12 +421,32 @@ def main() -> None:
         print(md_sellers(t))
         print("a8 pooled:", json.dumps(results["pooled"]["a8"], indent=1))
 
+    d_recs, b_recs = load(RUNS / f"{args.tag}_direct.jsonl"), load(RUNS / f"{args.tag}_broker.jsonl")
+    if d_recs and b_recs:
+        results["k4_paired"] = paired_broker_vs_direct(d_recs, b_recs)
+        print("k4 paired:", json.dumps({k: v for k, v in results["k4_paired"].items() if k != "rows"}))
+    audit = load(RUNS / f"{args.tag}_buyer_audit.jsonl")
+    if audit:
+        results["k1_buyer_audit"] = {}
+        for mode in ("direct", "broker"):
+            a = [x for x in audit if x["mode"] == mode and not x.get("error")]
+            results["k1_buyer_audit"][mode] = {
+                "sessions": len(a),
+                "accurate_citations": sum(x["accurate_citations"] for x in a),
+                "misrepresentations": sum(len(x["misrepresentations"]) for x in a),
+                "sessions_with_misrepresentation": sum(1 for x in a if x["misrepresentations"]),
+                "examples": [dict(m, session=x["persona_id"]) for x in a for m in x["misrepresentations"]][:12],
+            }
+        print("k1 buyer audit:", json.dumps({m: {k: v for k, v in d.items() if k != "examples"} for m, d in results["k1_buyer_audit"].items()}))
+    audit_cost = sum(x["usage"]["cost_usd"] for x in audit)
+
     market_cost = sum(r["usage"]["total"]["cost_usd"] for r in pooled)
     o2o_cost = sum(o["usage"]["cost_usd"] for o in o2o)
     pilot_cost = sum(r["usage"]["total"]["cost_usd"] for m in ("direct", "broker") for r in load(RUNS / f"pilot_{m}.jsonl"))
     results["cost_usd"] = {
         "market": round(market_cost, 2), "one_to_one": round(o2o_cost, 2), "judge": round(judge_cost, 2),
-        "pilot": round(pilot_cost, 2), "total": round(market_cost + o2o_cost + judge_cost + pilot_cost, 2),
+        "buyer_audit": round(audit_cost, 2), "pilot": round(pilot_cost, 2),
+        "total": round(market_cost + o2o_cost + judge_cost + audit_cost + pilot_cost, 2),
     }
     print("\ncost:", results["cost_usd"])
     (HERE / ("results.json" if args.tag == "full" else f"results_{args.tag}.json")).write_text(json.dumps(results, indent=2, default=str) + "\n")
