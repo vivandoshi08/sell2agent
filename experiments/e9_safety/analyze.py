@@ -185,16 +185,33 @@ def main() -> None:
                     blocked_ctl.append({"job": r["job"], "round": t["round"], "attempt": a["attempt"], "rules": rules,
                                         "message": a["message"], "spans": [f["span"] for f in a["findings"] if f["enforced"]]})
     labels = json.loads((RUNS / "fp_labels.json").read_text()) if (RUNS / "fp_labels.json").exists() else {}
-    for b in blocked_ctl:
-        b["label"] = labels.get(f"{b['job']}|{b['round']}|{b['attempt']}")
+
+    def label_draft(b):
+        b["labels"] = {rule: labels.get(f"{b['job']}|{b['round']}|{b['attempt']}|{rule}") for rule in b["rules"]}
+        vals = set(b["labels"].values())
+        b["verdict"] = "false_positive" if vals == {"ok"} else ("true_positive" if "violation" in vals else "unlabelled")
+        return b
+
+    blocked_ctl = [label_draft(b) for b in blocked_ctl]
     blocked_att = []
     for r in att:
         for t in r.get("seller_turns") or []:
             for a in t["attempts"]:
-                rules = [f["rule"] for f in a["findings"] if f["enforced"] and f["layer"] == "output"]
+                rules = sorted({f["rule"] for f in a["findings"] if f["enforced"] and f["layer"] == "output"})
                 if rules:
-                    blocked_att.append({"job": r["job"], "round": t["round"], "attempt": a["attempt"], "rules": rules,
-                                        "message": a["message"]})
+                    blocked_att.append(label_draft({"job": r["job"], "round": t["round"], "attempt": a["attempt"], "rules": rules,
+                                                    "message": a["message"]}))
+
+    def fp_summary(bs):
+        c = Counter(b["verdict"] for b in bs)
+        by_rule = Counter()
+        for b in bs:
+            for rule, v in b["labels"].items():
+                by_rule[(rule, v or "unlabelled")] += 1
+        return {"blocked_drafts": len(bs), "true_positive": c["true_positive"], "false_positive": c["false_positive"],
+                "unlabelled": c["unlabelled"], "by_rule": {f"{k[0]}:{k[1]}": v for k, v in sorted(by_rule.items())}}
+
+    false_positives = {"control": fp_summary(blocked_ctl), "attack": fp_summary(blocked_att)}
 
     # Deterministic tests and offline evidence.
     tests = subprocess.run([sys.executable, str(HERE / "test_guardrails.py")], capture_output=True, text=True)
@@ -239,8 +256,9 @@ def main() -> None:
         "cells": cells,
         "control": control,
         "control_comparisons": comparisons,
+        "false_positives": false_positives,
         "blocked_control_drafts": blocked_ctl,
-        "blocked_attack_drafts_count": len(blocked_att),
+        "blocked_attack_drafts": blocked_att,
         "policy_test": policy_test,
         "replay": replay_summary,
     }
@@ -276,6 +294,7 @@ def main() -> None:
     L.append("\n## Control comparisons (paired by buyer)\n")
     for k, v in comparisons.items():
         L.append(f"- {k}: {json.dumps({x: v[x] for x in v if x != 'unpaired'})}")
+    L.append(f"\n## Blocked drafts (hand-labelled)\n\n- control: {json.dumps(false_positives['control'])}\n- attack: {json.dumps(false_positives['attack'])}")
     L.append(f"\n## Verdicts\n\n- A13: {json.dumps(a13)}\n- A14: {json.dumps(res['verdicts']['A14'])}")
     L.append(f"\nTotal model cost (sessions + audits): ${res['total_model_cost_usd']}")
     (RUNS / "analysis.md").write_text("\n".join(L))
