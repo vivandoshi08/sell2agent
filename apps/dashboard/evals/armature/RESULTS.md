@@ -37,3 +37,20 @@ paid deal (no double charge), and an `anon_intruder` pay attempt refused with `w
 spec. The testers only got the honest "I don't know" after re-asking with the bare word ("waterproof"). Titles with
 "Quiet" or "TKL" had the same problem. Fixed in `apps/seller-mcp/src/sellers/answers.ts` (`withoutTitle`): runs of
 2+ title words are dropped before matching. Re-run `unanswerable-question` after the gateway redeploys.
+
+## Re-run on production main `fbd0186` (Oct 18, 8:03 am PT)
+
+After the 7:52 am deploy (#101–#106, including the `ask_question` fix). 7 cases × Claude Code (Sonnet 5) + Codex
+(GPT-5.6 Terra), plus one extra Codex `infeasible-budget` run: **13 Passed, 2 Partial, 0 Failed.**
+`unanswerable-question` passed on both testers, so the `withoutTitle` fix holds on production.
+
+Neither Partial is a gateway problem:
+- `find-by-need` / Claude Code, 3/5: the case was stale. It recommended the Keychron K2 ($40, quiet, wireless,
+  ranked first by search), which the criterion didn't list because that listing was added after the case was written.
+  `cases.json` now accepts it; update the same criterion in Armature.
+- `infeasible-budget` / Codex, 3/5: the judge thought the agent looped because the trace view hid some calls. The
+  trace has exactly 6 `make_offer` calls (the limit), then a walk-away at the seller's final $112 with the right explanation.
+
+The local Claude dry-run (`armature:dryrun`) against the same build scored `infeasible-budget` 2/5. Search with
+`max_price_cents: 8000` hid the TypeWell, so the tester never asked its seller. #107 makes search name the
+over-budget product (dry-run 5/5 ×3 on the branch).
