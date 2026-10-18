@@ -97,3 +97,18 @@ export function guardMove(g: GuardInput): GuardedMove {
   }
   return { move: m, blocks };
 }
+
+/**
+ * Past the round cap (only a counter to a follow-up gets there): hold the price already offered. Accept a bid at or
+ * above it (capped at list), else repeat it as final. Without this, a follow-up counter re-ran decide() for an extra
+ * final round whose accept zone could close below the pre-walk price, so walking away bought a better price (PR #94 sim).
+ * `soft` is the soft floor of the current package (a lever added in the reply raises it).
+ */
+export function holdAtCap(move: ProposedMove, prev_seller_offer_cents: number, bid_cents: number, soft: number, list_cents: number): ProposedMove {
+  const hold = Math.min(list_cents, Math.max(prev_seller_offer_cents, soft));
+  if (bid_cents >= hold) {
+    const price = Math.min(bid_cents, list_cents);
+    return { ...move, action: "accept", price_cents: price, final: true, reason: "buyer_offer_meets_ask", reason_text: `Your offer of ${usd(price)} meets our price, so we accept.` };
+  }
+  return { ...move, action: "offer", price_cents: hold, final: true, reason: "final_offer", reason_text: `${usd(hold)} is still our best price.` };
+}

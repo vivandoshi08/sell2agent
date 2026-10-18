@@ -10,11 +10,13 @@ import { z } from "zod";
 import { Exchange, type ExchangeResponse, type Move } from "@sa/seller-mcp/exchange";
 import { defaultLlm, dealSummary as dealLine, SUMMARY_MAX } from "@sa/seller-mcp/sellers";
 import { approveUrl } from "./deal/approve.js";
+import { followupSender } from "./followup/index.js";
 
 let exP: Promise<Exchange> | undefined;
 /** Supabase-backed when SUPABASE_URL is set (stateless-safe), else in-memory (single instance). */
 // Seller voice: Claude when ANTHROPIC_API_KEY is set (E2 voice() guards every figure and falls back to templates).
-export const exchange = () => (exP ??= Exchange.fromEnv({ llm: defaultLlm() }));
+// Follow-ups (Bridge 3) go out through Inkbox when INKBOX_API_KEY is set, else the log courier (src/followup).
+export const exchange = () => (exP ??= Exchange.fromEnv({ llm: defaultLlm(), send: followupSender() }));
 
 const ctxFields = {
   run_id: z.string().optional().describe("Eval run id (simulated buyers only)"),

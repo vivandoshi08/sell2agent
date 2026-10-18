@@ -14,6 +14,7 @@ Per seller turn: **input guard** (strip injections, log out-of-policy asks, circ
 | `deals.ts` | HMAC-signed deals; `getLockedDeal`, `validateForPayment`, `markPaid` for S2's pay handler |
 | `decision-guard.ts`, `input-guard.ts`, `output-guard.ts` | E9 guardrails ported from `experiments/e9_safety/guardrails.py` |
 | `store.ts`, `catalog.ts`, `events.ts` | memory store, seed catalog, event sink (Supabase `logEvent` when `SUPABASE_URL` is set) |
+| `outreach.ts`, `inbound.ts` | Bridge 3 follow-ups: queue, weekly cap, routing and opt-outs in the store; `runDue()`, `resolve()`, `inbound()`. The gateway's door (`apps/marketplace/src/followup`) runs them |
 
 Checks: `pnpm --filter @sa/seller-mcp test` and `pnpm --filter @sa/seller-mcp gate` (30 negotiations incl. E4/E9 attacks).
 
