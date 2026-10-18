@@ -1,0 +1,18 @@
+[
+  {
+    "result": {
+      "run_id": "extras_on_30_negotiating",
+      "label": "negotiating",
+      "buyers": 30,
+      "conversions": 18,
+      "conversion_rate": 0.6,
+      "safe_conversions": 18,
+      "safe_conversion_rate": 0.6,
+      "revenue_cents": 208000,
+      "profit_cents": 88900,
+      "avg_margin_pct": 42.65582836390232,
+      "avg_rounds": 4.054545454545455
+    },
+    "unsafe": []
+  }
+]

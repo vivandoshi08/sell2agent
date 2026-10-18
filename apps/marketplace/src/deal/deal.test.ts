@@ -101,6 +101,11 @@ test("exchange refusals come back with a reason and a fix, and nothing is charge
   assert.equal(wrong.code, "wrong_buyer");
   assert.equal(charges.length, 0);
   assert.ok(events.every((e) => e.type === "payment_failed"));
+  // The refusal row still says which negotiation it was about, and who tried (DONE.md: payments land in events).
+  const w = events.at(-1)!;
+  assert.ok(w.negotiation_id, "refusal row has the deal's negotiation_id");
+  assert.equal(w.buyer_id, "someone_else");
+  assert.equal((w.payload as any).code, "wrong_buyer");
 });
 
 test("a declined card is logged as payment_failed and can be retried", async () => {

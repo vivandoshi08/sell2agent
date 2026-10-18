@@ -4,7 +4,7 @@
  * They use only class names and tokens that exist in both the current and the redesigned styles.css.
  */
 import type { PolicyKpis } from "../metrics/kpis";
-import { leverWinsByPersona } from "../metrics/kpis";
+import { leverWinsByPersona, type LiveTraffic } from "../metrics/kpis";
 import type { RunInfo } from "../data/runs";
 import { BarCompare } from "../ui/BarCompare";
 
@@ -38,6 +38,20 @@ export function RunPicker({ runs, selected, onChange, isDefault }: { runs: RunIn
       </div>
       {!isDefault && <button type="button" onClick={() => onChange(null)} style={{ marginTop: 8, font: "inherit", cursor: "pointer" }}>Back to latest per policy</button>}
     </details>
+  );
+}
+
+/** Filter every panel to one buyer model (Claude vs GPT vs ChatGPT users). Hidden when there's only one. */
+export function ModelFilter({ models, model, onChange }: { models: string[]; model: string | null; onChange: (m: string | null) => void }) {
+  if (models.length <= 1) return null;
+  return (
+    <label className="badge" style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
+      <span>Buyer model</span>
+      <select value={model ?? ""} onChange={(e) => onChange(e.target.value || null)} style={{ font: "inherit", background: "transparent", color: "inherit", border: 0 }}>
+        <option value="">all</option>
+        {models.map((m) => <option key={m} value={m}>{m}</option>)}
+      </select>
+    </label>
   );
 }
 
@@ -86,4 +100,57 @@ export function LeverWins({ kpis }: { kpis: PolicyKpis[] }) {
       {allPriceOnly && <p className="empty">Every deal so far is price only: the lever policy is still gated off (E2). This fills in once sellers offer warranty, shipping or bundles.</p>}
     </div>
   );
+}
+
+const usd = (c: number) => `$${(c / 100).toFixed(c % 100 ? 2 : 0)}`;
+const RULES: Record<string, string> = {
+  concession_cap: "cut too big for one round", price_freeze: "price frozen (probing detected)", buyer_memory_resume: "returning buyer resumed at last offer",
+  final_not_final: "\"final\" offer wasn't final", floor: "below floor", out_of_policy_ask: "buyer asked for something not offered",
+  input_injection: "prompt injection in a buyer message",
+};
+// Public titles of the seed catalog (supabase/seed.sql); unknown ids fall back to a readable id.
+const TITLES: Record<string, string> = {
+  kb_keyforge_quiet75: "KeyForge Quiet 75", kb_clackco_tkl: "ClackCo TKL Pro", kb_typewell_65: "TypeWell 65 Silent",
+  hp_keyforge_anc: "KeyForge ANC Over-Ear", hp_clackco_studio: "ClackCo Studio Wired", hp_typewell_buds: "TypeWell ANC Buds",
+};
+const titleOf = (id: string | null) => TITLES[id ?? ""] ?? (id ?? "").replace(/^(kb|hp)_/, "").split("_").map((w) => w[0]?.toUpperCase() + w.slice(1)).join(" ");
+
+/** Real buyers on the deployed gateway (e.g. ChatGPT users): what they actually paid, with no eval policy split. */
+export function LiveTrafficPanel({ live }: { live: LiveTraffic }) {
+  if (!live.negotiations && !live.deals) return null;
+  return (
+    <div className="panel">
+      <div className="panel-head"><h2>Real buyers on the live gateway</h2><span className="eyebrow">{live.models.filter((m) => m !== "unknown").join(", ") || "buyer agents"} · Stripe test mode</span></div>
+      <div className="lt-stats num" style={{ display: "flex", gap: 28, flexWrap: "wrap", margin: "8px 0 14px" }}>
+        <Stat label="Negotiations" value={String(live.negotiations)} />
+        <Stat label="Deals" value={String(live.deals)} />
+        <Stat label="Paid" value={`${live.paid}${live.payment_failures ? ` · ${live.payment_failures} failed` : ""}`} />
+        <Stat label="Revenue (test)" value={usd(live.revenue_cents)} />
+        <Stat label="Avg discount off list" value={live.avg_discount == null ? "—" : pct(live.avg_discount)} />
+        <Stat label="Below floor" value={String(live.below_floor)} bad={live.below_floor > 0} />
+      </div>
+      {live.recent_deals.length > 0 && (
+        <div className="scroll">
+          <table className="pgrid">
+            <thead><tr><th>Time</th><th>Product</th><th>Deal</th><th>List</th><th>Paid</th></tr></thead>
+            <tbody>{live.recent_deals.map((d, i) => (
+              <tr key={i}>
+                <td className="num" style={muted}>{d.ts ? new Date(d.ts).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : ""}</td>
+                <td>{titleOf(d.product_id)}</td>
+                <td className="num">{usd(d.price_cents)}</td>
+                <td className="num" style={muted}>{d.list_price_cents == null ? "—" : usd(d.list_price_cents)}</td>
+                <td>{d.paid ? <span className="pill neg">paid</span> : <span style={muted}>not yet</span>}</td>
+              </tr>
+            ))}</tbody>
+          </table>
+        </div>
+      )}
+      {live.below_floor > 0 && <p className="err">{live.below_floor} deal{live.below_floor > 1 ? "s were" : " was"} flagged below floor by the exchange. Check the deal_accepted events (below_floor: true).</p>}
+      {live.blocks.length > 0 && <p className="empty">Guardrails stepped in {live.blocks.reduce((s, b) => s + b.n, 0)} times: {live.blocks.map((b) => `${RULES[b.rule] ?? b.rule} (${b.n})`).join(", ")}.</p>}
+    </div>
+  );
+}
+
+function Stat({ label, value, bad = false }: { label: string; value: string; bad?: boolean }) {
+  return <div style={{ display: "grid", gap: 2 }}><span className="eyebrow">{label}</span><b style={{ fontSize: "1.35rem", color: bad ? "var(--bad)" : undefined }}>{value}</b></div>;
 }

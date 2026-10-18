@@ -47,8 +47,12 @@ const harnessRuns = resolve(import.meta.dirname, "../../buyer-harness/runs");
 const outDir = resolve(import.meta.dirname, "../public/runs");
 mkdirSync(outDir, { recursive: true });
 
-console.log(`\n${evalId}: ${buyers.length} buyers · ${models.join(", ")} · ${gatewayUrl ?? (f["stand-in"] ? "E2 stand-in" : "E1 exchange (in-process)")} · ${policies.join(" vs ")}${sellerLlm ? " · Claude seller voice" : ""}${db ? " · Supabase on" : ""}\n`);
+if (f.rescore) console.log(`\nRe-scoring ${evalId} (no model calls)\n`);
+else console.log(`\n${evalId}: ${buyers.length} buyers · ${models.join(", ")} · ${gatewayUrl ?? (f["stand-in"] ? "E2 stand-in" : "E1 exchange (in-process)")} · ${policies.join(" vs ")}${sellerLlm ? " · Claude seller voice" : ""}${db ? " · Supabase on" : ""}\n`);
 
+// --rescore: read the harness's raw jsonl if it's here, else a saved run (public/runs/<id>.events.json, e.g. a teammate's).
+const saved = f.rescore && existsSync(resolve(outDir, `${evalId}.events.json`))
+  ? (JSON.parse(readFileSync(resolve(outDir, `${evalId}.events.json`), "utf8")) as NegotiationEvent[]) : [];
 const allEvents: NegotiationEvent[] = [];
 const results = [];
 for (const policy of policies) {
@@ -63,7 +67,8 @@ for (const policy of policies) {
     process.stdout.write("\n");
   }
   const file = resolve(harnessRuns, `${run_id}.events.jsonl`);
-  const events: NegotiationEvent[] = existsSync(file) ? readFileSync(file, "utf8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)) : [];
+  const events: NegotiationEvent[] = existsSync(file) ? readFileSync(file, "utf8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l))
+    : saved.filter((e) => e.run_id === run_id && (e.type as string) !== "judged"); // drop old verdicts; the judge re-runs below
   const report = await computeRunResult(run_id, events, costs, { label: policy });
   allEvents.push(...report.events);
   results.push(report);
@@ -88,7 +93,14 @@ for (const r of results) {
 for (const r of results) for (const j of r.judgements.filter((x) => !x.safe).slice(0, 5))
   console.log(`  ${r.result.label} unsafe ${j.negotiation_id}: ${j.findings.map((x) => `${x.rule} (${x.detail})`).join("; ")}`);
 
+if (!allEvents.length) {
+  // Never overwrite a saved run with nothing (e.g. --rescore with a wrong id).
+  console.error(`\nNo events found for ${policies.map((p) => `${evalId}_${p}`).join(", ")}; nothing written.`);
+  process.exit(1);
+}
 writeFileSync(resolve(outDir, `${evalId}.events.json`), JSON.stringify(allEvents));
 writeFileSync(resolve(outDir, `${evalId}.results.json`), JSON.stringify(results.map((r) => ({ result: r.result, unsafe: r.judgements.filter((j) => !j.safe) })), null, 2));
-writeFileSync(resolve(outDir, "latest.json"), JSON.stringify({ eval_id: evalId, events: `${evalId}.events.json`, results: `${evalId}.results.json`, policies, buyers: buyers.length, models }));
+writeFileSync(resolve(outDir, "latest.json"), JSON.stringify({ eval_id: evalId, events: `${evalId}.events.json`, results: `${evalId}.results.json`, policies,
+  buyers: f.rescore ? Math.max(0, ...kpis.map((k) => k.buyers)) : buyers.length,
+  models: f.rescore ? [...new Set(allEvents.map((e) => e.buyer_model).filter(Boolean))] : models }));
 console.log(`\nSaved apps/dashboard/public/runs/${evalId}.*  →  open the dashboard with ?local to view this run`);

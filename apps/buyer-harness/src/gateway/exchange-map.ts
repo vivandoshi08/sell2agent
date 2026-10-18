@@ -30,7 +30,7 @@ export class NegotiationBook {
     const status: GwOfferResult["status"] = resp.ok && resp.status === "accept" ? "accept" : resp.ok && resp.status === "counter" ? "counter" : "reject";
     const err = !resp.ok && resp.error ? ` [${resp.error.code}]` : "";
     return { negotiation_id: id, status, price_cents: price, round: resp.round ?? 0, rounds_left: resp.rounds_left ?? 0,
-      final: so?.final ?? (resp.rounds_left ?? 1) === 0, message: `${resp.message}${err}` };
+      final: so?.final ?? (resp.rounds_left ?? 1) === 0, message: `${resp.message}${err}`, extras: so?.levers ?? [] };
   }
 
   /** What accept_deal needs: the live offer_id, or the deal the seller already locked by accepting our bid. */

@@ -15,7 +15,8 @@
     "test:sellers": "pnpm --filter @sa/seller-mcp test",
     "buyers": "pnpm --filter @sa/buyer-harness buyers",
     "e2:lever-gate": "pnpm --filter @sa/buyer-harness e2:lever-gate",
-    "e2:bandit": "pnpm --filter @sa/buyer-harness e2:bandit"
+    "e2:bandit": "pnpm --filter @sa/buyer-harness e2:bandit",
+    "e2:personas": "pnpm --filter @sa/buyer-harness e2:personas"
   },
   "devDependencies": {
     "tsx": "^4.19.0",
