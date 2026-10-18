@@ -27,7 +27,7 @@ import type { Gateway, GwAcceptResult, GwOfferArgs, GwOfferResult } from "./gate
 import { keyedRng, type Replier, type ReplyTurn } from "./agents/replier";
 import type { LlmBuyerTask } from "./agents/personas";
 import type { BuyerOutcome } from "./agents/buyer";
-import { runAll, type Summary } from "./run-all";
+import { runAll, type RunAllConfig, type Summary } from "./run-all";
 
 export const T0 = Date.parse("2026-10-18T17:00:00Z"); // fake clock start (reproducible offer expiries)
 const DAY = 24 * 3600_000;
@@ -45,6 +45,7 @@ export interface FollowupSimConfig {
   concurrency?: number;
   max_steps?: number;
   seller_llm?: Llm | null;
+  brain_for?: RunAllConfig["brain_for"]; // shopping brains (default: by buyer_model)
   log?: (line: string) => void;
 }
 
@@ -283,7 +284,7 @@ export async function runFollowupSim(cfg: FollowupSimConfig): Promise<FollowupSi
 
   // ---- 1. shopping pass (same for both arms)
   const { summary, outcomes } = await runAll({ run_id: cfg.run_id, label: strategy, buyers: cfg.buyers, gateway: gw,
-    concurrency: cfg.concurrency, max_steps: cfg.max_steps,
+    concurrency: cfg.concurrency, max_steps: cfg.max_steps, brain_for: cfg.brain_for,
     on_outcome: (o) => log(`  [shop] ${o.buyer_id} ${o.persona.padEnd(13)} ${o.closed ? `bought at ${usd(o.price_cents!)}` : `walked: ${(o.walked_reason ?? (o.error ? `error ${o.error}` : "out of steps")).slice(0, 70)}`}`) });
   const byId = new Map(outcomes.map((o) => [o.buyer_id, o]));
 
