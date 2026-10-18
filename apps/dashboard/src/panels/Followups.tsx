@@ -58,7 +58,7 @@ type Step = { k: string; title: string; ts?: string; text?: string; note?: strin
 function steps(t: FollowupThread): Step[] {
   const out: Step[] = [];
   out.push(t.walked
-    ? { k: "walk", title: "Walked away", ts: t.walked.ts, text: t.walked.reason ? `“${t.walked.reason}”` : undefined, note: t.walked.consent ? `OK to follow up by ${via(t.walked.channel)}` : "No consent to follow up", tone: "done" }
+    ? { k: "walk", title: "Walked away", ts: t.walked.ts, text: t.walked.reason ? `“${t.walked.reason}”` : undefined, note: t.walked.consent ? (t.walked.channel ? `OK to follow up by ${via(t.walked.channel)}` : "OK to follow up") : "No consent to follow up", tone: "done" }
     : { k: "walk", title: "Walked away", tone: "done" });
   if (t.sent) {
     const s = t.sent;
@@ -69,7 +69,7 @@ function steps(t: FollowupThread): Step[] {
   } else if (t.blocked) {
     out.push({ k: "sent", title: BLOCK[t.blocked.rule] ?? `Not sent: ${t.blocked.rule.replace(/_/g, " ")}`, ts: t.blocked.ts, rules: [t.blocked.rule], tone: "warn" });
   } else {
-    out.push({ k: "sent", title: "Follow-up queued", text: `Goes out by ${via(t.walked?.channel)} after a short wait`, tone: "todo" });
+    out.push({ k: "sent", title: "Follow-up queued", text: t.walked?.channel ? `Goes out by ${via(t.walked.channel)} after a short wait` : "Goes out after a short wait", tone: "todo" });
   }
   const r = t.replies.at(-1);
   if (r) {

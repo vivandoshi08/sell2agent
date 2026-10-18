@@ -1,7 +1,8 @@
 /**
  * Bridge 3 follow-ups: a walk-away with consent → one follow-up offer (email / SMS / log) → the buyer's reply → a deal.
  * Pure functions over `events`, like kpis.ts. Event shapes (E1 outreach, branch b3-followups):
- *   buyer_walked_away   payload.followup_consent, payload.channel
+ *   buyer_walked_away   payload.followup_consent; payload.channel is the follow-up channel only when the negotiation has no
+ *                       contract-v3 BuyerChannel (the exchange's emit() writes n.channel over it), so it's read only if it's one
  *   offer_countered     payload.followup: true, followup_channel, offer_id, lever_package (lever ids), expires_at,
  *                       delivery {via,status,message_id} | {status:"failed",error}, outbox {channel,to (masked),subject}
  *   question_asked      actor buyer, payload.inbound: true, intent, clarify_reason?, message (sanitized), reply, result_state
@@ -21,6 +22,9 @@ export const FOLLOWUP_RULES = ["followup_cap", "unsubscribed", "followup_policy"
 export const isFollowupBlock = (e: Ev) => e.type === "guardrail_blocked" && (FOLLOWUP_RULES as readonly string[]).includes(String(p(e).rule));
 export const isFollowupOffer = (e: Ev) => e.type === "offer_countered" && p(e).followup === true;
 export const isInboundReply = (e: Ev) => e.type === "question_asked" && p(e).inbound === true;
+/** Follow-up channels (E1 FollowUpConsent). Anything else in payload.channel is the buyer's own channel (mcp, harness…). */
+export const FOLLOWUP_CHANNELS = ["email", "sms", "a2a"];
+const followupChannel = (v: unknown) => (typeof v === "string" && FOLLOWUP_CHANNELS.includes(v) ? v : null);
 
 export type ThreadStatus = "queued" | "sent" | "replied" | "recovered" | "paid" | "not_sent" | "failed" | "opted_out";
 
@@ -109,7 +113,8 @@ export function followupSummary(events: Ev[]): FollowupSummary {
       buyer_model: evs.find((e) => e.buyer_model)?.buyer_model ?? null,
       product_id: evs.find((e) => e.product_id)?.product_id ?? null,
       product_title: evs.map((e) => str(p(e).product_title)).find(Boolean) ?? null,
-      walked: walk ? { ts: walk.ts ?? "", reason: str(p(walk).reason), consent: p(walk).followup_consent === true, channel: str(p(walk).channel) ?? null } : null,
+      walked: walk ? { ts: walk.ts ?? "", reason: str(p(walk).reason), consent: p(walk).followup_consent === true,
+        channel: followupChannel(p(walk).followup_channel) ?? followupChannel(p(walk).channel) ?? (offer ? followupChannel(p(offer).followup_channel) : null) } : null,
       sent: offer ? {
         ts: offer.ts ?? "", channel: str(p(offer).followup_channel) ?? str(outbox?.channel) ?? null, price_cents: offer.price_cents ?? null, list_price_cents: listed,
         levers: leverIds(p(offer).lever_package), expires_at: str(p(offer).expires_at), via: str(delivery?.via), delivered: delivery?.status !== "failed",

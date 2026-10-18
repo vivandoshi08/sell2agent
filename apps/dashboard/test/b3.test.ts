@@ -31,6 +31,7 @@ test("follow-ups: consented walk-aways get a timeline; totals count sent, recove
   assert.equal(byBuyer("fu_ana", "kb_keyforge_quiet75").status, "not_sent");
   assert.equal(byBuyer("fu_mei", "kb_keyforge_quiet75").counters.length, 1);
   assert.ok(!s.threads.some((t) => t.buyer_id === "fu_kim"), "no consent, no thread");
+  assert.equal(byBuyer("fu_raj", "hp_keyforge_anc").walked?.channel, "sms");
 });
 
 test("follow-ups: a deal before the follow-up isn't recovered; a failed send isn't counted as sent; nothing reads floor or cost", () => {
@@ -47,6 +48,14 @@ test("follow-ups: a deal before the follow-up isn't recovered; a failed send isn
   assert.equal(s.failed, 1);
   assert.equal(s.threads[0].status, "failed");
   assert.equal(s.recovered, 0, "n2's deal has no follow-up");
+  // On the gateway, emit() writes the buyer's own channel (contract v3) over the walk-away's payload.channel.
+  const gw = followupSummary([
+    ev("buyer_walked_away", { actor: "buyer", negotiation_id: "g1" }, { followup_consent: true, channel: "mcp" }),
+    ev("offer_countered", { price_cents: 12000, negotiation_id: "g1" }, { followup: true, followup_channel: "email", channel: "mcp", delivery: { via: "inkbox", status: "sent" } }),
+    ev("buyer_walked_away", { actor: "buyer", negotiation_id: "g2" }, { followup_consent: true, channel: "chatgpt" }),
+  ]);
+  assert.equal(gw.threads.find((t) => t.negotiation_id === "g1")!.walked?.channel, "email", "the follow-up's own channel, not the BuyerChannel");
+  assert.equal(gw.threads.find((t) => t.negotiation_id === "g2")!.walked?.channel, null, "queued: channel unknown rather than wrong");
   const json = JSON.stringify(followupSummary(fakeFollowups()));
   assert.ok(!/floor|unit_cost|lever_cost/.test(json), "summary carries no floor or cost fields");
 });

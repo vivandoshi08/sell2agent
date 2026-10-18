@@ -29,7 +29,7 @@ export function productTitle(evs: NegotiationEvent[], id: string | null = evs.fi
 
 /** Which assistant is shopping: contract v3 `agent_operator`, else a guess from `buyer_model`. */
 export function agentName(evs: NegotiationEvent[]) {
-  for (const e of evs) { const op = str(pl(e).agent_operator); if (op) return op.charAt(0).toUpperCase() + op.slice(1); }
+  for (const e of evs) { const op = str(pl(e).agent_operator); if (op && op.toLowerCase() !== "unknown") return op.charAt(0).toUpperCase() + op.slice(1); }
   const m = (evs.find((e) => e.buyer_model)?.buyer_model ?? "").toLowerCase();
   if (m.includes("instinct")) return "Instinct";
   if (m.includes("claude")) return "Claude";
@@ -83,7 +83,7 @@ function toMove(e: NegotiationEvent, i: number): Move | null {
       const held = typeof p.clamped_to_cents === "number" ? ` at ${usd(p.clamped_to_cents)}` : "";
       return { key: k, ts: e.ts, who: "seller", text: str(p.seller_message) ?? (routine ? `Held the price${held}` : "Blocked a move that broke your rules"), why: str(p.reason), rules: [String(p.rule ?? "rule")], tone: routine ? "" : "warn" };
     }
-    case "buyer_walked_away": return { key: k, ts: e.ts, who: "buyer", text: p.followup_consent === true ? `Walked away, OK to follow up by ${p.channel === "sms" ? "text" : str(p.channel) ?? "message"}` : "Walked away", why: str(p.reason), rules: [], tone: "" };
+    case "buyer_walked_away": return { key: k, ts: e.ts, who: "buyer", text: p.followup_consent === true ? `Walked away, OK to follow up${p.channel === "email" ? " by email" : p.channel === "sms" ? " by text" : ""}` : "Walked away", why: str(p.reason), rules: [], tone: "" };
     case "offer_expired": return { key: k, ts: e.ts, who: "system", text: "Offer expired", rules: [], tone: "" };
     default: return null;
   }
