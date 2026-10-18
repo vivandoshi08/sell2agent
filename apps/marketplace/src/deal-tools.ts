@@ -107,7 +107,9 @@ export function registerDealTools(server: any) {
         const ctx = toCtx(a, rc);
         if (!ctx.buyer_id) return missingBuyer();
         const r = await (await deal()).payApprovedDeal(a.deal_id, a.payment_token, { buyer: ctx, run_id: ctx.run_id });
-        const text = r.status === "succeeded" ? `Paid with the simulated wallet (Stripe test mode), ${r.payment_intent_id ?? ""}. Tell the person it's bought.`
+        const text = r.status === "succeeded" && r.held
+          ? `Paid with the simulated wallet and held for pickup (${r.payment_intent_id}, Stripe test mode). The card is charged only when the seller confirms the handoff. Tell the person their pickup code: ${r.pickup_code}.`
+          : r.status === "succeeded" ? `Paid with the simulated wallet (Stripe test mode), ${r.payment_intent_id ?? ""}. Tell the person it's bought.`
           : `Payment ${r.status}.${r.reasons?.length ? ` ${r.reasons.join(" ")}` : ""}${r.fix ? ` Fix: ${r.fix}` : ""}`;
         return { content: [{ type: "text" as const, text }], structuredContent: r };
       } catch (e) {

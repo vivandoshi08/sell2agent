@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { precheckToken, parseCredential } from "../src/seller";
 import { checkSpend, needsHumanApproval } from "../src/wallet";
 import type { Deal } from "../src/types";
+import { platformFee, pickupCode, splitParams } from "../src/connect";
 
 const deal: Deal = { deal_id: "d1", amount_cents: 11900, currency: "usd", description: "x", seller_id: "s" };
 const ok = { currency: "usd", max_amount: 11900, expires_at: 2_000_000_000, deactivated_reason: null };
@@ -30,4 +31,32 @@ test("wallet blocks over total cap", () =>
 test("human approval threshold", () => {
   assert.equal(needsHumanApproval(req, { per_purchase_cap_cents: 20000, auto_approve_below_cents: 10000 }), true);
   assert.equal(needsHumanApproval(req, { per_purchase_cap_cents: 20000 }), false);
+});
+
+// ── Marketplace split + pickup (connect.ts): pure parts only ─────────────────────────────────────────
+
+test("platform fee: 5% default, integer cents", () => {
+  assert.equal(platformFee(3600, 500), 180);
+  assert.equal(platformFee(3333, 500), 167);
+  assert.equal(platformFee(3600, 0), 0);
+});
+
+test("split params: destination + fee, manual capture only when holding", () => {
+  assert.deepEqual(splitParams(null), {});
+  const held = splitParams({ account_id: "acct_1", fee_cents: 180, seller_cents: 3420, hold: true });
+  assert.deepEqual(held, { application_fee_amount: 180, transfer_data: { destination: "acct_1" }, capture_method: "manual" });
+  const now = splitParams({ account_id: "acct_1", fee_cents: 180, seller_cents: 3420, hold: false });
+  assert.equal("capture_method" in now, false);
+});
+
+test("pickup code: 6 digits, stable per payment, differs across payments", () => {
+  process.env.PICKUP_SECRET = "test-secret";
+  const a = pickupCode("pi_A"), b = pickupCode("pi_B");
+  assert.match(a, /^\d{6}$/);
+  assert.equal(a, pickupCode("pi_A"));
+  assert.notEqual(a, b);
+});
+
+test("parseCredential: checkout session", () => {
+  assert.deepEqual(parseCredential({ checkout_session: "cs_test_1" }), { kind: "checkout", session: "cs_test_1" });
 });

@@ -17,6 +17,8 @@ export interface PayDeps {
   logEvent: (e: NegotiationEvent) => Promise<void>;
   /** Credential used when the card sends none. Test mode only: the human approving on the card is the consent. */
   defaultCredential: () => PaymentCredential | null;
+  /** Release or refund a completed Checkout whose deal can't be settled (expired, already paid…). */
+  voidCheckout?: (session_id: string, keep_payment_intent_id?: string) => Promise<unknown>;
   /** Where results live between calls. In-memory is fine for one gateway process. */
   results?: Map<string, PayResult>;
 }
@@ -37,12 +39,12 @@ const FIXES: Record<string, string> = {
   policy_recheck_failed: "the seller can no longer honor this deal; make a new offer",
 };
 
-function toPaymentsDeal(d: StoredDeal): Deal {
+export function toPaymentsDeal(d: StoredDeal): Deal {
   return {
     deal_id: d.deal_id,
     amount_cents: d.total_cents,
     currency: "usd",
-    description: `${d.product_id} × ${d.quantity} (negotiated)`,
+    description: `${d.title ?? d.product_id} × ${d.quantity} (negotiated)`,
     seller_id: d.seller_id,
     metadata: { negotiation_id: d.negotiation_id, buyer_id: d.buyer_id, product_id: d.product_id, lane: "s2" },
   };
@@ -81,8 +83,14 @@ export function createPayHandler(deps: PayDeps) {
   }
 
   async function run(deal_id: string, credential: PaymentCredential | undefined, ctx: PayContext): Promise<PayResult> {
+    const checkoutOf = (c: PaymentCredential | undefined) => (typeof c === "object" && c && "checkout_session" in c ? c.checkout_session : null);
+    // A second Checkout paid for a deal that is already settled: release that one, keep the deal's own payment.
+    const voidExtra = async (paid_pi?: string) => {
+      const cs = checkoutOf(credential);
+      if (cs && deps.voidCheckout) await deps.voidCheckout(cs, paid_pi).catch((e) => console.error("[pay_deal] voidCheckout failed", deal_id, (e as Error).message));
+    };
     const prior = results.get(deal_id);
-    if (prior && (prior.status === "succeeded" || prior.status === "processing")) return { ...prior, already_paid: true };
+    if (prior && (prior.status === "succeeded" || prior.status === "processing")) { await voidExtra(prior.payment_intent_id); return { ...prior, already_paid: true }; }
 
     const cred = credential ?? deps.defaultCredential();
     if (!cred) {
@@ -93,12 +101,20 @@ export function createPayHandler(deps: PayDeps) {
 
     const check = await deps.deals.validateForPayment(deal_id, ctx.buyer, cred);
     if (!check.ok && check.code === "already_paid") {
+      await voidExtra(check.payment_intent_id);
       // A retry after the exchange already recorded payment: report it as paid, don't charge again.
       return { status: "succeeded", deal_id, amount_cents: 0, mode: "test_card", payment_intent_id: check.payment_intent_id, already_paid: true };
     }
     if (!check.ok) {
-      const r: PayResult = { status: "refused", deal_id, amount_cents: 0, mode: typeof cred === "object" && "test_card" in cred ? "test_card" : "spt",
+      const checkout = checkoutOf(cred);
+      const r: PayResult = { status: "refused", deal_id, amount_cents: 0,
+        mode: checkout ? "checkout" : typeof cred === "object" && "test_card" in cred ? "test_card" : "spt",
         code: check.code, reasons: [check.reason], fix: check.fix ?? FIXES[check.code] };
+      // The buyer already authorized money in Checkout for a deal that can't close: give it back.
+      if (checkout && deps.voidCheckout) {
+        try { const how = await deps.voidCheckout(checkout); r.reasons!.push(`Your payment was ${how === "refunded" ? "refunded" : "released"}; you were not charged.`); }
+        catch (e) { console.error("[pay_deal] voidCheckout failed", deal_id, (e as Error).message); }
+      }
       // Read-only lookup so the refusal row still names its negotiation and product (nothing is charged).
       const known = await deps.deals.getDeal(deal_id).catch(() => null);
       await log("guardrail_blocked", known, deal_id, r, ctx);

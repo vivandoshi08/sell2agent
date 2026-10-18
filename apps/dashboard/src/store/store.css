@@ -1,0 +1,22 @@
+/* My store. Builds on console.css and the shared tokens in ui/styles.css. */
+.store { display: grid; gap: 20px; }
+.store .st-title { align-items: end; gap: 16px; flex-wrap: wrap; }
+.store .st-title h1 { margin: 2px 0 0; }
+.store .st-title .cx-note { max-width: 46ch; margin: 0; }
+.store .panel p { margin: 10px 0; }
+.store .st-stats { display: flex; gap: 32px; margin: 12px 0 14px; }
+.store .st-stats > div { display: grid; gap: 2px; }
+.store .st-stats span { font-size: .8rem; color: var(--muted); }
+.store .st-stats b { font: 600 1.3rem var(--font-data); }
+.store .st-acct { display: block; font-family: var(--font-data); }
+.store .st-list { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 8px; }
+.store .st-list li { display: grid; gap: 2px; }
+.store .st-list span { font-size: .85rem; color: var(--muted); }
+.store .st-sales td small { display: block; color: var(--muted); font-size: .75rem; }
+.store .st-pickup { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.store .st-pickup input { width: 8.5em; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); font-family: var(--font-data); letter-spacing: .08em; }
+.store .st-pickup button { padding: 6px 10px; }
+.store .st-sales { width: 100%; border-collapse: collapse; margin-top: 8px; }
+.store .st-sales th, .store .st-sales td { padding: 9px 10px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+.store .st-sales th { font-size: .78rem; color: var(--muted); font-weight: 500; }
+.store .st-sales .num { text-align: right; white-space: nowrap; }

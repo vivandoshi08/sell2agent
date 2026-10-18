@@ -16,7 +16,7 @@ import type { DealCard } from "../../src/deal/types";
 export type PayState =
   | { kind: "idle" }
   | { kind: "paying" }
-  | { kind: "succeeded"; card?: string; payment_intent_id?: string }
+  | { kind: "succeeded"; card?: string; payment_intent_id?: string; held?: boolean; pickup_code?: string }
   | { kind: "processing" }
   | { kind: "requires_action"; fix?: string }
   | { kind: "refused"; reasons: string[]; fix?: string }
@@ -139,7 +139,15 @@ export function DealCardView({ card, pay, theme, onApprove, now = Date.now }: De
 
   // Outcome first: once a deal is settled or closed, that's the headline.
   let top: ReactNode = null;
-  if (paid)
+  if (paid && pay.kind === "succeeded" && pay.held)
+    top = (
+      <Note tone="ok" big title={`${total} held for pickup`}>
+        <span className="why">{pay.card ? `Authorized on ${pay.card}. ` : ""}Your card is charged only when you collect the item.</span>
+        {pay.pickup_code && <span className="why">Pickup code: <b>{pay.pickup_code}</b>. Show it to the seller at the handoff.</span>}
+        {pay.payment_intent_id && <span className="ref">Receipt {pay.payment_intent_id}</span>}
+      </Note>
+    );
+  else if (paid)
     top = (
       <Note tone="ok" big title={`Paid ${total}`}>
         {pay.kind === "succeeded" && pay.card
