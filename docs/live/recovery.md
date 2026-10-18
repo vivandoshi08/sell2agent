@@ -4,7 +4,7 @@
 > for Claude sessions that can't open artifact pages. Read it with `bash scripts/live-docs.sh recovery` (works before this branch merges).
 > If this disagrees with the code on the branch, the code wins; tell Ananya.
 
-**Last updated:** Sun Oct 18, 2:35 am PT. Branch `s2/walkaway-recovery`, PR linked in the Claude Doc.
+**Last updated:** Sun Oct 18, 3:30 am PT. Branch `s2/walkaway-recovery`. **Paused for a team decision:** no PR, nothing merged.
 
 ## What it is
 
@@ -46,10 +46,17 @@ A walk **without** a blocker gets one added line in the reply asking the questio
   `result_ids`, `result_titles`, `honest_no`, `summary`.
 - **A save** = a later `deal_accepted` by the same `run_id` + `buyer_id` on a product in `result_ids`.
 
-## Dashboard (S2)
+## Status
 
-See the PR for the exact files. The Live card shows the recovery move and a **Saved** status; a "Walk-aways recovered" panel
-shows saves, revenue saved, blockers, and what agents asked for.
+| Part | State | Where | Tests |
+| --- | --- | --- | --- |
+| Gateway: `find_alternatives`, recovery on `walk_away`, rules | Done, rebased on #82 | `apps/marketplace/src/recovery.ts`, `recovery-tools.ts`, `negotiate.ts`, `index.ts` | 80/80, typecheck clean |
+| Dashboard: recovery move on Live cards, "Saved" status, "Walk-aways recovered" panel, `?sample` scenario | Done; not yet looked at in a browser | `apps/dashboard/src/metrics/recovery.ts`, `panels/Recovery.tsx`, `ui/Seller.tsx`, `App.tsx`, `data/fake.ts` | 30/30, typecheck clean |
+| Budget silent keyboard | Opt-in SQL only; not applied, not in seeds | `supabase/catalog-recovery.sql` | n/a |
+| Production | Not deployed | Needs S1's redeploy after merge | n/a |
+
+- The panel shows the recovery scenario only with `?sample`; `seed:fake` doesn't write it to Supabase.
+- The dashboard keeps its own copy of the blocker list (contract frozen). A new gateway blocker needs the same change there.
 
 ## Open: one team decision
 
@@ -75,6 +82,8 @@ search tests). Additive and idempotent; apply with the service-role key if the t
 
 | Time (PT) | Change |
 | --- | --- |
+| Sun 3:30 am | Dashboard half finished (30/30); paused for Neel's review |
+| Sun 2:40 am | Rebased on #82 (approve wiring); gateway 80/80; branch pushed |
 | Sun 2:35 am | Repo mirror created |
 | Sun 2:32 am | Opt-in `supabase/catalog-recovery.sql` (budget silent keyboard), kept out of the seeds |
 | Sun 2:31 am | Gateway: `find_alternatives`, recovery on `walk_away`, rules in code, 10 tests (gateway 77/77) |
