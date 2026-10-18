@@ -15,7 +15,7 @@ import type { ProductConfig } from "@sa/seller-mcp/exchange";
 export const LEVER_CATALOG: { id: string; lever: LeverName; label: string }[] = [
   { id: "free_shipping", lever: "delivery", label: "Free shipping" },
   { id: "extended_warranty", lever: "warranty", label: "Extended warranty" },
-  { id: "bundle_discount", lever: "convenience", label: "Bundle discount" },
+  { id: "bundle_discount", lever: "price", label: "Bundle discount" },
   { id: "volume_discount", lever: "price", label: "Volume discount" },
 ];
 
