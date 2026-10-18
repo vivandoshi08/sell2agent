@@ -23,12 +23,24 @@ A ChatGPT or Claude user adds **one connector** (one MCP URL). The assistant can
 
 This needs Neel's sign-off (contract proposal below), since today `apps/marketplace` is REST-only.
 
+## The three core servers
+
+| # | Server | Job | Where it lives |
+|---|---|---|---|
+| 1 | **Marketplace gateway (MCP)** | The one connector ChatGPT, Claude, and simulated buyers use. Does search itself; forwards every negotiation call to the exchange. Holds no negotiation state. | `apps/marketplace` (C) |
+| 2 | **Negotiation exchange** | **Where buyer and seller actually interact.** Owns every session, offer, and deal (the `negotiations` and `deals` tables). Enforces the protocol: turn order, round cap, offer expiry, accept by offer id, one priced option per message. For each buyer move it asks the right seller agent for a reply, runs the guardrails on that reply, records the deal, triggers payment on approval, and logs every move to `events`. One source of truth, whichever buyer or door (MCP now, A2A later) the move came from. | `apps/seller-mcp`, as its own module (A) |
+| 3 | **Seller agents** | The per-seller brain: policy (floor, cost, concessions), priority, strategy, LLM voice. Stateless: the exchange passes in the session state and gets back a proposed move. | `apps/seller-mcp`, seller module (A) |
+
+Why separate the exchange from the seller agents: the rules, guardrails, deal records, and payment trigger must be the same for every seller, and a seller agent should never be able to skip them. Keeping them in one place also means the A2A door, the dashboard's live feed, and the learning loop all read the same sessions.
+
+
 ## CORE first: the thin end-to-end version of every layer
 
 Everything works end to end in its simplest form before any extra is added. "Core still has it all": every layer exists, just not every feature.
 
 | Layer | Core version | Owner |
 |---|---|---|
+| Exchange | **Negotiation exchange**: sessions, offers, deals, protocol rules, guardrails on every seller move, payment trigger, event log. | A |
 | Ways in | **Marketplace MCP gateway** (one connector): `search_products(query, preferences)`, `get_listing`, `ask_question`, `make_offer`, `accept_deal`, routed to seller agents. Deployed on Manufact; added to ChatGPT and Claude. | C (gateway), A (seller side) |
 | Catalog | Mechanical keyboards: 3–4 competing products per sub-type from different sellers, each seller with its own policy and priority (seed data). | C |
 | Seller agent | Strategy picks the price (static baseline, negotiating = hold list longer + slow concession + concession before discount); LLM writes the pitch with the true reason; tailors to the buyer's stated preferences; respects the seller's priority. | A |

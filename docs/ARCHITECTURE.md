@@ -67,6 +67,7 @@ From the board: **{conversion rate, profit, revenue}**. The working reward is pr
 | 2026-10-17 | Selling agent | No quote-matching rules; buyers played quotes against each other until a seller hit its floor. | E7 |
 | 2026-10-17 | Discovery | Broker / marketplace mode stays out of the build; buyers shop sellers themselves and a broker only cut price about 1 point. | E7 |
 | 2026-10-17 | Guardrails | Candidates from Nash under test in E11: cross-session buyer memory against floor probing, levers in the structured offer, an approved claims library. | Nash review |
+| 2026-10-17 | Exchange | New core server: the negotiation exchange owns sessions, offers, deals, rules, guardrails, payment trigger, and events; seller agents are stateless brains it calls. | End-goal review |
 | 2026-10-17 | Ways in | Core: marketplace becomes one MCP gateway connector routing to separate seller agents (ChatGPT can only add one connector); closing via the deal-card widget. Extras after core. | End-goal review |
 | 2026-10-17 | Ways in | Two doors: MCP to act, A2A over Inkbox to talk (after core). | Judge feedback |
 | 2026-10-17 | Identity | Seller agent team with isolated memory; buyer entities and trust tiers; DNS verification. | Judge feedback |
