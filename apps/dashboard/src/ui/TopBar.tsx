@@ -14,7 +14,7 @@ const dash = (hash: string) => (onPage() ? `./${q()}#${hash}` : `#${hash}`);
 export function TopBar({ tab, badge }: { tab: Tab; badge?: { mode: string; label: string } | null }) {
   return (
     <header className="topbar">
-      <div className="brand"><Mark /><b>Counter</b></div>
+      <div className="brand"><Mark /><b>sell2agent</b></div>
       <span className="store"><span className="av">KF</span>Keyforge</span>
       <nav className="tabs" aria-label="Views">
         <a href={dash("live")} aria-current={tab === "live" ? "page" : undefined}>Live</a>
