@@ -137,3 +137,24 @@ test("message check: an extra named in text must be in the offer", () => {
   const withW: ProposedMove = { ...move, lever_package: [{ id: "warranty_2y", lever: "warranty", label: "a 2-year warranty" }] };
   assert.deepEqual(checkMessage(templateMessage(withW, ctx), withW, ctx), []);
 });
+
+// ---------------- bandit ----------------
+import { Bandit, chooseArm, contextOf } from "../src/sellers";
+
+test("contextOf picks the strongest lever", () => {
+  assert.equal(contextOf({ quality: 1, warranty: 0.8, price: 0.3 }), "quality");
+  assert.equal(contextOf(undefined), "unknown");
+});
+test("bandit tries every arm, then prefers the best one", () => {
+  const b = new Bandit(["negotiating", "balanced"], 0.1);
+  for (let i = 0; i < 200; i++) { const a = b.chooseTraining("price"); b.update("price", a, a === "balanced" ? 5000 : 3000); }
+  assert.equal(b.greedy("price"), "balanced");
+  assert.ok(b.stats.price.negotiating.n >= 1);
+});
+test("chooseArm logs the right propensity and falls back to negotiating", () => {
+  const lp = new Bandit(["negotiating", "balanced"], 0.2).export(1);
+  lp.choice.price = "balanced";
+  assert.deepEqual(chooseArm(lp, { price: 1 }, () => 0.9), { arm: "balanced", propensity: 0.9, context: "price" });
+  assert.equal(chooseArm(null, { price: 1 }).arm, "negotiating");
+  assert.equal(chooseArm(lp, { trust: 1 }, () => 0.9).arm, "negotiating");
+});
