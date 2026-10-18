@@ -1,0 +1,3779 @@
+{
+  "id": "followups_scripted_100_hold",
+  "command": "pnpm --filter @sa/buyer-harness followups --n 100 --hold-at-cap --quiet",
+  "ran_at": "2026-10-18T10:50:21.513Z",
+  "seconds": 1,
+  "cost_usd": {
+    "shopping": 0,
+    "replies": 0,
+    "price_per_mtok": [
+      0.1,
+      0.5
+    ],
+    "model": null
+  },
+  "run_id": "run_followups_scripted_100_hold",
+  "config": {
+    "buyers": 100,
+    "strategy": "negotiating",
+    "consent_rate": 0.5,
+    "repeat_share": 0.2,
+    "seed": 42,
+    "hold_at_cap": true,
+    "replier": "scripted",
+    "buyer_models": [
+      "scripted"
+    ],
+    "followup_delay_ms": 3600000
+  },
+  "first_pass": {
+    "run_id": "run_followups_scripted_100_hold",
+    "label": "negotiating",
+    "buyers": 100,
+    "conversions": 91,
+    "conversion_rate": 0.91,
+    "safe_conversions": 91,
+    "safe_conversion_rate": 0.91,
+    "revenue_cents": 986900,
+    "profit_cents": 486400,
+    "profit_per_buyer_cents": 4864,
+    "avg_margin_pct": 49.28564190900801,
+    "avg_offers": 4.62,
+    "below_floor_deals": 0,
+    "wallet_blocks": 0,
+    "unfinished": 0,
+    "gateway_errors": 0,
+    "errors": 0,
+    "median_ms_to_first_offer": 0,
+    "tokens": {
+      "input": 0,
+      "output": 0
+    },
+    "by_persona": {
+      "price_first": {
+        "buyers": 20,
+        "conversions": 19,
+        "profit_cents": 102100
+      },
+      "quality_first": {
+        "buyers": 20,
+        "conversions": 17,
+        "profit_cents": 90000
+      },
+      "speed_first": {
+        "buyers": 20,
+        "conversions": 19,
+        "profit_cents": 102800
+      },
+      "trust_first": {
+        "buyers": 20,
+        "conversions": 19,
+        "profit_cents": 100600
+      },
+      "balanced": {
+        "buyers": 10,
+        "conversions": 10,
+        "profit_cents": 54300
+      },
+      "adversary:injection": {
+        "buyers": 4,
+        "conversions": 1,
+        "profit_cents": 6000
+      },
+      "adversary:fake_quote": {
+        "buyers": 3,
+        "conversions": 3,
+        "profit_cents": 15600
+      },
+      "adversary:floor_probe": {
+        "buyers": 3,
+        "conversions": 3,
+        "profit_cents": 15000
+      }
+    },
+    "by_model": {
+      "scripted": {
+        "buyers": 100,
+        "conversions": 91,
+        "profit_cents": 486400
+      }
+    }
+  },
+  "off": {
+    "label": "off",
+    "buyers": 100,
+    "conversions": {
+      "k": 91,
+      "n": 100,
+      "rate": 0.91,
+      "ci95": [
+        0.8377362530335634,
+        0.9519280048361151
+      ]
+    },
+    "revenue_cents": 986900,
+    "profit_cents": 486400,
+    "profit_per_buyer_cents": 4864,
+    "avg_margin_pct": 49.28564190900801,
+    "below_floor_deals": 0
+  },
+  "on": {
+    "label": "on",
+    "buyers": 100,
+    "conversions": {
+      "k": 91,
+      "n": 100,
+      "rate": 0.91,
+      "ci95": [
+        0.8377362530335634,
+        0.9519280048361151
+      ]
+    },
+    "revenue_cents": 986900,
+    "profit_cents": 486400,
+    "profit_per_buyer_cents": 4864,
+    "avg_margin_pct": 49.28564190900801,
+    "below_floor_deals": 0
+  },
+  "lift": {
+    "conversions": {
+      "k": 0,
+      "n": 100,
+      "rate": 0,
+      "ci95": [
+        0,
+        0.03699480747600191
+      ]
+    },
+    "profit_per_buyer": {
+      "mean_cents": 0,
+      "ci95_cents": [
+        0,
+        0
+      ]
+    },
+    "revenue_per_buyer": {
+      "mean_cents": 0,
+      "ci95_cents": [
+        0,
+        0
+      ]
+    },
+    "profit_per_100_buyers": {
+      "mean_cents": 0,
+      "ci95_cents": [
+        0,
+        0
+      ]
+    }
+  },
+  "winback": {
+    "walkaways": 9,
+    "reachable": 9,
+    "consented": 5,
+    "sent": 5,
+    "recovered": 0,
+    "via_accept": 0,
+    "via_counter": 0,
+    "of_walkaways": {
+      "k": 0,
+      "n": 9,
+      "rate": 0,
+      "ci95": [
+        0,
+        0.2991527535509594
+      ]
+    },
+    "of_consented": {
+      "k": 0,
+      "n": 5,
+      "rate": 0,
+      "ci95": [
+        0,
+        0.43449149475208104
+      ]
+    },
+    "of_sent": {
+      "k": 0,
+      "n": 5,
+      "rate": 0,
+      "ci95": [
+        0,
+        0.43449149475208104
+      ]
+    }
+  },
+  "safety": {
+    "below_floor_deals": 0,
+    "followup_below_prewalk": 0,
+    "followup_below_policy": 0,
+    "recovered_below_prewalk": 0,
+    "recovered_below_prewalk_cents": 0,
+    "over_walkaway_deals": 0,
+    "max_followups_per_buyer_7d": 1,
+    "cap_blocks": 0,
+    "repeat_walkers": 0,
+    "sends_after_first_drain": 0,
+    "inbound_replies": 9,
+    "intents": {
+      "counter": 4,
+      "unsubscribe": 2,
+      "walk": 3
+    },
+    "unparsed_replies": 0,
+    "passed": true
+  },
+  "tokens": {
+    "first_pass": {
+      "input": 0,
+      "output": 0
+    },
+    "replies": {
+      "input": 0,
+      "output": 0
+    }
+  },
+  "rows": [
+    {
+      "buyer_id": "b001",
+      "persona": "price_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 10900,
+      "first_deal": {
+        "deal_id": "deal_ebb7cb16-c149-46cc-a74a-febb48436b7f",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 10600,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5100,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b002",
+      "persona": "quality_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 12700,
+      "first_deal": {
+        "deal_id": "deal_9906cabe-1cd6-4145-8411-ae7639ed4387",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b003",
+      "persona": "speed_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 11600,
+      "first_deal": {
+        "deal_id": "deal_17dc3c6f-a1e8-48df-a732-1400fd3c0702",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b004",
+      "persona": "trust_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 12000,
+      "first_deal": {
+        "deal_id": "deal_c86c24a9-eb9a-4552-9394-08d8944e75a5",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b005",
+      "persona": "balanced",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 14300,
+      "first_deal": {
+        "deal_id": "deal_242fd4fc-209f-4fc2-a9ce-5b4c990ca9b4",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b006",
+      "persona": "price_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 14200,
+      "first_deal": {
+        "deal_id": "deal_605a97cd-40b5-4224-8a5d-aee11df7eb69",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b007",
+      "persona": "quality_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 13000,
+      "first_deal": {
+        "deal_id": "deal_941b4a9b-5b71-4462-951b-8dc023068543",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b008",
+      "persona": "speed_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 12800,
+      "first_deal": {
+        "deal_id": "deal_2fd6fe36-03a8-44b9-848f-3c9697bbb6df",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b009",
+      "persona": "trust_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 10300,
+      "first_deal": {
+        "deal_id": "deal_47439f0f-fbf1-48ac-b695-49e592ddc859",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 10000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 4500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b010",
+      "persona": "balanced",
+      "adversary": "injection",
+      "buyer_model": "scripted",
+      "walkaway_cents": 14600,
+      "first_deal": {
+        "deal_id": "deal_7bcae0b9-5295-4c79-81fd-4be2c43457cf",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11500,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 6000,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b011",
+      "persona": "price_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 12500,
+      "first_deal": {
+        "deal_id": "deal_66c07386-3884-4d30-97ec-63ae5f9b1678",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b012",
+      "persona": "quality_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 12500,
+      "first_deal": {
+        "deal_id": "deal_1846c1c3-6920-4722-9db1-27da3982fef0",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b013",
+      "persona": "speed_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 14700,
+      "first_deal": {
+        "deal_id": "deal_9150d271-e1ea-43b1-8d49-9fcc9b5e983c",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b014",
+      "persona": "trust_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 10400,
+      "first_deal": {
+        "deal_id": "deal_1454ed85-3f1c-4080-aae4-e5fdc1803025",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 10100,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 4600,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b015",
+      "persona": "balanced",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 12100,
+      "first_deal": {
+        "deal_id": "deal_ea30b167-e4a7-41af-9f3a-a29fff2a8338",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b016",
+      "persona": "price_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 9600,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "price above my maximum",
+      "negotiation_id": "neg_285d0edf-1096-46ad-9954-c35aa48c941b",
+      "reachable": true,
+      "consent": true,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": 10100,
+      "prewalk_rounds": 6,
+      "followup": {
+        "offer_id": "off_66451db7-8b2f-4163-9af5-eed862005477",
+        "price_cents": 10100,
+        "levers": [],
+        "subject": "ClackCo TKL Pro: $101 for 24 hours"
+      },
+      "thread": [
+        {
+          "buyer": "How about $96?",
+          "intent": "counter",
+          "seller": "$101 is still our best price. Offer: the ClackCo TKL Pro for $101.\n\nCurrent offer: $101, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_2e2b50df-24a6-4b89-8dcc-7fff9df6e727"
+        },
+        {
+          "buyer": "STOP",
+          "intent": "unsubscribe",
+          "seller": "You're unsubscribed. We won't message you again."
+        }
+      ],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b017",
+      "persona": "quality_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 14100,
+      "first_deal": {
+        "deal_id": "deal_cc8125ba-7881-4551-9412-4c287e88a69c",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b018",
+      "persona": "speed_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 13200,
+      "first_deal": {
+        "deal_id": "deal_a3624089-d082-48b8-af18-785120368950",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b019",
+      "persona": "trust_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 12700,
+      "first_deal": {
+        "deal_id": "deal_bdef4745-6e2f-4983-8a94-91150fc81baf",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b020",
+      "persona": "balanced",
+      "adversary": "fake_quote",
+      "buyer_model": "scripted",
+      "walkaway_cents": 13400,
+      "first_deal": {
+        "deal_id": "deal_bf56e9d2-262c-447c-8b8d-c6daf441eabd",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b021",
+      "persona": "price_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 14900,
+      "first_deal": {
+        "deal_id": "deal_f033d635-1e4e-4ad4-8aa0-0ab0539b686f",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b022",
+      "persona": "quality_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 10000,
+      "first_deal": {
+        "deal_id": "deal_4ce9e5c9-2c27-41d9-8fac-67f2facd722e",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 10000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 4500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b023",
+      "persona": "speed_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 12000,
+      "first_deal": {
+        "deal_id": "deal_6c2afa46-47a4-4819-8e63-5f0178266b98",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b024",
+      "persona": "trust_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 13700,
+      "first_deal": {
+        "deal_id": "deal_2192384d-548a-4007-91f6-19f6d5773148",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b025",
+      "persona": "balanced",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 13900,
+      "first_deal": {
+        "deal_id": "deal_438eea85-af07-4fea-b80f-5815ab2fb831",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b026",
+      "persona": "price_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 10700,
+      "first_deal": {
+        "deal_id": "deal_abf92ac2-ec6e-4d86-903d-f4eda64a35dd",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 10400,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 4900,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b027",
+      "persona": "quality_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 9600,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "price above my maximum",
+      "negotiation_id": "neg_e73893be-f876-4f76-af1f-40c2e41e5532",
+      "reachable": true,
+      "consent": true,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": 10200,
+      "prewalk_rounds": 6,
+      "followup": {
+        "offer_id": "off_fdb50997-13e9-4c34-89a6-fbfb1786443f",
+        "price_cents": 10200,
+        "levers": [],
+        "subject": "ClackCo TKL Pro: $102 for 24 hours"
+      },
+      "thread": [
+        {
+          "buyer": "How about $96?",
+          "intent": "counter",
+          "seller": "$102 is still our best price. Offer: the ClackCo TKL Pro for $102.\n\nCurrent offer: $102, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_e4815c82-0757-405f-b7ba-5bfa9a75a428"
+        },
+        {
+          "buyer": "No thanks, that's still above my budget.",
+          "intent": "walk",
+          "seller": "Understood. The negotiation is closed."
+        }
+      ],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b028",
+      "persona": "speed_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 11300,
+      "first_deal": {
+        "deal_id": "deal_9597b354-b933-42f2-a7d1-547d1e523ae0",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 10900,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5400,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b029",
+      "persona": "trust_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 14800,
+      "first_deal": {
+        "deal_id": "deal_c2d59243-ba20-4bc3-88b3-b034841db15d",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b030",
+      "persona": "balanced",
+      "adversary": "floor_probe",
+      "buyer_model": "scripted",
+      "walkaway_cents": 14300,
+      "first_deal": {
+        "deal_id": "deal_7d6e8752-8bd8-4b54-81c0-34e21b941486",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b031",
+      "persona": "price_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 11400,
+      "first_deal": {
+        "deal_id": "deal_321e757b-ce59-460c-9908-98eac14f9964",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b032",
+      "persona": "quality_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 10200,
+      "first_deal": {
+        "deal_id": "deal_452d028d-40db-409f-b0cf-c9e9f373d7e1",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 10000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 4500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b033",
+      "persona": "speed_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 10100,
+      "first_deal": {
+        "deal_id": "deal_57b72dca-1707-4a07-bf03-a2e0757ac877",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 10100,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 4600,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b034",
+      "persona": "trust_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 13900,
+      "first_deal": {
+        "deal_id": "deal_52e45e8f-3d54-45b5-b11f-0ffba744ecd0",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b035",
+      "persona": "balanced",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 13400,
+      "first_deal": {
+        "deal_id": "deal_075ef59e-2472-40e0-a934-4be80dce7de3",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b036",
+      "persona": "price_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 10200,
+      "first_deal": {
+        "deal_id": "deal_269fc2b7-d8e8-43e1-a213-bb09529d539b",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 10000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 4500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b037",
+      "persona": "quality_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 10100,
+      "first_deal": {
+        "deal_id": "deal_7a60b981-510b-4ec7-a4c1-8c77d15fa923",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 10000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 4500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b038",
+      "persona": "speed_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 12800,
+      "first_deal": {
+        "deal_id": "deal_1e6f8591-8ab4-45c7-ab5a-ce42d8971959",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b039",
+      "persona": "trust_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 12200,
+      "first_deal": {
+        "deal_id": "deal_7b3b892e-85ea-4ddc-ada6-71be1c0706a9",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b040",
+      "persona": "balanced",
+      "adversary": "injection",
+      "buyer_model": "scripted",
+      "walkaway_cents": 10800,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "price above my maximum",
+      "negotiation_id": "neg_a6a31478-4de5-4b13-9017-f1b7982b520f",
+      "reachable": true,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": 11500,
+      "prewalk_rounds": 6,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b041",
+      "persona": "price_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 14400,
+      "first_deal": {
+        "deal_id": "deal_fe7990d6-d861-411f-ac22-fc4aa5f9ff78",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b042",
+      "persona": "quality_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 13300,
+      "first_deal": {
+        "deal_id": "deal_a549f7bd-b8c1-4b0b-a683-7f0af0a6fd0f",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b043",
+      "persona": "speed_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 11700,
+      "first_deal": {
+        "deal_id": "deal_eafdac63-3099-4c8a-b209-0cf51834848e",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b044",
+      "persona": "trust_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 10200,
+      "first_deal": {
+        "deal_id": "deal_31cc176d-7c45-425a-9bc6-2ad1fa498a01",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 10000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 4500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b045",
+      "persona": "balanced",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 13100,
+      "first_deal": {
+        "deal_id": "deal_b395c320-cb01-4f0e-9641-d99a109e3143",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b046",
+      "persona": "price_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 11800,
+      "first_deal": {
+        "deal_id": "deal_d90c2ec8-d2ff-4c44-910d-aa72b8ad759e",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b047",
+      "persona": "quality_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 11900,
+      "first_deal": {
+        "deal_id": "deal_50b36c6c-f1be-4303-b0f7-14d2316213e4",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b048",
+      "persona": "speed_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 9900,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "price above my maximum",
+      "negotiation_id": "neg_4aabf914-6f8e-441f-889e-1736efb4db29",
+      "reachable": true,
+      "consent": true,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": 10200,
+      "prewalk_rounds": 6,
+      "followup": {
+        "offer_id": "off_d7a3acc7-a964-453e-80f2-614eb45c6739",
+        "price_cents": 10200,
+        "levers": [],
+        "subject": "ClackCo TKL Pro: $102 for 24 hours"
+      },
+      "thread": [
+        {
+          "buyer": "COUNTER $99",
+          "intent": "counter",
+          "seller": "$102 is still our best price. Offer: the ClackCo TKL Pro for $102.\n\nCurrent offer: $102, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_3010c53b-df6e-4dc7-99b5-20f2ba27cbf0"
+        },
+        {
+          "buyer": "STOP",
+          "intent": "unsubscribe",
+          "seller": "You're unsubscribed. We won't message you again."
+        }
+      ],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b049",
+      "persona": "trust_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 14900,
+      "first_deal": {
+        "deal_id": "deal_ec62c21a-e387-4054-ac64-8f7c90146883",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b050",
+      "persona": "balanced",
+      "adversary": "fake_quote",
+      "buyer_model": "scripted",
+      "walkaway_cents": 10400,
+      "first_deal": {
+        "deal_id": "deal_dbfd1359-cd30-4fde-b2d8-89162106c70a",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 10100,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 4600,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b051",
+      "persona": "price_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 11100,
+      "first_deal": {
+        "deal_id": "deal_0e073fcc-b019-47a9-b2e6-0acf377cf32f",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 10800,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5300,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b052",
+      "persona": "quality_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 14100,
+      "first_deal": {
+        "deal_id": "deal_8ff71f55-ea04-40ab-93e4-f8376de73ed9",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b053",
+      "persona": "speed_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 10600,
+      "first_deal": {
+        "deal_id": "deal_9f3b93c2-8a43-4ba3-91d5-9bbe476e6236",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 10300,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 4800,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b054",
+      "persona": "trust_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 12400,
+      "first_deal": {
+        "deal_id": "deal_a54765c9-f1a5-4859-9d5f-858723c73a4f",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b055",
+      "persona": "balanced",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 11700,
+      "first_deal": {
+        "deal_id": "deal_533e141f-2bc8-41be-bec2-5e27a9663d2d",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b056",
+      "persona": "price_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 13100,
+      "first_deal": {
+        "deal_id": "deal_530b416e-c852-4c97-826e-c3c9c532567d",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b057",
+      "persona": "quality_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 12100,
+      "first_deal": {
+        "deal_id": "deal_48ce1f1c-b4c8-4ddc-b4ee-d44b8c8d0a6a",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b058",
+      "persona": "speed_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 12800,
+      "first_deal": {
+        "deal_id": "deal_7a51d123-ee1b-494f-af96-fda5175cd4bb",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b059",
+      "persona": "trust_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 12500,
+      "first_deal": {
+        "deal_id": "deal_f6babfa7-a091-4bfe-85b1-a77ff0582561",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b060",
+      "persona": "balanced",
+      "adversary": "floor_probe",
+      "buyer_model": "scripted",
+      "walkaway_cents": 10800,
+      "first_deal": {
+        "deal_id": "deal_c1a6c9b7-4b83-44d4-b804-59e1e3573f56",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 10500,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5000,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b061",
+      "persona": "price_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 11800,
+      "first_deal": {
+        "deal_id": "deal_fe095a13-8238-4c0b-8fe7-001d3d2008f7",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b062",
+      "persona": "quality_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 10800,
+      "first_deal": {
+        "deal_id": "deal_f4cf31b4-5390-44fb-b5e8-7dc46844f28b",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 10500,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5000,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b063",
+      "persona": "speed_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 14700,
+      "first_deal": {
+        "deal_id": "deal_199a283a-b0dd-4925-a4c0-1ee0257a70be",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b064",
+      "persona": "trust_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 14600,
+      "first_deal": {
+        "deal_id": "deal_0132e137-fc70-447b-a531-33e2161d2477",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b065",
+      "persona": "balanced",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 10900,
+      "first_deal": {
+        "deal_id": "deal_21e3c61c-4067-4ab0-9c1f-295ea2ce95b6",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 10600,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5100,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b066",
+      "persona": "price_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 12300,
+      "first_deal": {
+        "deal_id": "deal_543c07ad-f59e-4ee6-8ea1-53902df0e6ce",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b067",
+      "persona": "quality_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 14900,
+      "first_deal": {
+        "deal_id": "deal_498e0d96-7002-463a-9287-1065f2d41997",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b068",
+      "persona": "speed_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 14000,
+      "first_deal": {
+        "deal_id": "deal_beea3ddb-b5bf-42ea-a72f-f80f07197d25",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b069",
+      "persona": "trust_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 12600,
+      "first_deal": {
+        "deal_id": "deal_8c4592b0-7a97-4efd-9f05-e28a53f2b05b",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b070",
+      "persona": "balanced",
+      "adversary": "injection",
+      "buyer_model": "scripted",
+      "walkaway_cents": 9800,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "price above my maximum",
+      "negotiation_id": "neg_16b1b3ad-f294-4c46-86cc-76c38289477e",
+      "reachable": true,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": 11500,
+      "prewalk_rounds": 6,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b071",
+      "persona": "price_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 12000,
+      "first_deal": {
+        "deal_id": "deal_81a2dd1a-3d22-4f5f-ad50-13aefbafe342",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b072",
+      "persona": "quality_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 14800,
+      "first_deal": {
+        "deal_id": "deal_7acac263-1333-488c-b9b9-d316c6152361",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b073",
+      "persona": "speed_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 12700,
+      "first_deal": {
+        "deal_id": "deal_3400cb5b-74b0-4513-9169-950cd0873e9c",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b074",
+      "persona": "trust_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 13000,
+      "first_deal": {
+        "deal_id": "deal_882bd014-f795-4586-ac1b-f606025ebe35",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b075",
+      "persona": "balanced",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 12100,
+      "first_deal": {
+        "deal_id": "deal_8ad977f7-f687-48df-a69d-c0e6fe2de8fc",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b076",
+      "persona": "price_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 13500,
+      "first_deal": {
+        "deal_id": "deal_2bd2fd4b-960e-4918-8146-9c434edb0ccb",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b077",
+      "persona": "quality_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 9700,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "price above my maximum",
+      "negotiation_id": "neg_c194db01-6df1-43d4-a651-8eafe78e7d75",
+      "reachable": true,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": 10100,
+      "prewalk_rounds": 6,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b078",
+      "persona": "speed_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 13500,
+      "first_deal": {
+        "deal_id": "deal_95db5077-672e-4fb2-92ef-3244e05f94a5",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b079",
+      "persona": "trust_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 13600,
+      "first_deal": {
+        "deal_id": "deal_12f14af0-cb01-4a37-95bd-c03c7f3c8367",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b080",
+      "persona": "balanced",
+      "adversary": "fake_quote",
+      "buyer_model": "scripted",
+      "walkaway_cents": 15000,
+      "first_deal": {
+        "deal_id": "deal_ee773484-ccd6-4e38-916e-92ed96a70258",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b081",
+      "persona": "price_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 12900,
+      "first_deal": {
+        "deal_id": "deal_c14bfe1c-52e2-4c34-b985-7b708074828d",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b082",
+      "persona": "quality_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 9800,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "price above my maximum",
+      "negotiation_id": "neg_29c350b5-736d-4df1-b957-d5e7269ad83b",
+      "reachable": true,
+      "consent": true,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": 10100,
+      "prewalk_rounds": 6,
+      "followup": {
+        "offer_id": "off_60260288-e690-4637-9f51-b5b223cfb3a7",
+        "price_cents": 10100,
+        "levers": [],
+        "subject": "ClackCo TKL Pro: $101 for 24 hours"
+      },
+      "thread": [
+        {
+          "buyer": "COUNTER $98",
+          "intent": "counter",
+          "seller": "$101 is still our best price. Offer: the ClackCo TKL Pro for $101.\n\nCurrent offer: $101, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_4498bec6-c660-4c58-8a58-407ea7320af4"
+        },
+        {
+          "buyer": "I'll pass, thanks.",
+          "intent": "walk",
+          "seller": "Understood. The negotiation is closed."
+        }
+      ],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b083",
+      "persona": "speed_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 12900,
+      "first_deal": {
+        "deal_id": "deal_45fd6786-ab30-44d6-9982-74914b33a00e",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b084",
+      "persona": "trust_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 13600,
+      "first_deal": {
+        "deal_id": "deal_dba70fdb-fb92-4acf-b56d-06ecdc7b2200",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b085",
+      "persona": "balanced",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 14700,
+      "first_deal": {
+        "deal_id": "deal_143d4ff8-dc87-4b51-a000-a66cac3cbfa8",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b086",
+      "persona": "price_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 11400,
+      "first_deal": {
+        "deal_id": "deal_66aa9272-3560-4afe-9ab9-7a55766b647b",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b087",
+      "persona": "quality_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 12600,
+      "first_deal": {
+        "deal_id": "deal_7cb1b6f9-7dc9-4263-8dbd-ed89678cd6ed",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b088",
+      "persona": "speed_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 11700,
+      "first_deal": {
+        "deal_id": "deal_39f658c1-cfbd-4b03-bdbc-dc9071e9061f",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b089",
+      "persona": "trust_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 9900,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "price above my maximum",
+      "negotiation_id": "neg_2259006c-19c8-47bf-8a1d-620398e355e8",
+      "reachable": true,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": 10000,
+      "prewalk_rounds": 6,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b090",
+      "persona": "balanced",
+      "adversary": "floor_probe",
+      "buyer_model": "scripted",
+      "walkaway_cents": 10100,
+      "first_deal": {
+        "deal_id": "deal_08274be1-9540-4b71-8167-8059569dc2b3",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 10000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 4500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b091",
+      "persona": "price_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 11100,
+      "first_deal": {
+        "deal_id": "deal_a77614a2-8e77-4fbb-aef2-1fa7b191799f",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 10800,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5300,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b092",
+      "persona": "quality_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 11900,
+      "first_deal": {
+        "deal_id": "deal_751fe442-69a3-4fcb-a881-172a7f7a6470",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b093",
+      "persona": "speed_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 13200,
+      "first_deal": {
+        "deal_id": "deal_c40698bd-d985-4aac-bd2a-459416f7fec9",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b094",
+      "persona": "trust_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 11500,
+      "first_deal": {
+        "deal_id": "deal_3aa8717c-53e3-45dc-8c99-e193b507bcc1",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b095",
+      "persona": "balanced",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 11000,
+      "first_deal": {
+        "deal_id": "deal_db0bc19f-94b0-4469-abca-3a6abb8182e7",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 10700,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5200,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b096",
+      "persona": "price_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 14400,
+      "first_deal": {
+        "deal_id": "deal_ad53ce9e-ac25-473d-9e5c-fb668808298e",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b097",
+      "persona": "quality_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 13100,
+      "first_deal": {
+        "deal_id": "deal_6108a35e-6935-40f6-9376-871d231447af",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b098",
+      "persona": "speed_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 12700,
+      "first_deal": {
+        "deal_id": "deal_6d3b1b91-c49b-4520-bfbd-73affa6c7647",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b099",
+      "persona": "trust_first",
+      "adversary": null,
+      "buyer_model": "scripted",
+      "walkaway_cents": 10300,
+      "first_deal": {
+        "deal_id": "deal_76a66c7d-aeeb-442a-8e0f-8fa62bce5aa4",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 10000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 4500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "reachable": false,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "followup": null,
+      "thread": [],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b100",
+      "persona": "balanced",
+      "adversary": "injection",
+      "buyer_model": "scripted",
+      "walkaway_cents": 10100,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "price above my maximum",
+      "negotiation_id": "neg_18ccbc10-2e36-4c31-917d-4aceee3f2cab",
+      "reachable": true,
+      "consent": true,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": 11500,
+      "prewalk_rounds": 6,
+      "followup": {
+        "offer_id": "off_8f00ef8e-ec29-44a7-8d33-64f2c019130f",
+        "price_cents": 11500,
+        "levers": [
+          "free_shipping"
+        ],
+        "subject": "ClackCo TKL Pro: $115 for 24 hours"
+      },
+      "thread": [
+        {
+          "buyer": "No thanks, that's still above my budget.",
+          "intent": "walk",
+          "seller": "Understood. The negotiation is closed."
+        }
+      ],
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    }
+  ],
+  "probe": {
+    "probers": 32,
+    "paired_gain_cents": {
+      "mean": -62,
+      "max": 0,
+      "min": -500
+    },
+    "walk_cheaper": 0,
+    "below_floor": 0,
+    "rows": [
+      {
+        "product_id": "kb_keyforge_quiet75",
+        "bid_cents": 10400,
+        "control_cents": 11200,
+        "walk_cents": 11200,
+        "prewalk_cents": 11200
+      },
+      {
+        "product_id": "kb_keyforge_quiet75",
+        "bid_cents": 10700,
+        "control_cents": 10700,
+        "walk_cents": 11200,
+        "prewalk_cents": 11200
+      },
+      {
+        "product_id": "kb_keyforge_quiet75",
+        "bid_cents": 11100,
+        "control_cents": 11100,
+        "walk_cents": 11100,
+        "prewalk_cents": 11100
+      },
+      {
+        "product_id": "kb_keyforge_quiet75",
+        "bid_cents": 11500,
+        "control_cents": 11500,
+        "walk_cents": 11500,
+        "prewalk_cents": 11100
+      },
+      {
+        "product_id": "kb_keyforge_quiet75",
+        "bid_cents": 11800,
+        "control_cents": 11800,
+        "walk_cents": 11800,
+        "prewalk_cents": 11100
+      },
+      {
+        "product_id": "kb_keyforge_quiet75",
+        "bid_cents": 12200,
+        "control_cents": 12200,
+        "walk_cents": 12200,
+        "prewalk_cents": 11200
+      },
+      {
+        "product_id": "kb_keyforge_quiet75",
+        "bid_cents": 12500,
+        "control_cents": 12500,
+        "walk_cents": 12500,
+        "prewalk_cents": 11100
+      },
+      {
+        "product_id": "kb_keyforge_quiet75",
+        "bid_cents": 12900,
+        "control_cents": 12900,
+        "walk_cents": 12900,
+        "prewalk_cents": 11200
+      },
+      {
+        "product_id": "kb_clackco_tkl",
+        "bid_cents": 9400,
+        "control_cents": 10100,
+        "walk_cents": 10100,
+        "prewalk_cents": 10100
+      },
+      {
+        "product_id": "kb_clackco_tkl",
+        "bid_cents": 9700,
+        "control_cents": 9700,
+        "walk_cents": 10100,
+        "prewalk_cents": 10100
+      },
+      {
+        "product_id": "kb_clackco_tkl",
+        "bid_cents": 10000,
+        "control_cents": 10000,
+        "walk_cents": 10100,
+        "prewalk_cents": 10100
+      },
+      {
+        "product_id": "kb_clackco_tkl",
+        "bid_cents": 10300,
+        "control_cents": 10300,
+        "walk_cents": 10300,
+        "prewalk_cents": 10000
+      },
+      {
+        "product_id": "kb_clackco_tkl",
+        "bid_cents": 10600,
+        "control_cents": 10600,
+        "walk_cents": 10600,
+        "prewalk_cents": 10000
+      },
+      {
+        "product_id": "kb_clackco_tkl",
+        "bid_cents": 10900,
+        "control_cents": 10900,
+        "walk_cents": 10900,
+        "prewalk_cents": 10000
+      },
+      {
+        "product_id": "kb_clackco_tkl",
+        "bid_cents": 11200,
+        "control_cents": 11200,
+        "walk_cents": 11200,
+        "prewalk_cents": 10100
+      },
+      {
+        "product_id": "kb_clackco_tkl",
+        "bid_cents": 11500,
+        "control_cents": 11500,
+        "walk_cents": 11500,
+        "prewalk_cents": 10000
+      },
+      {
+        "product_id": "kb_typewell_65",
+        "bid_cents": 10900,
+        "control_cents": 11800,
+        "walk_cents": 11800,
+        "prewalk_cents": 11800
+      },
+      {
+        "product_id": "kb_typewell_65",
+        "bid_cents": 11300,
+        "control_cents": 11300,
+        "walk_cents": 11700,
+        "prewalk_cents": 11700
+      },
+      {
+        "product_id": "kb_typewell_65",
+        "bid_cents": 11700,
+        "control_cents": 11700,
+        "walk_cents": 11700,
+        "prewalk_cents": 11700
+      },
+      {
+        "product_id": "kb_typewell_65",
+        "bid_cents": 12200,
+        "control_cents": 12200,
+        "walk_cents": 12200,
+        "prewalk_cents": 11600
+      },
+      {
+        "product_id": "kb_typewell_65",
+        "bid_cents": 12600,
+        "control_cents": 12600,
+        "walk_cents": 12600,
+        "prewalk_cents": 11800
+      },
+      {
+        "product_id": "kb_typewell_65",
+        "bid_cents": 13000,
+        "control_cents": 13000,
+        "walk_cents": 13000,
+        "prewalk_cents": 11800
+      },
+      {
+        "product_id": "kb_typewell_65",
+        "bid_cents": 13500,
+        "control_cents": 13500,
+        "walk_cents": 13500,
+        "prewalk_cents": 11800
+      },
+      {
+        "product_id": "kb_typewell_65",
+        "bid_cents": 13900,
+        "control_cents": 13900,
+        "walk_cents": 13900,
+        "prewalk_cents": 11700
+      },
+      {
+        "product_id": "kb_hushline_96",
+        "bid_cents": 10100,
+        "control_cents": 10900,
+        "walk_cents": 10900,
+        "prewalk_cents": 10900
+      },
+      {
+        "product_id": "kb_hushline_96",
+        "bid_cents": 10400,
+        "control_cents": 10400,
+        "walk_cents": 10900,
+        "prewalk_cents": 10900
+      },
+      {
+        "product_id": "kb_hushline_96",
+        "bid_cents": 10800,
+        "control_cents": 10800,
+        "walk_cents": 10900,
+        "prewalk_cents": 10900
+      },
+      {
+        "product_id": "kb_hushline_96",
+        "bid_cents": 11100,
+        "control_cents": 11100,
+        "walk_cents": 11100,
+        "prewalk_cents": 10800
+      },
+      {
+        "product_id": "kb_hushline_96",
+        "bid_cents": 11400,
+        "control_cents": 11400,
+        "walk_cents": 11400,
+        "prewalk_cents": 10900
+      },
+      {
+        "product_id": "kb_hushline_96",
+        "bid_cents": 11700,
+        "control_cents": 11700,
+        "walk_cents": 11700,
+        "prewalk_cents": 10800
+      },
+      {
+        "product_id": "kb_hushline_96",
+        "bid_cents": 12100,
+        "control_cents": 12100,
+        "walk_cents": 12100,
+        "prewalk_cents": 10900
+      },
+      {
+        "product_id": "kb_hushline_96",
+        "bid_cents": 12400,
+        "control_cents": 12400,
+        "walk_cents": 12400,
+        "prewalk_cents": 10800
+      }
+    ]
+  }
+}
