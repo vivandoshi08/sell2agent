@@ -10,6 +10,7 @@ import { log } from "./src/log.js";
 import { exchange, registerNegotiationTools, subjectBuyerId, type RequestLike } from "./src/negotiate.js";
 import { deal, registerDealTools } from "./src/deal-tools.js";
 import { registerApprovePage } from "./src/deal/index.js";
+import { registerBuyPage } from "./src/buy-page.js";
 import { registerListingTools } from "./src/listing-tools.js";
 import { registerDiscovery } from "./src/discovery.js";
 import { followupCourier, registerFollowups, startOutreachTimer } from "./src/followup/index.js";
@@ -154,6 +155,8 @@ export const searchProductsTool = server.tool(
 registerNegotiationTools(server, { approveOrigin: new URL(MCP_URL).origin });
 registerDealTools(server);
 registerApprovePage(server, deal);
+// Web door for buyers who can browse but can't add an MCP connector: /buy/:product_id (+ short aliases like /k2).
+registerBuyPage(server, MCP_URL);
 registerListingTools(server, MCP_URL);
 registerDiscovery(server, MCP_URL);
 // Bridge 3: follow-ups after a consented walk-away, and the inbound door for replies.
