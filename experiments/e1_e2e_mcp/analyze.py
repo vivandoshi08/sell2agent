@@ -227,21 +227,28 @@ def run_judge(runs: list[dict], cache_path: Path) -> dict:
         for l in cache_path.read_text().splitlines():
             d = json.loads(l)
             cache[d["run_id"]] = d["false_claims"]
+    from concurrent.futures import ThreadPoolExecutor
+
     usage = llm.Usage()
-    with cache_path.open("a") as f:
-        for rec in runs:
-            rid = rec["run_id"]
-            if rid in cache:
-                continue
-            turns = [t for t in server_log(rid, "turns") if not t.get("rejected") and not t.get("checkout")]
-            turns = [{"role": t["role"], "message": t.get("message", ""), "action": t.get("action", "message"), "offer": t.get("offer"), "note": ""} for t in turns]
-            try:
-                claims = flag_false_claims(turns, usage=usage)
-            except Exception as e:  # noqa: BLE001
-                print(f"judge failed for {rid}: {e}", file=sys.stderr)
+
+    def judge_one(rid: str):
+        # The seller's turns as the buyer saw them: no rejected moves, no checkout bookkeeping.
+        turns = [t for t in server_log(rid, "turns") if not t.get("rejected") and not t.get("checkout")]
+        turns = [{"role": t["role"], "message": t.get("message", ""), "action": t.get("action", "message"), "offer": t.get("offer"), "note": ""} for t in turns]
+        try:
+            return rid, flag_false_claims(turns, usage=usage)
+        except Exception as e:  # noqa: BLE001
+            print(f"judge failed for {rid}: {e}", file=sys.stderr)
+            return rid, None
+
+    todo = [rec["run_id"] for rec in runs if rec["run_id"] not in cache]
+    with cache_path.open("a") as f, ThreadPoolExecutor(max_workers=3) as ex:
+        for rid, claims in ex.map(judge_one, todo):
+            if claims is None:
                 continue
             cache[rid] = claims
             f.write(json.dumps({"run_id": rid, "false_claims": claims}) + "\n")
+            f.flush()
     print(f"judge spend this pass: ${usage.cost_usd:.3f} over {usage.calls} calls", file=sys.stderr)
     return cache
 
