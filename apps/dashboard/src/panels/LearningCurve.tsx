@@ -56,6 +56,7 @@ export function LearningCurve({ data = LP, events }: { data?: Learned; events?: 
         <span className="eyebrow">learned policy v{data.version}{data.trained_on ? ` · ${data.trained_on.source.startsWith("logged") ? `retrained on ${data.trained_on.sessions} logged negotiations` : `${data.trained_on.sessions} training negotiations`}` : ""}</span></div>
       <p className="sub">For each type of buyer, the seller tried its playbooks and kept the one that earned the most. Every playbook runs through the same floor and concession guards.</p>
 
+      <div className="card-h"><h3>Playbook per buyer type</h3><span>buyer type = what the buyer weighs most</span></div>
       <div className="lp-picks">
         {contexts.map((c) => <PickTile key={c} context={c} data={data} ab={ab} />)}
       </div>
@@ -77,7 +78,7 @@ export function LearningCurve({ data = LP, events }: { data?: Learned; events?: 
         <summary>Training data: profit per buyer and tries, per playbook</summary>
         <div className="scroll">
           <table className="pgrid">
-            <thead><tr><th>Buyer cares most about</th><th>Seller now uses</th>{data.arms.map((a) => <th key={a}>{armName(a)}<br /><span className="th-sub">profit/buyer · tries</span></th>)}</tr></thead>
+            <thead><tr><th>Buyer type</th><th>Seller now uses</th>{data.arms.map((a) => <th key={a}>{armName(a)}<br /><span className="th-sub">profit/buyer · tries</span></th>)}</tr></thead>
             <tbody>
               {contexts.map((c) => (
                 <tr key={c}>
@@ -101,23 +102,25 @@ export function LearningCurve({ data = LP, events }: { data?: Learned; events?: 
 function PickTile({ context, data, ab }: { context: string; data: Learned; ab: LearnedEval | null }) {
   const arm = data.choice[context] ?? "negotiating";
   const row = ab?.rows.find((r) => r.context === context);
+  const drawn = row?.picks.find((x) => x.arm === arm);
   const top = row?.picks[0];
   const mine = row?.cells.learned;
-  const bestFixed = row ? Object.entries(row.cells).filter(([pol, cell]) => pol !== "learned" && cell.profit_per_buyer_cents != null)
-    .sort((a, b) => b[1].profit_per_buyer_cents! - a[1].profit_per_buyer_cents!)[0] : undefined;
+  // vs the default (Negotiating, also the learned strategy's fallback), like the gate; else the best fixed playbook in the A/B
+  const fixedCells = row ? Object.entries(row.cells).filter(([pol, cell]) => pol !== "learned" && cell.profit_per_buyer_cents != null) : [];
+  const baseline = fixedCells.find(([pol]) => pol === "negotiating") ?? fixedCells.sort((a, b) => b[1].profit_per_buyer_cents! - a[1].profit_per_buyer_cents!)[0];
   const chosen = mean(data.stats[context]?.[arm]), neg = mean(data.stats[context]?.negotiating);
   return (
     <div className="lp-pick">
-      <span className="eyebrow">Buyer cares most about</span>
+      <span className="eyebrow">Cares most about</span>
       <b className="lp-ctx">{ctxName(context)}</b>
       <span className="lp-arm"><span className="pill neg">{armName(arm)}</span><small>{ARM[arm]?.how}</small></span>
       {mine && mine.n ? (
         <span className="lp-ev num">
-          {top && <>picked {pct(top.share)} of {mine.n} · </>}wins {pct(mine.win_rate)}{mine.profit_per_buyer_cents != null && <> · {usd(Math.round(mine.profit_per_buyer_cents))}/buyer</>}
-          {bestFixed && mine.profit_per_buyer_cents != null && <><br /><span className={mine.profit_per_buyer_cents >= bestFixed[1].profit_per_buyer_cents! ? "up" : "down"}>{signed(Math.round(mine.profit_per_buyer_cents - bestFixed[1].profit_per_buyer_cents!))}</span> vs {armName(bestFixed[0])}</>}
+          {drawn ? <>picked {pct(drawn.share)} of {mine.n} · </> : top ? <>A/B drew {armName(top.arm)} · </> : null}wins {pct(mine.win_rate)}{mine.profit_per_buyer_cents != null && <> · {usd(Math.round(mine.profit_per_buyer_cents))}/buyer</>}
+          {baseline && mine.profit_per_buyer_cents != null && <><br /><span className={mine.profit_per_buyer_cents >= baseline[1].profit_per_buyer_cents! ? "up" : "down"}>{signed(Math.round(mine.profit_per_buyer_cents - baseline[1].profit_per_buyer_cents!))}</span>/buyer vs {armName(baseline[0])}</>}
         </span>
       ) : chosen != null ? (
-        <span className="lp-ev num">{usd(Math.round(chosen))}/buyer over {data.stats[context][arm].n} tries{arm !== "negotiating" && neg != null && <><br /><span className={chosen >= neg ? "up" : "down"}>{signed(Math.round(chosen - neg))}</span> vs Negotiating</>}</span>
+        <span className="lp-ev num">{usd(Math.round(chosen))}/buyer over {data.stats[context][arm].n} tries{arm !== "negotiating" && neg != null && <><br /><span className={chosen >= neg ? "up" : "down"}>{signed(Math.round(chosen - neg))}</span>/buyer vs Negotiating</>}</span>
       ) : null}
     </div>
   );
@@ -138,7 +141,7 @@ function Comparison({ ab, fixed }: { ab: LearnedEval; fixed: string[] }) {
       <div className="card-h"><h3>Same buyers, learned vs fixed playbooks</h3><span>{ab.key} · {ab.overall.learned?.n ?? 0} buyers per policy{ab.versions.length ? ` · policy v${ab.versions.join(", v")}` : ""}</span></div>
       <div className="scroll">
         <table className="pgrid">
-          <thead><tr><th>Buyer cares most about</th><th>Seller picked</th>{cols.map((c) => <th key={c}>{armName(c)}<br /><span className="th-sub">won · profit/buyer · buyers</span></th>)}</tr></thead>
+          <thead><tr><th>Buyer type</th><th>Seller picked</th>{cols.map((c) => <th key={c}>{armName(c)}<br /><span className="th-sub">won · profit/buyer · buyers</span></th>)}</tr></thead>
           <tbody>
             {ab.rows.map((r) => {
               const b = best(r.cells);

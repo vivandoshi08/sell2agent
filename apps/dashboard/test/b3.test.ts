@@ -6,6 +6,7 @@ import { followupSummary } from "../src/metrics/followups";
 import { evalKey, learnedEval, liveArmPicks } from "../src/metrics/learned";
 import { liveTraffic, policyKpis } from "../src/metrics/kpis";
 import { fakeComparison, fakeFollowups, fakeLearnedEval } from "../src/data/fake";
+import learnedFile from "../../seller-mcp/learned_policy.json";
 
 test("follow-ups: consented walk-aways get a timeline; totals count sent, recovered and recovered revenue", () => {
   const s = followupSummary(fakeFollowups());
@@ -62,12 +63,12 @@ test("learned eval: pairs the learned run with its fixed siblings and scores eac
   assert.deepEqual(ab.policies, ["learned", "negotiating", "balanced"]);
   assert.deepEqual(ab.rows.map((r) => r.context), ["price", "quality", "delivery", "trust"]);
   for (const r of ab.rows) for (const pol of ab.policies) assert.equal(r.cells[pol].n, 20, `${r.context} × ${pol}`);
-  const quality = ab.rows.find((r) => r.context === "quality")!;
-  assert.equal(quality.picks[0].arm, "lever_policy", "learned mostly draws the context's best arm");
-  assert.ok(quality.picks[0].share >= 0.75);
+  const trust = ab.rows.find((r) => r.context === "trust")!;
+  assert.equal(trust.picks[0].arm, learnedFile.choice.trust, "learned mostly draws the arm the policy file chose");
+  assert.ok(trust.picks[0].share >= 0.75);
   assert.equal(ab.overall.learned.n, 80);
   assert.ok(ab.overall.learned.profit_per_buyer_cents != null);
-  assert.deepEqual(ab.versions, [2]);
+  assert.deepEqual(ab.versions, [learnedFile.version]);
   assert.equal(ab.fallbacks, 0);
   assert.equal(learnedEval(fakeComparison(10)), null, "no learned run, no comparison");
 });

@@ -336,4 +336,6 @@ details.panel summary { list-style: none; }
   .fu-step .dot { margin-top: 2px; }
   .lp-picks { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
   .lp-pick { padding: 10px 12px; }
+  .lp-arm small { display: none; }
+  .lp-ctx { font-size: 16px; }
 }

@@ -13,7 +13,7 @@ const time = (iso?: string) => (iso ? new Date(iso).toLocaleTimeString("en-US", 
 const later = (from?: string, to?: string) => {
   if (!from || !to) return "";
   const s = Math.max(0, (Date.parse(to) - Date.parse(from)) / 1000);
-  return s < 90 ? `${Math.round(s)} s later` : s < 5400 ? `${Math.round(s / 60)} min later` : `${Math.round(s / 3600)} h later`;
+  return s < 60 ? `${Math.round(s)} s later` : s < 5400 ? `${Math.round(s / 60)} min later` : `${Math.round(s / 3600)} h later`;
 };
 const lever = (l: string) => l.replace(/_/g, " ");
 const withLevers = (levers: string[]) => (levers.length ? ` + ${levers.map(lever).join(", ")}` : "");

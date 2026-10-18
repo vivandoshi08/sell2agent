@@ -91,12 +91,15 @@ export function followupSummary(events: Ev[]): FollowupSummary {
 
     const after = (e: Ev) => !offer || (e.ts ?? "") >= (offer.ts ?? "");
     const delivery = (offer ? p(offer).delivery : undefined) as { via?: string; status?: string; error?: string } | undefined;
-    const outbox = (offer ? p(offer).outbox : undefined) as { to?: string; subject?: string; channel?: string } | undefined;
+    const outbox = (offer ? p(offer).outbox : undefined) as { to?: string; subject?: string; channel?: string; text?: string } | undefined;
     const block = evs.find(isFollowupBlock);
     const deal = offer ? evs.find((e) => e.type === "deal_accepted" && after(e)) : undefined;
     const dealId = deal ? str(p(deal).deal_id) : undefined;
     const paid = deal ? evs.find((e) => e.type === "payment_succeeded" && after(e) && (!dealId || !str(p(e).deal_id) || p(e).deal_id === dealId)) : undefined;
-    const listed = evs.map((e) => p(e).list_price_cents).find((v): v is number => typeof v === "number") ?? null;
+    // The follow-up's offer block says "price: $125 (list $139)"; else any list price the negotiation logged.
+    const listInText = /\(list \$([\d,]+(?:\.\d\d)?)\)/.exec(outbox?.text ?? "")?.[1];
+    const listed = listInText ? Math.round(Number(listInText.replace(/,/g, "")) * 100)
+      : evs.map((e) => p(e).list_price_cents).find((v): v is number => typeof v === "number") ?? null;
     const qty = deal && typeof p(deal).quantity === "number" ? (p(deal).quantity as number) : 1;
     const first = walk ?? offer!;
     const t: Omit<FollowupThread, "status" | "last_ts"> = {

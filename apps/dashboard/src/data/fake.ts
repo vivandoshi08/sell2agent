@@ -5,6 +5,7 @@
  */
 import type { NegotiationEvent } from "@sa/shared";
 import { rng } from "../metrics/stats";
+import learnedPolicy from "../../../seller-mcp/learned_policy.json";
 
 const PERSONAS = ["price_first", "quality_first", "speed_first", "trust_first", "balanced"] as const;
 const MODELS = ["claude-sonnet-5-5", "gpt-5"] as const;
@@ -136,7 +137,10 @@ export function fakeFollowups(start = Date.parse("2026-10-17T21:00:30Z")): Negot
       reason: `Followed up by ${pl.channel} after the buyer walked away: the last price offered, now with ${levers[0].replace(/_/g, " ")}.`,
       rule_refs: ["followup", "no_new_concession", `lever:${levers[0]}`],
       delivery: { via: pl.channel === "sms" ? "inkbox" : "log", status: pl.channel === "sms" ? "sent" : "logged", message_id: `msg_fake_${i}` },
-      outbox: { channel: pl.channel, to: pl.to, subject: `${pl.prod.title}: $${last / 100} for 24 hours` },
+      outbox: { channel: pl.channel, to: pl.to, subject: `${pl.prod.title}: $${last / 100} for 24 hours`,
+        text: [`You looked at the ${pl.prod.title} earlier. It's still available for $${last / 100}, including ${levers[0].replace(/_/g, " ")}. This offer is open for 24 hours.`, "",
+          "--- offer ---", `offer_id: ${offer_id}`, `item: ${pl.prod.title}`, `price: $${last / 100} (list $${pl.prod.list / 100})`, `includes: ${levers.join(", ")}`,
+          `to accept, reply: ACCEPT ${offer_id}`, "to make an offer, reply: COUNTER $<price>", "to stop these messages, reply: STOP"].join("\n") },
     }, 60_000);
     if (!pl.reply) return;
     const inbound = (intent: string, message: string, reply: string, extra: Record<string, unknown> = {}) =>
@@ -163,8 +167,9 @@ export function fakeFollowups(start = Date.parse("2026-10-17T21:00:30Z")): Negot
 
 const ARMS_FAKE = ["negotiating", "balanced", "lever_policy"] as const;
 const CONTEXTS_FAKE = ["price", "quality", "delivery", "trust"] as const;
-/** Which arm a context's buyers reward most in the fake world (mirrors the shape of E2's scripted results). */
-const BEST_ARM: Record<(typeof CONTEXTS_FAKE)[number], (typeof ARMS_FAKE)[number]> = { price: "balanced", quality: "lever_policy", delivery: "balanced", trust: "negotiating" };
+/** Which arm a context's buyers reward most in the fake world: whatever the current learned_policy.json chose, so the sample agrees with the file. */
+const BEST_ARM = Object.fromEntries(CONTEXTS_FAKE.map((c) => [c, ((learnedPolicy as { choice?: Record<string, string> }).choice?.[c] ?? "negotiating") as (typeof ARMS_FAKE)[number]])) as Record<(typeof CONTEXTS_FAKE)[number], (typeof ARMS_FAKE)[number]>;
+const POLICY_VERSION = (learnedPolicy as { version?: number }).version ?? 1;
 
 /**
  * Bridge 3 learned A/B: the same buyers against `learned` and the fixed policies, like `pnpm e2:learned --id s2-fake-b3`.
@@ -192,11 +197,11 @@ export function fakeLearnedEval(buyers = 80, seed = 11, start = Date.parse("2026
       const explore = r() < 0.1;
       const arm = policy === "learned" ? (explore ? ARMS_FAKE[Math.floor(r() * 3)] : greedy) : policy;
       const probs = Object.fromEntries(ARMS_FAKE.map((a) => [a, (a === greedy ? 0.9 : 0) + 0.1 / 3]));
-      const learned = policy === "learned" ? { policy: "learned", arm, propensity: probs[arm], arm_probs: probs, bandit_context: context, policy_version: 2 } : {};
+      const learned = policy === "learned" ? { policy: "learned", arm, propensity: probs[arm], arm_probs: probs, bandit_context: context, policy_version: POLICY_VERSION } : {};
       const refs = [`policy:${policy}`, ...(policy === "learned" ? [`arm:${arm}`] : [])];
       push({ ...base, actor: "harness", type: "run_started", price_cents: null, payload: { policy, buyer_persona: `${context}_first`, lever_profile } });
       const fit = arm === BEST_ARM[context] ? 0.78 : 0.55;
-      const closes = pr() < fit + (r() - 0.5) * 0.2;
+      const closes = pr() < fit; // same buyer, same playbook → same outcome in every run
       const levers = arm === "lever_policy" ? ["extended_warranty"] : [];
       const price = Math.round(prod.list * (arm === "negotiating" ? 0.93 : arm === "balanced" ? 0.86 : 0.95) / 100) * 100;
       push({ ...base, actor: "buyer", type: "offer_made", price_cents: Math.round(prod.list * 0.75), payload: { round: 1 } });
