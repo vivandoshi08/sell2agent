@@ -9,13 +9,15 @@
  *  - Mirrors for the dashboard and joins (best effort, never block a move):
  *      negotiations: status mapped onto the old enum (negotiating→open, agreed→accepted, walked_away/expired→abandoned)
  *      deals:        final_price_cents, quantity, unit_cost_cents, stripe_payment_intent_id, paid
+ *  - Follow-ups (Bridge 3): queue jobs `fuq:<negotiation_id>` (null tombstone = done), marks `fu:<key>` (weekly cap, routing).
  * When Neel's migration lands, swap snapshot reads for the real tables here; nothing else changes.
  */
-import type { BuyerMemory, ExchangeStore } from "./store";
+import type { BuyerMemory, ExchangeStore, FollowupJob, FollowupMark } from "./store";
 import type { Catalog, LockedDeal, Negotiation, NegotiationState, StandingOffer } from "./types";
 
 export const SNAPSHOT_RUN = "exchange_state";
 export const SNAPSHOT_TYPE = "exchange_snapshot";
+const JOB = "fuq:";
 
 export const LEGACY_STATUS: Record<NegotiationState, "open" | "accepted" | "rejected" | "paid" | "abandoned"> = {
   open: "open", negotiating: "open", follow_up: "open", escalated: "open",
@@ -76,6 +78,25 @@ export class SupabaseStore implements ExchangeStore {
   async putBuyerMemory(k: string, m: BuyerMemory) { await this.write(`mem:${k}`, m); }
   /** Append-only: a null record is a tombstone, so the newest row reads back as "no memory". */
   async clearBuyerMemory(k: string) { await this.write(`mem:${k}`, null); }
+
+  async putFollowupJob(j: FollowupJob) { await this.write(`${JOB}${j.negotiation_id}`, j); }
+  async deleteFollowupJob(id: string) { await this.write(`${JOB}${id}`, null); }
+  /** Newest row per job key; tombstoned (sent, cancelled) jobs drop out. Bounded: follow-ups are rare. */
+  async listFollowupJobs(): Promise<FollowupJob[]> {
+    const { data, error } = await this.db.from("events").select("negotiation_id, payload").eq("run_id", SNAPSHOT_RUN).eq("type", SNAPSHOT_TYPE)
+      .like("negotiation_id", `${JOB}%`).order("ts", { ascending: false }).limit(2000);
+    if (error) throw new Error(`[exchange store] list follow-ups: ${error.message}`);
+    const seen = new Set<string>();
+    const jobs: FollowupJob[] = [];
+    for (const row of (data as { negotiation_id: string; payload: { record: FollowupJob | null } }[] | null) ?? []) {
+      if (seen.has(row.negotiation_id)) continue;
+      seen.add(row.negotiation_id);
+      if (row.payload?.record) jobs.push(row.payload.record);
+    }
+    return jobs;
+  }
+  async getFollowupMark(k: string) { return this.read<FollowupMark>(`fu:${k}`); }
+  async putFollowupMark(k: string, m: FollowupMark) { await this.write(`fu:${k}`, m); }
 }
 
 /** SupabaseStore when SUPABASE_URL is set, else null (caller falls back to MemoryStore). */

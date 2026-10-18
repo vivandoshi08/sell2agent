@@ -18,6 +18,24 @@ export interface ExchangeStore {
   putBuyerMemory(key: string, m: BuyerMemory): Promise<void>;
   /** Ops (scripts/anon-reset.ts): forget a buyer × product memory. */
   clearBuyerMemory(key: string): Promise<void>;
+  /** Bridge 3 follow-up queue: one job per consented walk-away, so runDue() works from a fresh process. */
+  putFollowupJob(j: FollowupJob): Promise<void>;
+  deleteFollowupJob(negotiation_id: string): Promise<void>;
+  listFollowupJobs(): Promise<FollowupJob[]>;
+  /** Follow-up marks: the weekly cap (`cap:…`) and inbound routing by reply address (`route:…`). */
+  getFollowupMark(key: string): Promise<FollowupMark | null>;
+  putFollowupMark(key: string, m: FollowupMark): Promise<void>;
+}
+
+export interface FollowupJob {
+  negotiation_id: string;
+  due_at: string; // ISO
+}
+export interface FollowupMark {
+  negotiation_id: string;
+  buyer_id: string;
+  sent_at: string; // ISO
+  count?: number; // reply budgets (the messaging door)
 }
 
 export interface BuyerMemory {
@@ -67,6 +85,19 @@ export const breakerKey = (product_id: string, run_id?: string | null) => scoped
  */
 export const memoryKey = (buyer_id: string, product_id: string, run_id?: string | null) => `${scoped(buyer_id, run_id)}::${product_id}`;
 
+/** A reply address as one key: lowercased, `Name <addr>` and `mailto:` stripped, phone numbers reduced to digits (+ kept). */
+export function normalizeAddress(a: string): string {
+  const s = (a.match(/<([^>]+)>/)?.[1] ?? a).trim().toLowerCase().replace(/^mailto:/, "");
+  return /^[+(\d][\d\s().-]{6,}$/.test(s) ? s.replace(/(?!^\+)\D/g, "") : s;
+}
+/** Weekly follow-up cap: one per buyer and one per reply address, each scoped to a signed eval run (eval ids repeat). */
+export const followupCapKeys = (buyer_id: string, reply_to: string, run_id?: string | null) =>
+  [`cap:buyer:${scoped(buyer_id, run_id)}`, `cap:to:${scoped(normalizeAddress(reply_to), run_id)}`];
+/** Inbound routing: the latest follow-up sent to this address on this channel. */
+export const followupRouteKey = (channel: string, address: string) => `route:${channel}:${normalizeAddress(address)}`;
+/** STOP: this address never gets another follow-up, on any negotiation. */
+export const followupOptOutKey = (address: string) => `optout:${normalizeAddress(address)}`;
+
 /**
  * Memory for client-asserted ids (the shared anon bucket and per-person `oai_` ids) expires 30 min after its last
  * update (override: EXCHANGE_ANON_MEMORY_TTL_MS). Without it, one chat that reached the final round froze every later
@@ -88,6 +119,8 @@ export class MemoryStore implements ExchangeStore {
   private offers = new Map<string, StandingOffer>();
   private deals = new Map<string, LockedDeal>();
   private memory = new Map<string, BuyerMemory>();
+  private jobs = new Map<string, FollowupJob>();
+  private marks = new Map<string, FollowupMark>();
 
   async getNegotiation(id: string) { const n = this.negs.get(id); return n ? clone(n) : null; }
   async putNegotiation(n: Negotiation) { this.negs.set(n.id, clone(n)); }
@@ -102,6 +135,11 @@ export class MemoryStore implements ExchangeStore {
   async getBuyerMemory(k: string) { const m = this.memory.get(k); return m ? clone(m) : null; }
   async putBuyerMemory(k: string, m: BuyerMemory) { this.memory.set(k, clone(m)); }
   async clearBuyerMemory(k: string) { this.memory.delete(k); }
+  async putFollowupJob(j: FollowupJob) { this.jobs.set(j.negotiation_id, clone(j)); }
+  async deleteFollowupJob(id: string) { this.jobs.delete(id); }
+  async listFollowupJobs() { return [...this.jobs.values()].map(clone); }
+  async getFollowupMark(k: string) { const m = this.marks.get(k); return m ? clone(m) : null; }
+  async putFollowupMark(k: string, m: FollowupMark) { this.marks.set(k, clone(m)); }
   /** Test helper: raw access, for tamper tests. */
   _rawDeal(id: string) { return this.deals.get(id); }
 }

@@ -10,11 +10,13 @@ import { z } from "zod";
 import { Exchange, type ExchangeResponse, type Move } from "@sa/seller-mcp/exchange";
 import { defaultLlm, dealSummary as dealLine, SUMMARY_MAX } from "@sa/seller-mcp/sellers";
 import { approveUrl } from "./deal/approve.js";
+import { followupSender } from "./followup/index.js";
 
 let exP: Promise<Exchange> | undefined;
 /** Supabase-backed when SUPABASE_URL is set (stateless-safe), else in-memory (single instance). */
 // Seller voice: Claude when ANTHROPIC_API_KEY is set (E2 voice() guards every figure and falls back to templates).
-export const exchange = () => (exP ??= Exchange.fromEnv({ llm: defaultLlm() }));
+// Follow-ups (Bridge 3) go out through Inkbox when INKBOX_API_KEY is set, else the log courier (src/followup).
+export const exchange = () => (exP ??= Exchange.fromEnv({ llm: defaultLlm(), send: followupSender() }));
 
 const ctxFields = {
   run_id: z.string().optional().describe("Eval run id (simulated buyers only)"),
@@ -91,7 +93,7 @@ const usd = (c?: number) => (c === undefined ? "" : `$${(c / 100).toFixed(c % 10
 let approveOrigin: string | undefined;
 
 /** Approve link for one locked deal and its buyer; none without an origin or EXCHANGE_HMAC_SECRET. */
-function approveLink(deal_id: string, buyer_id: string): string | undefined {
+export function approveLink(deal_id: string, buyer_id: string): string | undefined {
   if (!approveOrigin) return undefined;
   try {
     return approveUrl(approveOrigin, deal_id, buyer_id);
@@ -114,11 +116,14 @@ function withExpiry(summary: string, iso: string, now = Date.now()): string {
 }
 
 export function render(r: ExchangeResponse, buyer_id: string) {
-  // A locked, unpaid deal gets a hosted approve link, so text-only agents (no deal card) can send it to the person.
+  // A locked, unpaid deal: the model's next step is always review_deal, which shows the Approve & Pay card in any app
+  // that can draw it. The hosted approve link is still returned for code (email door, harness) but kept out of the
+  // model-facing text and summary, so an agent that can show the card doesn't send a link instead (seen with Grok).
+  // Text-only apps get the link from review_deal's reply.
   const d = r.deal && r.state !== "paid" ? r.deal : undefined;
   const approve_url = d ? approveLink(d.deal_id, buyer_id) : undefined;
-  const summary = d && approve_url
-    ? dealLine({ title: d.title, total_cents: d.total_cents, quantity: d.quantity, unit_price_cents: d.unit_price_cents, levers: d.levers, approve_url })
+  const summary = d
+    ? dealLine({ title: d.title, total_cents: d.total_cents, quantity: d.quantity, unit_price_cents: d.unit_price_cents, levers: d.levers })
     : (r as { summary?: string }).summary;
   const out = {
     ...r, buyer_id,
@@ -130,7 +135,7 @@ export function render(r: ExchangeResponse, buyer_id: string) {
     r.message,
     o ? `Standing offer ${o.offer_id}: ${usd(o.price_cents)}${o.levers.length ? ` incl. ${o.levers.join(", ")}` : ""}${o.final ? " (final)" : ""}, expires ${o.expires_at}.` : "",
     r.state === "paid" ? `PAID: the purchase is complete${r.deal ? ` (deal ${r.deal.deal_id}, ${usd(r.deal.total_cents)})` : ""}. Tell the person it's bought; don't negotiate this item again.` : "",
-    d ? `Deal ${d.deal_id} locked at ${usd(d.total_cents)}, expires ${expiryText(d.expires_at)}. Ask the person to approve and pay before then${approve_url ? `: show the deal card (review_deal), or if you can't show cards, send them this approval link: ${approve_url}` : "."}` : "",
+    d ? `Deal ${d.deal_id} locked at ${usd(d.total_cents)}, expires ${expiryText(d.expires_at)}. Next step: call review_deal now (deal_id ${d.deal_id}, buyer_id ${buyer_id}). It shows the person an Approve & Pay button; they approve and pay there before it expires. Don't send a link first: if the person can't see the card, review_deal's reply includes their approval link.` : "",
     r.error ? `Error ${r.error.code}: ${r.error.message}` : "",
     r.negotiation_id ? `negotiation_id ${r.negotiation_id} · buyer_id ${buyer_id} (send both on every later call) · next: ${r.allowed_actions.join(", ") || "none"}` : "",
   ].filter(Boolean);
@@ -159,7 +164,7 @@ export function registerNegotiationTools(server: any, opts: { approveOrigin?: st
         message: z.string().max(2000).optional().describe("Optional note to the seller"),
         levers: z.array(z.string()).optional().describe("Extras you want included, from the listing (e.g. free_shipping)"),
         strategy: z
-          .enum(["static", "negotiating", "balanced"])
+          .enum(["static", "negotiating", "balanced", "learned"])
           .optional()
           .describe("Eval runs only: seller strategy for A/B tests. Honoured by the exchange only for a signed eval run_id; ignored otherwise."),
         buyer_id: buyerIdNew,

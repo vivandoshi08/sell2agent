@@ -1,0 +1,265 @@
+{
+  "version": 3,
+  "trained_at": "2026-10-18T10:36:47.271Z",
+  "arms": [
+    "negotiating",
+    "balanced",
+    "lever_policy"
+  ],
+  "epsilon": 0.1,
+  "stats": {
+    "price": {
+      "negotiating": {
+        "n": 365,
+        "sum": 873200,
+        "sumSq": 5209960000,
+        "w": 1023.645861974153,
+        "wsum": 2448897.442947464
+      },
+      "balanced": {
+        "n": 593,
+        "sum": 1616000,
+        "sumSq": 8987440000,
+        "w": 1020.6884913938583,
+        "wsum": 2781505.2311846437
+      },
+      "lever_policy": {
+        "n": 62,
+        "sum": 147300,
+        "sumSq": 877690000,
+        "w": 992.7786499215124,
+        "wsum": 2358649.921507075
+      }
+    },
+    "delivery": {
+      "negotiating": {
+        "n": 169,
+        "sum": 366400,
+        "sumSq": 2372360000,
+        "w": 486.1774679728712,
+        "wsum": 1054055.7648831925
+      },
+      "balanced": {
+        "n": 305,
+        "sum": 858400,
+        "sumSq": 5277700000,
+        "w": 518.9826164475107,
+        "wsum": 1460638.2883886737
+      },
+      "lever_policy": {
+        "n": 35,
+        "sum": 58100,
+        "sumSq": 377010000,
+        "w": 540.9412955465579,
+        "wsum": 897962.5506072864
+      }
+    },
+    "quality": {
+      "negotiating": {
+        "n": 155,
+        "sum": 312100,
+        "sumSq": 2000330000,
+        "w": 433.93528183715904,
+        "wsum": 873749.6868475983
+      },
+      "balanced": {
+        "n": 179,
+        "sum": 495500,
+        "sumSq": 2992730000,
+        "w": 461.524706787157,
+        "wsum": 1277572.5821957309
+      },
+      "lever_policy": {
+        "n": 113,
+        "sum": 234500,
+        "sumSq": 1536390000,
+        "w": 443.20854050892046,
+        "wsum": 919755.7765428486
+      }
+    },
+    "trust": {
+      "negotiating": {
+        "n": 93,
+        "sum": 219600,
+        "sumSq": 1348180000,
+        "w": 237.19447396386855,
+        "wsum": 560085.0159404904
+      },
+      "balanced": {
+        "n": 80,
+        "sum": 226200,
+        "sumSq": 1317400000,
+        "w": 241.8136020151137,
+        "wsum": 683727.9596977347
+      },
+      "lever_policy": {
+        "n": 67,
+        "sum": 108100,
+        "sumSq": 651630000,
+        "w": 241.80451127819586,
+        "wsum": 390135.33834586525
+      }
+    }
+  },
+  "choice": {
+    "price": "balanced",
+    "delivery": "balanced",
+    "quality": "balanced",
+    "trust": "balanced"
+  },
+  "min_sessions": 10,
+  "curve": [
+    {
+      "epoch": 1,
+      "bandit": 2414,
+      "negotiating": 2261,
+      "balanced": 2765
+    },
+    {
+      "epoch": 2,
+      "bandit": 2566,
+      "negotiating": 2261,
+      "balanced": 2765
+    },
+    {
+      "epoch": 3,
+      "bandit": 2765,
+      "negotiating": 2261,
+      "balanced": 2765
+    },
+    {
+      "epoch": 4,
+      "bandit": 2715,
+      "negotiating": 2261,
+      "balanced": 2765
+    },
+    {
+      "epoch": 5,
+      "bandit": 2715,
+      "negotiating": 2261,
+      "balanced": 2765
+    },
+    {
+      "epoch": 6,
+      "bandit": 2715,
+      "negotiating": 2261,
+      "balanced": 2765
+    },
+    {
+      "epoch": 7,
+      "bandit": 2715,
+      "negotiating": 2261,
+      "balanced": 2765
+    },
+    {
+      "epoch": 8,
+      "bandit": 2715,
+      "negotiating": 2261,
+      "balanced": 2765
+    },
+    {
+      "epoch": 9,
+      "bandit": 2715,
+      "negotiating": 2261,
+      "balanced": 2765
+    },
+    {
+      "epoch": 10,
+      "bandit": 2765,
+      "negotiating": 2261,
+      "balanced": 2765
+    },
+    {
+      "epoch": 11,
+      "bandit": 2765,
+      "negotiating": 2261,
+      "balanced": 2765
+    },
+    {
+      "epoch": 12,
+      "bandit": 2765,
+      "negotiating": 2261,
+      "balanced": 2765
+    },
+    {
+      "epoch": 13,
+      "bandit": 2765,
+      "negotiating": 2261,
+      "balanced": 2765
+    },
+    {
+      "epoch": 14,
+      "bandit": 2465,
+      "negotiating": 2261,
+      "balanced": 2765
+    },
+    {
+      "epoch": 15,
+      "bandit": 2626,
+      "negotiating": 2261,
+      "balanced": 2765
+    },
+    {
+      "epoch": 16,
+      "bandit": 2626,
+      "negotiating": 2261,
+      "balanced": 2765
+    },
+    {
+      "epoch": 17,
+      "bandit": 2626,
+      "negotiating": 2261,
+      "balanced": 2765
+    },
+    {
+      "epoch": 18,
+      "bandit": 2626,
+      "negotiating": 2261,
+      "balanced": 2765
+    },
+    {
+      "epoch": 19,
+      "bandit": 2765,
+      "negotiating": 2261,
+      "balanced": 2765
+    },
+    {
+      "epoch": 20,
+      "bandit": 2765,
+      "negotiating": 2261,
+      "balanced": 2765
+    }
+  ],
+  "gate": {
+    "passed": true,
+    "best_fixed_policy": "balanced",
+    "learned_minus_best_fixed_cents": -106,
+    "holdout_buyers": 300,
+    "diff_vs_negotiating_cents": 621,
+    "ci95_cents": [
+      355,
+      887
+    ],
+    "below_floor": 0,
+    "ci95_vs_best_fixed_cents": [
+      -335,
+      122
+    ],
+    "beats_best_fixed": false,
+    "source": "held-out claude-haiku-5-5 buyers, seed 777, runs b3C_learned, b3C_negotiating, b3C_balanced"
+  },
+  "trained_on": {
+    "source": "logged, mixture IPS",
+    "sessions": 2216,
+    "runs": [
+      "b3A_learned",
+      "run_202610181012_negotiating",
+      "run_202610181013_balanced",
+      "b3X_learned",
+      "b3B_learned",
+      "b3B_negotiating",
+      "b3B_balanced"
+    ],
+    "previous_version": 2
+  }
+}

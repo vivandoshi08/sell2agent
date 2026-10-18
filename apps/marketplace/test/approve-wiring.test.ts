@@ -33,12 +33,18 @@ async function lockDeal(buyer_id: string) {
   return call("accept_deal", { negotiation_id: o.negotiation_id, offer_id: o.standing_offer.offer_id, buyer_id });
 }
 
-test("accept_deal returns an approve_url for this deal and buyer, in the text and the summary too", async () => {
+// Card first (Grok sent the link although it can show the card): accept_deal points the model at review_deal; the
+// link is still returned for code, and review_deal's reply carries it as the text-only fallback.
+test("accept_deal returns approve_url for code, but its text and summary point at review_deal, not the link", async () => {
   const r = await lockDeal("s1-test-approve-a");
   const { deal: d, approve_url, summary } = r.structuredContent;
   assert.ok(approve_url.startsWith(`${ORIGIN}/deal/${encodeURIComponent(d.deal_id)}?t=`), approve_url);
-  assert.ok(r.content[0].text.includes(approve_url), "the model sees the link");
-  assert.match(summary, /Approve: https:\/\/gateway\.test\/deal\//);
+  assert.ok(!r.content[0].text.includes(approve_url), "the model isn't offered the link before the card");
+  assert.match(r.content[0].text, /Next step: call review_deal now/);
+  assert.ok(!summary.includes("/deal/"), summary);
+  const review = await call("review_deal", { deal_id: d.deal_id, buyer_id: "s1-test-approve-a" });
+  assert.ok(review.content[0].text.includes(approve_url), "review_deal gives text-only apps the link");
+  assert.match(review.content[0].text, /can't see an Approve & Pay card/);
 });
 
 test("the link opens its own deal; a tampered token or another deal is refused", async () => {

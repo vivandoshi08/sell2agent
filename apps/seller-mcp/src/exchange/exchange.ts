@@ -8,7 +8,7 @@
 import { randomUUID } from "node:crypto";
 import { BuyerChannel, BuyerContext, type NegotiationEvent } from "@sa/shared";
 import { decide as e2decide, voice as e2voice, offerSummary, dealSummary, type Llm, type ProposedMove, type SellerPolicy, type SellerState,
-  type BuyerLeverProfile, type VoiceContext, type VoiceResult, DEFAULT_SOFT_FLOOR_BUFFER, softFloor } from "../sellers";
+  type BuyerLeverProfile, type VoiceContext, type VoiceResult, type PolicyName, DEFAULT_SOFT_FLOOR_BUFFER, softFloor, chooseArm, contextOf, DEFAULT_ARM } from "../sellers";
 import { StaticCatalog } from "./catalog";
 import { guardMove } from "./decision-guard";
 import { Deals, lockDeal } from "./deals";
@@ -18,10 +18,11 @@ import { checkOutput, fallbackMessage, type OutputContext } from "./output-guard
 import { allowedActions, assertTransition } from "./state";
 import { MemoryStore, liveMemory, memoryKey, limitKey, breakerKey, probeId, isEvalRun, type ExchangeStore } from "./store";
 import { ProbeBreaker, StartLimiter, startLimitFor, buyerEndpoint, jitterStep, leverCost, NEAR_MISS_BAND } from "./probing";
-import { CONCESSION_CAP } from "./decision-guard";
-import { Outreach, type Sender } from "./outreach";
+import { CONCESSION_CAP, holdAtCap } from "./decision-guard";
+import { Outreach, type InboundMeta, type Sender } from "./outreach";
+import { learnedPolicy, leverMenu } from "./learned";
 import type { AcceptMove, Catalog, ExchangeError, ExchangeResponse, Move, Negotiation, NegotiationState, OfferMove,
-  ProductConfig, StandingOffer, StatusMove, WalkMove, LockedDeal } from "./types";
+  ProductConfig, StandingOffer, StatusMove, WalkMove, LockedDeal, Strategy } from "./types";
 
 export const OFFER_TTL_MS = 15 * 60_000;
 export const BREAKER_THRESHOLD = 2; // E9: 2 flagged buyer messages → freeze
@@ -69,7 +70,7 @@ export class Exchange {
     this.voiceFn = o.voice ?? e2voice;
     this.buffer = o.soft_floor_buffer ?? DEFAULT_SOFT_FLOOR_BUFFER;
     this.outreach = new Outreach({ ex: this, now: this.now, send: o.send ?? (async () => {}),
-      emit: (n, type, price, payload) => this.emit(n, type, "seller", price, payload), setState: (n, to) => this.setState(n, to) });
+      emit: (n, type, price, payload, actor = "seller") => this.emit(n, type, actor, price, payload), setState: (n, to) => this.setState(n, to) });
   }
 
   /** Opt in to a follow-up after walking away (allow_followups). */
@@ -77,14 +78,14 @@ export class Exchange {
     const got = await this.load(negotiation_id, buyer_id);
     if ("error" in got) return got.error;
     if (got.n.state !== "walked_away") return fail("not_allowed", "follow-ups are only offered after walking away");
-    this.outreach.consent(got.n, consent);
+    await this.outreach.consent(got.n, consent);
     await this.store.putNegotiation(got.n);
     return { ok: true, negotiation_id, buyer_id, state: got.n.state, allowed_actions: ["status"], message: `OK. We'll send at most one later offer to ${consent.reply_to}. Reply STOP any time.` };
   }
 
   /** Inbound reply on the messaging door → structured move or a clarifying question. */
-  inbound(negotiation_id: string, buyer_id: string, text: string) {
-    return this.outreach.inbound(negotiation_id, buyer_id, text);
+  inbound(negotiation_id: string, buyer_id: string, text: string, meta?: InboundMeta) {
+    return this.outreach.inbound(negotiation_id, buyer_id, text, meta);
   }
 
   /** Deploy default: Supabase store + events when SUPABASE_URL is set, else in-memory. */
@@ -140,7 +141,7 @@ export class Exchange {
         return fail("rate_limited", "too many negotiations started on this product today; continue an existing negotiation_id instead");
       n = this.newNegotiation(m, p, qty);
       this.client(n, m.ctx, p);
-      if (m.strategy && isEvalRun(m.ctx.run_id) && ["static", "negotiating", "balanced"].includes(m.strategy)) n.strategy = m.strategy;
+      if (m.strategy && isEvalRun(m.ctx.run_id) && ["static", "negotiating", "balanced", "learned"].includes(m.strategy)) n.strategy = m.strategy;
       // E11 buyer memory: a returning buyer resumes where they left off. Never quoted higher than before,
       // and the concession clock doesn't restart, so restarting can't bisect toward the floor.
       const mem = liveMemory(n.buyer_id, await this.store.getBuyerMemory(memoryKey(n.buyer_id, p.product_id, n.run_id)), this.now());
@@ -170,6 +171,7 @@ export class Exchange {
     const cost = leverCost(levers, p.lever_costs);
     if (p.floor_price_cents + cost > p.list_price_cents) return fail("bad_lever", "that package can't be offered; try fewer extras");
     if (levers.join() !== (n.levers ?? []).join()) n.levers = levers;
+    if (n.learned?.added_levers) n.learned.added_levers = n.learned.added_levers.filter((l) => levers.includes(l));
     if (m.buyer_profile) n.buyer_profile = m.buyer_profile;
     const base = p;
     p = { ...p, floor_price_cents: p.floor_price_cents + cost }; // effective floor for this package
@@ -204,15 +206,29 @@ export class Exchange {
 
     // decide → guard
     const prevSeller = lastSeller(n);
+    const name = this.policyName(n, p.strategy, m.buyer_profile); // `learned`: the arm drawn for this negotiation
+    if (n.learned) refs.push(`arm:${n.learned.arm}`);
+    const added = n.learned?.added_levers ?? []; // extras lever_policy put in; it prices them itself (floor below excludes them)
     const proposed = this.decideFn(
-      { round: n.round, terms: { product_id: p.product_id, title: p.title, list_price_cents: p.list_price_cents, floor_price_cents: p.floor_price_cents,
-        unit_cost_cents: p.unit_cost_cents, max_rounds: p.max_rounds }, history: n.history.slice(0, -1), buyer_offer_cents: m.offer_price_cents },
-      { name: p.strategy, soft_floor_buffer: this.buffer, final_round_accept_zone: !n.frozen && this.breaker.open(breakerKey(base.product_id, n.run_id)) }, m.buyer_profile);
+      { round: n.round, terms: { product_id: p.product_id, title: p.title, list_price_cents: p.list_price_cents, floor_price_cents: p.floor_price_cents - leverCost(added, base.lever_costs),
+        unit_cost_cents: p.unit_cost_cents, max_rounds: p.max_rounds }, history: markLevers(n.history.slice(0, -1), added), buyer_offer_cents: m.offer_price_cents },
+      { name, soft_floor_buffer: this.buffer, final_round_accept_zone: !n.frozen && this.breaker.open(breakerKey(base.product_id, n.run_id)),
+        ...(name === "lever_policy" ? { lever_menu: leverMenu(base) } : {}) }, m.buyer_profile);
+    // lever_policy can hold the price and add an extra instead of a cut: it joins the package and the floor rises by its cost, before the guard
+    const extra = (proposed.lever_package ?? []).map((l) => l.id).filter((id) => !n.levers.includes(id) && base.allowed_levers.includes(id));
+    if (extra.length) {
+      n.levers = [...n.levers, ...extra];
+      n.learned = { ...n.learned!, added_levers: [...added, ...extra] };
+      p = { ...base, floor_price_cents: base.floor_price_cents + leverCost(n.levers, base.lever_costs) };
+    }
     let { move, blocks } = guardMove({ move: proposed, product: p, round: n.round, prev_seller_offer_cents: prevSeller, frozen: n.frozen, soft_floor_buffer: this.buffer });
     for (const b of blocks) { refs.push(ruleRef(b.rule)); await this.emit(n, "guardrail_blocked", "seller", move.price_cents, { ...b }); }
+    // past the round cap (a counter to a follow-up): hold the price already offered, no extra round below it
+    const held = n.round > p.max_rounds && prevSeller !== undefined;
+    if (held) move = holdAtCap(move, prevSeller!, m.offer_price_cents, softFloor(p.list_price_cents, p.floor_price_cents, this.buffer), p.list_price_cents);
 
     // E11 jitter: noisy steps toward a private per-buyer endpoint (not when frozen: a frozen price is final)
-    if (move.action === "offer" && !n.frozen) {
+    if (move.action === "offer" && !n.frozen && !held) {
       const soft = softFloor(p.list_price_cents, p.floor_price_cents, this.buffer);
       const who = probeId(n.buyer_id, n.run_id); // anon buyers share one endpoint + jitter stream per product
       const end = buyerEndpoint(who, base.product_id, soft, p.list_price_cents, p.floor_price_cents);
@@ -299,7 +315,7 @@ export class Exchange {
     const n = got.n;
     if (!allowedActions(n.state, false).includes("walk")) return fail("not_allowed", `can't walk away while the negotiation is ${n.state}`);
     await this.supersede(await this.standing(n));
-    if (m.followup) this.outreach.consent(n, m.followup);
+    if (m.followup) await this.outreach.consent(n, m.followup);
     await this.setState(n, "walked_away");
     await this.emit(n, "buyer_walked_away", "buyer", null, { reason: (m.reason ?? "").slice(0, 300), followup_consent: !!m.followup, channel: m.followup?.channel ?? null });
     const p = await this.catalog.get(n.product_id);
@@ -331,6 +347,17 @@ export class Exchange {
     if (!findings.length) return text;
     for (const f of findings) await this.emit(n, "guardrail_blocked", "seller", move.price_cents, { rule: `output_${f.rule}`, reason: f.detail });
     return fallbackMessage(octx, p.title);
+  }
+
+  /** Strategy → decide() policy. `learned` draws one arm per negotiation (ε-greedy, chooseArm) and keeps it; no usable file → negotiating. */
+  private policyName(n: Negotiation, s: Strategy, profile?: BuyerLeverProfile): PolicyName {
+    if (s !== "learned") return s;
+    if (!n.learned) {
+      const got = learnedPolicy();
+      const c = got.policy ? chooseArm(got.policy, profile) : { arm: DEFAULT_ARM, propensity: 1, context: contextOf(profile), probs: { [DEFAULT_ARM]: 1 } };
+      n.learned = { arm: c.arm, propensity: c.propensity, context: c.context, probs: c.probs, version: got.policy?.version ?? null, ...(got.fallback ? { fallback: got.fallback } : {}) };
+    }
+    return n.learned.arm;
   }
 
   private async remember(n: Negotiation, offer_cents: number) {
@@ -438,7 +465,10 @@ export class Exchange {
         negotiation_id: n.id, actor, type, price_cents: price,
         payload: { ...payload, ...(type === "guardrail_blocked" ? { severity: guardrailSeverity(payload.rule), seller_message: payload.seller_message ?? sellerMessage(payload.rule) } : {}),
           ...(n.product_title ? { product_title: n.product_title } : {}), ...(n.channel ? { channel: n.channel } : {}),
-          ...(n.agent_operator ? { agent_operator: n.agent_operator } : {}), state: n.state } });
+          ...(n.agent_operator ? { agent_operator: n.agent_operator } : {}), state: n.state,
+          // `learned`: what was drawn and with what probability, so retraining can IPS-weight logged outcomes (pnpm e2:retrain)
+          ...(n.learned ? { policy: "learned", arm: n.learned.arm, propensity: n.learned.propensity, arm_probs: n.learned.probs, bandit_context: n.learned.context,
+            policy_version: n.learned.version, ...(n.learned.fallback ? { learned_fallback: n.learned.fallback } : {}) } : {}) } });
     } catch (e) {
       console.error("[exchange] event sink failed", (e as Error).message);
     }
@@ -452,6 +482,13 @@ const REASON_REF: Partial<Record<ProposedMove["reason"], string>> = {
 /** Rule chips for a seller move: guards that fired this turn, the decision's reason, the policy and the extras included. */
 function ruleRefs(refs: string[], move: ProposedMove, p: ProductConfig, o: StandingOffer): string[] {
   return [...refs, REASON_REF[move.reason] ?? move.reason, `policy:${p.strategy}`, ...(o.final && move.action === "offer" ? ["last_round"] : []), ...o.levers.map((l) => `lever:${l}`)];
+}
+
+/** lever_policy reads the extras already promised from the last seller entry of the history. */
+function markLevers(h: Negotiation["history"], levers: string[]): SellerState["history"] {
+  if (!levers.length) return h;
+  const i = h.map((x) => x.by).lastIndexOf("seller");
+  return h.map((x, j) => (j === i ? { ...x, levers } : x));
 }
 
 function lastSeller(n: Negotiation): number | undefined {

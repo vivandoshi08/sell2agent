@@ -10,6 +10,8 @@ import { Contours } from "./ui/Brand";
 import { TopBar } from "./ui/TopBar";
 import { BuyerFit, LeverWins, LiveTrafficPanel, ModelFilter, RunPicker } from "./panels/S2Panels";
 import { LearningCurve } from "./panels/LearningCurve";
+import { Followups } from "./panels/Followups";
+import { fakeLearnedEval } from "./data/fake";
 import { FlaggedList, belowFloorDeals, unsafeDeals } from "./ui/Transcript";
 import { EvalRunner } from "./ui/EvalRunner";
 import "./ui/fonts";
@@ -43,6 +45,9 @@ export function App() {
   }, [negs]);
 
   const { runs, selected, setSelected, filtered, isDefault, models, model, setModel } = useRunSelection(events);
+  // The learned A/B is its own eval (learned + fixed siblings), read from all events, not the run selection.
+  // Sample mode adds a made-up one (s2-fake-b3_*) so the panel isn't empty; it never joins the main comparison.
+  const learnedEvents = useMemo(() => (feed.mode === "sample" ? [...events, ...fakeLearnedEval()] : events), [events]);
   const kpis = useMemo(() => policyKpis(filtered, { resamples: 600 }), [filtered]);
   // The eval on screen, for the eval-runner card when this machine has no saved run (live mode).
   const current = useMemo(() => {
@@ -85,6 +90,7 @@ export function App() {
               <section className="card"><h2>Blocked by your rules</h2><GuardrailLog events={liveEvents} /></section>
             </aside>
           </div>
+          <Followups events={liveEvents} />
           <SaleToasts events={liveEvents} />
         </main>
       ) : (
@@ -125,7 +131,7 @@ export function App() {
 
           <LeverWins kpis={kpis} />
           <section className="card"><div className="card-h"><h2>Who buys, by buyer type</h2></div><PersonaGrid kpis={kpis} /></section>
-          <LearningCurve />
+          <LearningCurve events={learnedEvents} />
           <EvalRunner current={current} />
 
           <p className="foot">Intervals are 95%, bootstrapped over buyers; margin and time to first offer are point values. A deal converts when it's accepted; profit counts unit cost and perk costs.{feed.mode === "sample" ? " Sample data: made-up buyers, so every number here is illustrative." : ""}</p>

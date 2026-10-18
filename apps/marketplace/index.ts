@@ -7,11 +7,12 @@ import { SearchProductsInput, SearchProductsOutput, SearchQuery } from "@sa/shar
 import { CATEGORIES, categoriesOf, searchProducts } from "./src/search.js";
 import { catalog } from "./src/catalog-source.js";
 import { log } from "./src/log.js";
-import { registerNegotiationTools, subjectBuyerId, type RequestLike } from "./src/negotiate.js";
+import { exchange, registerNegotiationTools, subjectBuyerId, type RequestLike } from "./src/negotiate.js";
 import { deal, registerDealTools } from "./src/deal-tools.js";
 import { registerApprovePage } from "./src/deal/index.js";
 import { registerListingTools } from "./src/listing-tools.js";
 import { registerDiscovery } from "./src/discovery.js";
+import { followupCourier, registerFollowups, startOutreachTimer } from "./src/followup/index.js";
 
 // mcp-use and Manufact set MCP_URL to the public origin (no path); the endpoint is served at /mcp.
 const MCP_URL = new URL("/mcp", process.env.MCP_URL ?? "http://localhost:3002").toString();
@@ -155,5 +156,8 @@ registerDealTools(server);
 registerApprovePage(server, deal);
 registerListingTools(server, MCP_URL);
 registerDiscovery(server, MCP_URL);
+// Bridge 3: follow-ups after a consented walk-away, and the inbound door for replies.
+registerFollowups(server, { exchange, courier: followupCourier(), approveOrigin: new URL(MCP_URL).origin });
+startOutreachTimer(exchange);
 
 export default server;

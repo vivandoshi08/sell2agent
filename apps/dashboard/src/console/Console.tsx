@@ -11,6 +11,7 @@ import type { TryResult } from "./api";
 import { LearningCurve } from "../panels/LearningCurve";
 import { TopBar } from "../ui/TopBar";
 import { policyLabel } from "../ui/labels";
+import learned from "../../../seller-mcp/learned_policy.json";
 import "./console.css";
 
 const usd = (c: number) => `$${(c / 100).toFixed(c % 100 ? 2 : 0)}`;
@@ -23,6 +24,8 @@ const POLICY_HELP: Record<string, string> = {
   static: "List price only. The baseline.",
   negotiating: "Concedes gradually toward the floor over the rounds.",
   balanced: "Concedes less, holds margin longer.",
+  learned: `Picks negotiating, balanced or an extra instead of a cut, per buyer type, from logged negotiations (v${learned.version}). ${
+    (learned as { gate?: { passed?: boolean } }).gate?.passed ? "Held-out gate passed." : "Runs as negotiating until its held-out gate passes."}`,
 };
 
 export function Console() {
