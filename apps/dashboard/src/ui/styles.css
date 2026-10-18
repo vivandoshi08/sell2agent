@@ -263,3 +263,79 @@ details.panel summary { list-style: none; }
 .eval-meta dt { font-size: 12.5px; color: var(--muted); }
 .eval-meta dd { margin: 2px 0 0; font-weight: 600; font-size: 14px; }
 @media (max-width: 520px) { .drawer { padding: 16px; } .eval-meta { gap: 10px 18px; } }
+
+/* ---------- Bridge 3: follow-ups ---------- */
+.status.s-followed-up { background: var(--amber-tint); color: var(--amber); }
+.fu-totals { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.fu-totals div { display: grid; gap: 2px; padding: 12px 14px 12px 0; align-content: start; min-width: 0; }
+.fu-totals div + div { padding-left: 14px; border-left: 1px solid var(--line); }
+.fu-totals span { font-size: 12.5px; color: var(--muted); }
+.fu-totals b { font-size: 24px; font-weight: 600; letter-spacing: -.02em; line-height: 1.15; }
+.fu-totals small { font-size: 12px; color: var(--muted); }
+.fu-threads { display: grid; gap: 12px; }
+.fu-thread { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.fu-h { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); background: var(--chrome); }
+.fu-h .agent-av { width: 28px; height: 28px; border-radius: 8px; font-size: 13px; }
+.fu-steps { list-style: none; margin: 0; padding: 14px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.fu-step { position: relative; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.fu-step:not(:last-child)::after { content: ""; position: absolute; left: 18px; right: -10px; top: 6px; height: 2px; background: var(--line); }
+.fu-step:not(.todo):has(+ .fu-step:not(.todo))::after { background: color-mix(in srgb, var(--brand) 40%, var(--line)); }
+.fu-step .dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--line-2); background: var(--canvas); position: relative; z-index: 1; }
+.fu-step.done .dot { border-color: var(--ink-2); }
+.fu-step.seller .dot { border-color: var(--brand); }
+.fu-step.win .dot { border-color: var(--brand); background: var(--brand); }
+.fu-step.warn .dot { border-color: var(--amber); background: var(--amber-tint); }
+.fu-step.todo .dot { border-style: dashed; }
+.fu-body { display: grid; gap: 3px; min-width: 0; }
+.fu-top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.fu-top b { font-size: 13.5px; font-weight: 600; }
+.fu-step.win .fu-top b { color: var(--pos); }
+.fu-step.warn .fu-top b { color: var(--amber); }
+.fu-step.todo .fu-top b { color: var(--faint); font-weight: 500; }
+.fu-top time { font-size: 12px; color: var(--faint); white-space: nowrap; }
+.fu-text { margin: 0; font-size: 13.5px; color: var(--ink); overflow-wrap: anywhere; }
+.fu-step.todo .fu-text { color: var(--faint); }
+.fu-note { margin: 0; font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
+
+/* ---------- Bridge 3: what the seller learned ---------- */
+.lp h3 { margin: 0; font-size: 14px; font-weight: 600; }
+.lp code { font-family: var(--mono); font-size: .92em; }
+.lp-picks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.lp-pick { display: grid; gap: 4px; align-content: start; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: linear-gradient(170deg, var(--brand-tint), var(--canvas) 62%); min-width: 0; }
+.lp-ctx { font-size: 18px; font-weight: 600; letter-spacing: -.01em; text-transform: capitalize; }
+.lp-arm { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; }
+.lp-arm .pill { font-size: 12.5px; font-weight: 600; }
+.lp-arm small { font-size: 12px; color: var(--muted); }
+.lp-ev { font-size: 12.5px; color: var(--ink-2); margin-top: 4px; }
+.lp-ev .up { color: var(--pos); font-weight: 600; }
+.lp-ev .down { color: var(--danger); font-weight: 600; }
+.lp-ab, .lp-curve { display: grid; gap: 8px; }
+.lp .th-sub { font-size: 11.5px; color: var(--muted); font-weight: 400; }
+.lp .pgrid td.best { font-weight: 600; color: var(--pos); }
+.lp .pgrid td.dim, .lp .pgrid .dim { color: var(--faint); }
+.lp .pgrid tr.total td { border-bottom: 0; border-top: 1px solid var(--line-2); font-weight: 600; }
+.lp .pgrid tr.total td.num { font-weight: 600; }
+.lp-chart { max-width: 760px; }
+.lp-chart .val-sm { font-size: 13px; font-weight: 600; }
+.lp-gate .pill { vertical-align: 1px; }
+.lp-train summary { cursor: pointer; font-size: 13px; color: var(--muted); font-weight: 500; }
+.lp-train[open] summary { margin-bottom: 8px; }
+
+@media (max-width: 980px) {
+  .fu-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fu-step:nth-child(2)::after { display: none; }
+  .lp-picks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fu-totals { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fu-totals div:nth-child(3) { padding-left: 0; border-left: 0; }
+  .fu-totals div:nth-child(n+3) { border-top: 1px solid var(--line); }
+}
+@media (max-width: 600px) {
+  .fu-steps { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .fu-step { grid-template-columns: 14px minmax(0, 1fr); gap: 12px; padding: 6px 0; }
+  .fu-step:not(:last-child)::after, .fu-step:nth-child(2)::after { display: block; left: 6px; right: auto; top: 22px; bottom: -6px; width: 2px; height: auto; }
+  .fu-step .dot { margin-top: 2px; }
+  .lp-picks { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+  .lp-pick { padding: 10px 12px; }
+  .lp-arm small { display: none; }
+  .lp-ctx { font-size: 16px; }
+}

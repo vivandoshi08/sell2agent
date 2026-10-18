@@ -1,5 +1,8 @@
 # Prize Tracks
 
+> **Update (Sun Oct 18):** we entered all three. The submission write-ups are [tracks/manufact.md](tracks/manufact.md), [tracks/armature.md](tracks/armature.md) and [tracks/stripe.md](tracks/stripe.md). This page is the pre-build reasoning and is left as written.
+
+
 > Which tracks to enter, and how each sponsor's tech fits into our architecture. Drafted 2026-10-17 while E1–E7 are still running; marked items get revised when their results land.
 > Two tests for every track: **is our project close to 1:1 with what the track asks for**, and **does the sponsor's product do real work in our architecture** (not wrapped around it for the prize). The organizers also said they won't get excited about teams entering every track, so we pick few and go deep.
 
