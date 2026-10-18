@@ -19,7 +19,8 @@ Concession curve, per item (so totals are just sums):
 
 Priorities:
     profit      t^4 after holding list in round 1, never more than 75% of the way to the floor;
-                lead with premium + warranty/delivery; warranty free before discounting.
+                lead with premium + warranty/delivery; warranty free before discounting (only when the
+                buyer hasn't asked for the warranty itself; otherwise it would just be a discount).
     balanced    t^3 to the floor at round 7 (the decided E5 Boulware, reaching the floor at the
                 seller's last answerable turn); best value; warranty free before discounting.
     conversion  linear to the floor by round 6; accept any offer at or above the floor from
@@ -150,18 +151,27 @@ def previous_offers(state: NegotiationState) -> dict[tuple, int]:
     return out
 
 
-def lowest_price(tactic: Tactic, pid: str, addons, prices, prev) -> int:
+def free_warranty_ok(tactic: Tactic, state: NegotiationState) -> bool:
+    """Free warranty is added value only when the buyer hasn't asked for the warranty itself.
+
+    If any buyer offer already includes the warranty, 'free warranty' would just be a
+    $2,400 discount that skips the concession schedule (seen in the pilot), so it's off.
+    """
+    return tactic.warranty_first and not any("warranty" in o.addons for o in state.offers("buyer"))
+
+
+def lowest_price(tactic: Tactic, pid: str, addons, prices, prev, wf_ok: bool = False) -> int:
     """The lowest total the seller would offer for this bundle this round."""
     cands = [bundle_price(pid, addons, prices)]
-    if tactic.warranty_first and "warranty" in addons:
+    if wf_ok and "warranty" in addons:
         cands.append(bundle_price(pid, addons, prices, warranty_free=True))
     if (pid, tuple(addons)) in prev:
         cands.append(prev[(pid, tuple(addons))])
     return min(cands)
 
 
-def accept_threshold(tactic: Tactic, buyer: Offer, prices, prev, rnd: int) -> int:
-    thr = lowest_price(tactic, buyer.product_id, buyer.addons, prices, prev)
+def accept_threshold(tactic: Tactic, buyer: Offer, prices, prev, rnd: int, wf_ok: bool = False) -> int:
+    thr = lowest_price(tactic, buyer.product_id, buyer.addons, prices, prev, wf_ok)
     if tactic.accept_floor_from is not None and rnd >= tactic.accept_floor_from:
         thr = min(thr, cx.floor_total(buyer.product_id, buyer.addons))
     return thr
@@ -170,10 +180,12 @@ def accept_threshold(tactic: Tactic, buyer: Offer, prices, prev, rnd: int) -> in
 # ---------------------------------------------------------------- buyer-type classifier (adaptive)
 
 CLASSIFIER_SYSTEM = """You read a negotiation between a tractor seller and a buyer's purchasing agent, and classify what the BUYER's client prioritizes.
-- price_first: wants the cheapest option that meets its requirements; resists premium trims, bigger models, and extras; talks mostly about price.
-- quality_first: wants the best-quality option that fits; asks about or prefers the cab, hydraulics, warranty, build quality; price is secondary.
-- balanced: weighs price against features; open to an upgrade if it's worth the money.
+Every purchasing agent haggles, so pushing on price is not evidence by itself. Judge mainly by WHAT the buyer chooses and why:
+- price_first: picks the cheapest tractor that meets its requirements and turns down upgrades (premium trim, bigger model, extras) as unnecessary.
+- quality_first: picks or keeps the premium trim, or asks for the cab, stronger hydraulics, longer warranty, or build quality, when a cheaper tractor would also meet its requirements.
+- balanced: openly weighs an upgrade against its price; would pay for an upgrade only if it's worth it.
 - unknown: not enough evidence yet.
+If the requirements themselves force the premium trim (for example a cab or lift capacity only the premium has), choosing it says nothing about priority.
 Reply with one JSON object and nothing else: {"type": "price_first" | "quality_first" | "balanced" | "unknown", "confidence": <0.0-1.0>, "evidence": "<one short phrase>"}"""
 
 
@@ -246,7 +258,7 @@ class E10Seller(SellerAgent):
 
     # -- per-turn instruction
 
-    def _instruction(self, state, tactic, read, frac, prices, prev, buyer, threshold, accept) -> str:
+    def _instruction(self, state, tactic, read, frac, prices, prev, buyer, threshold, accept, wf_ok) -> str:
         lines = [f"Pricing system, round {state.round} of {state.max_rounds}:"]
         if read is not None:
             lines.append(f"Buyer read: {read['type']} (confidence {read['confidence']}; {read['evidence']}).")
@@ -258,10 +270,10 @@ class E10Seller(SellerAgent):
             )
             return "\n".join(lines)
         lines.append("This round's prices (an offer's total is the tractor plus any add-ons):\n" + _fmt_prices(prices))
-        if tactic.warranty_first:
-            lines.append("You may include the warranty free instead of discounting (warranty_free true; the total then leaves the warranty out).")
+        if wf_ok:
+            lines.append("You may add the warranty free as extra value instead of discounting (warranty_free true; the total then leaves the warranty out).")
         else:
-            lines.append("Don't include the warranty free; if it's in the offer, it's priced as above.")
+            lines.append("No free warranty this turn; if the warranty is in the offer, it's priced as above.")
         if prev:
             stood = "; ".join(f"{_label(p, a)} ${v:,}" for (p, a), v in prev.items())
             lines.append(f"Your earlier offers stand, and you never ask more for the same bundle: {stood}.")
@@ -309,12 +321,13 @@ class E10Seller(SellerAgent):
         prev = previous_offers(state)
         buyer = state.standing_offer("buyer")
         threshold, accept = None, False
+        wf_ok = free_warranty_ok(tactic, state)
         if buyer is not None and buyer.product_id in cx.SPECS:
-            threshold = accept_threshold(tactic, buyer, prices, prev, state.round)
+            threshold = accept_threshold(tactic, buyer, prices, prev, state.round, wf_ok)
             accept = buyer.price >= threshold
         info.update(tactic=tactic.name, frac=round(frac, 4), accept_threshold=threshold, decided_accept=accept)
 
-        instruction = self._instruction(state, tactic, read, frac, prices, prev, buyer, threshold, accept)
+        instruction = self._instruction(state, tactic, read, frac, prices, prev, buyer, threshold, accept, wf_ok)
         reply = self._call(state, instruction, feedback, tee)
         turn = parse_turn("seller", reply, state)
 
@@ -335,7 +348,7 @@ class E10Seller(SellerAgent):
         if turn.action == "offer" and turn.offer is not None:
             o = turn.offer
             raw = reply.get("offer") if isinstance(reply.get("offer"), dict) else {}
-            wf = bool(raw.get("warranty_free")) and tactic.warranty_first and "warranty" in o.addons
+            wf = bool(raw.get("warranty_free")) and wf_ok and "warranty" in o.addons
             price = bundle_price(o.product_id, o.addons, prices, warranty_free=wf)
             if _key(o) in prev:
                 price = min(price, prev[_key(o)])

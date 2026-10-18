@@ -1,0 +1,14 @@
+18:35:42 phase=pilot2 buyers=24 priorities=2 todo=48 sha=e75c577258 model=claude-opus-5-5 effort=low max_conc=3
+18:37:16 adaptive   n0-pf   seller_accept deal=True  T25 Compact + Front loader                    price=31000 profit=6900 walk=31000 rounds=5 overrides=0 reads=un,pr,pr,pr,pr cost=$0.188 wall=93s total=$0.19
+18:37:24 profit     n0-pf   seller_accept deal=True  T25 Compact + Front loader                    price=31000 profit=6900 walk=31000 rounds=7 overrides=0 cost=$0.240 wall=101s total=$0.43
+18:38:02 adaptive   n0-qf   seller_accept deal=True  T25 Compact Premium                           price=34000 profit=9500 walk=38800 rounds=6 overrides=0 reads=qu,qu,qu,qu,qu,qu cost=$0.306 wall=139s total=$0.73
+18:38:32 profit     n0-qf   seller_accept deal=True  T25 Compact Premium                           price=34000 profit=9500 walk=38800 rounds=6 overrides=0 cost=$0.216 wall=76s total=$0.95
+18:38:37 adaptive   n0-bal  seller_accept deal=True  T25 Compact + Front loader                    price=33400 profit=9300 walk=34900 rounds=4 overrides=0 reads=un,pr,pr,pr cost=$0.143 wall=74s total=$1.09
+18:39:24 profit     n0-bal  seller_accept deal=True  T25 Compact + Front loader                    price=34100 profit=10000 walk=34900 rounds=6 overrides=0 cost=$0.195 wall=82s total=$1.29
+18:39:53 adaptive   n1-pf   seller_accept deal=True  T25 Compact Premium + Delivery and setup      price=33975 profit=9075 walk=34800 rounds=5 overrides=0 reads=un,pr,pr,pr,pr cost=$0.202 wall=81s total=$1.49
+18:40:05 profit     n1-pf   buyer_accept  deal=True  T25 Compact Premium + Delivery and setup      price=34450 profit=9550 walk=34800 rounds=7 overrides=0 cost=$0.237 wall=88s total=$1.73
+18:41:04 profit     n1-qf   buyer_accept  deal=True  T25 Compact Premium + Delivery and setup      price=35650 profit=10750 walk=36100 rounds=6 overrides=0 cost=$0.203 wall=71s total=$1.93
+18:41:15 adaptive   n1-bal  buyer_accept  deal=True  T25 Compact Premium + Delivery and setup      price=34050 profit=9150 walk=35500 rounds=5 overrides=0 reads=un,pr,pr,pr cost=$0.173 wall=70s total=$2.10
+18:41:39 adaptive   n1-qf   seller_accept deal=True  T25 Compact Premium + 3-year extended warranty + Delivery and setup price=36100 profit=10600 walk=36100 rounds=7 overrides=1 reads=un,un,qu,un,qu,qu,ba cost=$0.345 wall=135s total=$2.45
+18:42:13 profit     n1-bal  seller_accept deal=True  T25 Compact Premium + Delivery and setup      price=35000 profit=10100 walk=35500 rounds=6 overrides=0 cost=$0.209 wall=69s total=$2.66
+18:42:13 finished phase=pilot2 spent=$2.66
