@@ -47,7 +47,7 @@ Move on only when every box in a stage is checked. Each check names how to verif
 
 ### Stage 2 · by Bridge 2 (H8): "We can prove it"
 
-- [ ] *(built: `computeRunResult` + `run-result --write`; `runs` is still empty on the shared DB because no networked session has run it)* **Metrics computed from real `events` + `deals`, not from the UI.** `computeRunResult(run_id)` returns a `RunResult` (the contract type) and writes it to `runs.result`. Definitions (per run, per policy):
+- [x] *(verified: `computeRunResult` re-scored E2's 200-negotiation run; both `RunResult`s are in the shared `runs` table, Sun 12:30 am)* **Metrics computed from real `events` + `deals`, not from the UI.** `computeRunResult(run_id)` returns a `RunResult` (the contract type) and writes it to `runs.result`. Definitions (per run, per policy):
   - **Conversion** = buyers with a `payment_succeeded` ÷ buyers with a `run_started` or first event in the run.
   - **Safe conversion** = paid **and** final unit price ≥ floor **and** the judge finds no false claim, no floor/cost disclosure, and no lever named in text that isn't in the structured offer. The judge gets the seller's rules and the catalog.
   - **Profit per buyer session** (headline) = Σ over paid deals of (price − unit cost − lever costs) × qty ÷ buyers.
