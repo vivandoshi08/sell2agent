@@ -20,8 +20,8 @@ Pass = it calls `search_products` (you'll see a `search` row in the dashboard's 
 
 Agents that don't identify their user get an anonymous id, and **anonymous buyers share one memory per product**, so one tab
 can freeze another's price. Each persona below therefore tells the agent to send its own `buyer_id`. Also: Vivan runs
-`pnpm --filter @sa/seller-mcp anon:reset --all` before every rehearsal and right before the demo. (Another session is changing
-memory so a paid deal clears that buyer's memory; PR pending, so keep resetting.)
+`pnpm --filter @sa/seller-mcp anon:reset --all` before every rehearsal and right before the demo. (Since #97 a paid deal clears that
+buyer's memory, and anonymous memory expires after 10 min, so this only matters after a rehearsal that walked away.)
 
 ## 3. Persona prompts (paste as the first message in each tab)
 
