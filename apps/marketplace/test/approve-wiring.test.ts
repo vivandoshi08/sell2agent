@@ -1,11 +1,11 @@
-// The gateway wiring for S2's hosted approve page (#81): accept_deal returns approve_url, and /deal/:id serves it.
+// S2's hosted approve page (#81) still serves /deal/:id (used by the email door); chat tools never return its link.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
 process.env.EXCHANGE_HMAC_SECRET ??= "s1-test-approve-secret";
 const { registerNegotiationTools } = await import("../src/negotiate");
 const { deal, registerDealTools } = await import("../src/deal-tools");
-const { registerApprovePage } = await import("../src/deal/index");
+const { registerApprovePage, approveUrl } = await import("../src/deal/index");
 
 const ORIGIN = "https://gateway.test";
 const tools = new Map<string, (a: any) => Promise<any>>();
@@ -33,23 +33,30 @@ async function lockDeal(buyer_id: string) {
   return call("accept_deal", { negotiation_id: o.negotiation_id, offer_id: o.standing_offer.offer_id, buyer_id });
 }
 
-// Card first (Grok sent the link although it can show the card): accept_deal points the model at review_deal; the
-// link is still returned for code, and review_deal's reply carries it as the text-only fallback.
-test("accept_deal returns approve_url for code, but its text and summary point at review_deal, not the link", async () => {
+// Simulated wallet always (an agent sent the approve link instead of paying in chat): chat tools never return a link.
+test("chat tools never return a payment link; they point at review_deal and the simulated wallet", async () => {
   const r = await lockDeal("s1-test-approve-a");
-  const { deal: d, approve_url, summary } = r.structuredContent;
-  assert.ok(approve_url.startsWith(`${ORIGIN}/deal/${encodeURIComponent(d.deal_id)}?t=`), approve_url);
-  assert.ok(!r.content[0].text.includes(approve_url), "the model isn't offered the link before the card");
-  assert.match(r.content[0].text, /Next step: call review_deal now/);
+  const { deal: d, summary } = r.structuredContent;
+  assert.equal(r.structuredContent.approve_url, undefined, "no approve_url for chat agents");
+  assert.ok(!JSON.stringify(r).includes("/deal/"), "no link anywhere in accept_deal");
+  assert.match(r.content[0].text, /call review_deal now/);
+  assert.match(r.content[0].text, /simulated wallet/);
+  assert.match(r.content[0].text, /call pay_deal/);
+  assert.match(r.content[0].text, /Never send a payment link/);
   assert.ok(!summary.includes("/deal/"), summary);
   const review = await call("review_deal", { deal_id: d.deal_id, buyer_id: "s1-test-approve-a" });
-  assert.ok(review.content[0].text.includes(approve_url), "review_deal gives text-only apps the link");
-  assert.match(review.content[0].text, /can't see an Approve & Pay card/);
+  assert.ok(!JSON.stringify(review).includes("/deal/"), "no link in review_deal either");
+  assert.match(review.content[0].text, /don't send a link/);
+  assert.match(review.content[0].text, /call pay_deal/);
 });
+
+// The hosted page itself still works (the email door sends its link); build the link the way the door does.
+const linkFor = (deal_id: string, buyer_id: string) => approveUrl(ORIGIN, deal_id, buyer_id);
 
 test("the link opens its own deal; a tampered token or another deal is refused", async () => {
   const a = (await lockDeal("s1-test-approve-b")).structuredContent;
   const other = (await lockDeal("s1-test-approve-c")).structuredContent;
+  a.approve_url = linkFor(a.deal.deal_id, "s1-test-approve-b");
 
   const page = await hit("GET", a.approve_url);
   assert.equal(page.status, 200);
@@ -64,6 +71,7 @@ test("the link opens its own deal; a tampered token or another deal is refused",
 
 test("paying through the link charges the stored total once", async () => {
   const a = (await lockDeal("s1-test-approve-d")).structuredContent;
+  a.approve_url = linkFor(a.deal.deal_id, "s1-test-approve-d");
   const payUrl = a.approve_url.replace(/\/deal\/([^?]+)\?/, "/deal/$1/pay?");
   const first = await (await hit("POST", payUrl)).json();
   const second = await (await hit("POST", payUrl)).json();

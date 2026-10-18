@@ -4,7 +4,7 @@
 import { z } from "zod";
 import { createDealModule, dealSummary, fromExchange, type CatalogSource } from "./deal/index.js";
 import { catalog as currentCatalog } from "./catalog-source.js";
-import { approveLink, exchange, missingBuyer, toCtx, type RequestLike } from "./negotiate.js";
+import { exchange, missingBuyer, toCtx, type RequestLike } from "./negotiate.js";
 
 // Public catalog facts for the card (seller name). Never seller policy.
 const catalog: CatalogSource = {
@@ -76,9 +76,11 @@ export function registerDealTools(server: any) {
         const howToCheck = locked
           ? `\nThe person approves and pays inside this card, so you won't see the payment. If asked whether it was bought, call check_offers with negotiation_id ${locked.negotiation_id} and buyer_id ${ctx.buyer_id}: state "paid" means it's bought. The deal stays valid until ${card.expires_at}.`
           : "";
-        // Text-only apps can't draw the card: give the hosted approval link here, as the fallback (not in accept_deal).
-        const link = card.status === "ready" ? approveLink(a.deal_id, ctx.buyer_id) : undefined;
-        const fallback = link ? `\nIf the person can't see an Approve & Pay card above (a text-only chat), send them this link to approve and pay before ${card.expires_at}: ${link}` : "";
+        // Apps that can't draw the card pay with the simulated wallet in chat, never a link.
+        const total = `$${(card.total_cents / 100).toFixed(2)}`;
+        const fallback = card.status === "ready"
+          ? `\nIf the person can't see an Approve & Pay card above, don't send a link: ask "Pay ${total} now with the simulated wallet (Stripe test mode, no real money)?" and when they say yes, call pay_deal with deal_id ${a.deal_id} and buyer_id ${ctx.buyer_id} before ${card.expires_at}.`
+          : "";
         return { content: [{ type: "text" as const, text: dealSummary(card) + howToCheck + fallback }], structuredContent: card };
       } catch (e) {
         return fail(e instanceof Error ? e.message : String(e));
@@ -91,7 +93,7 @@ export function registerDealTools(server: any) {
       name: "pay_deal",
       title: "Approve and pay",
       description:
-        "Pay for a locked deal after the person approves it (Stripe test mode). Charges exactly the stored deal total, at most once per deal. Send the same buyer_id that accepted the deal.",
+        "Pay for a locked deal with the simulated wallet (Stripe test mode, no real money) once the person approves: on the deal card, or by saying yes in chat when no card is shown. Charges exactly the stored deal total, at most once per deal. Send the same buyer_id that accepted the deal. Never send the person a payment link.",
       inputSchema: z.object({
         deal_id: z.string().describe("deal.deal_id from accept_deal"),
         buyer_id: z.string().optional().describe("The buyer_id that accepted the deal (from accept_deal)"),
@@ -106,8 +108,8 @@ export function registerDealTools(server: any) {
         if (!ctx.buyer_id) return missingBuyer();
         const r = await (await deal()).payApprovedDeal(a.deal_id, a.payment_token, { buyer: ctx, run_id: ctx.run_id });
         const text = r.status === "succeeded" && r.held
-          ? `Payment held for pickup (${r.payment_intent_id}, Stripe test mode). The card is charged only when the seller confirms the handoff. Tell the person their pickup code: ${r.pickup_code}.`
-          : r.status === "succeeded" ? `Paid ${r.payment_intent_id ?? ""} (Stripe test mode).`.trim()
+          ? `Paid with the simulated wallet and held for pickup (${r.payment_intent_id}, Stripe test mode). The card is charged only when the seller confirms the handoff. Tell the person their pickup code: ${r.pickup_code}.`
+          : r.status === "succeeded" ? `Paid with the simulated wallet (Stripe test mode), ${r.payment_intent_id ?? ""}. Tell the person it's bought.`
           : `Payment ${r.status}.${r.reasons?.length ? ` ${r.reasons.join(" ")}` : ""}${r.fix ? ` Fix: ${r.fix}` : ""}`;
         return { content: [{ type: "text" as const, text }], structuredContent: r };
       } catch (e) {

@@ -117,18 +117,16 @@ function withExpiry(summary: string, iso: string, now = Date.now()): string {
 }
 
 export function render(r: ExchangeResponse, buyer_id: string) {
-  // A locked, unpaid deal: the model's next step is always review_deal, which shows the Approve & Pay card in any app
-  // that can draw it. The hosted approve link is still returned for code (email door, harness) but kept out of the
-  // model-facing text and summary, so an agent that can show the card doesn't send a link instead (seen with Grok).
-  // Text-only apps get the link from review_deal's reply.
+  // A locked, unpaid deal is always paid with the simulated wallet, never a link: the agent calls review_deal, which
+  // shows the Approve & Pay card where the app can draw one; where it can't, the person says yes in chat and the agent
+  // calls pay_deal (Stripe test card). No payment link is returned to chat agents at all (they sent it instead of the
+  // card). The hosted approve page stays for the email door, which builds its own link.
   const d = r.deal && r.state !== "paid" ? r.deal : undefined;
-  const approve_url = d ? approveLink(d.deal_id, buyer_id) : undefined;
   const summary = d
     ? dealLine({ title: d.title, total_cents: d.total_cents, quantity: d.quantity, unit_price_cents: d.unit_price_cents, levers: d.levers })
     : (r as { summary?: string }).summary;
   const out = {
     ...r, buyer_id,
-    ...(d && approve_url ? { approve_url } : {}),
     ...(summary ? { summary: d ? withExpiry(summary, d.expires_at) : summary } : {}),
   };
   const o = r.standing_offer;
@@ -139,7 +137,7 @@ export function render(r: ExchangeResponse, buyer_id: string) {
     r.state === "follow_up" && o ? `FOLLOW-UP OFFER: the seller came back after you walked away. Tell the person: ${usd(o.price_cents)}${o.levers.length ? ` incl. ${o.levers.join(", ")}` : ""}, expires ${o.expires_at}. If they want it, accept_deal with offer_id ${o.offer_id}.` : "",
     r.state === "negotiating" && o?.final ? "This is the seller's final offer. If the person won't take it, call walk_away; set allow_followup_to so the seller can send one better-packaged offer later." : "",
     r.state === "paid" ? `PAID: the purchase is complete${r.deal ? ` (deal ${r.deal.deal_id}, ${usd(r.deal.total_cents)})` : ""}. Tell the person it's bought; don't negotiate this item again.` : "",
-    d ? `Deal ${d.deal_id} locked at ${usd(d.total_cents)}, expires ${expiryText(d.expires_at)}. Next step: call review_deal now (deal_id ${d.deal_id}, buyer_id ${buyer_id}). It shows the person an Approve & Pay button; they approve and pay there before it expires. Don't send a link first: if the person can't see the card, review_deal's reply includes their approval link.` : "",
+    d ? `Deal ${d.deal_id} locked at ${usd(d.total_cents)}, expires ${expiryText(d.expires_at)}. Next step: call review_deal now (deal_id ${d.deal_id}, buyer_id ${buyer_id}); it shows the Approve & Pay card with the simulated wallet (Stripe test mode). If no card appears, ask the person "Pay ${usd(d.total_cents)} now with the simulated wallet?" and when they say yes, call pay_deal with deal_id ${d.deal_id} and buyer_id ${buyer_id}. Never send a payment link.` : "",
     r.error ? `Error ${r.error.code}: ${r.error.message}` : "",
     r.negotiation_id ? `negotiation_id ${r.negotiation_id} · buyer_id ${buyer_id} (send both on every later call) · next: ${r.allowed_actions.join(", ") || "none"}` : "",
   ].filter(Boolean);
