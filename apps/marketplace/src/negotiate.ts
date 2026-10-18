@@ -19,12 +19,35 @@ export const exchange = () => (exP ??= Exchange.fromEnv({ llm: defaultLlm() }));
 const ctxFields = {
   run_id: z.string().optional().describe("Eval run id (simulated buyers only)"),
   buyer_model: z.string().optional().describe("Buyer model name, if known"),
+  channel: z.enum(["mcp_app", "messaging", "web", "harness"]).optional().describe("How the buyer reaches us; filled in automatically if omitted"),
+  agent_operator: z.string().optional().describe("Which agent is buying (e.g. instinct, chatgpt, harness); filled in automatically if omitted"),
 };
 const buyerIdNew = z.string().optional().describe("Your buyer_id from an earlier response. Omit on your very first offer and one is created for you.");
 const buyerIdReq = z.string().optional().describe("The buyer_id returned by your first make_offer. Send it on every later call; it can be omitted only when the client identifies the user (ChatGPT).");
 
 /** The slice of mcp-use's request context we read: client-reported OpenAI user hints (unverified, not auth). */
-export type RequestLike = { client?: { user?: () => { subject?: string } | undefined } };
+export type RequestLike = {
+  client?: { user?: () => { subject?: string } | undefined; info?: () => { name?: string } | undefined };
+};
+
+type Channel = "mcp_app" | "messaging" | "web" | "harness";
+const CHANNELS: Channel[] = ["mcp_app", "messaging", "web", "harness"];
+
+// Known clients by their MCP clientInfo name (seen in production). Text-only agents relay summaries and pay
+// on the approve link, so they are "messaging"; app hosts that render the deal card are "mcp_app".
+const KNOWN_CLIENTS: { match: RegExp; operator: string; channel: Channel }[] = [
+  { match: /^openai-mcp/i, operator: "chatgpt", channel: "mcp_app" },
+  { match: /^instinct/i, operator: "instinct", channel: "messaging" },
+];
+
+/** channel + agent_operator (contract v3): explicit args win (the harness sends "harness"), else the client's name. */
+export function buyerChannel(a: { channel?: string; agent_operator?: string; run_id?: string }, rc?: RequestLike): { channel: Channel; agent_operator: string } {
+  const name = rc?.client?.info?.()?.name?.trim() ?? "";
+  const known = KNOWN_CLIENTS.find((k) => k.match.test(name));
+  const explicit = CHANNELS.find((c) => c === a.channel);
+  const operator = (a.agent_operator || known?.operator || name.toLowerCase().replace(/[^a-z0-9._-]+/g, "-") || "unknown").slice(0, 32);
+  return { channel: explicit ?? known?.channel ?? (operator === "harness" ? "harness" : "mcp_app"), agent_operator: operator };
+}
 
 // Keyed, so ids in `events` (readable with the anon key) can't be linked back to a known subject.
 const SUBJECT_KEY = process.env.EXCHANGE_HMAC_SECRET ?? "dev-subject-secret";
@@ -36,12 +59,19 @@ export function subjectBuyerId(rc?: RequestLike): string | undefined {
 }
 
 /** buyer_id is "" when nothing identifies the buyer and `mint` is off; `run` turns that into missing_buyer_id. */
-export function toCtx(a: { run_id?: string; buyer_id?: string; buyer_model?: string }, rc?: RequestLike, { mint = false } = {}) {
+export function toCtx(
+  a: { run_id?: string; buyer_id?: string; buyer_model?: string; channel?: string; agent_operator?: string },
+  rc?: RequestLike,
+  { mint = false } = {},
+) {
   const fromSubject = subjectBuyerId(rc);
+  const { channel, agent_operator } = buyerChannel(a, rc);
   return {
     run_id: a.run_id ?? "live",
     buyer_id: a.buyer_id ?? fromSubject ?? (mint ? `anon_${randomUUID()}` : ""),
-    buyer_model: a.buyer_model ?? (fromSubject ? "chatgpt" : "unknown"),
+    buyer_model: a.buyer_model ?? (fromSubject ? "chatgpt" : agent_operator !== "unknown" ? agent_operator : "unknown"),
+    channel,
+    agent_operator,
   };
 }
 
