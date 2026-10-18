@@ -51,6 +51,9 @@ importers:
 
   apps/dashboard:
     dependencies:
+      '@sa/seller-mcp':
+        specifier: workspace:*
+        version: link:../seller-mcp
       '@sa/shared':
         specifier: workspace:*
         version: link:../../packages/shared
