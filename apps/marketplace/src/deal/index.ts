@@ -19,6 +19,7 @@ export { toDealCard, assertPublic, leverLabel, PRIVATE_KEYS } from "./card";
 export { createPayHandler } from "./pay";
 export { createMockExchange, createMockCatalog, fixtureDeals, fixtureProducts } from "./mock-exchange";
 export { fromExchange, type ExchangeLike } from "./exchange-adapter";
+export { approveToken, verifyApproveToken, approveUrl, approvePage, approvePay, registerApprovePage } from "./approve";
 
 export interface DealModuleDeps {
   deals: DealSource;
