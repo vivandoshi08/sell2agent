@@ -8,9 +8,9 @@
  * At the bridge, pass E1's real exchange and S1's catalog to `createDealModule()`.
  */
 import type { NegotiationEvent } from "@sa/shared";
-import type { PaymentCredential } from "@sa/payments";
+import type { Deal, PaymentCredential } from "@sa/payments";
 import { assertPublic, toDealCard } from "./card";
-import { createPayHandler, type PayContext } from "./pay";
+import { createPayHandler, toPaymentsDeal, type PayContext } from "./pay";
 import { createMockCatalog, createMockExchange } from "./mock-exchange";
 import type { CatalogSource, DealCard, DealSource, PayResult } from "./types";
 
@@ -28,7 +28,11 @@ export interface DealModuleDeps {
   payDeal?: Parameters<typeof createPayHandler>[0]["payDeal"];
   logEvent?: (e: NegotiationEvent) => Promise<void>;
   defaultCredential?: () => PaymentCredential | null;
+  createCheckout?: (deal: Deal, urls: { success_url: string; cancel_url: string; expires_at?: number }) => Promise<{ id: string; url: string }>;
+  voidCheckout?: (session_id: string, keep_payment_intent_id?: string) => Promise<unknown>;
 }
+
+export type StartCheckout = { ok: true; url: string } | { ok: false; code: string; reason: string };
 
 /** Imported lazily so the gateway can start without Supabase or Stripe keys (events then print to stdout). */
 async function defaultLogEvent(e: NegotiationEvent) {
@@ -42,6 +46,16 @@ async function defaultPayDeal(...args: Parameters<NonNullable<DealModuleDeps["pa
   return payDeal(...args);
 }
 
+async function defaultCreateCheckout(...args: Parameters<NonNullable<DealModuleDeps["createCheckout"]>>) {
+  const { createDealCheckout } = await import("@sa/payments");
+  return createDealCheckout(...args);
+}
+
+async function defaultVoidCheckout(session_id: string, keep_payment_intent_id?: string) {
+  const { voidCheckout } = await import("@sa/payments");
+  return voidCheckout(session_id, keep_payment_intent_id);
+}
+
 /** Test mode: with no credential from the card, charge Stripe's test Visa. Never used with live keys (@sa/payments refuses them). */
 function defaultCredential(): PaymentCredential | null {
   return process.env.STRIPE_PAYMENT_MODE === "test_card" ? { test_card: "pm_card_visa" } : null;
@@ -53,6 +67,7 @@ export function createDealModule(deps: DealModuleDeps) {
     payDeal: deps.payDeal ?? defaultPayDeal,
     logEvent: deps.logEvent ?? defaultLogEvent,
     defaultCredential: deps.defaultCredential ?? defaultCredential,
+    voidCheckout: deps.voidCheckout ?? defaultVoidCheckout,
   });
 
   async function reviewDeal(deal_id: string): Promise<DealCard> {
@@ -71,7 +86,20 @@ export function createDealModule(deps: DealModuleDeps) {
     return r;
   }
 
-  return { reviewDeal, payApprovedDeal };
+  /**
+   * Hosted Stripe Checkout for a locked deal (approve link): the same checks as paying (right buyer, not expired,
+   * policy re-check), then a Checkout Session for exactly the stored total. Completing it is settled by
+   * payApprovedDeal(deal_id, { checkout_session }) when Stripe redirects back.
+   */
+  async function startCheckout(deal_id: string, buyer_id: string, urls: { success_url: string; cancel_url: string }): Promise<StartCheckout> {
+    const check = await deps.deals.validateForPayment(deal_id, { buyer_id }, { checkout_session: "pending" });
+    if (!check.ok) return { ok: false, code: check.code, reason: check.reason };
+    const s = await (deps.createCheckout ?? defaultCreateCheckout)(toPaymentsDeal(check.deal),
+      { ...urls, expires_at: Math.floor(Date.parse(check.deal.expires_at) / 1000) });
+    return { ok: true, url: s.url };
+  }
+
+  return { reviewDeal, payApprovedDeal, startCheckout };
 }
 
 /** Text the model sees next to the card (clients without MCP Apps get only this). */

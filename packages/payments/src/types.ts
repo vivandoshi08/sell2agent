@@ -23,7 +23,9 @@ export interface Deal {
 export type PaymentCredential =
   | string
   | { credential: { type: "stripe_payment_token"; token: string } }
-  | { test_card: string };
+  | { test_card: string }
+  /** A Stripe Checkout Session the buyer (human or Link agent) already completed for this deal. */
+  | { checkout_session: string };
 
 export type PaymentStatus =
   | "succeeded"
@@ -40,7 +42,13 @@ export interface PaymentResult {
   amount_cents: number;
   payment_intent_id?: string;
   card?: string; // "visa ****4242"
-  mode: "spt" | "test_card";
+  mode: "spt" | "test_card" | "checkout";
+  /** Local pickup: the card is authorized and captured only when the seller enters `pickup_code`. */
+  held?: boolean;
+  /** 6-digit code the buyer shows the seller at pickup (only when held). */
+  pickup_code?: string;
+  /** Marketplace split (Stripe Connect destination charge), when the seller has a connected account. */
+  split?: { seller_cents: number; platform_fee_cents: number };
   reasons?: string[];
   fix?: string;
   code?: string;
