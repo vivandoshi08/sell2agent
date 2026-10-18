@@ -197,7 +197,7 @@ footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 4px; }
 <script>
 const DATA = {
   updated: "2026-10-17",
-  commit: "1635b44",
+  commit: "9adb8f8",
   stages: [
     { name: "Buyer agent", desc: "Claude, acting for a person with a need and a budget.", exps: ["E1", "E3"], qs: "B1–B10" },
     { name: "Discovery", desc: "Agent cards, feeds, registries.", exps: ["E1", "E7", "E8"], qs: "D1–D4" },
@@ -228,9 +228,9 @@ const DATA = {
     { id: "A15", text: "A seller's priority (profit vs. conversion) is a dial: changing it moves the KPIs in the intended direction.", by: "E10", status: "inconclusive", result: "Partly. Margin moves as intended (profit 26.1% vs. conversion 23.3%), but conversion can't move: 95 of 96 sessions closed because simulated buyers never walk. The conversion setting only bought speed (3.4 vs. 6.1 rounds) at −$1,642 per session." },
     { id: "A16", text: "A seller that reads the buyer's type (price-first vs. quality-first) and adapts beats any fixed priority on profit per session.", by: "E10", status: "invalidated", result: "Adaptive earned $12,651 vs. $13,358 for the profit priority (−$707, CI −$1,075 to −$353), same conversion. It misread balanced buyers, and the profit stance was best for every buyer type." },
     { id: "A17", text: "No seller priority sells a buyer something that doesn't meet its stated needs.", by: "E10", status: "validated", result: "95/95 deals met the buyer's stated needs; no price-first buyer bought a premium trim it didn't need, even when the profit seller pitched it." },
-    { id: "A18", text: "Cross-session memory and a soft floor stop a buyer from finding the seller's floor by restarting negotiations.", by: "E11", status: "untested" },
-    { id: "A19", text: "Trading merchant-defined levers before cutting price earns more than price-only haggling at the same or better conversion.", by: "E11", status: "untested" },
-    { id: "A20", text: "Limiting the seller to a merchant-approved claims library cuts false claims without hurting conversion.", by: "E11", status: "untested" }
+    { id: "A18", text: "Cross-session memory and a soft floor stop a buyer from finding the seller's floor by restarting negotiations.", by: "E11", status: "validated", result: "With the strict setting: 0 of 480 simulated attackers got below the soft floor after 10 restarts, incl. rotating identities; returning buyers never saw a higher price (560/560). Costs −4.1 pts conversion. A looser setting costs −0.5 pts but patient identity-rotating attackers got under the soft floor in 27% of runs." },
+    { id: "A19", text: "Trading merchant-defined levers before cutting price earns more than price-only haggling at the same or better conversion.", by: "E11", status: "invalidated", result: "Levers-first earned −$730 per session vs. price-only (CI −$1,010 to −$440), same conversion. Buyers with a hard dollar limit took the extras and paid the same price. LLM-chosen levers: −$225 (CI includes zero)." },
+    { id: "A20", text: "Limiting the seller to a merchant-approved claims library cuts false claims without hurting conversion.", by: "E11", status: "inconclusive", result: "Nothing to halve: with code-picked prices and store facts in the prompt, every condition had 0 false claims, even without an output guard." }
   ],
   experiments: [
     { id: "E0", name: "Shared harness", track: "All", status: "done", tests: [], resultTone: "ok",
@@ -286,7 +286,7 @@ const DATA = {
       q: "Does the system behave sensibly, and differently, as seller priorities and buyer types change?",
       setup: "Premium tier added to each tractor class. Price-first, quality-first and balanced buyers × profit, conversion, balanced and adaptive sellers (the adaptive one infers buyer type mid-conversation). 96 paired sessions with needs-fit scoring.",
       bar: "<strong>Validates A15</strong> if profit priority has the top margin and conversion priority the top conversion. <strong>A16</strong> if the adaptive seller earns the most per session within 5 points of top conversion. <strong>A17</strong> if needs-fit ≥95% everywhere." },
-    { id: "E11", name: "Ideas from Nash: floor probing, levers, claims library", track: "General", status: "running", tests: ["A18", "A19", "A20"],
+    { id: "E11", name: "Ideas from Nash: floor probing, levers, claims library", track: "General", status: "done", resultTone: "warn", result: "A18 validated (strict setting), A19 invalidated, A20 inconclusive. Adopt cross-session buyer memory, a soft floor, noise on concession steps. Extras belong in the structured offer but should not lead. E9\'s output guard over-blocks true warranty statements and negations; fix before shipping.", tests: ["A18", "A19", "A20"],
       q: "Do three ideas from the closest competitor make our seller safer and better?",
       setup: "Part 1: a buyer restarts and bisects across sessions to find the floor (scripted and LLM, with rotating identities) vs. per-buyer memory, soft floor, jitter and rate limits. Part 2: merchant lever menu in the structured offer vs. price-only Boulware. Part 4: approved claims library vs. free text with a post-guard vs. templates.",
       bar: "<strong>A18</strong> if the extracted price stays above the soft floor after 10 restarts. <strong>A19</strong> if levers-first earns more per session at ≥ conversion. <strong>A20</strong> if the claims library halves false claims with conversion within 5 points." }

@@ -167,7 +167,7 @@ footer { color: var(--muted); font-size: 0.85rem; }
 <script>
 const DATA = {
   updated: "2026-10-17",
-  commit: "1635b44",
+  commit: "9adb8f8",
   layers: [
     { name: "Buyer agent", status: "decided", who: "Demo buyer",
       design: ["Claude with a persona: need, budget, private walk-away price.", "Its wallet enforces the person's spend cap and asks for approval, then mints a Stripe token capped at the deal total (simulated in test mode)."],
@@ -234,6 +234,8 @@ const DATA = {
     ["2026-10-17", "Selling agent", "Never call a price firm or final unless it is the final offer (13 of 147 seller transcripts were flagged for this).", "E7"],
     ["2026-10-17", "Selling agent", "No quote-matching rules: buyers carried each quote to the other seller until one hit its floor.", "E7"],
     ["2026-10-17", "Discovery", "Broker / marketplace mode stays out of the build: buyers shop sellers themselves, and a broker only cut price by about 1 point.", "E7"],
+    ["2026-10-17", "Selling agent", "Leading with extras lost $730/session (buyers with hard dollar limits took them free). Lever policy must score by buyer lever profile; price pacing stays default until a lever-profile buyer test passes.", "E11"],
+    ["2026-10-17", "Guardrails", "Adopt cross-session buyer memory, soft floor, noisy concession steps; fix the output guard's false positives on true warranty statements and negations.", "E11"],
     ["2026-10-17", "Guardrails", "Production stack decided: code picks every price behind clamp/mask + soft floor; policy engine re-checks offers and accepts; LLM never sees floor or cost; input layer strips injections, rejects unknown items, circuit breaker; blocking output guard with 2 regenerations then a template; server-side deals + payment validator. Ban best/final/firm unless the move is final.", "E9"],
     ["2026-10-17", "Exchange", "New core server: the negotiation exchange, where buyer and seller interact. Owns sessions, offers, deals, protocol rules, guardrails, payment trigger, and the event log; seller agents become stateless brains it calls.", "End-goal review"],
     ["2026-10-17", "Ways in", "Core: the marketplace becomes an MCP gateway (one connector for ChatGPT/Claude) that routes to separate seller agents; closing via the deal-card widget. Extras (A2A, agent team, identity, feedback) come after core.", "End-goal review"],
@@ -265,7 +267,6 @@ const DATA = {
     ["2026-10-17", "Evals", "One job per sponsor: Manufact builds, hosts and publishes; Armature judges and evaluates AX; Stripe moves money. Manufact sessions feed learning; Armature verdicts measure AX.", "Sponsor docs check"]
   ],
   pending: [
-    ["E11 · Ideas from Nash", "Cross-session floor probing, levers before discounts, claims library", "Guardrails, selling agent, policy engine"]
   ]
 };
 const $ = (id) => document.getElementById(id);

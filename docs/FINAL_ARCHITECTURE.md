@@ -199,4 +199,10 @@ It's your original "UI thoughts" item.
 | **TypeScript monorepo** (`@sa/shared` zod contract) | All apps; Neel owns the contract. Needs lever-profile, lever-menu and lever-package fields |
 | **Python harness** | Experiments, RL trainer over lever packages, outside evals |
 
+**E11 result (after this doc was written): leading with levers lost money.** "Levers before discounts" earned −$730 per session vs. price-only (95% CI −$1,010 to −$440) at the same conversion, because simulated buyers had a hard dollar limit: they took the free extras and paid the same price. What this changes:
+- The lever policy must **score packages by what the buyer actually values** (its lever profile), not add extras by default. A free extra only pays when it moves a buyer who values it (quality-first, warranty-first), or replaces a price cut the buyer would otherwise demand.
+- **Price stays a first-class lever**, and the default for buyers whose profile is price-first or whose limit is a hard number.
+- Extras still go in the structured offer, priced against margin, and the policy check runs on price minus extra costs.
+- Simulated buyers must carry real lever weights (not only a dollar limit), or the lever policy has nothing to win on. This needs a quick experiment with lever-profile buyers before the lever policy becomes the default; until then `negotiating` (price pacing) stays the default and `lever_policy` runs as a gated candidate.
+
 **A note on evidence:** the experiments mostly tested price. Only E5's bundle-first and E10's buyer types touched other levers. The lever-based policy is a design step beyond what we've proven, so it's worth a quick experiment: a lever policy vs. price-only Boulware on lever-profile buyers. E11 already tests "levers before discounts", so its results will be the first evidence.
