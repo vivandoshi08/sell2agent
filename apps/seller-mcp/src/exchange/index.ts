@@ -14,7 +14,7 @@ export { Exchange, OFFER_TTL_MS, BREAKER_THRESHOLD } from "./exchange";
 export type { ExchangeOptions, Decider, Voicer } from "./exchange";
 export { Deals, DEAL_TTL_MS, verify as verifyDeal } from "./deals";
 export type { PaymentCheck } from "./deals";
-export { MemoryStore, probeId, memoryKey, isAnon, isClientAsserted, liveMemory, ANON_PREFIX, OAI_PREFIX, ANON_MEMORY_TTL_MS } from "./store";
+export { MemoryStore, probeId, memoryKey, limitKey, breakerKey, signEvalRun, isEvalRun, EVAL_PREFIX, isAnon, isClientAsserted, liveMemory, ANON_PREFIX, OAI_PREFIX, ANON_MEMORY_TTL_MS } from "./store";
 export type { ExchangeStore } from "./store";
 export { StaticCatalog, SEED_PRODUCTS } from "./catalog";
 export { MemorySink, defaultSink, guardrailSeverity } from "./events";

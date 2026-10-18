@@ -1,6 +1,6 @@
 /**
- * E1 · show or clear client-asserted buyer memory: the shared anon bucket (Claude and other chat clients, one per
- * product) and each ChatGPT user's `oai_` id (found in `events`). Run right before the demo so the next chat
+ * E1 · show or clear client-asserted buyer memory: each anon_ chat (Claude and other chat clients) and each ChatGPT
+ * user's `oai_` id, both found in `events` (memory is per buyer_id since Bridge 2). Run right before the demo so the next chat
  * negotiates from list instead of resuming at a rehearsal's final offer.
  * Needs SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY in ../../.env (the deployed gateway's store).
  *   pnpm --filter @sa/seller-mcp anon:reset                        # show live memory, change nothing
@@ -24,22 +24,22 @@ const targets = args.includes("--all") ? [...known.keys()] : args;
 
 // ChatGPT users seen in the last 7 days (memory older than that is long expired).
 const since = new Date(Date.now() - 7 * 24 * 3600_000).toISOString();
-const { data, error } = await db.from("events").select("buyer_id").like("buyer_id", `${OAI_PREFIX}%`).gte("ts", since).limit(5000);
+const { data, error } = await db.from("events").select("buyer_id").or(`buyer_id.like.${OAI_PREFIX}%,buyer_id.like.${ANON_PREFIX}%`).gte("ts", since).limit(5000);
 if (error) { console.error(`events query: ${error.message}`); process.exit(1); }
 const oai = [...new Set((data ?? []).map((r: { buyer_id: string }) => r.buyer_id))];
 
 const now = Date.now();
 const mins = (ms: number) => `${Math.round(ms / 60_000)} min`;
-console.log(`client-asserted memory (expires ${mins(ANON_MEMORY_TTL_MS)} after the last update); ${oai.length} ChatGPT user(s) seen:`);
+console.log(`client-asserted memory (expires ${mins(ANON_MEMORY_TTL_MS)} after the last update); ${oai.length} anon/ChatGPT id(s) seen:`);
 let cleared = 0;
 for (const p of SEED_PRODUCTS) {
-  for (const who of [ANON_PREFIX, ...oai]) {
+  for (const who of oai) {
     const key = memoryKey(who, p.product_id);
     const live = liveMemory(who, await store.getBuyerMemory(key), now);
-    if (!live) { if (who === ANON_PREFIX) console.log(`  ${p.product_id.padEnd(20)} anon        none or expired`); continue; }
+    if (!live) continue;
     const clear = targets.includes(p.product_id);
     if (clear) { await store.clearBuyerMemory(key); cleared++; }
-    const label = who === ANON_PREFIX ? "anon       " : `${who.slice(0, 11)}`;
+    const label = who.slice(0, 13).padEnd(13);
     console.log(`  ${p.product_id.padEnd(20)} ${label} $${live.lowest_offer_cents / 100} at round ${live.round}/${p.max_rounds}` +
       `${live.round >= p.max_rounds ? " → FROZEN" : ""}, expires in ${mins(ANON_MEMORY_TTL_MS - (now - Date.parse(live.updated_at)))}${clear ? "  → cleared" : ""}`);
   }

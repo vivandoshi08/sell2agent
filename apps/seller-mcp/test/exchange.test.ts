@@ -1,7 +1,7 @@
 // E1 exchange: protocol, decision guard, deal lock. Offline (memory store, template voice). Run: pnpm --filter @sa/seller-mcp test
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { Exchange, MemorySink, MemoryStore, StaticCatalog, guardMove, capClamp, jitterStep, guardrailSeverity, canTransition, TRANSITIONS, SEED_PRODUCTS, ANON_MEMORY_TTL_MS, ANON_START_LIMIT, OAI_START_LIMIT, START_LIMIT, memoryKey, type Decider } from "../src/exchange";
+import { Exchange, MemorySink, MemoryStore, StaticCatalog, guardMove, capClamp, jitterStep, guardrailSeverity, canTransition, TRANSITIONS, SEED_PRODUCTS, ANON_MEMORY_TTL_MS, ANON_START_LIMIT, OAI_START_LIMIT, START_LIMIT, memoryKey, signEvalRun, isEvalRun, type Decider } from "../src/exchange";
 import type { ProposedMove } from "../src/sellers";
 
 const ctx = (buyer_id = "b1") => ({ run_id: "e1-test-run", buyer_id, buyer_model: "scripted" });
@@ -235,7 +235,7 @@ test("buyer memory: restarting never gets a better price (E11 bisection)", async
   assert.ok(back.standing_offer!.price_cents <= fresh.standing_offer!.price_cents, "returning buyer never quoted higher");
 });
 
-test("anon buyers share one bucket per product: a fresh anon_ chat can't beat the last one", async () => {
+test("anon chats: memory per buyer_id, so a fresh chat haggles; it still can't beat the last one (shared endpoint)", async () => {
   const { ex } = setup();
   const runOut = async (id: string) => {
     let r = await ex.handle({ kind: "offer", ctx: ctx(id), product_id: P, offer_price_cents: 9000 });
@@ -246,21 +246,18 @@ test("anon buyers share one bucket per product: a fresh anon_ chat can't beat th
   };
   const first = await runOut("anon_aaaa1111");
   const fresh = await ex.handle({ kind: "offer", ctx: ctx("anon_bbbb2222"), product_id: P, offer_price_cents: 9000 });
-  assert.ok(fresh.standing_offer!.price_cents >= first, `fresh anon opened at ${fresh.standing_offer!.price_cents} < ${first}`);
+  assert.equal(fresh.round, 1, "a new chat gets its own concession clock");
+  assert.equal(fresh.standing_offer!.final, false, "no round-1 'final offer' from someone else's chat");
   await ex.handle({ kind: "walk", ctx: ctx("anon_bbbb2222"), negotiation_id: fresh.negotiation_id! });
   for (const id of ["anon_cccc3333", "anon_dddd4444"]) assert.ok((await runOut(id)) >= first, "later anon chats never beat the first");
-  const fifth = await ex.handle({ kind: "offer", ctx: ctx("anon_eeee5555"), product_id: P, offer_price_cents: 9000 });
-  assert.equal(fifth.ok, true, "a 5th anon chat is a different shopper, not rate limited");
-  assert.equal(fifth.standing_offer!.final, true, "inside the TTL it still resumes frozen at the last anon price");
-  assert.ok(fifth.standing_offer!.price_cents >= first);
-  // named buyers keep their own bucket: a fresh session negotiates from list, not from the anon history
+  const same = await ex.handle({ kind: "offer", ctx: ctx("anon_aaaa1111"), product_id: P, offer_price_cents: 9000 });
+  assert.equal(same.standing_offer!.final, true, "the same chat resumes frozen at its last price");
+  assert.ok(same.standing_offer!.price_cents <= first);
   const named = await ex.handle({ kind: "offer", ctx: ctx("alice"), product_id: P, offer_price_cents: 9000 });
-  assert.equal(named.ok, true);
   assert.equal(named.round, 1, "named buyer starts its own concession clock");
-  assert.ok(named.standing_offer!.price_cents > first, "named buyer not resumed at the anon price");
 });
 
-test("anon memory expires: after the TTL a fresh chat negotiates from list again; named buyers' memory never expires", async () => {
+test("anon memory expires: after the TTL the same chat negotiates from list again; named buyers' memory never expires", async () => {
   const { ex, now } = setup();
   const runOut = async (id: string) => {
     let r = await ex.handle({ kind: "offer", ctx: ctx(id), product_id: P, offer_price_cents: 9000 });
@@ -271,23 +268,42 @@ test("anon memory expires: after the TTL a fresh chat negotiates from list again
   const first = await runOut("anon_aaaa1111");
   const named = await runOut("bob");
   now.t += ANON_MEMORY_TTL_MS - 60_000;
-  const inside = await ex.handle({ kind: "offer", ctx: ctx("anon_bbbb2222"), product_id: P, offer_price_cents: 9000 });
-  assert.equal(inside.standing_offer!.final, true, "inside the TTL: frozen at the last anon price");
+  const inside = await ex.handle({ kind: "offer", ctx: ctx("anon_aaaa1111"), product_id: P, offer_price_cents: 9000 });
+  assert.equal(inside.standing_offer!.final, true, "inside the TTL: frozen at the last price");
   assert.equal(inside.standing_offer!.price_cents, first);
-  await ex.handle({ kind: "walk", ctx: ctx("anon_bbbb2222"), negotiation_id: inside.negotiation_id! });
-  now.t += ANON_MEMORY_TTL_MS + 1; // the resumed chat refreshed the memory; wait out the TTL from there
-  const after = await ex.handle({ kind: "offer", ctx: ctx("anon_cccc3333"), product_id: P, offer_price_cents: 9000 });
+  await ex.handle({ kind: "walk", ctx: ctx("anon_aaaa1111"), negotiation_id: inside.negotiation_id! });
+  now.t += ANON_MEMORY_TTL_MS + 1;
+  const after = await ex.handle({ kind: "offer", ctx: ctx("anon_aaaa1111"), product_id: P, offer_price_cents: 9000 });
   assert.equal(after.round, 1, "fresh concession clock after the TTL");
-  assert.equal(after.standing_offer!.final, false, "no round-1 'final offer'");
-  assert.ok(after.standing_offer!.price_cents > first, `opened at ${after.standing_offer!.price_cents}, not the old ${first}`);
+  assert.equal(after.standing_offer!.final, false);
   assert.ok(after.standing_offer!.price_cents >= 10500, "floor still holds");
-  // the expired memory doesn't leak back in: running this chat out lands where a first chat does, not lower
-  let r = after;
-  while (r.allowed_actions.includes("offer")) r = await ex.handle({ kind: "offer", ctx: ctx("anon_cccc3333"), product_id: P, negotiation_id: r.negotiation_id, offer_price_cents: 9000 });
-  assert.ok(r.standing_offer!.price_cents >= 10500);
   const bobBack = await ex.handle({ kind: "offer", ctx: ctx("bob"), product_id: P, offer_price_cents: 9000 });
   assert.equal(bobBack.standing_offer!.final, true, "named buyer memory has no TTL");
   assert.ok(bobBack.standing_offer!.price_cents <= named);
+});
+
+test("signed eval runs: sim buyers get per-run memory, start limit and breaker; unsigned run_ids change nothing", async () => {
+  const { ex } = setup();
+  const runOut = async (c: ReturnType<typeof ctx>) => {
+    let r = await ex.handle({ kind: "offer", ctx: c, product_id: P, offer_price_cents: 9000 });
+    while (r.allowed_actions.includes("offer")) r = await ex.handle({ kind: "offer", ctx: c, product_id: P, negotiation_id: r.negotiation_id, offer_price_cents: 9000 });
+    await ex.handle({ kind: "walk", ctx: c, negotiation_id: r.negotiation_id! });
+    return r;
+  };
+  const run1 = { ...ctx("b001"), run_id: signEvalRun("run_1") };
+  const run2 = { ...ctx("b001"), run_id: signEvalRun("run_2") };
+  assert.ok(isEvalRun(run1.run_id) && !isEvalRun("eval_run_1.0000000000000000") && !isEvalRun("run_1"));
+  await runOut(run1);
+  const again = await ex.handle({ kind: "offer", ctx: run2, product_id: P, offer_price_cents: 9000 });
+  assert.equal(again.round, 1, "run 2 doesn't resume at run 1's price");
+  assert.equal(again.standing_offer!.final, false);
+  for (let i = 1; i < START_LIMIT; i++) assert.equal((await ex.handle({ kind: "offer", ctx: run1, product_id: P, offer_price_cents: 9000 })).ok, true);
+  assert.equal((await ex.handle({ kind: "offer", ctx: run1, product_id: P, offer_price_cents: 9000 })).error?.code, "rate_limited", "limit still holds inside a run");
+  assert.equal((await ex.handle({ kind: "offer", ctx: { ...run1, run_id: signEvalRun("run_3") }, product_id: P, offer_price_cents: 9000 })).ok, true, "a new run has its own limit");
+  // a forged run_id is just a label: same memory as no run_id
+  await runOut(ctx("mallory"));
+  const forged = await ex.handle({ kind: "offer", ctx: { ...ctx("mallory"), run_id: "eval_x.deadbeefdeadbeef" }, product_id: P, offer_price_cents: 9000 });
+  assert.equal(forged.standing_offer!.final, true, "forged eval run still resumes frozen");
 });
 
 test("start limit: 4 per named buyer, ANON_START_LIMIT for the shared anon bucket", async () => {
@@ -326,12 +342,23 @@ test("oai_ (ChatGPT user): own bucket, memory expires after the TTL, OAI_START_L
   assert.equal((await ex.handle({ kind: "offer", ctx: ctx(me), product_id: P, offer_price_cents: 9000 })).error?.code, "rate_limited");
 });
 
+test("eval strategy override: static for a signed eval run only", async () => {
+  const { ex } = setup();
+  const runOut = async (c: ReturnType<typeof ctx>) => {
+    let r = await ex.handle({ kind: "offer", ctx: c, product_id: P, offer_price_cents: 9000, strategy: "static" });
+    while (r.allowed_actions.includes("offer")) r = await ex.handle({ kind: "offer", ctx: c, product_id: P, negotiation_id: r.negotiation_id, offer_price_cents: 9500 });
+    return r.standing_offer!.price_cents;
+  };
+  assert.equal(await runOut({ ...ctx("b001"), run_id: signEvalRun("run_static") }), 12900, "static seller holds list");
+  assert.ok((await runOut(ctx("b002"))) < 12900, "unsigned run ignores the override");
+});
+
 test("clearBuyerMemory (anon:reset): the next anon chat starts from list", async () => {
   const { ex, store } = setup();
   let r = await ex.handle({ kind: "offer", ctx: ctx("anon_x1"), product_id: P, offer_price_cents: 9000 });
   while (r.allowed_actions.includes("offer")) r = await ex.handle({ kind: "offer", ctx: ctx("anon_x1"), product_id: P, negotiation_id: r.negotiation_id, offer_price_cents: 9000 });
-  await store.clearBuyerMemory(memoryKey("anon_", P));
-  const fresh = await ex.handle({ kind: "offer", ctx: ctx("anon_x2"), product_id: P, offer_price_cents: 9000 });
+  await store.clearBuyerMemory(memoryKey("anon_x1", P));
+  const fresh = await ex.handle({ kind: "offer", ctx: ctx("anon_x1"), product_id: P, offer_price_cents: 9000 });
   assert.equal(fresh.round, 1);
   assert.equal(fresh.standing_offer!.final, false);
 });
