@@ -1,0 +1,17 @@
+group,buyer_type,conversion,margin,profit_per_session,revenue_per_session,premium_share,sessions
+profit,all,1.0,0.2614,13358.33,51104.17,0.4583,24
+conversion,all,1.0,0.2333,11716.67,50220.83,0.5,24
+balanced,all,0.9583,0.2534,12445.83,49125.0,0.4783,24
+adaptive,all,1.0,0.2509,12651.04,50421.88,0.4583,24
+profit,price_first,1.0,0.2386,11200.0,46950.0,0.25,8
+profit,quality_first,1.0,0.2758,15506.25,56218.75,0.875,8
+profit,balanced,1.0,0.2666,13368.75,50143.75,0.25,8
+conversion,price_first,1.0,0.2147,9912.5,46175.0,0.25,8
+conversion,quality_first,1.0,0.2419,13556.25,56031.25,1.0,8
+conversion,balanced,1.0,0.2411,11681.25,48456.25,0.25,8
+balanced,price_first,0.875,0.2375,9775.0,41150.0,0.2857,8
+balanced,quality_first,1.0,0.2594,14643.75,56456.25,0.875,8
+balanced,balanced,1.0,0.2596,12918.75,49768.75,0.25,8
+adaptive,price_first,1.0,0.2216,10178.12,45928.12,0.25,8
+adaptive,quality_first,1.0,0.2708,15143.75,55931.25,0.875,8
+adaptive,balanced,1.0,0.2557,12631.25,49406.25,0.25,8

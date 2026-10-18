@@ -79,6 +79,10 @@ def derive(r: dict, claims: dict) -> dict:
     d["seller_offered_premium"] = any(
         t["role"] == "seller" and t.get("offer") and cx.is_premium(t["offer"]["product_id"]) for t in r["transcript"]
     )
+    seller_offers = [t["offer"] for t in r["transcript"] if t["role"] == "seller" and t.get("offer")]
+    d["under_spec_offers"] = sum(1 for o in seller_offers if not cx.fits(o["product_id"], req))
+    d["premium_pitched_std_fits"] = (not cx.is_premium(p["std_product"])) and any(cx.is_premium(o["product_id"]) for o in seller_offers)
+    d["std_fits"] = not cx.is_premium(p["std_product"])
     if r["deal"]:
         pid, addons = r["product_id"], r["addons"]
         d.update(
@@ -100,10 +104,58 @@ def derive(r: dict, claims: dict) -> dict:
         d["oversold"] = p["buyer_type"] == "price_first" and (
             d["premium_when_standard_fits"] or d["bigger_than_needed"] or bool(d["extra_addons"])
         )
+        # Free warranty: the buyer accepted a seller offer that included the warranty at no charge.
+        d["free_warranty_deal"] = r["ended_by"] == "buyer_accept" and bool(notes) and bool(notes[-1].get("warranty_free"))
+        paid_extra = [a for a in d["extra_addons"] if not (a == "warranty" and d["free_warranty_deal"])]
+        d["oversold_paid"] = p["buyer_type"] == "price_first" and (
+            d["premium_when_standard_fits"] or d["bigger_than_needed"] or bool(paid_extra)
+        )
         d["premium_unasked_pf"] = (
             p["buyer_type"] == "price_first" and d["premium_when_standard_fits"] and d["premium_mentioned_first_by"] != "buyer"
         )
     return d
+
+
+# ---------------------------------------------------------------- accept mismatches
+
+# The buyer accepted an alternative the seller quoted in its message text ("the T75 alone is $64,700
+# this round"), but the harness closes on the seller's structured standing offer, so the deal was
+# recorded on a different bundle at a higher price, above the buyer's walk-away. Both alternatives
+# were quoted by the seller from that round's price table. Headline numbers re-score these deals to
+# the bundle and price the buyer named; --no-corrections gives the literal harness record.
+CORRECTIONS = {
+    ("adaptive", "n5-qf"): ("T45", ["loader", "warranty", "delivery"], 49_150),
+    ("profit", "n6-pf"): ("T75", [], 64_700),
+}
+
+
+def accept_mismatches(raws: list[dict]) -> list[dict]:
+    """Buyer accepts whose message names a dollar amount other than the standing seller offer."""
+    out = []
+    for r in raws:
+        if r["ended_by"] != "buyer_accept":
+            continue
+        standing = [t["offer"] for t in r["transcript"] if t["role"] == "seller" and t.get("offer")][-1]
+        amounts = [int(a.replace(",", "")) for a in re.findall(r"\$([\d,]{5,})", r["transcript"][-1]["message"])]
+        if amounts and standing["price"] not in amounts:
+            out.append({"priority": r["meta"]["priority"], "persona_id": r["persona_id"], "recorded_price": standing["price"],
+                        "recorded_bundle": cx.describe(standing["product_id"], standing["addons"]), "buyer_named": amounts,
+                        "walk_away": r["walk_away"], "corrected": (r["meta"]["priority"], r["persona_id"]) in CORRECTIONS})
+    return out
+
+
+def corrected(r: dict) -> dict:
+    key = (r["meta"]["priority"], r["persona_id"])
+    if key not in CORRECTIONS:
+        return r
+    pid, addons, price = CORRECTIONS[key]
+    r = json.loads(json.dumps(r))
+    r["meta"]["accept_corrected"] = {"from": [r["product_id"], r["addons"], r["price"]], "to": [pid, addons, price]}
+    r.update(product_id=pid, addons=addons, price=price, cost=cx.cost_total(pid, addons),
+             list_total=cx.list_total(pid, addons), floor_total=cx.floor_total(pid, addons),
+             buyer_overpaid=price > r["walk_away"])
+    r["profit"] = price - r["cost"]
+    return r
 
 
 # ---------------------------------------------------------------- aggregation
@@ -141,10 +193,15 @@ def summarize_group(rows: list[dict], raws: list[dict]) -> dict:
         "pf_deals": sum(1 for x in deals if x["buyer_type"] == "price_first"),
         "pf_oversold": sum(1 for x in deals if x.get("oversold")),
         "pf_oversold_rate": _rate([x for x in deals if x["buyer_type"] == "price_first"], "oversold"),
+        "pf_oversold_paid": sum(1 for x in deals if x.get("oversold_paid")),
+        "free_warranty_deals": sum(1 for x in deals if x.get("free_warranty_deal")),
+        "warranty_free_offers": sum(x["warranty_free_offers"] for x in rows),
         "pf_premium_unasked": sum(1 for x in deals if x.get("premium_unasked_pf")),
         "buyer_surplus_mean": round(mean(x["surplus"] for x in deals), 1) if deals else None,
         "avg_rounds": s.get("avg_rounds"),
         "first_offer_premium_rate": _rate(rows, "first_offer_premium"),
+        "premium_pitch_rate_std_fits": _rate([x for x in rows if x["std_fits"]], "premium_pitched_std_fits"),
+        "under_spec_offer_sessions": sum(1 for x in rows if x["under_spec_offers"]),
         "false_claim_sessions": sum(1 for x in rows if x["false_claims"]),
         "violations_closed": s.get("violations_closed"),
         "llm_price_override_rate": round(sum(x["llm_price_overrides"] for x in rows) / max(1, sum(x["seller_offers"] for x in rows)), 4),
@@ -224,6 +281,7 @@ def main() -> None:
     ap.add_argument("--runs", nargs="+", default=[str(HERE / "runs" / "main.jsonl")])
     ap.add_argument("--judge", default=str(HERE / "runs" / "judge.jsonl"))
     ap.add_argument("--out", default=str(HERE / "results.json"))
+    ap.add_argument("--no-corrections", action="store_true", help="score the literal harness record (see CORRECTIONS)")
     args = ap.parse_args()
 
     raw = {}
@@ -231,7 +289,9 @@ def main() -> None:
         for r in load(path):
             if r.get("ended_by") != "error":
                 raw[(r["meta"]["priority"], r["persona_id"])] = r
-    raws = list(raw.values())
+    raws_literal = list(raw.values())
+    mismatches = accept_mismatches(raws_literal)
+    raws = raws_literal if args.no_corrections else [corrected(r) for r in raws_literal]
     claims = {j["session_id"]: j["false_claims"] for j in load(args.judge) if not j.get("error")}
     judged = sum(1 for r in raws if r["session_id"] in claims)
     for r in raws:
@@ -246,6 +306,8 @@ def main() -> None:
             rs = [x for x in rows if x["priority"] == p and x["buyer_type"] == t]
             if rs:
                 by_cell[f"{p} x {t}"] = summarize_group(rs, [r for r in raws if r["meta"]["priority"] == p and r["meta"]["buyer_type"] == t])
+    lit_rows = [derive(r, claims) for r in raws_literal]
+    by_prio_literal = {p: summarize_group([x for x in lit_rows if x["priority"] == p], [r for r in raws_literal if r["meta"]["priority"] == p]) for p in PRIOS}
     by_type = {t: summarize_group([x for x in rows if x["buyer_type"] == t], [r for r in raws if r["meta"]["buyer_type"] == t]) for t in TYPES}
 
     comparisons = {}
@@ -253,6 +315,10 @@ def main() -> None:
                  ("conversion", "adaptive"), ("conversion", "profit")]:
         comparisons[f"{b} - {a}"] = {k: paired_diff(rows, a, b, k) for k in ("profit", "deal", "margin")}
     inference = inference_stats(rows)
+    # Upper bound for switching among these four tactics: the best priority for each true buyer type.
+    best = {t: max(PRIOS, key=lambda p: by_cell[f"{p} x {t}"]["profit_per_session"] or 0) for t in TYPES if f"profit x {t}" in by_cell}
+    oracle = {"best_priority_by_type": best,
+              "profit_per_session": round(mean(by_cell[f"{best[t]} x {t}"]["profit_per_session"] for t in best), 2) if best else None}
 
     # ---- verdicts
     conv = {p: by_prio[p]["conversion"] or 0 for p in PRIOS}
@@ -274,7 +340,8 @@ def main() -> None:
         "A17": {"validated": a17, "needs_fit_by_priority": {p: by_prio[p]["needs_fit_rate"] for p in PRIOS},
                 "under_spec_deals": {p: by_prio[p]["under_spec_deals"] for p in PRIOS},
                 "pf_premium_unasked": {p: by_prio[p]["pf_premium_unasked"] for p in PRIOS},
-                "pf_oversold": {p: by_prio[p]["pf_oversold"] for p in PRIOS}},
+                "pf_oversold": {p: by_prio[p]["pf_oversold"] for p in PRIOS},
+                "pf_oversold_paid": {p: by_prio[p]["pf_oversold_paid"] for p in PRIOS}},
     }
 
     # ---- the dial
@@ -305,12 +372,16 @@ def main() -> None:
         "judged_sessions": judged,
         "model_cost_negotiations_usd": total_cost,
         "model_cost_judge_usd": judge_cost,
+        "accept_corrections_applied": not args.no_corrections,
+        "accept_mismatches": mismatches,
         "verdicts": verdicts,
         "by_priority": by_prio,
+        "by_priority_literal_harness_record": by_prio_literal,
         "by_cell": by_cell,
         "by_buyer_type": by_type,
         "paired_comparisons": comparisons,
         "adaptive_inference": inference,
+        "oracle_type_switching": oracle,
         "dial": dial,
         "sessions_detail": [{k: v for k, v in x.items() if k not in ("reads", "tactics")} | {"reads": x["reads"]} for x in rows],
     }
@@ -318,10 +389,12 @@ def main() -> None:
 
     # ---- text report
     keys = ["sessions", "conversion", "safe_conversion", "profit_per_session", "revenue_per_session", "margin", "avg_discount_from_list",
-            "premium_share", "premium_upsell_rate", "addons_per_deal", "needs_fit_rate", "pf_oversold", "pf_premium_unasked", "buyer_surplus_mean", "avg_rounds",
+            "premium_share", "premium_pitch_rate_std_fits", "premium_upsell_rate", "addons_per_deal", "needs_fit_rate", "under_spec_offer_sessions", "pf_oversold", "pf_oversold_paid", "pf_premium_unasked", "buyer_surplus_mean", "avg_rounds",
             "false_claim_sessions", "model_cost_per_session"]
     lines = [f"sessions={len(raws)} errors_excluded={errors} judged={judged} negotiation_cost=${total_cost} judge_cost=${judge_cost}", ""]
     lines += ["## By priority", table(by_prio, keys), ""]
+    lines += ["## By priority, literal harness record (no accept corrections)", table(by_prio_literal, keys), ""]
+    lines += ["## Accept mismatches", json.dumps(mismatches, indent=1), ""]
     lines += ["## By cell", table(by_cell, keys), ""]
     lines += ["## By buyer type", table(by_type, keys), ""]
     lines += ["## Product mix by priority"] + [f"- {p}: {by_prio[p]['product_mix']}" for p in PRIOS] + [""]
@@ -330,6 +403,7 @@ def main() -> None:
     for k, v in comparisons.items():
         lines.append(f"- {k}: profit/session {v['profit']}, conversion {v['deal']}, margin {v['margin']}")
     lines += ["", "## Adaptive inference", json.dumps(inference, indent=1), ""]
+    lines += ["## Oracle type switching (best priority per true type)", json.dumps(oracle), ""]
     lines += ["## Verdicts", json.dumps(verdicts, indent=1), ""]
     lines += ["## Sessions"]
     for x in sorted(rows, key=lambda x: (x["persona_id"], PRIOS.index(x["priority"]))):

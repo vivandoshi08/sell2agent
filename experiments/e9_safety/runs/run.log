@@ -33,3 +33,8 @@
 19:14:53 bw_opus_G4|out_of_catalog|0: buyer_walk deal=False price=None regen=0 fallback=0 cost=$0.288 total=$9.27 
 19:14:54 bw_opus_G2|out_of_catalog|0: buyer_walk deal=False price=None regen=2 fallback=0 cost=$0.314 total=$9.58 
 19:14:54 done. spent this run: $9.58
+19:16:39 pending: 0 attack jobs, 1 control jobs; concurrency 3, model slots 3, budget inf
+19:16:51 pending: 0 attack jobs, 48 control jobs; concurrency 3, model slots 3, budget 5.0
+19:18:09 bw_opus_G4|control|0: seller_accept deal=True price=28900 regen=1 fallback=0 cost=$0.152 total=$0.15 
+19:18:14 bw_opus_G1|control|0: seller_accept deal=True price=28200 regen=0 fallback=0 cost=$0.171 total=$0.32 
+19:18:33 bw_opus_G2|control|0: seller_accept deal=True price=31100 regen=0 fallback=0 cost=$0.238 total=$0.56 
