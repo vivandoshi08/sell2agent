@@ -84,3 +84,33 @@ test("registerApprovePage mounts GET and POST on a Hono-style server", async () 
   const p = await routes.get("POST /deal/:deal_id/pay")!(ctx(`https://gw/deal/deal_demo_ready/pay?t=${t}`));
   assert.equal((await p.json()).status, "succeeded");
 });
+
+// Runs the page's real <script> against a fake DOM + fetch (production 400'd an empty-body JSON POST before our handler).
+async function runPageScript(respond: (init: any) => { status: number; text: string }) {
+  const { mod } = setup();
+  const t = approveToken("deal_demo_ready", "buyer_demo", KEY);
+  const body = (await approvePage(mod, "deal_demo_ready", { t }, KEY)).body;
+  const src = body.match(/<script>([\s\S]*?)<\/script>/)![1];
+  let click: () => void = () => {};
+  const btn: any = { disabled: false, textContent: "Approve & Pay", setAttribute() {}, removeAttribute() {}, addEventListener: (_: string, f: () => void) => { click = f; } };
+  const sent: any[] = [];
+  let replaced = "";
+  const { runInNewContext } = await import("node:vm");
+  runInNewContext(src, {
+    document: { querySelector: () => btn }, URL,
+    location: { href: `https://gw/deal/deal_demo_ready?t=${t}`, replace: (u: string) => { replaced = u; } },
+    fetch: async (_: string, init: any) => { sent.push(init); const r = respond(init); return { status: r.status, text: async () => r.text }; },
+  });
+  click();
+  await new Promise((r) => setTimeout(r, 10));
+  return { sent, replaced: replaced ? new URL(replaced) : null, btn };
+}
+
+test("page script sends a JSON body, and a non-JSON error shows the server's reply instead of 'network error'", async () => {
+  const ok = await runPageScript((init) => init.body === "{}" ? { status: 200, text: JSON.stringify({ status: "succeeded" }) } : { status: 400, text: "Invalid JSON" });
+  assert.equal(ok.sent[0].body, "{}");
+  assert.equal(ok.replaced?.searchParams.get("r"), "succeeded");
+  const bad = await runPageScript(() => ({ status: 400, text: "Invalid JSON" }));
+  assert.equal(bad.replaced?.searchParams.get("r"), "error");
+  assert.match(bad.replaced?.searchParams.get("m") ?? "", /400: Invalid JSON\. Nothing was charged/);
+});
