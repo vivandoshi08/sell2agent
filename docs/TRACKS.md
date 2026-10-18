@@ -9,13 +9,13 @@
 |---|---|---|
 | **Enter** | **Manufact: Best MCP Server for Agents** | Our product *is* an MCP server whose primary customer is a buying agent. Manufact builds and hosts it. |
 | **Enter** | **Armature: Best Agent Experience** | Our whole thesis is agent experience for commerce, and our eval harness measures it with numbers. |
-| **Enter if payment works** | **Stripe: agents safely in the economy** | Our checkout step. Only enter if a real test-mode payment (Shared Payment Token → PaymentIntent) runs end to end. |
+| **Enter** | **Stripe: agents safely in the economy** | Our checkout step, with controls on both sides: the merchant's policy engine and the buyer's spend cap. Real test-mode payment (Shared Payment Token → PaymentIntent). |
 | Skip | Inkbox | Closest of the rest: A2A plus a directory would be a second front door. Stretch use only: the seller texts the merchant for approval. |
 | Skip | Primitive | Email is too slow for a 10-turn haggle. Async quoting is a different product. |
 | Skip | Blaxel | The theme fits ("a store no human would want"), but their sandboxes wouldn't do real work for us. |
 | Skip | InsForge | We don't need agent computers or a separate backend. |
 
-Manufact and Armature are one build seen two ways: Manufact judges the server, Armature judges the experience agents have using it. Stripe is the last step of the same flow, not a bolt-on, which is why it's the only third track worth it.
+**Decided 2026-10-17: Armature, Stripe, Manufact.** It's one build seen three ways: Manufact judges the server, Armature judges the experience agents have using it, and Stripe judges how safely money moves at the end of the same flow. None of the three is a bolt-on.
 
 ## Scoring
 
@@ -61,7 +61,7 @@ What we build:
 
 What proves it: the numbers above. This is the track where our experiments are the submission, not just support for it.
 
-### Stripe: checkout with controls on both sides (only if it works for real)
+### Stripe: checkout with controls on both sides
 
 What we build:
 1. `pay_deal(deal_id, spt)`: the buyer agent sends a **Shared Payment Token** capped at the agreed total, and we charge it with a **PaymentIntent** in test mode. The test helper mints tokens. Negotiation has to end before the token exists, which fits our flow: deal locked, then pay.
@@ -85,5 +85,5 @@ Needs from us: a Stripe test-mode secret key set as an environment variable, and
 ## Risks
 
 - **Manufact Cloud and Python:** unverified whether it hosts a plain FastMCP server. If not, port to mcp-use's Python server (same tool code) or ask Manufact's team.
-- **Stripe SPTs are a preview API.** If our account can't use them, Stripe drops to optional.
-- **Time:** submissions are due 10:00 tomorrow. Manufact + Armature is one build; Stripe is the only extra integration we should attempt.
+- **Stripe SPTs are a preview API.** If our account can't use them, fall back to a Checkout Session with a custom amount and keep the controls story; check SPT access first thing.
+- **Time:** submissions are due 10:00 tomorrow. Manufact + Armature is one build; Stripe is the one extra integration, and nothing else gets added.

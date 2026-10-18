@@ -111,7 +111,7 @@ footer { color: var(--muted); font-size: 0.85rem; }
   </header>
 
   <section>
-    <div class="section-head"><span class="eyebrow">The call</span><h2>Enter two, a third if payment works</h2></div>
+    <div class="section-head"><span class="eyebrow">The call</span><h2>Armature, Stripe, Manufact: one build, three lenses</h2></div>
     <div class="verdicts">
       <article class="verdict primary">
         <span class="pill enter">Enter</span>
@@ -125,10 +125,10 @@ footer { color: var(--muted); font-size: 0.85rem; }
         <p>Our thesis is agent experience for commerce, and the experiments measure it: completion, tool errors, agent interface vs. static page, behavior across buyer models.</p>
         <span class="who">Brief match 5/5 · Judges the experience itself</span>
       </article>
-      <article class="verdict conditional">
-        <span class="pill cond">Enter if it works</span>
+      <article class="verdict primary">
+        <span class="pill enter">Enter</span>
         <h3>Stripe: agents in the economy</h3>
-        <p>Our checkout step. Enter only if a real test-mode payment runs: a Shared Payment Token capped at the negotiated price, charged with a PaymentIntent.</p>
+        <p>Our checkout step, with controls on both sides: the merchant's policy engine and the buyer's spend cap. A Shared Payment Token capped at the negotiated price, charged with a PaymentIntent.</p>
         <span class="who">Brief match 4/5 · Sponsor tech 4/5</span>
       </article>
     </div>
@@ -157,7 +157,7 @@ footer { color: var(--muted); font-size: 0.85rem; }
           <tr><td class="track">Stripe</td>
             <td><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>"Safely participate in the economy… clear control over what they can do and spend"</td>
             <td><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>SPT capped at the deal price, PaymentIntent, policy engine as merchant control</td>
-            <td>E4 policy engine, E8 payment flow</td><td>Medium; preview API</td><td><span class="pill cond">If it works</span></td></tr>
+            <td>E4 policy engine, E8 payment flow</td><td>Medium; preview API</td><td><span class="pill enter">Enter</span></td></tr>
           <tr><td class="track">Inkbox</td>
             <td><span class="dots"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>Identity and messaging; our core is selling</td>
             <td><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>A2A tasks fit counteroffers; directory for discovery; iMessage for merchant approval</td>
@@ -228,7 +228,7 @@ footer { color: var(--muted); font-size: 0.85rem; }
         </div>
       </article>
       <article class="plan">
-        <div class="plan-head"><h3>Stripe: checkout with controls on both sides</h3><span class="pill cond">Enter if it works</span></div>
+        <div class="plan-head"><h3>Stripe: checkout with controls on both sides</h3><span class="pill enter">Enter</span></div>
         <div class="plan-cols">
           <ol>
             <li><code>pay_deal(deal_id, spt)</code>: the buyer agent sends a Shared Payment Token capped at the agreed total; we charge it with a PaymentIntent in test mode. The deal locks before the token exists.</li>
@@ -237,7 +237,7 @@ footer { color: var(--muted); font-size: 0.85rem; }
           </ol>
           <dl class="side">
             <div><dt>Proof</dt><dd>A real test-mode payment ID for a negotiated price, plus E4's red-team numbers.</dd></div>
-            <div><dt>Risk</dt><dd>Shared Payment Tokens are a preview API. If our account can't use them, Stripe drops out.</dd></div>
+            <div><dt>Risk</dt><dd>Shared Payment Tokens are a preview API. Check access first; the fallback is a Checkout Session with a custom amount.</dd></div>
           </dl>
         </div>
         <p class="ask"><strong>Needed from us:</strong> a Stripe test-mode secret key set as an environment variable, and a check that the token preview works on our account.</p>
