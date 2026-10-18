@@ -44,7 +44,7 @@ export function toPaymentsDeal(d: StoredDeal): Deal {
     deal_id: d.deal_id,
     amount_cents: d.total_cents,
     currency: "usd",
-    description: `${d.product_id} × ${d.quantity} (negotiated)`,
+    description: `${d.title ?? d.product_id} × ${d.quantity} (negotiated)`,
     seller_id: d.seller_id,
     metadata: { negotiation_id: d.negotiation_id, buyer_id: d.buyer_id, product_id: d.product_id, lane: "s2" },
   };

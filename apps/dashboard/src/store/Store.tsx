@@ -59,7 +59,7 @@ export function Store() {
   const held = view?.payments.filter((p) => p.state === "held") ?? [];
   const title = (p: SellerPayment) => {
     const pid = (p.description ?? "").split(" × ")[0];
-    return view?.listings.find((l) => l.id === pid)?.title ?? p.description ?? p.deal_id ?? p.payment_intent_id;
+    return view?.listings.find((l) => l.id === pid)?.title ?? (pid || p.deal_id || p.payment_intent_id);
   };
   const earned = view?.payments.filter((p) => p.state === "paid").reduce((s, p) => s + p.seller_cents, 0) ?? 0;
 
