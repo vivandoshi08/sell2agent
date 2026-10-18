@@ -50,6 +50,31 @@ export interface WalkMove extends MoveBase {
   kind: "walk";
   negotiation_id: string;
   reason?: string;
+  /** Opt in to one later offer (allow_followups). Without this, the seller never contacts the buyer. */
+  followup?: FollowUpConsent;
+}
+export interface FollowUpConsent {
+  reply_to: string; // agent email, phone, or A2A address
+  channel: "email" | "sms" | "a2a";
+}
+export interface FollowUp extends FollowUpConsent {
+  consent_at: string;
+  due_at: string;
+  sent_at?: string;
+  offer_id?: string;
+  unsubscribed?: boolean;
+}
+/** What the outreach scheduler hands the messaging door (S1's Inkbox adapter). Readable text + a machine-readable offer. */
+export interface OutboundMessage {
+  negotiation_id: string;
+  buyer_id: string;
+  seller_id: string;
+  channel: FollowUpConsent["channel"];
+  reply_to: string;
+  subject: string;
+  text: string;
+  offer: { offer_id: string; product_id: string; title: string; price_cents: number; list_price_cents: number; levers: string[]; expires_at: string;
+    accept: string; counter: string; stop: string };
 }
 /** check_offers: read-only. */
 export interface StatusMove extends MoveBase {
@@ -110,6 +135,8 @@ export interface Negotiation {
   frozen: boolean; // breaker tripped: price frozen at current ask, truthfully final
   escalations: string[]; // out-of-policy asks logged for a human
   levers: string[]; // current lever package
+  buyer_profile?: BuyerLeverProfile; // last stated, for re-packaging a follow-up
+  followup?: FollowUp;
   created_at: string;
   updated_at: string;
 }

@@ -25,3 +25,7 @@ export { inspectInput, delimit } from "./input-guard";
 export { checkOutput, fallbackMessage } from "./output-guard";
 export { ProbeBreaker, StartLimiter, buyerEndpoint, jitterStep, leverCost, DEFAULT_LEVER_COSTS, START_LIMIT } from "./probing";
 export { SupabaseStore, LEGACY_STATUS, SNAPSHOT_RUN, SNAPSHOT_TYPE } from "./supabase-store";
+export { Outreach, FOLLOWUP_DELAY_MS, FOLLOWUP_TTL_MS } from "./outreach";
+export type { Sender } from "./outreach";
+export { parseInbound } from "./inbound";
+export type { InboundIntent } from "./inbound";
