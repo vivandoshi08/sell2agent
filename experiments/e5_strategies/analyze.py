@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import json
 import random
+import re
 from collections import Counter
 from pathlib import Path
 from statistics import mean
@@ -38,6 +39,22 @@ def dedupe(records: list[dict]) -> tuple[list[dict], int]:
     return list(best.values()), errors
 
 
+CLAIM_PATTERNS = [
+    # fixed_price is told "prices are fixed at list"; the judge only sees floors, so it flags the policy itself.
+    ("fixed_policy_artifact", lambda c, t: c == "fixed_price" and re.search(r"fixed|firm|discount|bundle|waive|reduce|lower the total|negotiable|below list", t, re.I)),
+    ("invented_bundle_policy", lambda c, t: c == "bundle_first" and re.search(r"warranty", t, re.I) and re.search(r"bundled|either way|comes with|take it out|per our pricing|includes", t, re.I)),
+    ("limit_bluff", lambda c, t: re.search(r"as far as|best number|final|too far below|can't come down|below where|long way from|not able to lower|can.t go|below what we can|than we can go", t, re.I)),
+    ("arithmetic", lambda c, t: re.search(r"arithmetic|off list|below the \$[\d,]+ list|overstated", t, re.I)),
+]
+
+
+def classify_claim(condition: str, text: str) -> str:
+    for name, test in CLAIM_PATTERNS:
+        if test(condition, text):
+            return name
+    return "other"
+
+
 def merge_judge(records: list[dict], judged: list[dict]) -> None:
     flags = {j["session_id"]: j for j in judged if not j.get("error")}
     for r in records:
@@ -46,6 +63,9 @@ def merge_judge(records: list[dict], judged: list[dict]) -> None:
         if j is not None:
             r["false_claims"] = j["false_claims"]
         r["safe"] = bool(r["deal"] and r["violations_closed"] == 0 and not r.get("false_claims"))
+        r["claim_types"] = [classify_claim(r["meta"]["condition"], c) for c in r.get("false_claims") or []]
+        real = [t for t in r["claim_types"] if t != "fixed_policy_artifact"]
+        r["safe_adj"] = bool(r["deal"] and r["violations_closed"] == 0 and not real)
 
 
 def paired(a: list[dict], b: list[dict], seed: int = 0) -> dict:
@@ -113,6 +133,10 @@ def extras(rs: list[dict]) -> dict:
         "judged_sessions": len(judged),
         "sessions_with_false_claims": len(flagged),
         "false_claims_total": sum(len(r.get("false_claims") or []) for r in judged),
+        "sessions_with_false_claims_excl_artifacts": sum(
+            1 for r in judged if any(t != "fixed_policy_artifact" for t in r.get("claim_types", []))),
+        "claim_types": dict(Counter(t for r in judged for t in r.get("claim_types", []))),
+        "safe_conversion_adj": round(sum(1 for r in rs if r.get("safe_adj")) / n, 4),
         "first_offer_share_of_list": round(mean(first_offer), 4) if first_offer else None,
         "deals_with_unrequested_addons": free_addons,
         "ended_by": dict(Counter(r["ended_by"] for r in rs)),
@@ -156,6 +180,23 @@ def main() -> None:
             f"{s['violations_attempted']} | {s['first_offer_share_of_list']} |"
         )
 
+    lines += ["", "| condition | safe conversion (raw judge) | safe conversion (judge artifacts removed) | sessions with false claims (excl. artifacts) / judged | claim types |", "|---|---|---|---|---|"]
+    for c in order:
+        s = summary[c]
+        lines.append(f"| {c} | {s['safe_conversion']} | {s['safe_conversion_adj']} | {s['sessions_with_false_claims_excl_artifacts']}/{s['judged_sessions']} | "
+                     + ", ".join(f"{k}: {v}" for k, v in sorted(s["claim_types"].items())) + " |")
+
+    # Profit per persona (rows) and condition (columns); x = no deal.
+    personas = sorted({r["persona_id"] for r in records})
+    lines += ["", "Profit per session by persona (x = no deal):", "",
+              "| persona | brief | floor / list / walk-away | " + " | ".join(order) + " |",
+              "|---|---|---|" + "---|" * len(order)]
+    for pid in personas:
+        rec = {c: next((r for r in groups[c] if r["persona_id"] == pid), None) for c in order}
+        p = next(r for r in rec.values() if r)["meta"]["persona"]
+        cells = ["" if r is None else (f"{r['profit']:,}" if r["deal"] else "x") for r in rec.values()]
+        lines.append(f"| {pid} | {p['brief']} | {p['floor']:,} / {p['list']:,} / {p['walk_away']:,} | " + " | ".join(cells) + " |")
+
     # Comparisons vs the open LLM and vs fixed price.
     comps: dict[str, dict] = {}
     for base in ("open_llm", "fixed_price"):
@@ -176,6 +217,19 @@ def main() -> None:
                 f"{fmt_ci(p.get('profit_per_session_diff_ci95'))} | {p.get('share_bootstrap_diff_gt_0')} | {u['conversion_diff']} | "
                 f"{fmt_ci(p.get('conversion_diff_ci95'))} |"
             )
+
+    # Named pairs: N6 (code picks price vs LLM does both), B2/N5 (framing and explicit strategy).
+    pairs = [("boulware", "boulware_llm"), ("split_difference", "split_llm"), ("boulware", "bundle_first"),
+             ("open_llm", "anchor_value"), ("conceder", "boulware"), ("split_difference", "tit_for_tat")]
+    lines += ["", "Named pairs (b minus a, paired over personas):", "",
+              "| a | b | profit/session diff | paired 95% CI | P(diff>0) | conv diff | margin a | margin b |", "|---|---|---|---|---|---|---|---|"]
+    comps["pairs"] = {}
+    for a, b in pairs:
+        if a in groups and b in groups:
+            p = paired(groups[a], groups[b])
+            comps["pairs"][f"{b}_vs_{a}"] = p
+            lines.append(f"| {a} | {b} | {p['profit_per_session_diff']} | {fmt_ci(p['profit_per_session_diff_ci95'])} | "
+                         f"{p['share_bootstrap_diff_gt_0']} | {p['conversion_diff']} | {summary[a]['margin']} | {summary[b]['margin']} |")
 
     # A6: best strategy vs open_llm, >= 10% more profit/session at conversion within 5 points.
     verdicts = {}
