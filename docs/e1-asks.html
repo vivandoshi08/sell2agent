@@ -78,7 +78,7 @@ details[open] > summary { margin-bottom: 10px; }
 
 <div class="wrap">
   <header style="display:grid;gap:8px">
-    <span class="eyebrow">sales-agent · E1 exchange &amp; safety · Vivan · updated Sun Oct 18, 1:12 am PT</span>
+    <span class="eyebrow">sales-agent · E1 exchange &amp; safety · Vivan · updated Sun Oct 18, 1:15 am PT</span>
     <h1>What E1 needs from you</h1>
     <p class="lede">Bridge 1 is closed: real ChatGPT bought a keyboard end to end at 12:23 am. We're now heading for <b>Bridge 2</b>: simulated buyers run through the <b>deployed</b> gateway, and the dashboard shows static vs. negotiating from real events. Below is where each of us stands, the two gaps no PR closes yet, and what I need from you. Mark each ask <b>Done</b> or <b>Push back</b> with a note.</p>
     <div class="summary" id="summary"></div>
@@ -87,7 +87,7 @@ details[open] > summary { margin-bottom: 10px; }
   </header>
 
   <section class="box">
-    <h2>Bridge 2 board <small>main 55563ce · production 825bc111 (a98e99a) · checked 1:12 am</small></h2>
+    <h2>Bridge 2 board <small>main 55563ce · production 825bc111 (a98e99a) · checked 1:15 am</small></h2>
     <p class="why"><b>Done when:</b> simulated buyers run through the deployed gateway, and the dashboard shows static vs. negotiating from real events. <b>Not met yet.</b> E2's 200-buyer run is real and safe, but it went through the exchange in-process with Claude buyers only.</p>
     <p class="why"><b>Production (1:00 am):</b> Vivan redeployed main a98e99a (Manufact deployment 825bc111). Smoke test on the live URL: <code>make_offer</code> takes <code>strategy</code>; no "Extras:" in search text; discovery files 200. Signed <code>static</code> held $129 for 4 rounds; signed <code>negotiating</code> went $129 → $124; unsigned and forged run_ids ignored <code>strategy</code>. About 3.5 s per <code>make_offer</code> with the Claude seller voice.</p>
     <div class="table-wrap"><table>
@@ -146,6 +146,7 @@ details[open] > summary { margin-bottom: 10px; }
         <tr><td>Esha</td><td>Anonymous buyers all open at the last anonymous price ($112 final)</td><td>Trade-off with restart probing: a shared <code>anon_</code> bucket stops a fresh chat from beating the last price. ChatGPT users are unaffected (<code>oai_</code> ids, #48/#50). Proposal: keep the bucket, but resume at the bucket's price only after a walk-away, not after a deal. <b>#62 takes Esha's version instead:</b> memory per exact <code>buyer_id</code>, while start limit and jitter endpoint stay shared across anon chats, so a fresh chat walks to the same endpoint and can't beat the last one. Vivan picks one before merging</td><td><span class="pill open">Decide in #62</span></td></tr>
         <tr><td>Ananya</td><td>Row Level Security draft (<code>apps/dashboard/ops/rls-proposal.sql</code>, in #53)</td><td>RLS is off on all 8 tables and the anon key ships to browsers, so anyone with the dashboard can read floors and costs and write rows. Esha confirmed in #64 that <code>SUPABASE_SERVICE_ROLE_KEY</code> is set on Manufact and <code>@sa/shared/db</code> prefers it, so it can be applied. It also hides #62's signed eval run_ids, which anyone can read from <code>events</code> today and reuse</td><td><span class="pill push">Ready to apply</span></td></tr>
         <tr><td>Ananya</td><td>Drop <code>unit_cost_cents</code> from <code>deal_accepted</code> payloads</td><td>OK once S2's <code>run-result</code> joins costs server-side for every panel</td><td><span class="pill open">To do</span></td></tr>
+        <tr><td>Neel</td><td>Add <code>summary</code> and <code>list_price_cents</code> to <code>ExchangeResponse</code>; call <code>offerSummary()</code> / <code>dealSummary()</code> from <code>@sa/seller-mcp/sellers</code> (#67) in <code>respond()</code></td><td>Contract v3 P0 fields are optional, so nothing breaks meanwhile. E1 wires them; <code>checkSummary()</code> guards that every dollar figure is one the exchange actually offered</td><td><span class="pill open">To do</span></td></tr>
         <tr><td>Ananya</td><td>One lever-to-buyer-value table</td><td>Search (#54), S2's buyer fit and E2's decide each map levers differently. Proposal: E1 exports one map from <code>@sa/seller-mcp/exchange</code></td><td><span class="pill open">Decide</span></td></tr>
       </tbody>
     </table></div>
@@ -218,7 +219,7 @@ const PEOPLE = [
     { id: "b2n4", when: "now", t: "Make LeverProfile a partial object in the contract", d: "On zod 4 in production, z.record(LeverName, …) requires all six levers, so partial profiles fail. The gateway pads with zeros for now (Esha, #54)." },
     { id: "b2n5", when: "now", t: "Apply 0002_contract_v2.sql to the shared Supabase", d: "No offers table and no lever_menu on seller_policies yet. The console runs in v1 mode, and the single-catalog decision waits on it." },
     { id: "b2n6", when: "now", t: "Share the E2 Claude Doc with Vivan and Esha", d: "Vivan now reads the E2 page at claude.ai/artifact/6JBAwPz1VYkMi7WARBEZvM. Esha may still need it." },
-    { id: "b2n7", when: "now", t: "Refresh the E2 page", d: "It says 12:59 am but still lists #9, #11 and #36 as open (all merged) and asks S1 for ask_question (live since #51). The Bridge 2 lines are current: deployed run pending, GPT not run, McpGateway search shape. Please also note #58, #66, #67 and that production now honours strategy for signed runs." }
+    { id: "b2n7", when: "now", t: "Refresh the E2 page", d: "Refreshed at 1:12 am, thanks. Still out of date: #9, #11, #35 and #57 are all merged; ask_question and get_listing are live (#51). Please add that production (a98e99a) honours strategy for signed eval runs, so McpGateway can send it now." }
   ]},
   { who: "Esha", role: "S1 gateway & deploy", why: "Every Bridge 2 number has to come through your deployed gateway.", phase: 2, asks: [
     { id: "b2e1", when: "Bridge 2", block: true, t: "Pass the eval policy field from make_offer to the exchange", d: "Add strategy (optional enum static|negotiating|balanced) to make_offer and pass it into the offer move (PR #62). The exchange ignores it unless run_id is a signed eval run, so ChatGPT traffic can't use it." },
