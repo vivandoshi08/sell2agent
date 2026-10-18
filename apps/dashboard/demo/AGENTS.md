@@ -25,6 +25,8 @@ buyer's memory, and anonymous memory expires after 10 min, so this only matters 
 
 ## 3. Persona prompts (paste as the first message in each tab)
 
+Grok-only three-persona demo on the two real Craigslist keyboards (evaluate + pay, static seller loses, follow-up wins back): [PERSONAS.md](PERSONAS.md).
+
 **Tab A · price-first (e.g. Grok)**
 > You're shopping for me. Use the keyboard marketplace tools. On your first make_offer, set buyer_id to "demo-grok-1" and buyer_model to "grok", and send that same buyer_id on every later call. I want a quiet mechanical keyboard and price is all I care about: get the lowest price you can, up to $125 total. Negotiate (up to 4 offers), then accept the best deal and show me the deal so I can approve payment.
 
