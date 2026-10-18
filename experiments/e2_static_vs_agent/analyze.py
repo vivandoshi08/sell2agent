@@ -42,26 +42,48 @@ TABLE_KEYS = [
 ]
 
 
-def load_arm(tag: str, arm: str) -> list[dict]:
+def rep(r: dict) -> int:
+    return r["meta"].get("rep", 1)
+
+
+def load_arm(tag: str, arm: str, reps: set[int] | None = None) -> list[dict]:
     rows = load(HERE / "runs" / f"{tag + '_' if tag else ''}{ARMS[arm]}.jsonl")
-    # Keep the last non-error record per persona (a resumed run may have retried errors).
-    by_persona: dict[str, dict] = {}
+    # One record per (persona, rep): a non-error one if any (a resumed run may have retried errors).
+    keyed: dict[tuple, dict] = {}
     for r in rows:
-        if r["persona_id"] not in by_persona or by_persona[r["persona_id"]]["ended_by"] == "error":
-            by_persona[r["persona_id"]] = r
-    return list(by_persona.values())
+        if reps and rep(r) not in reps:
+            continue
+        k = (r["persona_id"], rep(r))
+        if k not in keyed or keyed[k]["ended_by"] == "error":
+            keyed[k] = r
+    return list(keyed.values())
+
+
+def _profit(r: dict) -> int:
+    return r["profit"] if r["deal"] else 0
+
+
+def _per_persona(rows: list[dict]) -> dict[str, list[dict]]:
+    out: dict[str, list[dict]] = {}
+    for r in rows:
+        if r["ended_by"] != "error":
+            out.setdefault(r["persona_id"], []).append(r)
+    return out
 
 
 def paired_compare(a: list[dict], b: list[dict], bootstrap: int = 4000, seed: int = 0) -> dict:
-    """b minus a over the personas both arms ran, resampling personas."""
-    A = {r["persona_id"]: r for r in a if r["ended_by"] != "error"}
-    B = {r["persona_id"]: r for r in b if r["ended_by"] != "error"}
+    """b minus a, resampling personas. With replicates, each persona's value is its mean over reps."""
+    A, B = _per_persona(a), _per_persona(b)
     ids = sorted(set(A) & set(B))
     if not ids:
         return {}
-    dp = [(B[i]["profit"] if B[i]["deal"] else 0) - (A[i]["profit"] if A[i]["deal"] else 0) for i in ids]
-    dc = [int(B[i]["deal"]) - int(A[i]["deal"]) for i in ids]
-    base = mean((A[i]["profit"] if A[i]["deal"] else 0) for i in ids)
+    pa = {i: mean(_profit(r) for r in A[i]) for i in ids}
+    pb = {i: mean(_profit(r) for r in B[i]) for i in ids}
+    ca = {i: mean(int(r["deal"]) for r in A[i]) for i in ids}
+    cb = {i: mean(int(r["deal"]) for r in B[i]) for i in ids}
+    dp = [pb[i] - pa[i] for i in ids]
+    dc = [cb[i] - ca[i] for i in ids]
+    base = mean(pa.values())
     rng = random.Random(seed)
     n = len(ids)
     bp, bc = [], []
@@ -79,21 +101,29 @@ def paired_compare(a: list[dict], b: list[dict], bootstrap: int = 4000, seed: in
         "profit_per_session_lift_pct": round(mean(dp) / base * 100, 1) if base else None,
         "conversion_diff": round(mean(dc), 4),
         "conversion_diff_ci95": [round(bc[lo], 4), round(bc[hi], 4)],
-        "same_decision_rate": round(sum(1 for i in ids if A[i]["deal"] == B[i]["deal"]) / n, 4),
+        # Share of (persona, rep) pairs where both arms made the same buy/no-buy call.
+        "same_decision_rate": _same_decision(a, b),
     }
 
 
+def _same_decision(a: list[dict], b: list[dict]) -> float | None:
+    A = {(r["persona_id"], rep(r)): r for r in a if r["ended_by"] != "error"}
+    B = {(r["persona_id"], rep(r)): r for r in b if r["ended_by"] != "error"}
+    keys = set(A) & set(B)
+    return round(sum(1 for k in keys if A[k]["deal"] == B[k]["deal"]) / len(keys), 4) if keys else None
+
+
 def decompose(a: list[dict], c: list[dict]) -> dict:
-    """Where c gains or loses profit against a, persona by persona."""
-    A = {r["persona_id"]: r for r in a if r["ended_by"] != "error"}
-    C = {r["persona_id"]: r for r in c if r["ended_by"] != "error"}
+    """Where c gains or loses profit against a, matching (persona, rep) pairs."""
+    A = {(r["persona_id"], rep(r)): r for r in a if r["ended_by"] != "error"}
+    C = {(r["persona_id"], rep(r)): r for r in c if r["ended_by"] != "error"}
     cats: dict[str, dict] = {}
 
     def add(cat, pid, diff):
         d = cats.setdefault(cat, {"n": 0, "profit_diff": 0, "personas": []})
         d["n"] += 1
         d["profit_diff"] += diff
-        d["personas"].append(pid)
+        d["personas"].append(f"{pid[0]}/r{pid[1]}")
 
     for pid in sorted(set(A) & set(C)):
         ra, rc = A[pid], C[pid]
@@ -149,26 +179,58 @@ def zone_table(zb: dict) -> str:
 
 def persona_table(arms: dict[str, list[dict]], personas) -> str:
     keys = list(arms)
-    by = {k: {r["persona_id"]: r for r in v} for k, v in arms.items()}
+    by = {k: _per_persona(v) for k, v in arms.items()}
+    ran = {k: {r["persona_id"] for r in v} for k, v in arms.items()}
     head = "| persona | zone | wants | walk-away | floor | list | " + " | ".join(keys) + " |"
     lines = [head, "|---|---|---|---|---|---|" + "---|" * len(keys)]
     for p in personas:
         cells = []
         for k in keys:
-            r = by[k].get(p.id)
-            if r is None:
+            if p.id not in ran[k]:
                 cells.append("")
-            elif r["ended_by"] == "error":
-                cells.append("error")
-            elif r["deal"]:
-                bundle = r["product_id"] + ("+" + "+".join(a[0].upper() for a in r["addons"]) if r["addons"] else "")
-                flag = " OVERPAID" if r.get("buyer_overpaid") else ""
-                cells.append(f"${r['price']:,} {bundle}{flag}")
-            else:
-                cells.append("no deal")
+                continue
+            rs = sorted(by[k].get(p.id, []), key=rep)
+            parts = []
+            for r in rs:
+                if r["deal"]:
+                    bundle = r["product_id"] + ("+" + "+".join(a[0].upper() for a in r["addons"]) if r["addons"] else "")
+                    flag = " OVERPAID" if r.get("buyer_overpaid") else ""
+                    parts.append(f"${r['price']:,} {bundle}{flag}")
+                else:
+                    parts.append("no deal")
+            cells.append(" / ".join(parts) or "error")
         wants = p.target_product + ("+" + "+".join(a[0].upper() for a in p.wants_addons) if p.wants_addons else "")
         lines.append(f"| {p.id} | {zone(p)} | {wants} | ${p.walk_away:,} | ${p.floor:,} | ${p.list:,} | " + " | ".join(cells) + " |")
     return "\n".join(lines)
+
+
+def oracle(personas) -> dict:
+    """Profit ceilings with no model in the loop, per zone and overall.
+
+    static: the buyer buys the most profitable bundle of its target tractor plus a subset of its wanted
+            add-ons whose LIST total fits its walk-away.
+    negotiate: same, but any bundle whose FLOOR fits, sold at min(walk-away, list) (perfect price discrimination).
+    """
+    from itertools import combinations
+
+    from sales_agent.catalog import cost_total, floor_total, list_total
+
+    rows = []
+    for p in personas:
+        subsets = [list(c) for k in range(len(p.wants_addons) + 1) for c in combinations(p.wants_addons, k)]
+        st = [list_total(p.target_product, s) - cost_total(p.target_product, s) for s in subsets
+              if list_total(p.target_product, s) <= p.walk_away]
+        ng = [min(p.walk_away, list_total(p.target_product, s)) - cost_total(p.target_product, s) for s in subsets
+              if floor_total(p.target_product, s) <= p.walk_away]
+        rows.append((zone(p), max(st, default=0), max(ng, default=0)))
+    out = {"all": {"static_pps": round(mean(r[1] for r in rows)), "negotiate_pps": round(mean(r[2] for r in rows)),
+                   "static_conv": round(mean(r[1] > 0 for r in rows), 3), "negotiate_conv": round(mean(r[2] > 0 for r in rows), 3)}}
+    for z in ZONES:
+        zs = [r for r in rows if r[0] == z]
+        if zs:
+            out[z] = {"n": len(zs), "static_pps": round(mean(r[1] for r in zs)), "negotiate_pps": round(mean(r[2] for r in zs)),
+                      "static_conv": round(mean(r[1] > 0 for r in zs), 3), "negotiate_conv": round(mean(r[2] > 0 for r in zs), 3)}
+    return out
 
 
 def seller_cost(rows: list[dict]) -> dict:
@@ -187,11 +249,14 @@ def seller_cost(rows: list[dict]) -> dict:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--tag", default="")
+    ap.add_argument("--reps", default="", help="only use these replicates, e.g. 1 (default: all)")
+    ap.add_argument("--out", default="", help="results file name (default: [<tag>_]results.json)")
     args = ap.parse_args()
+    reps = {int(x) for x in args.reps.split(",")} if args.reps else None
 
     personas = make_personas(N, seed=SEED)
     zones = {p.id: zone(p) for p in personas}
-    arms = {k: load_arm(args.tag, k) for k in ARMS}
+    arms = {k: load_arm(args.tag, k, reps) for k in ARMS}
     arms = {k: v for k, v in arms.items() if v}
     named = {ARMS[k]: v for k, v in arms.items()}
 
@@ -209,6 +274,11 @@ def main() -> None:
             s["arithmetic_errors"] = sum(1 for r in deals if r["meta"].get("arithmetic_error"))
             s["bundle_vs_wanted"] = dict(Counter(r["meta"].get("bundle_vs_wanted") for r in deals))
         res["arms"][ARMS[k]] = s
+        per_rep = {}
+        for rp in sorted({rep(r) for r in rows}):
+            sr = summarize([r for r in rows if rep(r) == rp], bootstrap=0)
+            per_rep[rp] = {x: sr[x] for x in ("sessions", "conversion", "profit_per_session", "avg_price")}
+        res.setdefault("per_rep", {})[ARMS[k]] = per_rep
 
     pairs = [("a", "c"), ("b", "c"), ("a", "b"), ("a", "d"), ("d", "c"), ("b", "d")]
     for x, y in pairs:
@@ -224,6 +294,7 @@ def main() -> None:
     if "a" in arms and "d" in arms:
         res["decomposition_d_vs_a"] = decompose(arms["a"], arms["d"])
     res["by_persona_type"] = zone_breakdown(named, zones)
+    res["oracle_ceilings"] = oracle(personas)
 
     # Verdicts against the bar in EXPERIMENTS.md.
     verdicts = {}
@@ -247,7 +318,7 @@ def main() -> None:
                           "answer": "format changed the buy rate" if (ci[0] > 0 or ci[1] < 0) else "no detectable format effect"}
     res["verdicts"] = verdicts
 
-    name = f"{args.tag + '_' if args.tag else ''}results.json"
+    name = args.out or f"{args.tag + '_' if args.tag else ''}results.json"
     (HERE / name).write_text(json.dumps(res, indent=2, default=str) + "\n")
 
     print("## KPI table\n")
@@ -262,6 +333,9 @@ def main() -> None:
               f"(unpaired CI {u['profit_per_session_diff_ci95']}), lift {p['profit_per_session_lift_pct']}%; "
               f"conversion diff {p['conversion_diff']} paired CI {p['conversion_diff_ci95']} (unpaired {u['conversion_diff_ci95']}); "
               f"same decision {p['same_decision_rate']}")
+    print("\n## Per replicate\n")
+    for k, pr in res["per_rep"].items():
+        print(f"- {k}: " + "; ".join(f"r{rp}: n={v['sessions']} conv={v['conversion']} pps={v['profit_per_session']}" for rp, v in pr.items()))
     print("\n## By persona type\n")
     print(zone_table(res["by_persona_type"]))
     for key in ("decomposition_c_vs_a", "decomposition_c_vs_b", "decomposition_d_vs_a"):
@@ -269,6 +343,9 @@ def main() -> None:
             print(f"\n## {key}\n")
             for cat, d in res[key].items():
                 print(f"- {cat}: n={d['n']}, profit diff ${d['profit_diff']:,}")
+    print("\n## Oracle ceilings (no model)\n")
+    for z, o in res["oracle_ceilings"].items():
+        print(f"- {z}: {o}")
     print("\n## Per persona\n")
     print(persona_table(named, personas))
     print("\n## Other\n")
