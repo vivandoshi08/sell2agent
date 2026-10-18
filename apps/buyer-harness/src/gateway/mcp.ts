@@ -46,7 +46,8 @@ export class McpGateway implements Gateway {
 
   private static listing(l: any): GwListing {
     return { product_id: l.id ?? l.product_id, seller_name: l.seller_name ?? "", title: l.title, description: l.description ?? "",
-      specs: l.specs ?? {}, list_price_cents: l.list_price_cents, shipping_days: l.shipping_days ?? 0, negotiable: l.negotiable ?? true };
+      specs: l.specs ?? {}, list_price_cents: l.list_price_cents, shipping_days: l.shipping_days ?? 0, negotiable: l.negotiable ?? true,
+      extras: l.extras ?? l.allowed_levers ?? l.levers };
   }
 
   async search(ctx: BuyerContext, query: string, max_price_cents?: number, must_have?: string[]): Promise<GwListing[]> {
@@ -71,7 +72,7 @@ export class McpGateway implements Gateway {
 
   async offer(ctx: BuyerContext, a: GwOfferArgs): Promise<GwOfferResult> {
     const resp = (await this.call("make_offer", { ...this.ids(ctx), product_id: a.product_id, negotiation_id: a.negotiation_id,
-      offer_price_cents: a.offer_price_cents, quantity: 1, message: a.message })) as ExchangeLike;
+      offer_price_cents: a.offer_price_cents, quantity: 1, message: a.message, levers: a.levers })) as ExchangeLike;
     return this.book.record(resp, a.product_id, a.offer_price_cents);
   }
 

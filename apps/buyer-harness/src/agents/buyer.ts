@@ -66,7 +66,7 @@ export async function runBuyer(task: LlmBuyerTask, brain: Brain, gw: Gateway, ru
           ls.forEach((l) => { sellers.set(l.product_id, l.seller_name); listPrices.set(l.product_id, l.list_price_cents); });
           ev("search", "buyer", { payload: { query: a.query, results: ls.length } });
           return JSON.stringify({ listings: ls.map((l) => ({ product_id: l.product_id, seller: l.seller_name, title: l.title,
-            description: l.description, specs: l.specs, list_price: dollars(l.list_price_cents), shipping_days: l.shipping_days, negotiable: l.negotiable })) });
+            description: l.description, specs: l.specs, list_price: dollars(l.list_price_cents), shipping_days: l.shipping_days, negotiable: l.negotiable, extras_available: l.extras ?? [] })) });
         }
         case "get_listing": {
           const l = await gw.getListing(ctx, String(a.product_id));
@@ -87,13 +87,14 @@ export async function runBuyer(task: LlmBuyerTask, brain: Brain, gw: Gateway, ru
           }
           o.offers_made++;
           if (o.ms_to_first_offer === null) o.ms_to_first_offer = Date.now() - t0;
-          const r = await gw.offer(ctx, { product_id: String(a.product_id), negotiation_id: negs.get(a.product_id)?.id, offer_price_cents: cents, message: a.message, buyer_profile: task.profile as Record<string, number> });
+          const r = await gw.offer(ctx, { product_id: String(a.product_id), negotiation_id: negs.get(a.product_id)?.id, offer_price_cents: cents, message: a.message, buyer_profile: task.profile as Record<string, number>,
+            levers: Array.isArray(a.extras) && a.extras.length ? a.extras.map(String) : undefined });
           negs.set(a.product_id, { id: r.negotiation_id, last_price: r.price_cents });
           // logged after the gateway answers, so it carries negotiation_id (S2 ask)
           if (!gw.sellerEventsLogged) ev("offer_made", "buyer", { product_id: a.product_id, price_cents: cents, payload: { message: a.message ?? "" }, negotiation_id: r.negotiation_id });
           if (!gw.sellerEventsLogged) ev(r.status === "accept" ? "offer_accepted" : r.status === "counter" ? "offer_countered" : "offer_rejected", "seller",
             { product_id: a.product_id, negotiation_id: r.negotiation_id, price_cents: r.price_cents, payload: { round: r.round, final: r.final, message: r.message, lever_package: [], expires_at: null } });
-          return JSON.stringify({ status: r.status, seller_price: dollars(r.price_cents), round: r.round, rounds_left: r.rounds_left, final: r.final, seller_message: r.message });
+          return JSON.stringify({ status: r.status, seller_price: dollars(r.price_cents), included_extras: r.extras ?? [], round: r.round, rounds_left: r.rounds_left, final: r.final, seller_message: r.message });
         }
         case "accept_deal": {
           const n = negs.get(a.product_id);
