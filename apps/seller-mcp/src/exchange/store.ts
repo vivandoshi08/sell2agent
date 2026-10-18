@@ -35,6 +35,7 @@ export interface FollowupMark {
   negotiation_id: string;
   buyer_id: string;
   sent_at: string; // ISO
+  count?: number; // reply budgets (the messaging door)
 }
 
 export interface BuyerMemory {
