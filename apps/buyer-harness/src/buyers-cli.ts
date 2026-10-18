@@ -53,7 +53,7 @@ console.log(`\n${buyers.length} buyers · models: ${models.join(", ")} · gatewa
 const summaries: Summary[] = [];
 for (const policy of policies) {
   const voiceLlm = f["seller-voice"] ? defaultLlm() : null;
-  const gw: Gateway = gatewayUrl ? new McpGateway(gatewayUrl)
+  const gw: Gateway = gatewayUrl ? new McpGateway(gatewayUrl, policy === "lever_policy" ? undefined : policy)
     : f.exchange ? new ExchangeGateway(policy as Strategy, voiceLlm, { max_rounds: f["max-rounds"] ? Number(f["max-rounds"]) : undefined })
     : new LocalGateway(policy, voiceLlm);
   const raw_id = `run_${stamp}_${policy}${f["max-rounds"] ? `_r${f["max-rounds"]}` : ""}`;
@@ -68,7 +68,6 @@ for (const policy of policies) {
   await gw.close?.();
   writeFileSync(resolve(RUNS_DIR, `${run_id}.json`), JSON.stringify({ summary, buyers, outcomes }, null, 2));
   summaries.push(summary);
-  if (gatewayUrl && policies.length > 1) console.log("  (remote gateway: policy is set server-side; switch it between runs)");
 }
 
 const pct = (x: number) => `${(x * 100).toFixed(0)}%`;
