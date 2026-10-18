@@ -40,6 +40,9 @@ def setup_key(s: str) -> tuple:
 
 def session_stats(r: dict) -> dict:
     ev = r.get("events") or []
+    # Guard v1 logged freeze holds as "clamp_low"; every such event came after a circuit-breaker trip.
+    if any(e.get("rule") == "circuit_breaker" for e in ev):
+        ev = [dict(e, rule="hold_frozen") if e.get("rule") == "clamp_low" else e for e in ev]
     enforced = [e for e in ev if e.get("enforced") and e.get("action") in BLOCK_ACTIONS]
     # Shadow findings on delivered seller turns = what a disabled layer would have stopped.
     shadow_out = [e for e in ev if not e.get("enforced") and e.get("action") == "shadow" and e["layer"] in ("output", "policy", "session")]
@@ -221,6 +224,22 @@ def main() -> None:
     policy_test = json.loads((RUNS / "policy_test.json").read_text()) if (RUNS / "policy_test.json").exists() else {}
     replay = json.loads((RUNS / "replay.json").read_text()) if (RUNS / "replay.json").exists() else {}
     replay_summary = {k: v["summary"] for k, v in replay.items()}
+    regrade = json.loads((RUNS / "regrade.json").read_text()) if (RUNS / "regrade.json").exists() else {}
+    regrade_summary = {k: v for k, v in regrade.items() if k not in ("released", "kept_ok", "new")}
+    screens = {}
+    for mode in ("flagged", "delivered"):
+        f = RUNS / f"llm_screen_{mode}.json"
+        if f.exists():
+            d = json.loads(f.read_text())
+            screens[mode] = {k: v for k, v in d.items() if k not in ("items", "sessions_flagged")}
+            if mode == "delivered":
+                items = d["items"]
+                screens[mode].update({
+                    "messages": len(items), "messages_flagged": sum(1 for x in items if x["haiku_breaks"]),
+                    "control_messages": sum(1 for x in items if "|control|" in x["job"]),
+                    "control_messages_flagged": sum(1 for x in items if "|control|" in x["job"] and x["haiku_breaks"]),
+                    "flags_by_rule": dict(Counter(b for x in items for b in x["haiku_breaks"]).most_common()),
+                })
 
     # Verdicts.
     full = [s for s in setups if s.startswith("bw_") and s.endswith("_G4")]
@@ -251,6 +270,11 @@ def main() -> None:
         "experiment": "E9 guardrail stack, layer by layer",
         "sessions": {"attack": len(att), "control": len(ctl), "errors": errors},
         "total_model_cost_usd": round(sum(s["cost"] for s in st.values()), 2),
+        "all_in_cost_usd": round(sum(s["cost"] for s in st.values())
+                                 + sum((r.get("usage") or {}).get("cost_usd", 0) + (r.get("audit_usage") or {}).get("cost_usd", 0)
+                                       for r in load(RUNS / "micro_dev_attacks.jsonl") + load(RUNS / "micro_dev_control.jsonl"))
+                                 + sum(json.loads((RUNS / f"llm_screen_{m}.json").read_text())["usage"]["cost_usd"]
+                                       for m in ("flagged", "delivered") if (RUNS / f"llm_screen_{m}.json").exists()), 2),
         "verdicts": {"A13": a13, "A14": {"comparisons": a14, "validated": a14_ok}},
         "per_setup": per_setup,
         "cells": cells,
@@ -261,6 +285,9 @@ def main() -> None:
         "blocked_attack_drafts": blocked_att,
         "policy_test": policy_test,
         "replay": replay_summary,
+        "regrade_v3": regrade_summary,
+        "llm_screen": screens,
+        "guard_versions": dict(Counter(r["meta"].get("guard_version", "v1") for r in att + ctl)),
     }
     (HERE / "results.json").write_text(json.dumps(res, indent=1, default=str))
 

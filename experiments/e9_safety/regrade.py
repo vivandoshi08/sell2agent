@@ -24,7 +24,8 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parents[1]))
 sys.path.insert(0, str(HERE))
 
-from guardrails import GUARD_VERSION, OutputGuard, TurnContext, money_figures  # noqa: E402
+from guardrails import CONDITIONS, GUARD_VERSION, OutputGuard, SessionPolicy, SessionState, TurnContext, money_figures  # noqa: E402
+from sales_agent.policy import PolicyEngine  # noqa: E402
 from sales_agent.policy import Offer  # noqa: E402
 from sales_agent.runlog import load  # noqa: E402
 
@@ -46,6 +47,10 @@ def main() -> None:
         arm = r["meta"]["arm"]
         output_on = r["meta"]["condition"] in ("G2", "G3", "G4")
         turns = {t["round"]: t for t in r.get("seller_turns") or []}
+        cfg = CONDITIONS[r["meta"]["condition"]]
+        sp = SessionPolicy(PolicyEngine(), cfg, SessionState())
+        freeze_round = min((e["round"] for e in r.get("events") or [] if e.get("rule") == "circuit_breaker" and e.get("enforced")), default=None)
+        max_rounds = r.get("max_rounds") or 8
         persona_bundle = None
         tr = r["transcript"]
         rnd = 0
@@ -67,10 +72,14 @@ def main() -> None:
             for a in (turns.get(rnd) or {}).get("attempts", []):
                 target = _o(a["offer"]) if a["action"] == "offer" else (buyer_offers[-1] if a["action"] == "accept" and buyer_offers else None)
                 orig = [f for f in a["findings"] if f["layer"] == "output"]
-                final_allowed = not any(f["rule"] == "final_not_final" for f in orig)
+                o = _o(a["offer"]) if a["action"] == "offer" else None
+                final_allowed = bool(o and (rnd >= max_rounds or o.price <= sp.offer_low(o.product_id, o.addons)
+                                            or (freeze_round is not None and rnd >= freeze_round)))
                 ctx = TurnContext(action=a["action"], offer=target, bundle=bundle, standing=seller_offers[-1] if seller_offers else None,
                                   seller_offers=seller_offers, buyer_figures=figs, final_allowed=final_allowed, lock_mode=arm == "open")
-                now = {f.rule for f in og.check(a["message"], ctx)}
+                found = og.check(a["message"], ctx)
+                now = {f.rule for f in found}
+                spans = {f.rule: f.span for f in found}
                 before_rules = {f["rule"] for f in orig}
                 stats["drafts"] += 1
                 if output_on:
@@ -79,7 +88,8 @@ def main() -> None:
                         rec = {"key": key, "rule": rule, "label": labels.get(key), "message": a["message"][:300]}
                         (kept if rule in now else released).append(rec)
                 for rule in sorted(now - before_rules):
-                    new_flags.append({"job": r["job"], "round": rnd, "attempt": a["attempt"], "rule": rule, "message": a["message"][:300]})
+                    new_flags.append({"job": r["job"], "round": rnd, "attempt": a["attempt"], "rule": rule, "span": spans.get(rule, ""),
+                                      "delivered": (turns.get(rnd) or {}).get("delivered") == "draft" and a is (turns.get(rnd) or {}).get("attempts", [None])[-1]})
     def lab(xs, v):
         return sum(1 for x in xs if x["label"] == v)
     res = {
@@ -100,8 +110,8 @@ def main() -> None:
     for x in res["released"]:
         if x["label"] == "violation":
             print("  RELEASED a labelled violation:", x["key"], "|", x["message"][:160])
-    for x in new_flags[:20]:
-        print("  new flag:", x["job"], x["round"], x["rule"], "|", x["message"][:140])
+    for x in new_flags:
+        print("  new flag:", x["job"], x["round"], x["rule"], "delivered" if x["delivered"] else "draft", "|", x["span"][:150])
 
 
 if __name__ == "__main__":
