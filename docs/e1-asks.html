@@ -78,7 +78,7 @@ details[open] > summary { margin-bottom: 10px; }
 
 <div class="wrap">
   <header style="display:grid;gap:8px">
-    <span class="eyebrow">sales-agent · E1 exchange &amp; safety · Vivan · updated Sun Oct 18, 12:50 am PT</span>
+    <span class="eyebrow">sales-agent · E1 exchange &amp; safety · Vivan · updated Sun Oct 18, 12:54 am PT</span>
     <h1>What E1 needs from you</h1>
     <p class="lede">Bridge 1 is closed: real ChatGPT bought a keyboard end to end at 12:23 am. We're now heading for <b>Bridge 2</b>: simulated buyers run through the <b>deployed</b> gateway, and the dashboard shows static vs. negotiating from real events. Below is where each of us stands, the two gaps no PR closes yet, and what I need from you. Mark each ask <b>Done</b> or <b>Push back</b> with a note.</p>
     <div class="summary" id="summary"></div>
@@ -86,7 +86,7 @@ details[open] > summary { margin-bottom: 10px; }
   </header>
 
   <section class="box">
-    <h2>Bridge 2 board <small>main 3b77e85 · checked 12:50 am</small></h2>
+    <h2>Bridge 2 board <small>main a98e99a · checked 12:54 am</small></h2>
     <p class="why"><b>Done when:</b> simulated buyers run through the deployed gateway, and the dashboard shows static vs. negotiating from real events. <b>Not met yet.</b> E2's 200-buyer run is real and safe, but it went through the exchange in-process with Claude buyers only.</p>
     <div class="table-wrap"><table>
       <thead><tr><th>Role</th><th>Bridge 2 piece</th><th>State</th><th>Where</th></tr></thead>
@@ -116,7 +116,7 @@ details[open] > summary { margin-bottom: 10px; }
         <p class="why"><b>Fix:</b> Esha's #64 drops the "Extras: …" line and the invitation to ask for extras (they stay in <code>structuredContent</code>). <b>Left:</b> Neel sends <code>preferences</code> and gates <code>McpGateway</code> levers on <code>E2_BUYER_EXTRAS</code>, so deployed and in-process runs match.</p>
       </div>
     </div>
-    <p class="why"><b>Then:</b> merge #62 + #64, Neel and Ananya land their harness/eval lines, Esha redeploys, and run from Vivan's Mac (cloud workspaces get a 403): <code>pnpm --filter @sa/dashboard eval --gateway https://dark-zero-mesv5.run.mcp-use.com/mcp --models claude,gpt --n 100</code> with Supabase on.</p>
+    <p class="why"><b>Done:</b> #62 + #64 merged (main a98e99a, all tests + gate green). <b>Next:</b> redeploy from a98e99a (Vivan, in progress), Neel and Ananya land their harness/eval lines, and run from Vivan's Mac (cloud workspaces get a 403): <code>pnpm --filter @sa/dashboard eval --gateway https://dark-zero-mesv5.run.mcp-use.com/mcp --models claude,gpt --n 100</code> with Supabase on.</p>
   </section>
 
   <div id="people"></div>
@@ -145,9 +145,9 @@ details[open] > summary { margin-bottom: 10px; }
     <div class="table-wrap"><table>
       <thead><tr><th>PR</th><th>Who</th><th>Verdict</th><th>Notes</th></tr></thead>
       <tbody>
-        <tr><td class="num"><a href="https://github.com/vivandoshi08/sales-agent/pull/64">#64</a></td><td>Esha</td><td><span class="pill done">Merge</span></td><td><code>make_offer</code> forwards <code>strategy</code> (exchange honours it only for signed eval runs); no "Extras: …" in search text. Marketplace 51/51. <b>Author:</b> asks Vivan to review; redeploys after</td></tr>
+        <tr><td class="num"><a href="https://github.com/vivandoshi08/sales-agent/pull/64">#64</a></td><td>Esha</td><td><span class="pill done">Merged</span></td><td><code>make_offer</code> forwards <code>strategy</code> (exchange honours it only for signed eval runs); no "Extras: …" in search text. Marketplace 51/51. Reviewed and merged by Vivan (a98e99a)</td></tr>
         <tr><td class="num"><a href="https://github.com/vivandoshi08/sales-agent/pull/63">#63</a></td><td>Ananya</td><td><span class="pill">Docs</span></td><td><code>docs/live/s2.md</code>: Armature 12/14 pass + anon final-offer finding. Merges cleanly</td></tr>
-        <tr><td class="num"><a href="https://github.com/vivandoshi08/sales-agent/pull/62">#62</a></td><td>Vivan</td><td><span class="pill open">Review</span></td><td>E1 Bridge 2: signed eval runs (<code>signEvalRun</code>), buyer memory per <code>buyer_id</code>, eval-only <code>strategy</code> override. One line in Neel's <code>buyers-cli.ts</code> (signs <code>run_id</code> with <code>--gateway</code>). Updated with main after #57/#61 (test import conflict only): seller 70/70, gate PASS, marketplace 50/50, typecheck clean. Ready to merge</td></tr>
+        <tr><td class="num"><a href="https://github.com/vivandoshi08/sales-agent/pull/62">#62</a></td><td>Vivan</td><td><span class="pill done">Merged</span></td><td>E1 Bridge 2: signed eval runs (<code>signEvalRun</code>), buyer memory per <code>buyer_id</code>, eval-only <code>strategy</code> override. One line in Neel's <code>buyers-cli.ts</code> (signs <code>run_id</code> with <code>--gateway</code>). Updated with main after #57/#61 (test import conflict only): seller 70/70, gate PASS, marketplace 50/50, typecheck clean. Ready to merge</td></tr>
         <tr><td class="num"><a href="https://github.com/vivandoshi08/sales-agent/pull/61">#61</a></td><td>Vivan</td><td><span class="pill done">Merged</span></td><td>Whole-dollar <code>concession_cap</code> clamp (rounds up, never past the cap or below the soft floor); static <code>final</code> normalized, fixes #41. Merged 07:44 UTC</td></tr>
         <tr><td class="num"><a href="https://github.com/vivandoshi08/sales-agent/pull/60">#60</a></td><td>Vivan</td><td><span class="pill done">Merged</span></td><td>Post-Bridge 1 fixes: Claude seller voice on the gateway, <code>review_deal</code> only for the buyer who accepted, payment refusals logged as <code>guardrail_blocked</code> / <code>payment_refused</code> (no longer <code>payment_failed</code>), no rebuy, routine blocks dimmed. After the redeploy, watch seller-voice latency against ChatGPT's per-call timeout</td></tr>
         <tr><td class="num"><a href="https://github.com/vivandoshi08/sales-agent/pull/57">#57</a></td><td>Neel</td><td><span class="pill done">Merged</span></td><td>E1 fix: <code>below_floor</code> double-counted lever cost on seller-accepted package deals. One line plus a regression test. Merged 07:43 UTC</td></tr>
