@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { NegotiationEvent } from "@sa/shared";
 import { pickFeed } from "./data/source";
-import { useRunSelection } from "./data/runs";
+import { listModels, useRunSelection } from "./data/runs";
 import { liveTraffic, policyKpis } from "./metrics/kpis";
 import { BarCompare } from "./ui/BarCompare";
 import { GuardrailLog, PersonaGrid, SafetyTile, pct, usd } from "./ui/Panels";
@@ -14,6 +14,8 @@ import { EvalRunner } from "./ui/EvalRunner";
 import "./ui/fonts";
 
 const feed = pickFeed();
+// `?tests` puts teammates' test runs (s1-test-…, s2-test-…) in the Live view, to check the pipe end to end. Eval runs never.
+const showTests = new URLSearchParams(location.search).has("tests");
 type View = "live" | "proof";
 const viewFromHash = (): View => (location.hash === "#proof" ? "proof" : "live");
 
@@ -28,7 +30,8 @@ export function App() {
 
   // Live view shows real buyers on the deployed gateway when there are any (an Instinct, ChatGPT, Claude…);
   // otherwise it replays whatever the feed has (eval run or sample) so the screen is never empty.
-  const live = useMemo(() => liveTraffic(events), [events]);
+  const live = useMemo(() => liveTraffic(events, { includeTests: showTests }), [events]);
+  const real = useMemo(() => (showTests ? liveTraffic(events) : live), [events, live]);
   const liveEvents = useMemo(() => { if (!live.negotiations) return events; const ids = new Set(live.run_ids); return events.filter((e) => ids.has(e.run_id)); }, [events, live]);
   const negs = useNegotiations(liveEvents, 6);
   const freshIds = useMemo(() => {
@@ -40,6 +43,12 @@ export function App() {
 
   const { runs, selected, setSelected, filtered, isDefault, models, model, setModel } = useRunSelection(events);
   const kpis = useMemo(() => policyKpis(filtered, { resamples: 600 }), [filtered]);
+  // The eval on screen, for the eval-runner card when this machine has no saved run (live mode).
+  const current = useMemo(() => {
+    const sel = runs.filter((r) => selected.includes(r.run_id));
+    const ids = [...new Set(sel.map((r) => r.eval_id))];
+    return ids.length === 1 && ids[0] ? { eval_id: ids[0], buyers: sel.reduce((s, r) => s + r.buyers, 0), models: listModels(filtered), policies: sel.map((r) => r.policy).sort((a, b) => (a === "static" ? -1 : b === "static" ? 1 : a.localeCompare(b))) } : null;
+  }, [runs, selected, filtered]);
   const base = kpis.find((k) => k.policy === "static");
   const neg = kpis.find((k) => k.policy !== "static");
   const ratio = base?.profit_per_buyer_cents && neg?.profit_per_buyer_cents != null ? neg.profit_per_buyer_cents / base.profit_per_buyer_cents : null;
@@ -69,7 +78,7 @@ export function App() {
         <main className="page" id="live">
           <section className="head">
             <Contours />
-            <p className="meta">{live.negotiations ? `Your seller agent · live on the gateway · ${live.models.filter((m) => m !== "unknown").join(", ") || "buyer agents"}` : "Your seller agent · no live shoppers yet, replaying " + feed.label.toLowerCase()}</p>
+            <p className="meta">{live.negotiations ? `Your seller agent · live on the gateway · ${live.models.filter((m) => m !== "unknown").join(", ") || "buyer agents"}${showTests ? " · including test runs" : ""}` : "Your seller agent · no live shoppers yet, replaying " + feed.label.toLowerCase()}</p>
             <h1>AI shoppers are negotiating with Keyforge right now.</h1>
             <p className="lede">Every move your agent makes, why it made it, and the rule that kept it safe. Payments are Stripe test mode.</p>
           </section>
@@ -80,7 +89,7 @@ export function App() {
               )}
             </section>
             <aside className="side" aria-label="Today">
-              <section className="card"><h2>{live.negotiations ? "Real shoppers today" : "Today"}</h2>{live.negotiations ? <LiveTally live={live} /> : <Tally events={liveEvents} />}</section>
+              <section className="card"><h2>{live.negotiations ? (showTests ? "Shoppers today, with test runs" : "Real shoppers today") : "Today"}</h2>{live.negotiations ? <LiveTally live={live} /> : <Tally events={liveEvents} />}</section>
               {floorList.length > 0 && <section className="card"><FlaggedList items={floorList} title="Flagged below floor" /></section>}
               <section className="card"><h2>Blocked by your rules</h2><GuardrailLog events={liveEvents} /></section>
             </aside>
@@ -96,7 +105,7 @@ export function App() {
             <p className="lede">Same catalog, same buyers. One group saw fixed listings; the other negotiated with the seller agent inside the seller's floors and perks.</p>
           </section>
           <div className="filters"><ModelFilter models={models} model={model} onChange={setModel} /></div>
-          <LiveTrafficPanel live={live} />
+          <LiveTrafficPanel live={real} />
           <FlaggedList items={floorList} title="Live deals flagged below floor" />
           <RunPicker runs={runs} selected={selected} onChange={setSelected} isDefault={isDefault} />
 
@@ -127,7 +136,7 @@ export function App() {
           <LeverWins kpis={kpis} />
           <section className="card"><div className="card-h"><h2>Who buys, by buyer type</h2></div><PersonaGrid kpis={kpis} /></section>
           <LearningCurve />
-          <EvalRunner />
+          <EvalRunner current={current} />
 
           <p className="foot">Intervals are 95%, bootstrapped over buyers; margin and time to first offer are point values. A deal converts when it's accepted; profit counts unit cost and perk costs.{feed.mode === "sample" ? " Sample data: made-up buyers, so every number here is illustrative." : ""}</p>
         </main>
