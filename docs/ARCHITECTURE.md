@@ -63,6 +63,8 @@ From the board: **{conversion rate, profit, revenue}**. The working reward is pr
 | 2026-10-17 | Selling agent | Never call a price firm or final unless it's the final offer. | E7 |
 | 2026-10-17 | Selling agent | No quote-matching rules; buyers played quotes against each other until a seller hit its floor. | E7 |
 | 2026-10-17 | Discovery | Broker / marketplace mode stays out of the build; buyers shop sellers themselves and a broker only cut price about 1 point. | E7 |
+| 2026-10-17 | Haggle | Final buyer turn to accept is required: 21 of 22 failed sessions ended at the round cap. | E3 |
+| 2026-10-17 | Discovery | A "negotiable" flag is for routing only; buyers haggled the same whether or not it was advertised. | E3 |
 | 2026-10-17 | Guardrails | Made an explicit cross-cutting layer (input, decision, output post-guard, transaction, session); E9 tests each layer. | Safety review |
 | 2026-10-17 | Selling agent | Seller priority (profit, conversion, adaptive) becomes a configuration; E10 tests it against buyer types. | Design review |
 | 2026-10-17 | Selling agent | Strategy decided: slow Boulware concession with warranty-before-discount; code computes the target and true reason, the LLM voices it. | E5 |

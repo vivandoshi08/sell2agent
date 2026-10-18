@@ -197,7 +197,7 @@ footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 4px; }
 <script>
 const DATA = {
   updated: "2026-10-17",
-  commit: "fe657e2",
+  commit: "a2fb3ff",
   stages: [
     { name: "Buyer agent", desc: "Claude, acting for a person with a need and a budget.", exps: ["E1", "E3"], qs: "B1–B10" },
     { name: "Discovery", desc: "Agent cards, feeds, registries.", exps: ["E1", "E7", "E8"], qs: "D1–D4" },
@@ -214,12 +214,12 @@ const DATA = {
     { id: "A1", text: "A buying agent can go from a need to a paid order through an MCP front door, with no human UI.", by: "E1", status: "validated", result: "66/66 feasible runs with a negotiating seller ended in a paid checkout (bar: 80%); 26/26 buyers who couldn't afford it declined. 116 real Claude buyer runs, 0 stalls, 0 rule-breaking deals." },
     { id: "A2", text: "Buying agents use a seller's agent endpoint when there is one, rather than just reading the page.", by: "E1, E7", status: "validated", result: "Buyers use the endpoint every time (E1: 116/116; E7: 40/40), but they buy on price: with our endpoint fixed 3% above a web-only dealer, 17 of 22 went to the dealer. Negotiation, not the endpoint alone, wins the sale." },
     { id: "A3", text: "A negotiating, agent-facing seller earns more per buyer than a static product page.", by: "E2", status: "validated", result: "+54% profit per session ($5,886 vs. $3,820), conversion 70% vs. 33%. All of the gain is from closing buyers the page loses; it gives money back on buyers who'd pay list." },
-    { id: "A4", text: "Buying agents haggle when they can, and haggling changes the price.", by: "E3", status: "untested" },
+    { id: "A4", text: "Buying agents haggle when they can, and haggling changes the price.", by: "E3", status: "validated", result: "Opus buyers countered in 64/64 negotiable sessions; on the same buyer and bundle, haggling paid ~6% less than fixed price (95% CI 5.0–6.3%), and conversion rose from 38% to 94%." },
     { id: "A5", text: "A selling agent can be kept safe, but only with rules enforced in code, not just written in the prompt.", by: "E4", status: "untested", note: "Early probe points this way: see Early signals." },
     { id: "A6", text: "Negotiation strategy matters: some strategies earn clearly more at the same conversion.", by: "E5", status: "validated", result: "Slow concession (Boulware) in the prompt: $8,870 vs. $7,668 per session for the default negotiator (+15.7%, paired 95% CI +$714 to +$1,757), same 78.6% conversion. Conceding early was worst (−10.2%)." },
     { id: "A7", text: "A seller can learn to haggle better from its own transaction data.", by: "E6", status: "untested" },
     { id: "A8", text: "With competing sellers, a negotiating or dynamically priced seller still wins deals and keeps its margin.", by: "E7", status: "inconclusive", result: "Split. Wins deals: yes, negotiable sellers took 100% (57.5% / 42.5%). Keeps margin: no, 20.7% vs. 24.5–25.1% a fixed seller would have made on the same baskets." },
-    { id: "A9", text: "Results from simulated buyers hold across buyer models, so the harness is worth trusting.", by: "E3, E6", status: "untested" },
+    { id: "A9", text: "Results from simulated buyers hold across buyer models, so the harness is worth trusting.", by: "E3, E6", status: "validated", result: "E3: Opus, Sonnet and Haiku all countered 100% when they could and all paid less than fixed price. Models differ in style (Sonnet never shares its budget; Sonnet and Haiku push on fixed prices). E6 transfer still pending; GPT-family buyers untested." },
     { id: "A10", text: "Negotiating pays for itself: the model cost per deal is small next to the margin it wins.", by: "E5", status: "validated", result: "Model cost was 0.02% of the profit gained over fixed price ($0.19 vs. +$1,063 per session; bar 5%). Caveat: whether negotiating beats fixed price at all is inconclusive (CI −$856 to +$3,663), and the default negotiator lost to fixed price." },
     { id: "A11", text: "Buying agents can use the front door's tools correctly, and the tool design changes outcomes.", by: "E1", status: "validated", result: "0 invalid arguments and 1 recoverable error in 116 runs with no tool instructions. Free-text deals closed $499 higher for the seller (95% CI $266–$788) and took 19 s longer; completion was the same." },
     { id: "A12", text: "Our setup fits the existing protocol landscape instead of fighting it.", by: "E8", status: "validated", result: "No major protocol (MCP, A2A, ACP, AP2, UCP, x402) covers price negotiation; we sit on top. Caveats: Pier39's Nash (May 2026) is a small direct competitor, and an ACP proposal names future bidding." },
@@ -245,7 +245,8 @@ const DATA = {
       q: "Does a negotiating seller earn more than a normal product page? Our core claim.",
       setup: "Same 30 seeded buyers face a static HTML page, a JSON feed (both at list price), and a negotiating selling agent.",
       bar: "<strong>Validates A3</strong> if the negotiating seller earns ≥10% more profit per session without lower conversion." },
-    { id: "E3", name: "Do buying agents haggle?", track: "Buy–sell", status: "running", tests: ["A4", "A9"],
+    { id: "E3", name: "Do buying agents haggle?", track: "Buy–sell", status: "validated", tests: ["A4", "A9"], resultTone: "ok",
+      result: "Both validated across 206 sessions. Advertising negotiation changed nothing (100% countered either way; 66% of Opus buyers countered even when told prices were fixed). The money is in conversion: negotiation closes buyers below list, often by dropping add-ons. No buyer revealed its private walk-away when asked (0/35). 21 of 22 failed sessions ended at the 8-round cap.",
       q: "When a buying agent can negotiate, does it, and does the price change?",
       setup: "Negotiation advertised, available, or not offered × four buyer briefs, then repeated on Opus, Sonnet, and Haiku. Budget-leak probe.",
       bar: "<strong>Validates A4</strong> if ≥50% of buyers counter and haggling cuts the final price ≥3%." },
@@ -284,6 +285,7 @@ const DATA = {
   signals: [
     "Prompt-only price floors leak on smaller models. Told its floor was $44,000, a Haiku seller countered a $40,000 offer at $43,000. Opus held at $49,500. One probe, not a result: E4 tests it properly.",
     "Headless claude -p works as the model backend at about 700 tokens of overhead per call, so we can run experiments on our existing login with no API key.",
+    "E3: buyers haggle whether or not negotiation is advertised, so a \"negotiable\" flag matters for routing, not persuasion. Failures cluster at the round cap, so the buyer must get a final turn to accept.",
     "E5: negotiating badly is worse than not negotiating. The default LLM seller concedes 86% of the way to its floor by round 4 and earns less than fixed price; slow concession keeps 81% of the haggle room with the same conversion.",
     "E1: prompt-only rules leak even on Opus. A free-text Opus seller tried to accept $29,200 against a $29,700 floor after a \"final number\" push; the policy engine stopped it before the buyer saw it.",
     "E1: 16 of 116 buyers stated their exact private walk-away as a \"ceiling\", and 10 of 94 negotiating runs had \"best and final\" bluffs the seller later undercut. Safe conversion is about 65%, not 72.5%.",
