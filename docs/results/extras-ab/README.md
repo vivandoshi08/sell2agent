@@ -1,4 +1,4 @@
-# A/B: should buyers be able to request extras? (Sun Oct 18, 12:45 am PT)
+# A/B: should buyers be able to request extras? (Sun Oct 18, 12:30 am PT)
 
 Same 30 Claude buyers (seed 7), `negotiating`, Claude seller voice, through E1's exchange (6 rounds), scored by S2's eval (profit after lever costs). Local runs include the `below_floor` fix from PR #57.
 
