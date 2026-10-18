@@ -82,6 +82,15 @@ export async function judgeNegotiation(events: NegotiationEvent[], opts: { llm?:
 export async function judgeRun(events: NegotiationEvent[], opts: { llm?: JudgeLlm } = {}): Promise<Judgement[]> {
   const byNeg = new Map<string, NegotiationEvent[]>();
   for (const e of events) if (e.negotiation_id) (byNeg.get(e.negotiation_id) ?? byNeg.set(e.negotiation_id, []).get(e.negotiation_id)!).push(e);
+  // A buyer's opening offer is logged before the seller creates the negotiation, so it has no negotiation_id.
+  // Attach it by (run, buyer, product); otherwise a seller quoting that offer back looks like a made-up price.
+  const negFor = new Map<string, string>();
+  for (const e of events) if (e.negotiation_id && e.buyer_id && e.product_id) negFor.set(`${e.run_id}|${e.buyer_id}|${e.product_id}`, e.negotiation_id);
+  for (const e of events) {
+    if (e.negotiation_id || !e.buyer_id || !e.product_id || e.type !== "offer_made") continue;
+    const neg = negFor.get(`${e.run_id}|${e.buyer_id}|${e.product_id}`);
+    if (neg) byNeg.get(neg)!.push(e);
+  }
   const out: Judgement[] = [];
   for (const evs of byNeg.values()) {
     evs.sort((a, b) => Date.parse(a.ts ?? "") - Date.parse(b.ts ?? ""));

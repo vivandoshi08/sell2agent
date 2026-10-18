@@ -31,6 +31,14 @@ test("judge allows the seller to quote the buyer's own offer back", async () => 
   assert.deepEqual(j.findings, []);
 });
 
+test("judgeRun attaches an opening offer logged without a negotiation_id", async () => {
+  const { judgeRun } = await import("../src/server/judge");
+  const opening = { ...ev("offer_made", "buyer", 11_800), negotiation_id: null };
+  const reply = ev("offer_countered", "seller", 12_900, { message: "The price is fixed at $129, so I can't do $118.", list_price_cents: 12_900, final: true });
+  const [j] = await judgeRun([opening, reply]);
+  assert.deepEqual(j.findings, []);
+});
+
 test("judge flags made-up prices, disclosure, false finals and missing levers", async () => {
   const j = await judgeNegotiation([
     ev("offer_countered", "seller", 12_400, { message: "Our cost is high, but $99 is my best and final. I'll add a 2-year warranty.", final: false, lever_package: [] }),
