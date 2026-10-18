@@ -4,6 +4,8 @@
  *   pnpm --filter @sa/dashboard eval                                   # 20 buyers, static vs negotiating, local stand-in
  *   pnpm --filter @sa/dashboard eval --n 200 --models claude,gpt       # real LLM buyers (needs API keys)
  *   pnpm --filter @sa/dashboard eval --policies static,negotiating,balanced --gateway https://<deployed>/mcp
+ *   pnpm --filter @sa/dashboard eval --models claude --seller-voice         # Claude writes the seller messages too
+ *   pnpm --filter @sa/dashboard eval --rescore eval_claude_20                # re-score a saved run (no model calls)
  *
  * Runs E2's runAll() per policy, then for each run: safety judge + private cost join → RunResult and KPIs with
  * 95% intervals. Always writes the events for the dashboard's local mode (public/runs/), and with Supabase keys
@@ -15,6 +17,7 @@ import { parseArgs } from "node:util";
 import { createClient } from "@supabase/supabase-js";
 import type { NegotiationEvent } from "@sa/shared";
 import { LocalGateway, McpGateway, makeBuyers, runAll, type BuyerModel, type Gateway } from "@sa/buyer-harness";
+import { defaultLlm } from "@sa/seller-mcp/sellers";
 import { policyKpis } from "../src/metrics/kpis";
 import { computeRunResult } from "../src/server/run-result";
 import { catalogCosts, supabaseCosts } from "../src/server/costs";
@@ -23,31 +26,40 @@ const { values: f } = parseArgs({ options: {
   n: { type: "string", default: "20" }, models: { type: "string", default: "scripted" }, seed: { type: "string", default: "42" },
   policies: { type: "string", default: "static,negotiating" }, concurrency: { type: "string", default: "4" },
   adversarial: { type: "string", default: "0.1" }, gateway: { type: "string" }, id: { type: "string" },
+  "seller-voice": { type: "boolean" }, rescore: { type: "string" },
 } });
 
 const models = f.models!.split(",") as BuyerModel[];
 const policies = f.policies!.split(",") as ("static" | "negotiating" | "balanced")[];
 const gatewayUrl = f.gateway ?? process.env.GATEWAY_URL;
-const evalId = f.id ?? `eval_${new Date().toISOString().slice(0, 16).replace(/[-:T]/g, "")}`;
+const evalId = f.rescore ?? f.id ?? `eval_${new Date().toISOString().slice(0, 16).replace(/[-:T]/g, "")}`;
 const buyers = makeBuyers({ n: Number(f.n), models, seed: Number(f.seed), adversarial_share: Number(f.adversarial) });
 const db = process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY) : null;
-const costs = db ? await supabaseCosts(db) : catalogCosts();
+let costs = catalogCosts();
+if (db) {
+  try { costs = await supabaseCosts(db); }
+  catch (e) { console.warn(`  Supabase unreachable (${(e as Error).message}); using the exchange catalog for costs.`); }
+}
+const sellerLlm = f["seller-voice"] ? defaultLlm() : null;
+if (f["seller-voice"] && !sellerLlm) throw new Error("--seller-voice needs ANTHROPIC_API_KEY");
 const harnessRuns = resolve(import.meta.dirname, "../../buyer-harness/runs");
 const outDir = resolve(import.meta.dirname, "../public/runs");
 mkdirSync(outDir, { recursive: true });
 
-console.log(`\n${evalId}: ${buyers.length} buyers · ${models.join(", ")} · ${gatewayUrl ?? "local stand-in"} · ${policies.join(" vs ")}${db ? " · Supabase on" : ""}\n`);
+console.log(`\n${evalId}: ${buyers.length} buyers · ${models.join(", ")} · ${gatewayUrl ?? "local stand-in"} · ${policies.join(" vs ")}${sellerLlm ? " · Claude seller voice" : ""}${db ? " · Supabase on" : ""}\n`);
 
 const allEvents: NegotiationEvent[] = [];
 const results = [];
 for (const policy of policies) {
   const run_id = `${evalId}_${policy}`;
-  const gw: Gateway = gatewayUrl ? new McpGateway(gatewayUrl) : new LocalGateway(policy);
-  let done = 0;
-  await runAll({ run_id, label: policy, buyers, gateway: gw, concurrency: Number(f.concurrency),
-    on_outcome: () => { done++; if (done % 10 === 0 || done === buyers.length) process.stdout.write(`  ${policy}: ${done}/${buyers.length}\r`); } });
-  await gw.close?.();
-  process.stdout.write("\n");
+  if (!f.rescore) {
+    const gw: Gateway = gatewayUrl ? new McpGateway(gatewayUrl) : new LocalGateway(policy, sellerLlm);
+    let done = 0;
+    await runAll({ run_id, label: policy, buyers, gateway: gw, concurrency: Number(f.concurrency),
+      on_outcome: () => { done++; if (done % 10 === 0 || done === buyers.length) process.stdout.write(`  ${policy}: ${done}/${buyers.length}\r`); } });
+    await gw.close?.();
+    process.stdout.write("\n");
+  }
   const file = resolve(harnessRuns, `${run_id}.events.jsonl`);
   const events: NegotiationEvent[] = existsSync(file) ? readFileSync(file, "utf8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)) : [];
   const report = await computeRunResult(run_id, events, costs, { label: policy });
