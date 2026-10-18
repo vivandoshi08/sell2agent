@@ -11,9 +11,12 @@
     "seed:fake": "tsx --env-file-if-exists=../../.env scripts/seed-fake.ts",
     "seed:fake:clean": "tsx --env-file-if-exists=../../.env scripts/seed-fake.ts --clean",
     "preview:html": "node scripts/build-preview.mjs",
-    "run-result": "tsx --env-file-if-exists=../../.env scripts/run-result.ts"
+    "run-result": "tsx --env-file-if-exists=../../.env scripts/run-result.ts",
+    "eval": "tsx --env-file-if-exists=../../.env scripts/eval.ts",
+    "preview:html:eval": "node scripts/build-preview.mjs --local"
   },
   "dependencies": {
+    "@sa/buyer-harness": "workspace:*",
     "@sa/seller-mcp": "workspace:*",
     "@sa/shared": "workspace:*",
     "@supabase/supabase-js": "^2.45.0",

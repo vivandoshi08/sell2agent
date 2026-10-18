@@ -7,8 +7,8 @@
  */
 import { createClient } from "@supabase/supabase-js";
 import { EventType, NegotiationEvent } from "@sa/shared";
-import { DEFAULT_LEVER_COSTS } from "@sa/seller-mcp/exchange";
-import { computeRunResult, type CostSource } from "../src/server/run-result";
+import { computeRunResult } from "../src/server/run-result";
+import { supabaseCosts } from "../src/server/costs";
 
 const url = process.env.SUPABASE_URL, key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const args = process.argv.slice(2);
@@ -30,22 +30,7 @@ async function loadEvents(run_id: string): Promise<NegotiationEvent[]> {
   }
 }
 
-const unitCosts = new Map<string, number>();
-const leverCosts = new Map<string, Record<string, number>>();
-{
-  const { data, error } = await db.from("seller_policies").select("*");
-  if (error) throw new Error(`seller_policies: ${error.message}`);
-  for (const r of data ?? []) {
-    unitCosts.set(r.product_id, r.unit_cost_cents);
-    // Contract v2 adds a lever menu with per-lever costs; use it when present, else E1's defaults.
-    const menu = Array.isArray(r.lever_menu) ? r.lever_menu : [];
-    leverCosts.set(r.product_id, Object.fromEntries(menu.filter((m: { id?: string; cost_cents?: number }) => m?.id && typeof m.cost_cents === "number").map((m: { id: string; cost_cents: number }) => [m.id, m.cost_cents])));
-  }
-}
-const costs: CostSource = {
-  unitCost: async (pid) => unitCosts.get(pid) ?? null,
-  leverCost: async (pid, levers) => levers.reduce((s, l) => s + (leverCosts.get(pid)?.[l] ?? DEFAULT_LEVER_COSTS[l] ?? 0), 0),
-};
+const costs = await supabaseCosts(db);
 const canLogJudged = (EventType.options as readonly string[]).includes("judged");
 
 for (const run_id of runIds) {
