@@ -133,10 +133,15 @@ class TimeDependent(CodeStrategy):
 
     exponent: float = 3.0
     name: str = "time_dependent"
+    # 0 = reach the floor in the last round (what E5 ran). 1 = reach it one round
+    # earlier: the seller's offer in the last round can never be answered, and the
+    # buyer moves first in that round and may walk, so round max_rounds - 1 is the
+    # seller's real deadline. Untested against LLM buyers; see README.
+    horizon_offset: int = 0
 
     def target(self, state: NegotiationState) -> Offer:
         pid, addons = state.product_id, sort_addons(state.addons)
-        frac = time_frac(state) ** self.exponent
+        frac = min(1.0, state.round / max(1, state.max_rounds - self.horizon_offset)) ** self.exponent
         return Offer(pid, clip_price(pid, addons, price_at_frac(pid, addons, frac)), addons)
 
 
@@ -146,6 +151,11 @@ def Boulware() -> TimeDependent:  # noqa: N802 (reads like a class at call sites
 
 def Conceder() -> TimeDependent:  # noqa: N802
     return TimeDependent(exponent=1 / 3, name="conceder")
+
+
+def BoulwareDeadline() -> TimeDependent:  # noqa: N802
+    """Boulware that reaches the floor at the seller's last answerable turn (not run in E5)."""
+    return TimeDependent(exponent=3.0, name="boulware_deadline", horizon_offset=1)
 
 
 @dataclass
