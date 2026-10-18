@@ -2,10 +2,15 @@
  * S2-owned. Presentational deal card: props in, markup out. No host calls here, so it can be
  * restyled freely and previewed with fixtures. Wiring to the host lives in view.tsx.
  *
- * Runs inside the chat host's sandboxed frame: system fonts only (no external loads), both themes,
- * phone width. Every number shown comes from the stored deal; nothing here is invented.
+ * Two places render it: inside ChatGPT/Claude (MCP App, the host's sandboxed frame) and as the hosted
+ * approve page a messaging agent like Instinct links the shopper to. So: system fonts only, no external loads,
+ * both themes, phone width. Every number shown comes from the stored deal; nothing here is invented.
+ *
+ * Look: a checkout receipt. Seller header with an honest countdown (neutral until the last 2 minutes), the
+ * price with list struck through, what's included as line items, one black pay button, and the test-mode line.
+ * Settled or closed deals lead with the outcome.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { DealCard } from "../../src/deal/types";
 
 export type PayState =
@@ -30,6 +35,9 @@ export interface DealCardViewProps {
 const usd = (cents: number) =>
   (cents / 100).toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2 });
 
+/** The timer turns amber only in the last two minutes, so the card never manufactures urgency. */
+const SOON_MS = 2 * 60_000;
+
 function useCountdown(expiresAt: string, now: () => number) {
   const [left, setLeft] = useState(() => Date.parse(expiresAt) - now());
   useEffect(() => {
@@ -40,110 +48,180 @@ function useCountdown(expiresAt: string, now: () => number) {
 }
 
 function formatLeft(ms: number) {
-  if (ms <= 0) return "Expired";
-  const s = Math.floor(ms / 1000);
+  const s = Math.max(0, Math.floor(ms / 1000));
   const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
-  return h > 0 ? `${h}h ${String(m).padStart(2, "0")}m left` : `${m}:${String(sec).padStart(2, "0")} left`;
+  return h > 0 ? `${h}h ${String(m).padStart(2, "0")}m` : `${m}:${String(sec).padStart(2, "0")}`;
 }
 
+/** "Extended warranty · 2 years" → ["Extended warranty", "2 years"]; "Free shipping" → ["Free shipping", "Included"]. */
+function leverRow(label: string): [string, string] {
+  const i = label.indexOf(" · ");
+  return i > 0 ? [label.slice(0, i), label.slice(i + 3)] : [label, "Included"];
+}
+
+const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("") || "S";
+
+const FONT = `ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif`;
+
 const CSS = `
-.dc{--bg:#fbfcfb;--ink:#17201b;--muted:#5d6a63;--line:#dfe5e1;--accent:#1d6b52;--accent-ink:#fff;--save:#1d6b52;--save-bg:#e3f2ec;
-  --warn:#9a5b0c;--warn-bg:#fbf0dd;--bad:#b02a20;--bad-bg:#fbe7e4;--ok:#1d6b52;--ok-bg:#e3f2ec;
-  font:14px/1.45 ui-sans-serif,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;color:var(--ink);background:var(--bg);
-  border:1px solid var(--line);border-radius:14px;padding:16px;max-width:440px;display:grid;gap:14px;box-sizing:border-box}
-.dc[data-theme=dark]{--bg:#151b18;--ink:#e6ece8;--muted:#9aa8a0;--line:#2b3530;--accent:#6fd0aa;--accent-ink:#0e1512;--save:#7fd8b3;--save-bg:#17332a;
-  --warn:#f0bd6e;--warn-bg:#3a2b13;--bad:#f39c93;--bad-bg:#3b1b18;--ok:#7fd8b3;--ok-bg:#17332a}
+.dc{--bg:#fff;--ink:#111312;--ink2:#3c413e;--muted:#6b716d;--line:#eeefec;--edge:#e3e5e2;--btn:#111312;--btn-ink:#fff;
+  --save:#0f7a52;--ok:#0f5e43;--ok-bg:#e8f2ed;--warn:#9a6200;--warn-bg:#fbf2df;--bad:#a8261c;--bad-bg:#fbecea;--av:#1d1f1e;
+  font:14px/1.45 ${FONT};color:var(--ink);background:var(--bg);color-scheme:light;
+  border:1px solid var(--edge);border-radius:16px;max-width:420px;overflow:hidden;box-sizing:border-box;
+  box-shadow:0 1px 2px rgba(0,0,0,.04),0 18px 40px -28px rgba(17,19,18,.35);font-variant-numeric:tabular-nums}
+.dc[data-theme=dark]{--bg:#17191a;--ink:#eef0ee;--ink2:#c9cdca;--muted:#9aa09c;--line:#26292a;--edge:#2e3233;--btn:#eef0ee;--btn-ink:#111312;
+  --save:#5fc497;--ok:#7fd6ae;--ok-bg:#16271f;--warn:#e3b25c;--warn-bg:#2a2112;--bad:#f08a7a;--bad-bg:#2a1715;--av:#eef0ee;
+  color-scheme:dark;box-shadow:0 18px 40px -28px rgba(0,0,0,.8)}
+.dc[data-theme=dark] .dc-av{color:#111312}
 .dc *{box-sizing:border-box}
-.dc-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
-.dc-seller{font-size:12px;color:var(--muted);letter-spacing:.02em}
-.dc-title{font:650 16px/1.25 ui-sans-serif,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;margin:2px 0 0;letter-spacing:normal;text-transform:none;opacity:1;color:var(--ink)}
-.dc-qty{font-size:12px;color:var(--muted)}
-.dc-timer{font:600 12px/1 ui-monospace,"SF Mono",Menlo,monospace;padding:5px 8px;border-radius:999px;background:var(--warn-bg);color:var(--warn);white-space:nowrap;font-variant-numeric:tabular-nums}
-.dc-timer.gone{background:var(--bad-bg);color:var(--bad)}
+.dc-h{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.dc-av{width:28px;height:28px;border-radius:7px;background:var(--av);color:#fff;font-weight:600;font-size:12px;display:grid;place-items:center;flex:none}
+.dc-who{display:grid;line-height:1.2;min-width:0}
+.dc-who b{font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dc-who span{font-size:12px;color:var(--muted)}
+.dc-t{margin-left:auto;font-size:12px;color:var(--muted);white-space:nowrap}
+.dc-t.soon{color:var(--warn);font-weight:600}
+.dc-t.done{color:var(--ok);font-weight:600}
+.dc-b{padding:14px;display:grid;gap:12px}
+.dc-title{margin:0;font:600 15px/1.3 ${FONT};color:var(--ink);letter-spacing:normal;text-transform:none;opacity:1;overflow-wrap:anywhere}
+.dc-each{font-size:12.5px;color:var(--muted);margin-top:2px}
 .dc-price{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-.dc-total{font-size:30px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
-.dc-list{color:var(--muted);text-decoration:line-through;font-variant-numeric:tabular-nums}
-.dc-save{font-size:12px;font-weight:650;color:var(--save);background:var(--save-bg);padding:3px 8px;border-radius:999px}
-.dc-each{font-size:12px;color:var(--muted);margin-top:-8px}
-.dc-levers{list-style:none;margin:0;padding:10px 0 0;border-top:1px dashed var(--line);display:grid;gap:6px}
-.dc-levers li{display:flex;gap:8px;align-items:center}
-.dc-levers li::before{content:"";width:6px;height:6px;border-radius:2px;background:var(--accent);flex:none}
-.dc-btn{appearance:none;border:0;border-radius:10px;padding:12px 14px;font:inherit;font-weight:650;font-size:15px;cursor:pointer;
-  background:var(--accent);color:var(--accent-ink);width:100%}
-.dc-btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
-.dc-btn[disabled]{opacity:.6;cursor:default}
-.dc-note{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
-.dc-status{border-radius:10px;padding:10px 12px;font-size:13px;display:grid;gap:3px}
-.dc-status b{font-weight:650}
-.dc-status.ok{background:var(--ok-bg);color:var(--ok)}
-.dc-status.warn{background:var(--warn-bg);color:var(--warn)}
-.dc-status.bad{background:var(--bad-bg);color:var(--bad)}
-.dc-status span{color:var(--ink);opacity:.85}
-@media (prefers-reduced-motion:no-preference){.dc-btn{transition:transform .08s}.dc-btn:active:not([disabled]){transform:scale(.99)}}
+.dc-price strong{font-size:30px;font-weight:650;letter-spacing:-.02em;line-height:1.05}
+.dc-price s{color:var(--muted);font-size:14px}
+.dc-price em{font-style:normal;font-size:12.5px;font-weight:600;color:var(--save)}
+.dc-l{display:grid;gap:7px;padding:10px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:0}
+.dc-l div{display:flex;justify-content:space-between;gap:12px;font-size:13px}
+.dc-l dt{color:var(--ink)}
+.dc-l dd{margin:0;color:var(--muted);text-align:right}
+.dc-btn{appearance:none;border:0;border-radius:11px;height:46px;padding:0 14px;background:var(--btn);color:var(--btn-ink);
+  font:600 15px/1 ${FONT};cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;font-variant-numeric:tabular-nums}
+.dc-btn.quiet{background:transparent;color:var(--ink);border:1px solid var(--edge)}
+.dc-btn:focus-visible{outline:2px solid var(--ok);outline-offset:2px}
+.dc-btn[disabled]{cursor:default;opacity:.85}
+.dc-spin{width:14px;height:14px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent}
+.dc-st{border-radius:11px;padding:11px 12px;font-size:13px;display:grid;gap:2px}
+.dc-st b{font-weight:600;font-size:14px}
+.dc-st .why{color:var(--ink2)}
+.dc-st .ref{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+.dc-st.ok{background:var(--ok-bg);color:var(--ok)}
+.dc-st.warn{background:var(--warn-bg);color:var(--warn)}
+.dc-st.bad{background:var(--bad-bg);color:var(--bad)}
+.dc-st.big b{font-size:15.5px}
+.dc-f{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:11.5px;color:var(--muted)}
+.dc-f .test::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:#c58a1a;margin-right:6px;vertical-align:1px}
+@media (prefers-reduced-motion:no-preference){
+  .dc-btn{transition:transform .1s}.dc-btn:active:not([disabled]){transform:scale(.99)}
+  .dc-spin{animation:dcspin .8s linear infinite}
+  .dc-st{animation:dcin .3s ease-out}
+}
+@keyframes dcspin{to{transform:rotate(360deg)}}
+@keyframes dcin{from{opacity:0;transform:translateY(-3px)}}
 `;
 
-function Status({ pay, cardStatus }: { pay: PayState; cardStatus: DealCard["status"] }) {
-  if (pay.kind === "succeeded" || (pay.kind === "idle" && cardStatus === "paid"))
-    return <div className="dc-status ok" role="status"><b>Paid</b>{pay.kind === "succeeded" && pay.card ? <span>Charged to {pay.card}. Receipt {pay.payment_intent_id}</span> : <span>This deal is already paid.</span>}</div>;
-  if (pay.kind === "processing")
-    return <div className="dc-status warn" role="status"><b>Payment processing</b><span>Stripe is confirming it. No need to pay again.</span></div>;
-  if (pay.kind === "requires_action")
-    return <div className="dc-status warn" role="alert"><b>Your bank needs a confirmation</b><span>{pay.fix ?? "Complete the check, then approve again."}</span></div>;
-  if (pay.kind === "refused")
-    return <div className="dc-status bad" role="alert"><b>Not charged</b><span>{pay.reasons.join(" ")}</span>{pay.fix && <span>{pay.fix}</span>}</div>;
-  if (pay.kind === "declined")
-    return <div className="dc-status bad" role="alert"><b>Card declined</b><span>{pay.fix ?? "Try a different payment method."}</span></div>;
-  if (pay.kind === "error")
-    return <div className="dc-status bad" role="alert"><b>Payment didn't go through</b><span>{pay.message ?? "Try again in a moment."}</span></div>;
-  if (cardStatus === "expired")
-    return <div className="dc-status bad" role="status"><b>This offer expired</b><span>Ask the seller for a new offer.</span></div>;
-  if (cardStatus === "unavailable")
-    return <div className="dc-status bad" role="status"><b>This deal can't be paid</b><span>Check the latest offer with the seller.</span></div>;
-  return null;
+type Tone = "ok" | "warn" | "bad";
+function Note({ tone, title, children, big, alert }: { tone: Tone; title: string; children?: ReactNode; big?: boolean; alert?: boolean }) {
+  return (
+    <div className={`dc-st ${tone}${big ? " big" : ""}`} role={alert ? "alert" : "status"}>
+      <b>{title}</b>
+      {children}
+    </div>
+  );
 }
 
 export function DealCardView({ card, pay, theme, onApprove, now = Date.now }: DealCardViewProps) {
   const left = useCountdown(card.expires_at, now);
-  const expired = card.status === "expired" || left <= 0;
-  const done = card.status === "paid" || pay.kind === "succeeded" || pay.kind === "processing";
+  const expired = card.status === "expired" || (card.status === "ready" && left <= 0);
+  const paid = card.status === "paid" || pay.kind === "succeeded";
+  const done = paid || pay.kind === "processing";
+  const closed = expired || card.status === "unavailable";
   const canPay = !expired && !done && card.status === "ready" && pay.kind !== "paying";
-  const cardStatus = expired && card.status === "ready" ? "expired" : card.status;
+  const total = usd(card.total_cents);
+
+  // Outcome first: once a deal is settled or closed, that's the headline.
+  let top: ReactNode = null;
+  if (paid)
+    top = (
+      <Note tone="ok" big title={`Paid ${total}`}>
+        {pay.kind === "succeeded" && pay.card
+          ? <span className="why">Charged once to {pay.card}.</span>
+          : <span className="why">This deal is already paid. Nothing more to do.</span>}
+        {pay.kind === "succeeded" && pay.payment_intent_id && <span className="ref">Receipt {pay.payment_intent_id}</span>}
+      </Note>
+    );
+  else if (pay.kind === "processing")
+    top = <Note tone="warn" big title="Payment processing"><span className="why">Stripe is confirming it. No need to pay again.</span></Note>;
+  else if (expired)
+    top = <Note tone="bad" big title="This offer expired"><span className="why">Nothing was charged. Ask the seller for a new offer.</span></Note>;
+  else if (card.status === "unavailable")
+    top = <Note tone="bad" big title="This deal can't be paid"><span className="why">Nothing was charged. Check the latest offer with the seller.</span></Note>;
+
+  // Problems the buyer can act on sit right above the button.
+  let act: ReactNode = null;
+  if (pay.kind === "requires_action")
+    act = <Note tone="warn" alert title="Your bank needs a confirmation"><span className="why">{pay.fix ?? "Complete the check, then approve again."}</span></Note>;
+  else if (pay.kind === "refused")
+    act = (
+      <Note tone="bad" alert title="Not charged">
+        {pay.reasons.length > 0 && <span className="why">{pay.reasons.join(" ")}</span>}
+        {pay.fix && <span className="why">{pay.fix}</span>}
+      </Note>
+    );
+  else if (pay.kind === "declined")
+    act = <Note tone="bad" alert title="Card declined. Not charged."><span className="why">{pay.fix ?? "Try a different payment method."}</span></Note>;
+  else if (pay.kind === "error")
+    act = <Note tone="bad" alert title="Payment didn't go through"><span className="why">{pay.message ?? "Try again in a moment."}</span></Note>;
+
+  const label =
+    pay.kind === "paying" ? `Paying ${total}…`
+      : pay.kind === "requires_action" ? `Approve again · ${total}`
+      : pay.kind === "declined" || pay.kind === "error" || pay.kind === "refused" ? `Try again · ${total}`
+      : `Approve & pay ${total}`;
+
+  const soon = !closed && !done && left <= SOON_MS;
+  const rows = card.levers.map((l) => leverRow(l.label));
 
   return (
     <section className="dc" data-theme={theme} aria-label={`Deal for ${card.product.title}`}>
       <style>{CSS}</style>
-      <div className="dc-top">
+      <header className="dc-h">
+        <span className="dc-av" aria-hidden="true">{initials(card.seller_name)}</span>
+        <div className="dc-who"><b>{card.seller_name}</b><span>Seller's offer</span></div>
+        {done ? <span className="dc-t done">{paid ? "Paid" : "Processing"}</span>
+          : !closed && <span className={`dc-t${soon ? " soon" : ""}`} aria-live={soon ? "polite" : "off"}>Offer holds {formatLeft(left)}</span>}
+      </header>
+
+      <div className="dc-b">
+        {top}
+
         <div>
-          <div className="dc-seller">{card.seller_name}</div>
           <h2 className="dc-title">{card.product.title}</h2>
-          {card.quantity > 1 && <div className="dc-qty">Quantity {card.quantity}</div>}
+          {card.quantity > 1 && <div className="dc-each">{usd(card.unit_price_cents)} each</div>}
         </div>
-        {!done && <div className={`dc-timer${expired ? " gone" : ""}`}>{formatLeft(expired ? 0 : left)}</div>}
-      </div>
 
-      <div className="dc-price">
-        <span className="dc-total">{usd(card.total_cents)}</span>
-        {card.savings_cents > 0 && <span className="dc-list">{usd(card.list_total_cents)}</span>}
-        {card.savings_cents > 0 && <span className="dc-save">You save {usd(card.savings_cents)}</span>}
-      </div>
-      {card.quantity > 1 && <div className="dc-each">{usd(card.unit_price_cents)} each</div>}
+        <div className="dc-price">
+          <strong>{total}</strong>
+          {card.savings_cents > 0 && <><s>{usd(card.list_total_cents)}</s><em>You save {usd(card.savings_cents)}</em></>}
+        </div>
 
-      {card.levers.length > 0 && (
-        <ul className="dc-levers" aria-label="Included">
-          {card.levers.map((l) => <li key={l.name}>{l.label}</li>)}
-        </ul>
-      )}
+        <dl className="dc-l" aria-label="What's included">
+          {rows.map(([k, v], i) => <div key={card.levers[i]!.name}><dt>{k}</dt><dd>{v}</dd></div>)}
+          <div><dt>Quantity</dt><dd>{card.quantity}</dd></div>
+        </dl>
 
-      <Status pay={pay} cardStatus={cardStatus} />
+        {act}
 
-      {!done && (
-        <button className="dc-btn" disabled={!canPay} onClick={onApprove}>
-          {pay.kind === "paying" ? "Paying…" : pay.kind === "declined" || pay.kind === "error" ? `Try again · ${usd(card.total_cents)}` : `Approve & Pay ${usd(card.total_cents)}`}
-        </button>
-      )}
-      <div className="dc-note">
-        <span>Simulated wallet · Stripe test mode</span>
-        <span>Deal {card.deal_id}</span>
+        {!done && !closed && (
+          <button className={`dc-btn${pay.kind === "refused" ? " quiet" : ""}`} type="button"
+            disabled={!canPay} aria-busy={pay.kind === "paying"} onClick={onApprove}>
+            {pay.kind === "paying" && <span className="dc-spin" aria-hidden="true" />}
+            {label}
+          </button>
+        )}
+
+        <div className="dc-f">
+          <span className="test">Simulated wallet · Stripe test mode</span>
+          <span>{done || closed ? `Ref ${card.deal_id}` : `Charged once, exactly ${total}`}</span>
+        </div>
       </div>
     </section>
   );
