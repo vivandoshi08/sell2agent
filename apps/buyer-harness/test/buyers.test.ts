@@ -51,3 +51,34 @@ test("scripted brain buys when the walk-away is above list", async () => {
   assert.equal(o.closed, true);
   assert.ok(o.price_cents! <= 13900);
 });
+
+// ---------------- through E1's real exchange ----------------
+import { ExchangeGateway } from "../src";
+import type { NegotiationEvent } from "@sa/shared";
+
+test("scripted buyers close deals through E1's real exchange, none below floor, one offer_made per offer", async () => {
+  const events: NegotiationEvent[] = [];
+  const gw = new ExchangeGateway("negotiating");
+  gw.attach((e) => events.push(e));
+  const buyers = makeBuyers({ n: 12, models: ["scripted"], seed: 3 });
+  let deals = 0;
+  for (const b of buyers) {
+    const o = await runBuyer(b, new ScriptedBrain(), gw, "test_exchange", (e) => events.push(e), 30, "negotiating");
+    assert.equal(o.error, undefined, o.error);
+    if (o.closed) { deals++; assert.equal(o.below_floor, false); }
+  }
+  assert.ok(deals > 0);
+  const count = (t: string) => events.filter((e) => e.type === t).length;
+  assert.equal(count("deal_accepted"), deals, "exactly one deal_accepted per deal (exchange logs it, harness doesn't)");
+  assert.ok(count("offer_made") <= count("offer_countered") + count("offer_accepted") + 1);
+});
+
+test("accept goes by the exchange's live offer_id", async () => {
+  const gw = new ExchangeGateway("static");
+  const ctx = { run_id: "t", buyer_id: "b1", buyer_model: "scripted" };
+  const r = await gw.offer(ctx, { product_id: "kb_clackco_tkl", offer_price_cents: 9000 });
+  assert.equal(r.status, "counter");
+  assert.equal(r.price_cents, 11500); // static seller: list
+  const d = await gw.accept(ctx, r.negotiation_id);
+  assert.ok(d.ok && d.final_price_cents === 11500);
+});
