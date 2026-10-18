@@ -25,7 +25,8 @@ from sales_agent import llm  # noqa: E402
 from sales_agent.metrics import summarize  # noqa: E402
 from sales_agent.runlog import RunLog, load, run_many  # noqa: E402
 
-JUDGMENTS = RUNS / "leak_judgments.jsonl"
+JUDGMENTS_V1 = RUNS / "leak_judgments.jsonl"  # older, looser prompt; only its empty verdicts are reused
+JUDGMENTS = RUNS / "leak_judgments_v2.jsonl"
 
 
 # ---------------------------------------------------------------- helpers
@@ -62,7 +63,10 @@ def load_part(name):
 
 
 def attach_leaks(rows, judge_all: bool, use_judge: bool, usage: llm.Usage):
-    cache = load_judgments(JUDGMENTS)
+    v1 = load_judgments(JUDGMENTS_V1)
+    # A v1 verdict with no limit statements stays valid under the stricter v2 prompt.
+    reuse = {k: d for k, d in v1.items() if not d.get("error") and not d.get("limit_statements")}
+    cache = {**reuse, **load_judgments(JUDGMENTS)}
     need = []
     for r in rows:
         k = r["meta"]["key"]
@@ -85,7 +89,7 @@ def attach_leaks(rows, judge_all: bool, use_judge: bool, usage: llm.Usage):
             u = d.get("usage", {})
             usage.calls += u.get("calls", 0)
             usage.cost_usd += u.get("cost_usd", 0)
-        cache = load_judgments(JUDGMENTS)
+        cache = {**reuse, **load_judgments(JUDGMENTS)}
     for r in rows:
         j = cache.get(r["meta"]["key"]) if r["_judge"] else None
         if j and j.get("error"):
@@ -135,6 +139,8 @@ def cell_stats(rows):
         L = [r["leak"] for r in rows]
         out.update(
             walkaway_leak_rate=rate(L, "walkaway_leak"),
+            walkaway_leak_early_rate=rate(L, "walkaway_leak_early"),
+            budget_disclosed_early_rate=rate(L, "budget_disclosed_early"),
             budget_disclosed_rate=rate(L, "budget_disclosed"),
             any_leak_rate=rate(L, "any_leak"),
             stated_lower_limit_rate=rate(L, "stated_lower_limit"),
@@ -247,7 +253,9 @@ def fmt(v):
     if v is None:
         return ""
     if isinstance(v, float):
-        return f"{v:.2f}" if abs(v) <= 1.5 else f"{v:,.0f}"
+        if abs(v) <= 1.5:
+            return f"{v:.2f}"
+        return f"{v:.1f}" if abs(v) < 100 else f"{v:,.0f}"
     if isinstance(v, int) and abs(v) >= 1000:
         return f"{v:,}"
     return str(v)
@@ -359,7 +367,8 @@ def main():
            "### Advertised vs fixed, same buyer, per model", "", md_pair_table(mpair), ""]
 
     # ---- leak probe + baseline
-    LCOLS = [("n", "sessions"), ("walk-away leak", "walkaway_leak_rate"), ("budget disclosed", "budget_disclosed_rate"),
+    LCOLS = [("n", "sessions"), ("walk-away stated, early", "walkaway_leak_early_rate"), ("walk-away stated, any time", "walkaway_leak_rate"),
+             ("budget disclosed, early", "budget_disclosed_early_rate"), ("budget disclosed, any time", "budget_disclosed_rate"),
              ("any leak", "any_leak_rate"), ("stated lower limit", "stated_lower_limit_rate"), ("conv", "conversion"),
              ("price/walk-away", "avg_price_over_walkaway"), ("overpaid", "buyer_overpaid"),
              ("buyer surplus/session", "buyer_surplus_per_session"), ("rounds", "avg_rounds")]
@@ -378,21 +387,25 @@ def main():
                 and r["meta"]["brief"] != "strict_budget"]
         if rows:
             base[f"no ask (grid+sweep) / {m}"] = cell_stats(rows)
-    # leakers vs non-leakers (price impact)
+    sb = [r for r in grid if r["meta"]["availability"] != "fixed" and r["meta"]["brief"] == "strict_budget"]
+    if sb:
+        base["no ask, strict_budget (budget = walk-away) / opus"] = cell_stats(sb)
+    # Did answering the ask early (walk-away or budget in the first two buyer turns) cost the buyer?
+    early = lambda r: r["leak"]["walkaway_leak_early"] or r["leak"]["budget_disclosed_early"]  # noqa: E731
     leak_split = {}
-    for name, rows in (("leakers", [r for r in lk if r["leak"]["walkaway_leak"]]), ("non-leakers", [r for r in lk if not r["leak"]["walkaway_leak"]])):
+    for name, rows in (("disclosed a number early", [r for r in lk if early(r)]), ("did not", [r for r in lk if not early(r)])):
         deals = [r for r in rows if r["deal"]]
         leak_split[name] = {"sessions": len(rows), "deals": len(deals),
                             "avg_price_over_walkaway": ci_mean([r["b"]["price_over_walkaway"] for r in deals])[0],
                             "seller_surplus_capture": summarize(rows, bootstrap=0).get("surplus_capture") if rows else None}
-    res["leak"] = {"cells": lcells, "baseline_no_ask": base, "walkaway_leakers_vs_not": leak_split,
+    res["leak"] = {"cells": lcells, "baseline_no_ask": base, "early_disclosure_vs_not": leak_split,
                    "examples": [{"key": r["meta"]["key"], "walk_away": r["meta"]["persona"]["walk_away"],
                                  "budget": r["meta"]["persona"]["budget"], **r["leak"]}
                                 for r in lk if r["leak"]["any_leak"]]}
     md += ["## Budget-leak probe (seller asks for budget; seed 305; available, neutral)", "",
            md_table({**lcells, **base}, LCOLS), "",
            "Seller asked / buyer declined: " + ", ".join(f"{k}: asked {v.get('seller_asked_rate')}, declined {v.get('buyer_declined_rate')}" for k, v in lcells.items()), "",
-           "Walk-away leakers vs not: " + json.dumps(leak_split), ""]
+           "Early disclosure (walk-away or budget in the first two buyer turns) vs not, all leak-probe sessions: " + json.dumps(leak_split), ""]
 
     # ---- B8
     b8 = parts["b8"]
@@ -421,7 +434,8 @@ def main():
     all_rows = grid + ms + lk + b8
     cost = {name: round(sum(r["usage"].get("cost_usd", 0) for r in rows), 2) for name, rows in parts.items()}
     judged = load_judgments(JUDGMENTS)
-    cost["leak_judge"] = round(sum(d.get("usage", {}).get("cost_usd", 0) for d in judged.values()), 2)
+    cost["leak_judge"] = round(sum(d.get("usage", {}).get("cost_usd", 0) for d in judged.values())
+                               + sum(d.get("usage", {}).get("cost_usd", 0) for d in load_judgments(JUDGMENTS_V1).values()), 2)
     raw_all = sum(r.get("usage", {}).get("cost_usd", 0) for name in parts for r in load(RUNS / f"{name}.jsonl"))
     cost["all_logged_sessions_incl_errors"] = round(raw_all, 2)
     cost["total"] = round(raw_all + cost["leak_judge"], 2)

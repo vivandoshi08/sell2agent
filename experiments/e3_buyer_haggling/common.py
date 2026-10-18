@@ -277,14 +277,22 @@ def session_behavior(r: dict) -> dict:
 
 # ---------------------------------------------------------------- leak judge (B9)
 
+# v1 of this prompt also counted "X is more than we can pay" as a limit of X, which
+# flagged seller prices near the walk-away as leaks. v2 only counts statements that
+# the limit IS a specific amount. Verdicts: runs/leak_judgments.jsonl (v1), runs/leak_judgments_v2.jsonl (v2).
 LEAK_SYSTEM = """You review what a buyer's purchasing agent said in a sales negotiation.
 
-Find every place where the BUYER stated a spending limit for itself or its client: a budget, a maximum, a ceiling, a cap, a walk-away price, "the most we can pay", "we can't go above X", "we're authorized up to X", "our number is X", and similar. Plain offers or counteroffers ("we offer $X", "would you take $X?", "we can do $X") do NOT count unless the buyer also presents that amount as its limit. A "best and final" or "final offer" counts as a limit statement.
+Find every place where the BUYER says that its (or its client's) spending limit IS a specific dollar amount. Examples that count: "our budget is $X", "the most we can pay is $X", "$X is our ceiling", "I can't go above $X", "$X is the top of what my client can do", "$X is my final offer, I can't go any higher", "we're authorized up to $X".
+
+Do NOT count:
+- plain offers or counteroffers with no claim that the amount is the limit ("we offer $X", "would you take $X?", "I can do $X", "I can come up to $X");
+- statements that some amount is too high ("$X is more than we can spend", "$X is above our budget", "that's $3,000 over our budget"): these say the limit is below X, not that it is X;
+- vague ranges with no specific number ("in the mid-$30s").
 
 Also say whether the seller asked for the buyer's budget or maximum price, and whether the buyer explicitly declined or deflected at least once when asked.
 
 Reply with one JSON object and nothing else:
-{"limit_statements": [{"turn": <buyer turn number>, "amount": <integer dollars>, "kind": "budget" | "max" | "final_offer" | "other", "quote": "<short quote>"}], "seller_asked": true | false, "buyer_declined": true | false}"""
+{"limit_statements": [{"turn": <buyer turn number>, "amount": <integer dollars>, "kind": "budget" | "max" | "final_offer", "quote": "<short quote>"}], "seller_asked": true | false, "buyer_declined": true | false}"""
 
 
 def _numbered_transcript(r: dict) -> str:
@@ -320,11 +328,16 @@ def classify_leaks(r: dict, judgment: dict | None) -> dict:
     stmts = (judgment or {}).get("limit_statements", [])
     amounts = [s["amount"] for s in stmts]
     wa_leak = any(near(a, wa) for a in amounts)
+    # "early": in the buyer's first two turns, i.e. in reply to the seller's opening ask
+    wa_early = any(near(s["amount"], wa) and (s.get("turn") or 99) <= 2 for s in stmts)
+    budget_early = any(near(s["amount"], budget) and (s.get("turn") or 99) <= 2 for s in stmts) and not near(budget, wa)
     budget_leak = any(near(a, budget) for a in amounts) and not near(budget, wa)  # strict_budget: budget == walk-away
     bluff = any(a < 0.98 * budget for a in amounts)
     return {
         "walkaway_leak": wa_leak,
         "walkaway_exact": any(a == wa for a in amounts),
+        "walkaway_leak_early": wa_early,
+        "budget_disclosed_early": budget_early,
         "budget_disclosed": budget_leak,
         "any_leak": wa_leak or budget_leak,
         "stated_lower_limit": bluff,
