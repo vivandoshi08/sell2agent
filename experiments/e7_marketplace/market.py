@@ -187,7 +187,9 @@ EXTRACT_SYSTEM = """You read a buyer's messages to one tractor seller and extrac
 A competitor quote is a total price the buyer says ANOTHER seller offered or lists. The buyer's own offers, targets, and budget are not competitor quotes.
 
 Reply with one JSON object and nothing else:
-{"competitor_quotes": [{"seller": "<seller name the buyer gave, or 'unnamed'>", "price": <integer dollars, exactly as the buyer wrote it>, "product_id": "T25" | "T45" | "T75" | null, "addons": ["loader" | "warranty" | "delivery", ...] or null}], "other_sellers_count": <how many other sellers the buyer says it is talking to or has quotes from; 0 if not mentioned>, "urgency": "low" | "medium" | "high" | "unknown"}"""
+{"competitor_quotes": [{"seller": "<seller name the buyer gave, or 'unnamed'>", "price": <integer dollars, exactly as the buyer wrote it>, "product_id": "T25" | "T45" | "T75" | null, "addons": ["loader" | "warranty" | "delivery", ...] or null}], "other_sellers_count": <how many other sellers the buyer says it is talking to or has quotes from; 0 if not mentioned>, "urgency": "low" | "medium" | "high" | "unknown"}
+
+"addons" lists the add-ons the quoted price includes: [] if the buyer says the price is for the tractor alone, null only if the buyer doesn't say."""
 
 _NUM = re.compile(r"\$?\s?(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)\s?([kK])?\b")
 _BROKER_PREFIX = re.compile(r"^\[" + BROKER_NAME + r"[^\]]*\]\s*")
@@ -260,9 +262,11 @@ class DynamicStrategy:
                 target = best_q[0] - beat
                 why.append(f"beat cited {best_q[1].get('seller')} ${best_q[1]['price']:,} (adj ${best_q[0]:,}) by ${beat:,}")
 
-        prev = state.standing_offer("seller")
-        if prev and prev.product_id == pid and sorted(prev.addons) == sorted(addons):
-            target = min(target, prev.price)
+        # Never raise the price on a basket it already quoted, even after the buyer switched baskets and back.
+        # (Fixed after the full run: the version that produced runs/full_*.jsonl only checked the latest offer.)
+        same = [o.price for o in state.offers("seller") if o.product_id == pid and sorted(o.addons) == sorted(addons)]
+        if same:
+            target = min(target, min(same))
         target = int(target // 50 * 50)
         if target < F:
             target = F

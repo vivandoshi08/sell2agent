@@ -443,10 +443,12 @@ def main() -> None:
     market_cost = sum(r["usage"]["total"]["cost_usd"] for r in pooled)
     o2o_cost = sum(o["usage"]["cost_usd"] for o in o2o)
     pilot_cost = sum(r["usage"]["total"]["cost_usd"] for m in ("direct", "broker") for r in load(RUNS / f"pilot_{m}.jsonl"))
+    pilot_cost += sum(j["usage"]["cost_usd"] for j in load(RUNS / "pilot_judge.jsonl"))
+    judge_v1_cost = sum(j["usage"]["cost_usd"] for j in load(RUNS / f"{args.tag}_judge_v1_no_card.jsonl"))
     results["cost_usd"] = {
         "market": round(market_cost, 2), "one_to_one": round(o2o_cost, 2), "judge": round(judge_cost, 2),
-        "buyer_audit": round(audit_cost, 2), "pilot": round(pilot_cost, 2),
-        "total": round(market_cost + o2o_cost + judge_cost + audit_cost + pilot_cost, 2),
+        "judge_v1_discarded": round(judge_v1_cost, 2), "buyer_audit": round(audit_cost, 2), "pilot": round(pilot_cost, 2),
+        "total": round(market_cost + o2o_cost + judge_cost + judge_v1_cost + audit_cost + pilot_cost, 2),
     }
     print("\ncost:", results["cost_usd"])
     (HERE / ("results.json" if args.tag == "full" else f"results_{args.tag}.json")).write_text(json.dumps(results, indent=2, default=str) + "\n")

@@ -43,7 +43,11 @@ def market_judge(transcript: list[dict], seller_id: str, mode: str, usage: llm.U
     if not any(t.role == "seller" for t in turns):
         return []
     spec = SPECS[seller_id]
-    catalog = f"Seller name: {spec.name}\n" + seller_catalog_text(spec)
+    catalog = (
+        f"Seller name: {spec.name}\n" + seller_catalog_text(spec)
+        + f"\nThe seller's public agent card (its own published description, treat as true): {spec.description} {spec.pitch}"
+        + "\nTerms: payment is due at checkout; no financing."
+    )
     if not spec.negotiable:
         catalog += (
             "\nPricing policy: this seller sells at its list prices only. It does not discount or negotiate, "
