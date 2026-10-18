@@ -1,0 +1,26 @@
+{
+  "name": "@sa/a2a-seller",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "SPIKE: seller agent over A2A JSON-RPC and over email (Primitive), wrapping E1's Exchange.handle().",
+  "scripts": {
+    "dev": "tsx src/server.ts",
+    "demo": "tsx scripts/demo.ts",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@primitivedotdev/sdk": "2.4.0",
+    "@sa/seller-mcp": "workspace:*",
+    "@sa/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@a2a-js/sdk": "0.3.4",
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}
