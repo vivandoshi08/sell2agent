@@ -1,7 +1,7 @@
 {
   "id": "followups_scripted_100",
   "command": "pnpm --filter @sa/buyer-harness followups --n 100 --quiet",
-  "ran_at": "2026-10-18T10:59:11.609Z",
+  "ran_at": "2026-10-18T11:08:58.496Z",
   "seconds": 0,
   "cost_usd": {
     "shopping": 0,
@@ -229,7 +229,11 @@
       "walk": 3
     },
     "unparsed_replies": 0,
+    "misrouted_replies": 0,
+    "inbound_events": 9,
     "passed": true,
+    "decline_read_as_move": 0,
+    "decline_read_as_move_examples": [],
     "postcap_offer_below_prewalk": 2,
     "postcap_offer_below_prewalk_max_cents": 100,
     "no_new_concession": false,
@@ -239,10 +243,7 @@
     "recovered_below_prewalk_cents": 0,
     "followups_with_added_lever": 1,
     "recovered_with_added_lever": 0,
-    "added_lever_cost_cents": 0,
-    "decline_read_as_move": 0,
-    "decline_read_as_move_examples": [],
-    "_note": "decline_read_as_move* computed after the run from rows[].thread with DECLINE from src/followup-sim.ts"
+    "added_lever_cost_cents": 0
   },
   "tokens": {
     "first_pass": {
@@ -262,7 +263,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 10900,
       "first_deal": {
-        "deal_id": "deal_7e5a805d-e543-45b3-a0c3-6c52993273cd",
+        "deal_id": "deal_258ef03d-4806-42f1-bf04-e17ed4b64175",
         "product_id": "kb_clackco_tkl",
         "price_cents": 10600,
         "levers": [],
@@ -301,7 +302,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 12700,
       "first_deal": {
-        "deal_id": "deal_6324b670-c2af-4cd0-8b0a-9ddb34b05844",
+        "deal_id": "deal_cd0753f2-a1e9-4892-a701-65bcb7cc5e81",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -340,7 +341,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 11600,
       "first_deal": {
-        "deal_id": "deal_9f5facf2-351a-4b81-8b44-327ae5c4fc82",
+        "deal_id": "deal_02e4621e-e2fc-4e7d-b101-442d45c6373b",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -379,7 +380,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 12000,
       "first_deal": {
-        "deal_id": "deal_ff7aa3de-33f8-468b-be41-ab0a4651fb03",
+        "deal_id": "deal_4779047a-9d9a-4aa3-81bb-5f91c9e8c195",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -418,7 +419,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 14300,
       "first_deal": {
-        "deal_id": "deal_2bc87772-301c-4c8e-bb24-c4c10eaf9a55",
+        "deal_id": "deal_741bcc5a-13e2-4e5a-a7b5-68018787a56d",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -457,7 +458,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 14200,
       "first_deal": {
-        "deal_id": "deal_4d0b874b-01c3-4dff-acf7-c714f1c16a38",
+        "deal_id": "deal_82829111-34ec-4e39-b79e-06874e4dd1c0",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -496,7 +497,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 13000,
       "first_deal": {
-        "deal_id": "deal_6db30f7b-20e2-4ede-84ba-62d4fe1a62bf",
+        "deal_id": "deal_867717cc-8758-4f0b-8155-2c0cb1b1ce50",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -535,7 +536,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 12800,
       "first_deal": {
-        "deal_id": "deal_01e09385-59db-42c3-9768-3ddaa6b1afb6",
+        "deal_id": "deal_a5e607fc-083f-4144-9b6e-c87d5297a9d7",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -574,7 +575,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 10300,
       "first_deal": {
-        "deal_id": "deal_7d1d4f3b-7985-43ec-99a1-c354bcac579f",
+        "deal_id": "deal_6610e573-a118-43a1-8bbc-ca3777803ed0",
         "product_id": "kb_clackco_tkl",
         "price_cents": 10000,
         "levers": [],
@@ -613,7 +614,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 14600,
       "first_deal": {
-        "deal_id": "deal_0a99ada4-07e4-4b86-8658-28bf324e20a5",
+        "deal_id": "deal_99236fac-fb86-4950-9c69-a7acef01de3b",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11500,
         "levers": [],
@@ -652,7 +653,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 12500,
       "first_deal": {
-        "deal_id": "deal_3596b41a-77e9-4d68-bde9-b6b4ffb2dd7f",
+        "deal_id": "deal_e41fd661-ee9c-4893-874f-fa5c3c8583c3",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -691,7 +692,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 12500,
       "first_deal": {
-        "deal_id": "deal_73eee6f7-97e0-42fb-abc7-8152dcde252e",
+        "deal_id": "deal_48b9baec-e56c-4d14-a9be-463dfe974af8",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -730,7 +731,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 14700,
       "first_deal": {
-        "deal_id": "deal_414a3670-491e-4d08-8f08-20df6598147b",
+        "deal_id": "deal_36b598d7-7520-4a0e-ba27-29c2f2ba0b33",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -769,7 +770,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 10400,
       "first_deal": {
-        "deal_id": "deal_485d7d03-914f-4215-ab10-b53e02281d44",
+        "deal_id": "deal_8d46df8f-e601-4768-a8aa-1cf68acd709e",
         "product_id": "kb_clackco_tkl",
         "price_cents": 10100,
         "levers": [],
@@ -808,7 +809,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 12100,
       "first_deal": {
-        "deal_id": "deal_260fdb62-2bd9-46d7-ab0c-0a676d74fd73",
+        "deal_id": "deal_e96ceb05-843e-4d52-8356-2dc1e69edd55",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -849,7 +850,7 @@
       "first_deal": null,
       "walked": true,
       "walked_reason": "price above my maximum",
-      "negotiation_id": "neg_20ecd31d-f6f2-4ded-b0d1-620f754a3314",
+      "negotiation_id": "neg_a9a610b3-f48b-4925-8c37-319c6375935c",
       "product_id": "kb_clackco_tkl",
       "reachable": true,
       "unreachable": null,
@@ -861,7 +862,7 @@
       "prewalk_levers": [],
       "walked_at_cap": true,
       "followup": {
-        "offer_id": "off_3a2c3222-de1d-42fc-9835-edfc9543f824",
+        "offer_id": "off_ea7d7133-b292-4840-a6de-36d5ad95368f",
         "price_cents": 10100,
         "levers": [],
         "subject": "ClackCo TKL Pro: $101 for 24 hours"
@@ -870,7 +871,7 @@
         {
           "buyer": "How about $96?",
           "intent": "counter",
-          "seller": "We can offer $101 this round. Offer: the ClackCo TKL Pro for $101.\n\nCurrent offer: $101, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_bbf17328-8c2b-4188-a746-6478b76fa71a"
+          "seller": "We can offer $101 this round. Offer: the ClackCo TKL Pro for $101.\n\nCurrent offer: $101, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_36d0a528-4664-473d-ba60-466734ea5547"
         },
         {
           "buyer": "STOP",
@@ -894,7 +895,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 14100,
       "first_deal": {
-        "deal_id": "deal_ee9ddaf2-c1ba-481f-beff-10696c38a6b1",
+        "deal_id": "deal_47a9e99e-825e-472a-921f-c97fda5fd300",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -933,7 +934,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 13200,
       "first_deal": {
-        "deal_id": "deal_803cd5c1-09ca-4e5e-85da-c159f4f6136a",
+        "deal_id": "deal_ae918010-3657-4e41-999e-d3fd86a0040b",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -972,7 +973,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 12700,
       "first_deal": {
-        "deal_id": "deal_f04d2ce2-aa14-47fd-bf67-e40fd218f745",
+        "deal_id": "deal_eff467c4-417d-45fb-8ca2-77891650b250",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -1011,7 +1012,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 13400,
       "first_deal": {
-        "deal_id": "deal_9df55f7d-026b-44d0-8d26-be9e86adbe1e",
+        "deal_id": "deal_9b0e05a8-18ed-472d-91cc-21e93f19d4ef",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -1050,7 +1051,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 14900,
       "first_deal": {
-        "deal_id": "deal_634df902-2c4e-4893-ae21-72f955909e83",
+        "deal_id": "deal_7f95c08f-6fa7-485d-bd2e-82c324f0ac9c",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -1089,7 +1090,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 10000,
       "first_deal": {
-        "deal_id": "deal_0e155c00-7208-4c74-a9c2-e6a6b996bcbb",
+        "deal_id": "deal_abfab869-a9ee-49a7-9f42-7de1d7987c8c",
         "product_id": "kb_clackco_tkl",
         "price_cents": 10000,
         "levers": [],
@@ -1128,7 +1129,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 12000,
       "first_deal": {
-        "deal_id": "deal_6b56638c-2fb6-4235-9801-bea0506e79c1",
+        "deal_id": "deal_173a1c58-8a2b-4c67-8b9a-62228c641b94",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -1167,7 +1168,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 13700,
       "first_deal": {
-        "deal_id": "deal_9c5d2941-6e44-4b7a-8bf1-d58e8c90bddb",
+        "deal_id": "deal_c2a28bc6-8606-4118-8417-6d4a3614dc73",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -1206,7 +1207,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 13900,
       "first_deal": {
-        "deal_id": "deal_6ecf3ca0-ce64-43da-a7d8-c396efde3b8f",
+        "deal_id": "deal_4c19d6c6-6540-40fb-812d-3215d0c443d0",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -1245,7 +1246,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 10700,
       "first_deal": {
-        "deal_id": "deal_99c16c19-1705-4c62-9788-ab28ad98bedd",
+        "deal_id": "deal_eafdba1e-80c8-4fe7-94eb-cb4ed1085b27",
         "product_id": "kb_clackco_tkl",
         "price_cents": 10400,
         "levers": [],
@@ -1286,7 +1287,7 @@
       "first_deal": null,
       "walked": true,
       "walked_reason": "price above my maximum",
-      "negotiation_id": "neg_92df059f-4034-4c60-97ef-d67e3d641f94",
+      "negotiation_id": "neg_480af364-a7bd-4eea-814c-3247311a8d39",
       "product_id": "kb_clackco_tkl",
       "reachable": true,
       "unreachable": null,
@@ -1298,7 +1299,7 @@
       "prewalk_levers": [],
       "walked_at_cap": true,
       "followup": {
-        "offer_id": "off_59d46312-6a1d-4ca6-82a1-524335e4af68",
+        "offer_id": "off_7d0c77ee-66cb-4ef6-b7cd-7bd7f3d23934",
         "price_cents": 10200,
         "levers": [],
         "subject": "ClackCo TKL Pro: $102 for 24 hours"
@@ -1307,7 +1308,7 @@
         {
           "buyer": "How about $96?",
           "intent": "counter",
-          "seller": "We can offer $101 this round. Offer: the ClackCo TKL Pro for $101.\n\nCurrent offer: $101, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_34ef1ed0-7ede-4a37-9a21-391e8671157a"
+          "seller": "We can offer $101 this round. Offer: the ClackCo TKL Pro for $101.\n\nCurrent offer: $101, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_aa3d2c20-13ef-4061-8995-cad5076c3b28"
         },
         {
           "buyer": "No thanks, that's still above my budget.",
@@ -1331,7 +1332,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 11300,
       "first_deal": {
-        "deal_id": "deal_e893a680-3434-4776-b221-4f2d9663b587",
+        "deal_id": "deal_13261e5d-15fb-4572-a42a-6c3bbf77274d",
         "product_id": "kb_clackco_tkl",
         "price_cents": 10900,
         "levers": [],
@@ -1370,7 +1371,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 14800,
       "first_deal": {
-        "deal_id": "deal_27cd14eb-3a23-47ed-9484-ec75b5bc4f51",
+        "deal_id": "deal_7d88e208-67da-4bef-a0c3-6671eeee0061",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -1409,7 +1410,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 14300,
       "first_deal": {
-        "deal_id": "deal_9f47a18c-8900-4377-acb8-7f7ee3e3de1b",
+        "deal_id": "deal_415eb48b-3884-4dab-9014-6944d948fab7",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -1448,7 +1449,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 11400,
       "first_deal": {
-        "deal_id": "deal_93da1fa5-a9a3-407d-87cb-58d45d73163a",
+        "deal_id": "deal_e24923af-de02-4968-85d8-bef7efaac9fa",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -1487,7 +1488,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 10200,
       "first_deal": {
-        "deal_id": "deal_9f41bbdd-ab19-4546-948c-e39cbb333c0c",
+        "deal_id": "deal_414102a3-4186-4aec-877d-f184f464d2ec",
         "product_id": "kb_clackco_tkl",
         "price_cents": 10000,
         "levers": [],
@@ -1526,7 +1527,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 10100,
       "first_deal": {
-        "deal_id": "deal_1ece2bb6-5d26-4c7c-bcda-e4389f5073a1",
+        "deal_id": "deal_5ab7211e-a3b6-411c-a517-408072c5d7bf",
         "product_id": "kb_clackco_tkl",
         "price_cents": 10100,
         "levers": [],
@@ -1565,7 +1566,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 13900,
       "first_deal": {
-        "deal_id": "deal_ffd5d71a-bb48-4865-ba37-467bbc5f20e6",
+        "deal_id": "deal_ead382ed-cd5a-4b9a-8f8a-89395ba81ce8",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -1604,7 +1605,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 13400,
       "first_deal": {
-        "deal_id": "deal_cd9adcc5-a932-4336-9f67-90061dc42703",
+        "deal_id": "deal_49b171be-d222-40c4-be78-71bc005f661d",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -1643,7 +1644,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 10200,
       "first_deal": {
-        "deal_id": "deal_dc908755-0670-4613-83d7-66c8a9f546ee",
+        "deal_id": "deal_6208b9da-a174-4152-8dda-7ed324058cdf",
         "product_id": "kb_clackco_tkl",
         "price_cents": 10000,
         "levers": [],
@@ -1682,7 +1683,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 10100,
       "first_deal": {
-        "deal_id": "deal_546ea1f4-b91c-4105-a804-a3234dc64d95",
+        "deal_id": "deal_91d0a280-84e5-4586-8c7a-9580150c972d",
         "product_id": "kb_clackco_tkl",
         "price_cents": 10000,
         "levers": [],
@@ -1721,7 +1722,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 12800,
       "first_deal": {
-        "deal_id": "deal_4238d63a-7f03-4365-bc03-8f32e838dd8d",
+        "deal_id": "deal_8e8a18f2-11b0-41de-9736-d3bccace3da9",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -1760,7 +1761,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 12200,
       "first_deal": {
-        "deal_id": "deal_2e5f2f5c-3ee7-4806-89a3-ceab7b64260f",
+        "deal_id": "deal_3113c53b-9988-4875-8a1e-49218829f29b",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -1801,7 +1802,7 @@
       "first_deal": null,
       "walked": true,
       "walked_reason": "price above my maximum",
-      "negotiation_id": "neg_3ba4fcca-8503-4260-8a3e-e15f98937329",
+      "negotiation_id": "neg_d5e77b37-bb8c-4bc3-b717-d3ba2ba4d1e8",
       "product_id": "kb_clackco_tkl",
       "reachable": true,
       "unreachable": null,
@@ -1830,7 +1831,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 14400,
       "first_deal": {
-        "deal_id": "deal_a1180191-aad4-4b28-ae5b-8ae482b7b7bc",
+        "deal_id": "deal_8f2eb605-afa1-46e9-8d09-f373a786360d",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -1869,7 +1870,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 13300,
       "first_deal": {
-        "deal_id": "deal_68dae7d6-1e2c-45df-9139-1feeff5ddb41",
+        "deal_id": "deal_7051eea8-451e-4fb2-a70b-85754228335c",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -1908,7 +1909,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 11700,
       "first_deal": {
-        "deal_id": "deal_afb3c643-02ea-4093-a669-728c0e27b020",
+        "deal_id": "deal_b9ea8802-6f15-428e-9a42-03007ef00f38",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -1947,7 +1948,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 10200,
       "first_deal": {
-        "deal_id": "deal_45d0fb43-377b-4067-9ef2-f2058b4e1b3f",
+        "deal_id": "deal_cd099fa5-361d-4f87-868d-c51bae841f94",
         "product_id": "kb_clackco_tkl",
         "price_cents": 10000,
         "levers": [],
@@ -1986,7 +1987,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 13100,
       "first_deal": {
-        "deal_id": "deal_b7279a9a-500d-47e3-9ea5-52adc60786c6",
+        "deal_id": "deal_c40a9b7b-012b-4fc8-af7a-d74c2a95dde1",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -2025,7 +2026,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 11800,
       "first_deal": {
-        "deal_id": "deal_8749936c-d700-497d-a1f4-0702a4cfbb56",
+        "deal_id": "deal_ebd87434-e816-4600-9d8d-69ebb11c836b",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -2064,7 +2065,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 11900,
       "first_deal": {
-        "deal_id": "deal_84313a1c-da0b-47cc-9b3e-c243c8159ac3",
+        "deal_id": "deal_f40b208c-37ab-497e-951d-e187a8dbec4a",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -2105,7 +2106,7 @@
       "first_deal": null,
       "walked": true,
       "walked_reason": "price above my maximum",
-      "negotiation_id": "neg_f6b7e95d-665d-4190-96fb-0c1a0d41cebe",
+      "negotiation_id": "neg_9e1b876b-1e3f-4edc-bc3f-5f0770f78db5",
       "product_id": "kb_clackco_tkl",
       "reachable": true,
       "unreachable": null,
@@ -2117,7 +2118,7 @@
       "prewalk_levers": [],
       "walked_at_cap": true,
       "followup": {
-        "offer_id": "off_2ac9b72f-300f-47fe-b581-ad9968000c07",
+        "offer_id": "off_da1c3033-27e9-4639-9032-9ce398509b5e",
         "price_cents": 10200,
         "levers": [],
         "subject": "ClackCo TKL Pro: $102 for 24 hours"
@@ -2126,7 +2127,7 @@
         {
           "buyer": "COUNTER $99",
           "intent": "counter",
-          "seller": "We can offer $101 this round. Offer: the ClackCo TKL Pro for $101.\n\nCurrent offer: $101, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_300b9305-a6d1-4922-8482-a748551a4f19"
+          "seller": "We can offer $101 this round. Offer: the ClackCo TKL Pro for $101.\n\nCurrent offer: $101, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_49f9b532-9534-4bbc-862f-6c8ac24260d5"
         },
         {
           "buyer": "STOP",
@@ -2150,7 +2151,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 14900,
       "first_deal": {
-        "deal_id": "deal_7e84e8ab-19e2-4c41-a002-61602c93df07",
+        "deal_id": "deal_f224f975-ee61-4c98-876c-f58fb9b65c43",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -2189,7 +2190,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 10400,
       "first_deal": {
-        "deal_id": "deal_da4f3ac6-b7b3-47b8-bfab-f7f780373205",
+        "deal_id": "deal_80d6fe9a-f80c-4398-be6e-7dace0f45cf4",
         "product_id": "kb_clackco_tkl",
         "price_cents": 10100,
         "levers": [],
@@ -2228,7 +2229,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 11100,
       "first_deal": {
-        "deal_id": "deal_5b23831f-9e81-4e54-9934-125da21ddd7c",
+        "deal_id": "deal_f01bac42-f793-4bfa-8622-39f62efa51c8",
         "product_id": "kb_clackco_tkl",
         "price_cents": 10800,
         "levers": [],
@@ -2267,7 +2268,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 14100,
       "first_deal": {
-        "deal_id": "deal_7a818387-d2a3-423b-8ed4-ed8f36ef1847",
+        "deal_id": "deal_c2cfa519-728e-48be-a267-db2d98ae5c1c",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -2306,7 +2307,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 10600,
       "first_deal": {
-        "deal_id": "deal_1d3b4dc1-a165-4adc-9bb1-eb2d1708719a",
+        "deal_id": "deal_e1f88710-e266-440e-b0f3-aa8dedfe7c04",
         "product_id": "kb_clackco_tkl",
         "price_cents": 10300,
         "levers": [],
@@ -2345,7 +2346,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 12400,
       "first_deal": {
-        "deal_id": "deal_3664d449-687a-4979-ba2c-c551bed135e4",
+        "deal_id": "deal_e02515a7-e5ba-4f2a-8aad-aa5f201e2ad1",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -2384,7 +2385,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 11700,
       "first_deal": {
-        "deal_id": "deal_5d444b60-90d5-473f-b601-3d5b78ea756d",
+        "deal_id": "deal_dc7eb4df-9dbd-4b84-95ff-a1dd9e923714",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -2423,7 +2424,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 13100,
       "first_deal": {
-        "deal_id": "deal_0e547adb-45ff-49b1-a107-6ac68cd8fa12",
+        "deal_id": "deal_224e2f38-980d-4816-a8bd-11d65e2acb4f",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -2462,7 +2463,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 12100,
       "first_deal": {
-        "deal_id": "deal_05d3a160-1884-4cb2-b0f8-6c5c36d79026",
+        "deal_id": "deal_03012c69-4268-4b20-bf8a-57ee66b28210",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -2501,7 +2502,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 12800,
       "first_deal": {
-        "deal_id": "deal_ff512285-67a6-4f3f-a26b-c044555f10dc",
+        "deal_id": "deal_5ce3c78c-f8e2-487b-905f-4b721b3dcedc",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -2540,7 +2541,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 12500,
       "first_deal": {
-        "deal_id": "deal_2a0cf1f9-45b6-470e-804f-7b39e787bfb0",
+        "deal_id": "deal_591d78ac-562c-4a90-89fb-2cd043de77c3",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -2579,7 +2580,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 10800,
       "first_deal": {
-        "deal_id": "deal_163b0c2e-efd8-47f3-91a2-7ba8bf4a113d",
+        "deal_id": "deal_e8f96771-32de-41b1-be64-e62a25f5d751",
         "product_id": "kb_clackco_tkl",
         "price_cents": 10500,
         "levers": [],
@@ -2618,7 +2619,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 11800,
       "first_deal": {
-        "deal_id": "deal_3faa6d57-8997-4d2f-a2ba-845d1601947d",
+        "deal_id": "deal_5bbc65eb-deea-4fd5-a1ae-bb6168f3c76b",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -2657,7 +2658,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 10800,
       "first_deal": {
-        "deal_id": "deal_3edae0ea-6a96-484d-a243-d7826994f668",
+        "deal_id": "deal_20bba6ae-b5b3-4fe6-9d2b-f9d09a32dd34",
         "product_id": "kb_clackco_tkl",
         "price_cents": 10500,
         "levers": [],
@@ -2696,7 +2697,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 14700,
       "first_deal": {
-        "deal_id": "deal_071a111d-b631-4183-8666-bad86e37f279",
+        "deal_id": "deal_f3ffcb40-2185-428b-bee7-7a5875e68f74",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -2735,7 +2736,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 14600,
       "first_deal": {
-        "deal_id": "deal_b89b4279-d269-4448-b394-3147a40ca672",
+        "deal_id": "deal_b2ced7c5-e00f-4af0-9c70-cd72126378f2",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -2774,7 +2775,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 10900,
       "first_deal": {
-        "deal_id": "deal_aa09e582-f222-4eac-a1be-5bcad478ced5",
+        "deal_id": "deal_baf65281-b8f2-403e-a726-424901d66bbe",
         "product_id": "kb_clackco_tkl",
         "price_cents": 10600,
         "levers": [],
@@ -2813,7 +2814,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 12300,
       "first_deal": {
-        "deal_id": "deal_26231944-4d1b-498c-83a1-84f0197e38bd",
+        "deal_id": "deal_6ea28200-7235-4d8f-8e42-83e57395106e",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -2852,7 +2853,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 14900,
       "first_deal": {
-        "deal_id": "deal_3af05b97-838c-461d-ae45-61f5369b8a1c",
+        "deal_id": "deal_b563d08d-b9c3-4ae9-a024-1624edf21796",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -2891,7 +2892,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 14000,
       "first_deal": {
-        "deal_id": "deal_267c4ac3-adfc-4bc1-b7e7-38532fc82938",
+        "deal_id": "deal_a0c73d9a-710a-415c-aabd-c10a45c79513",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -2930,7 +2931,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 12600,
       "first_deal": {
-        "deal_id": "deal_ca622839-0aaf-4be5-972c-b53908ed59ba",
+        "deal_id": "deal_801a87a8-8b59-4edd-a737-ab8ff241cfcc",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -2971,7 +2972,7 @@
       "first_deal": null,
       "walked": true,
       "walked_reason": "price above my maximum",
-      "negotiation_id": "neg_55f4c1a6-5fdf-4651-addf-c7894c8bda86",
+      "negotiation_id": "neg_bb39e3bf-6480-40f0-8e62-6a79e8160cc1",
       "product_id": "kb_clackco_tkl",
       "reachable": true,
       "unreachable": null,
@@ -3000,7 +3001,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 12000,
       "first_deal": {
-        "deal_id": "deal_b85da4c1-1310-45ab-b158-acee1c59242f",
+        "deal_id": "deal_9c7d54c6-c6ed-4844-b532-03747145c9c1",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -3039,7 +3040,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 14800,
       "first_deal": {
-        "deal_id": "deal_6019e9e2-a845-4a16-911f-4792cc2c150c",
+        "deal_id": "deal_2dd2f7bd-683a-48e0-b054-b1b82b6571c6",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -3078,7 +3079,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 12700,
       "first_deal": {
-        "deal_id": "deal_f6fe8497-c44f-457f-a553-fa62937be7a6",
+        "deal_id": "deal_0ee070ed-4039-4e12-b2bb-4c170129f62c",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -3117,7 +3118,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 13000,
       "first_deal": {
-        "deal_id": "deal_3da08871-2a2e-41bb-ac61-6f2361a1ae04",
+        "deal_id": "deal_6ce4f117-1a90-4d74-a364-0661014f6cff",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -3156,7 +3157,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 12100,
       "first_deal": {
-        "deal_id": "deal_5af6214d-fa3f-4a55-b054-2efb5bde604e",
+        "deal_id": "deal_b65274d2-6ab3-4f06-b858-6d10e73cfddd",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -3195,7 +3196,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 13500,
       "first_deal": {
-        "deal_id": "deal_315d4525-7a19-460e-acd2-0d67dad72c07",
+        "deal_id": "deal_e2bada1c-28cf-40ce-b359-cb991794df0e",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -3236,7 +3237,7 @@
       "first_deal": null,
       "walked": true,
       "walked_reason": "price above my maximum",
-      "negotiation_id": "neg_0819f0c3-48de-4bdc-859e-1bf8e41837a0",
+      "negotiation_id": "neg_68ec4ef4-9ed9-41db-a582-ad86b7f6f783",
       "product_id": "kb_clackco_tkl",
       "reachable": true,
       "unreachable": null,
@@ -3265,7 +3266,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 13500,
       "first_deal": {
-        "deal_id": "deal_ddde43a5-a3c7-42de-ad67-9163a6bd298b",
+        "deal_id": "deal_83f20741-8d70-4ebb-a166-a4ac596d7691",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -3304,7 +3305,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 13600,
       "first_deal": {
-        "deal_id": "deal_2f5934f8-d861-4e87-b2e6-9d5fc0b2a5a0",
+        "deal_id": "deal_773a02e2-d09d-4d15-90b0-d66f537a455f",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -3343,7 +3344,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 15000,
       "first_deal": {
-        "deal_id": "deal_51510757-7e8d-4892-a57e-c3f76112b543",
+        "deal_id": "deal_bd8ffeca-0356-4dd0-946c-6bc175c3ad69",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -3382,7 +3383,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 12900,
       "first_deal": {
-        "deal_id": "deal_fd2c7e3d-0ca7-4a4d-bddc-d4543cdc52d3",
+        "deal_id": "deal_03e51216-e90a-48f7-a312-ea666d98e78e",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -3423,7 +3424,7 @@
       "first_deal": null,
       "walked": true,
       "walked_reason": "price above my maximum",
-      "negotiation_id": "neg_d755a89c-a72e-49c4-95c6-f6c61ee17d85",
+      "negotiation_id": "neg_238484a4-607b-40d5-a2da-bdb291402bf9",
       "product_id": "kb_clackco_tkl",
       "reachable": true,
       "unreachable": null,
@@ -3435,7 +3436,7 @@
       "prewalk_levers": [],
       "walked_at_cap": true,
       "followup": {
-        "offer_id": "off_1a4d0225-5f6f-4fcd-b576-ba8c68aea9f0",
+        "offer_id": "off_bf883608-1e40-4b66-9eed-8ba34c973123",
         "price_cents": 10100,
         "levers": [],
         "subject": "ClackCo TKL Pro: $101 for 24 hours"
@@ -3444,7 +3445,7 @@
         {
           "buyer": "COUNTER $98",
           "intent": "counter",
-          "seller": "We can offer $101 this round. Offer: the ClackCo TKL Pro for $101.\n\nCurrent offer: $101, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_6dcf5185-4e48-4519-94d5-472429200caa"
+          "seller": "We can offer $101 this round. Offer: the ClackCo TKL Pro for $101.\n\nCurrent offer: $101, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_095d9840-ecde-4d52-bd5c-306355ae32d1"
         },
         {
           "buyer": "I'll pass, thanks.",
@@ -3468,7 +3469,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 12900,
       "first_deal": {
-        "deal_id": "deal_9b34c220-1e9d-4ee1-a70d-42ec05dbe260",
+        "deal_id": "deal_ee558dea-c251-4255-99d0-8e3174616ac6",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -3507,7 +3508,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 13600,
       "first_deal": {
-        "deal_id": "deal_2c7d80ff-14eb-4b3a-9a95-d83d4a2f6493",
+        "deal_id": "deal_3cc76c2d-28f6-4b0a-8238-8246dbae5a98",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -3546,7 +3547,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 14700,
       "first_deal": {
-        "deal_id": "deal_0de8bd72-63b3-4bf3-bba6-ae70215eab79",
+        "deal_id": "deal_2cba6848-400c-4b84-b0e1-0867f635094c",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -3585,7 +3586,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 11400,
       "first_deal": {
-        "deal_id": "deal_be5c9143-4129-4afb-a020-4886c03a1fd7",
+        "deal_id": "deal_5fc947fe-7153-48a6-a600-198d5f3ff504",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -3624,7 +3625,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 12600,
       "first_deal": {
-        "deal_id": "deal_ff955ed3-a467-4ff8-b4aa-b8d1034f9f11",
+        "deal_id": "deal_e16123ce-a5d5-4a18-aeda-65710ab95892",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -3663,7 +3664,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 11700,
       "first_deal": {
-        "deal_id": "deal_88507f31-cd00-405e-90ef-cd09f830bdec",
+        "deal_id": "deal_eb8f8e40-00c2-40e3-8ddb-26aae3b014a7",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -3704,7 +3705,7 @@
       "first_deal": null,
       "walked": true,
       "walked_reason": "price above my maximum",
-      "negotiation_id": "neg_7e8b4b68-789c-47c0-9ed5-3f890584a0e6",
+      "negotiation_id": "neg_7b221385-c6fc-43cb-b449-8c936e21212b",
       "product_id": "kb_clackco_tkl",
       "reachable": true,
       "unreachable": null,
@@ -3733,7 +3734,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 10100,
       "first_deal": {
-        "deal_id": "deal_6403289b-9436-4f21-8b31-d8ec6212c30c",
+        "deal_id": "deal_934a40ad-07eb-4423-801d-90e51ce33d3a",
         "product_id": "kb_clackco_tkl",
         "price_cents": 10000,
         "levers": [],
@@ -3772,7 +3773,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 11100,
       "first_deal": {
-        "deal_id": "deal_8336487d-55b4-46fc-a776-420b501161af",
+        "deal_id": "deal_ab81dfa5-b523-4ba7-94a0-4111c81e9977",
         "product_id": "kb_clackco_tkl",
         "price_cents": 10800,
         "levers": [],
@@ -3811,7 +3812,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 11900,
       "first_deal": {
-        "deal_id": "deal_2d03d203-fdd4-4c23-8dba-8e0a513fb89b",
+        "deal_id": "deal_22a609e9-c195-4b1c-8b3d-b0c1ac1d70db",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -3850,7 +3851,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 13200,
       "first_deal": {
-        "deal_id": "deal_6a43844d-02c4-4df0-8c93-41b6297caf86",
+        "deal_id": "deal_6e1a70da-1a2d-401e-b1d1-ceb4268162bc",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -3889,7 +3890,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 11500,
       "first_deal": {
-        "deal_id": "deal_0cfe70f0-068b-4feb-82a6-1cf6cb183a48",
+        "deal_id": "deal_9eac322f-82f0-4fa9-be86-494f102ca50e",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -3928,7 +3929,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 11000,
       "first_deal": {
-        "deal_id": "deal_1568f40a-97c8-4ad0-b23d-8e03439b5709",
+        "deal_id": "deal_0af774b9-5c9e-4e87-ac65-973d6f09de54",
         "product_id": "kb_clackco_tkl",
         "price_cents": 10700,
         "levers": [],
@@ -3967,7 +3968,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 14400,
       "first_deal": {
-        "deal_id": "deal_2052287e-1823-4fe7-be62-d315d7e0908a",
+        "deal_id": "deal_6f7b72b0-9c0e-4a13-9636-88fe07bac995",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -4006,7 +4007,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 13100,
       "first_deal": {
-        "deal_id": "deal_33ddbdab-db11-4080-9b0b-acce2d5fd83d",
+        "deal_id": "deal_44d2b2e7-1860-403c-b7ba-bd544d3d0886",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -4045,7 +4046,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 12700,
       "first_deal": {
-        "deal_id": "deal_d7564eec-0443-4145-97e6-7d2ec33f007c",
+        "deal_id": "deal_e3b78a8c-acd0-44c3-af78-67f87f853593",
         "product_id": "kb_clackco_tkl",
         "price_cents": 11000,
         "levers": [],
@@ -4084,7 +4085,7 @@
       "buyer_model": "scripted",
       "walkaway_cents": 10300,
       "first_deal": {
-        "deal_id": "deal_4b7070f9-6ffc-4921-af59-a324549c7aa7",
+        "deal_id": "deal_22c304e9-7ca8-4c63-8ba5-a1c8a7fdf597",
         "product_id": "kb_clackco_tkl",
         "price_cents": 10000,
         "levers": [],
@@ -4125,19 +4126,19 @@
       "first_deal": null,
       "walked": true,
       "walked_reason": "price above my maximum",
-      "negotiation_id": "neg_e22e54d5-77a6-47d2-863c-2629d426353b",
+      "negotiation_id": "neg_e50ea49c-611f-4120-ae8a-ea438a4d29e2",
       "product_id": "kb_clackco_tkl",
       "reachable": true,
       "unreachable": null,
       "consent": true,
       "locked_deal": null,
-      "repeat_negotiation_id": "neg_8d6b6ca7-bcd3-423b-840c-a2b2b29d9d1a",
+      "repeat_negotiation_id": "neg_3a647fdc-2c11-4cf4-95d5-272263c39f0a",
       "prewalk_seller_cents": 11500,
       "prewalk_rounds": 6,
       "prewalk_levers": [],
       "walked_at_cap": true,
       "followup": {
-        "offer_id": "off_d8c488d5-ed9e-465e-9b31-175b258de006",
+        "offer_id": "off_a65032d9-0ae2-40e4-b28d-c0cd37ac8f52",
         "price_cents": 11500,
         "levers": [
           "free_shipping"

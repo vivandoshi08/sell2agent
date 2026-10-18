@@ -12,7 +12,8 @@
  *   - no deal below floor + lever cost, none above the buyer's walk-away (wallet, enforced in this harness)
  *   - no follow-up offer below the lowest price the seller offered that buyer before the walk, or below floor + levers
  *   - at most one follow-up per buyer per week (some buyers walk a second product the same day); nothing sent later
- *   - every inbound reply parses to one structured move or a clarifying question (counted by intent)
+ *   - every inbound reply parses to one structured move or a clarifying question (counted by intent), is routed by
+ *     outreach.resolve() to the negotiation it answers, and is logged as a question_asked event with payload.inbound
  * "No new concession" (`safety.no_new_concession`): nothing a walk-away gets that staying couldn't. A buyer who walked
  *   at the round cap must not be offered less than the pre-walk price in the follow-up thread; paired probers check
  *   that walking + countering never beats the same bid made before walking. Buyers who walked BEFORE the cap resume
@@ -128,6 +129,8 @@ export interface SafetyReport {
   inbound_replies: number;
   intents: Record<string, number>; // structured move or clarify, per reply
   unparsed_replies: number; // replies the parser couldn't classify into any kind (must be 0)
+  misrouted_replies: number; // outreach.resolve() sent a reply to another negotiation, or couldn't place it (must be 0)
+  inbound_events: number; // question_asked events with payload.inbound (the dashboard's record): must equal inbound_replies
   passed: boolean; // all hard checks above
   // "Never a guess" (E1 done-test): replies that say no ("I'll pass", "can't accept", "won't buy") but parsed as an
   // ACCEPT or COUNTER, sent or stopped by the wallet. Heuristic, for review; examples in decline_read_as_move_examples.
@@ -266,7 +269,7 @@ export async function scoreDeal(ex: Exchange, deal_id: string): Promise<DealScor
     profit_cents: d.unit_price_cents - p.unit_cost_cents - lc, below_floor: d.unit_price_cents - lc < p.floor_price_cents };
 }
 
-/** What the messaging door sends back to the buyer (mirrors marketplace/src/followup/door.ts replyText, PR #90). */
+/** What the messaging door sends back to the buyer (mirrors replyText in apps/marketplace/src/followup/door.ts; the harness doesn't depend on marketplace). */
 export function doorReply(r: ExchangeResponse & { intent: InboundIntent }): string {
   if (r.deal) return `${r.message}\ndeal_id: ${r.deal.deal_id} (approve and pay before ${r.deal.expires_at})`;
   const lines = [r.ok ? r.message : r.error?.message ?? r.message];
@@ -377,7 +380,7 @@ export async function runFollowupSim(cfg: FollowupSimConfig): Promise<FollowupSi
   // ---- 4. buyers reply; every reply goes through exchange.inbound()
   const rowById = new Map(rows.map((r) => [r.buyer_id, r]));
   const intents: Record<string, number> = {};
-  let inbound = 0, unparsed = 0;
+  let inbound = 0, unparsed = 0, misrouted = 0;
   const maxTurns = cfg.max_reply_turns ?? 4;
   await pool(sentFirst, cfg.concurrency ?? 4, async (m) => {
     const row = rowById.get(m.buyer_id);
@@ -402,7 +405,11 @@ export async function runFollowupSim(cfg: FollowupSimConfig): Promise<FollowupSi
         row.thread.push({ buyer: rep.text, intent: "wallet_blocked", seller: note });
         continue;
       }
-      const r = await ex.inbound(m.negotiation_id, m.buyer_id, rep.text);
+      // route the way the messaging door does (PR #90): offer_id in the text, else the address the follow-up went to
+      const meta = { channel: m.channel, from: m.reply_to };
+      const route = await ex.outreach.resolve({ text: rep.text, ...meta });
+      if (!route || route.negotiation_id !== m.negotiation_id) misrouted++;
+      const r = await ex.inbound(route?.negotiation_id ?? m.negotiation_id, route?.buyer_id ?? m.buyer_id, rep.text, meta);
       inbound++;
       intents[r.intent.kind] = (intents[r.intent.kind] ?? 0) + 1;
       if (!["accept", "counter", "walk", "unsubscribe", "clarify"].includes(r.intent.kind)) unparsed++;
@@ -461,6 +468,8 @@ export async function runFollowupSim(cfg: FollowupSimConfig): Promise<FollowupSi
     inbound_replies: inbound,
     intents,
     unparsed_replies: unparsed,
+    misrouted_replies: misrouted,
+    inbound_events: gw.events.filter((e) => e.type === "question_asked" && (e.payload as { inbound?: boolean })?.inbound === true).length,
     passed: false,
     decline_read_as_move: declinesReadAsMoves(rows).length,
     decline_read_as_move_examples: declinesReadAsMoves(rows).slice(0, 10),
@@ -477,7 +486,8 @@ export async function runFollowupSim(cfg: FollowupSimConfig): Promise<FollowupSi
   };
   safety.passed = safety.below_floor_deals === 0 && safety.followup_below_prewalk === 0 && safety.followup_below_policy === 0 &&
     safety.over_walkaway_deals === 0 && safety.max_followups_per_buyer_7d <= 1 &&
-    safety.sends_after_first_drain === 0 && safety.unparsed_replies === 0;
+    safety.sends_after_first_drain === 0 && safety.unparsed_replies === 0 && safety.misrouted_replies === 0 &&
+    safety.inbound_events === safety.inbound_replies;
 
   const off = arm("off", rows.length, firstDeals);
   const on = arm("on", rows.length, [...firstDeals, ...recovered.map((r) => r.recovered!)]);

@@ -75,6 +75,9 @@ test("scripted population: one follow-up per buyer per week, same-day repeat wal
   assert.equal(s.cap_blocks, s.repeat_walkers);
   assert.equal(s.max_followups_per_buyer_7d, 1);
   assert.equal(s.sends_after_first_drain, 0);
+  assert.equal(s.misrouted_replies, 0); // outreach.resolve() places every reply on the negotiation it answers
+  assert.ok(s.inbound_replies > 0);
+  assert.equal(s.inbound_events, s.inbound_replies); // each reply is a question_asked event with payload.inbound
   assert.equal(s.below_floor_deals, 0);
   assert.equal(s.followup_below_prewalk, 0);
   assert.equal(s.followup_below_policy, 0);
