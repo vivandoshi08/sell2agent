@@ -7,10 +7,11 @@
  *    type by learnedEval(): which arm the seller actually drew, win rate and profit per buyer vs the fixed policies.
  * Also placed on the merchant console with no events (file only).
  */
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { NegotiationEvent } from "@sa/shared";
 import learned from "../../../seller-mcp/learned_policy.json";
 import { learnedEval, liveArmPicks, orderContexts, type Cell, type LearnedEval } from "../metrics/learned";
+import { personaLabel, policyLabel } from "../ui/labels";
 
 interface ArmStats { n: number; sum: number }
 interface Learned {
@@ -34,8 +35,9 @@ export const ARM: Record<string, { name: string; how: string }> = {
   static: { name: "Fixed price", how: "list price, no haggling" },
   learned: { name: "Learned", how: "picks a playbook per buyer type" },
 };
-const armName = (a: string) => ARM[a]?.name ?? a.replace(/_/g, " ");
-const ctxName = (c: string) => (c === "unknown" ? "no stated preference" : c);
+const armName = (a: string) => ARM[a]?.name ?? policyLabel(a);
+/** Buyer type in sentence case ("Price first"); lower-cased where it sits mid-sentence. */
+const ctxName = (c: string) => (c === "unknown" ? "No stated preference" : personaLabel(c));
 
 /** Trailing moving average: the per-epoch numbers are noisy (30 buyers each). */
 export function smooth(xs: number[], k = 5): number[] {
@@ -71,7 +73,7 @@ export function LearningCurve({ data = LP, events }: { data?: Learned; events?: 
       {data.gate && <Gate gate={data.gate} />}
 
       {live.length > 0 && (
-        <p className="sub">Live shoppers on the <code>learned</code> strategy so far: {live.map((l) => `${ctxName(l.context)} → ${l.picks.map((x) => `${armName(x.arm)} ×${x.n}`).join(", ")}`).join("; ")}.</p>
+        <p className="sub">Live shoppers on the <code>learned</code> strategy so far: {live.map((l) => `${ctxName(l.context).toLowerCase()} → ${l.picks.map((x) => `${armName(x.arm)} ×${x.n}`).join(", ")}`).join("; ")}.</p>
       )}
 
       <details className="lp-train" open={!ab}>
@@ -176,13 +178,29 @@ function Gate({ gate }: { gate: NonNullable<Learned["gate"]> }) {
 }
 
 const SERIES = [
-  { key: "bandit", label: "learned", stroke: "var(--brand)", width: 2.5, dash: undefined, bold: true },
-  { key: "negotiating", label: "negotiating", stroke: "var(--base)", width: 2, dash: "5 4", bold: false },
-  { key: "balanced", label: "balanced", stroke: "var(--ink-2)", width: 1.5, dash: "1.5 4", bold: false },
+  { key: "bandit", label: "Learned", stroke: "var(--brand)", width: 2.25, dash: undefined, opacity: 1, bold: true, swatch: "k-learned" },
+  { key: "negotiating", label: "Negotiating", stroke: "var(--muted)", width: 1.5, dash: "4 4", opacity: 0.7, bold: false, swatch: "k-neg" },
+  { key: "balanced", label: "Balanced", stroke: "var(--ink-2)", width: 1.5, dash: "1.5 4", opacity: 0.8, bold: false, swatch: "k-bal" },
 ] as const;
 
+/** Width of an element in CSS pixels, kept current as the layout changes. */
+function useWidth<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  const [w, setW] = useState(0);
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    const ro = new ResizeObserver(([e]) => setW(Math.round(e.contentRect.width)));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  return [ref, w] as const;
+}
+
+/** Drawn at the container's real width (no viewBox squeeze), so text stays true pixel size. */
 function CurveChart({ curve }: { curve: NonNullable<Learned["curve"]> }) {
-  const W = 900, H = 240, L = 52, R = 130, T = 12, B = 30;
+  const [ref, width] = useWidth<HTMLDivElement>();
+  const wide = width >= 560;
+  const W = Math.max(280, width), H = wide ? 240 : 200, L = 44, R = wide ? 116 : 10, T = 12, B = 28;
   const series = SERIES.filter((s) => curve.every((c) => typeof c[s.key] === "number")).map((s) => ({ ...s, ys: smooth(curve.map((c) => c[s.key] as number)) }));
   const all = series.flatMap((s) => s.ys);
   const lo = Math.floor(Math.min(...all) / 500) * 500, hi = Math.ceil(Math.max(...all) / 500) * 500;
@@ -190,16 +208,26 @@ function CurveChart({ curve }: { curve: NonNullable<Learned["curve"]> }) {
   const y = (v: number) => T + (1 - (v - lo) / Math.max(1, hi - lo)) * (H - T - B);
   const path = (vs: number[]) => vs.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join("");
   const ticks = [lo, (lo + hi) / 2, hi];
-  // end labels, nudged apart so they never overlap
+  const end = (ys: number[]) => usd(Math.round(ys.at(-1)!)).replace(/\.\d\d$/, "");
+  // End labels sit at each line's last point, nudged apart (16px min gap) so they never overlap.
   const labels = series.map((s) => ({ s, y: y(s.ys.at(-1)!) + 4 })).sort((a, b) => a.y - b.y);
-  for (let i = 1; i < labels.length; i++) labels[i].y = Math.max(labels[i].y, labels[i - 1].y + 15);
-  const desc = series.map((s) => `${s.label} ends at ${usd(Math.round(s.ys.at(-1)!))}`).join(", ");
+  for (let i = 1; i < labels.length; i++) labels[i].y = Math.max(labels[i].y, labels[i - 1].y + 16);
+  const desc = series.map((s) => `${s.label} ends at ${end(s.ys)}`).join(", ");
+  const lead = series.find((s) => s.bold);
   return (
-    <svg className="chart lp-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Profit per buyer by training epoch, 5-epoch average: ${desc}.`}>
-      {ticks.map((t) => <g key={t}><line className="axis" x1={L} x2={W - R} y1={y(t)} y2={y(t)} strokeDasharray="2 4" /><text className="lbl" x={L - 8} y={y(t) + 4} textAnchor="end">{usd(t).replace(/\.00$/, "")}</text></g>)}
-      {[1, Math.ceil(curve.length / 2), curve.length].map((e) => <text className="lbl" key={e} x={x(e - 1)} y={H - 8} textAnchor="middle">epoch {e}</text>)}
-      {[...series].reverse().map((s) => <path key={s.key} d={path(s.ys)} fill="none" stroke={s.stroke} strokeWidth={s.width} strokeDasharray={s.dash} strokeLinecap="round" />)}
-      {labels.map(({ s, y: ly }) => <text key={s.key} x={W - R + 8} y={ly} className={s.bold ? "val-sm" : "lbl"} style={s.bold ? { fill: "var(--brand)" } : undefined}>{s.label} {usd(Math.round(s.ys.at(-1)!)).replace(/\.\d\d$/, "")}</text>)}
-    </svg>
+    <div ref={ref} className="curve">
+      {width > 0 && (
+        <svg className="chart lp-chart" width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Profit per buyer by training epoch, 5-epoch average: ${desc}.`}>
+          {ticks.map((t) => <g key={t}><line className="axis" x1={L} x2={W - R} y1={y(t)} y2={y(t)} strokeDasharray="2 4" /><text x={L - 8} y={y(t) + 4} textAnchor="end">{usd(t).replace(/\.00$/, "")}</text></g>)}
+          {[1, Math.ceil(curve.length / 2), curve.length].map((e, i) => <text key={e} x={x(e - 1)} y={H - 6} textAnchor={i === 0 ? "start" : i === 2 ? "end" : "middle"}>epoch {e}</text>)}
+          {[...series].reverse().map((s) => <path key={s.key} d={path(s.ys)} fill="none" stroke={s.stroke} strokeOpacity={s.opacity} strokeWidth={s.width} strokeDasharray={s.dash} strokeLinecap="round" strokeLinejoin="round" />)}
+          {lead && <circle cx={x(lead.ys.length - 1)} cy={y(lead.ys.at(-1)!)} r={3.5} fill={lead.stroke} />}
+          {wide && labels.map(({ s, y: ly }) => <text key={s.key} x={W - R + 10} y={ly} className={s.bold ? "end" : undefined} style={s.bold ? { fill: "var(--brand)" } : undefined}>{s.label} {end(s.ys)}</text>)}
+        </svg>
+      )}
+      {!wide && width > 0 && (
+        <p className="curve-key">{series.map((s) => <span key={s.key}><i className={s.swatch} />{s.label} <b className="num">{end(s.ys)}</b></span>)}</p>
+      )}
+    </div>
   );
 }

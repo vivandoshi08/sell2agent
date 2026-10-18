@@ -9,6 +9,8 @@ import type { ConsolePolicy, Objective, Problem } from "./policy";
 import { CONSOLE_POLICIES, validate } from "./policy";
 import type { TryResult } from "./api";
 import { LearningCurve } from "../panels/LearningCurve";
+import { TopBar } from "../ui/TopBar";
+import { policyLabel } from "../ui/labels";
 import learned from "../../../seller-mcp/learned_policy.json";
 import "./console.css";
 
@@ -67,15 +69,13 @@ export function Console() {
   };
 
   return (
+    <div className="shell">
+    <TopBar tab="rules" badge={store ? (store === "supabase" ? { mode: "live", label: "Saved to Supabase" } : { mode: "sample", label: "Dev memory · not saved" }) : null} />
     <main className="app console">
       <header className="top">
         <div>
           <span className="eyebrow">Seller agents · merchant console</span>
           <h1>What your seller agent may offer</h1>
-        </div>
-        <div className="badges">
-          {store && <span className={`badge ${store === "supabase" ? "live" : "sample"}`}>{store === "supabase" ? "Saved to Supabase" : "Not saved to a database (dev memory)"}</span>}
-          <a className="badge" href="./">Proof dashboard →</a>
         </div>
       </header>
 
@@ -105,8 +105,8 @@ export function Console() {
                   <div><span>List price</span><b>{usd(draft.list_price_cents)}</b></div>
                   <div><span>Unit cost</span><b>{usd(draft.unit_cost_cents)}</b></div>
                   <label><span>Floor (never sells below)</span>
-                    <input type="number" step="1" min={draft.unit_cost_cents / 100} max={draft.list_price_cents / 100} value={draft.floor_price_cents / 100}
-                      onChange={(e) => edit((d) => ({ ...d, floor_price_cents: toCents(e.target.value) }))} aria-invalid={problems.some((p) => p.field === "floor_price_cents")} />
+                    <span className="cx-money cx-floor"><span>$</span><input type="number" step="1" min={draft.unit_cost_cents / 100} max={draft.list_price_cents / 100} value={draft.floor_price_cents / 100}
+                      onChange={(e) => edit((d) => ({ ...d, floor_price_cents: toCents(e.target.value) }))} aria-invalid={problems.some((p) => p.field === "floor_price_cents")} /></span>
                   </label>
                 </div>
                 <FloorBar p={draft} />
@@ -141,7 +141,7 @@ export function Console() {
                   <div className="cx-radios">
                     {CONSOLE_POLICIES.map((p) => (
                       <label key={p}><input type="radio" name="policy" checked={draft.policy === p} onChange={() => edit((d) => ({ ...d, policy: p }))} />
-                        <span><b>{p}</b><small>{POLICY_HELP[p]}</small></span></label>
+                        <span><b>{policyLabel(p)}</b><small>{POLICY_HELP[p]}</small></span></label>
                     ))}
                   </div>
                 </div>
@@ -174,6 +174,7 @@ export function Console() {
       )}
       <LearningCurve />
     </main>
+    </div>
   );
 }
 

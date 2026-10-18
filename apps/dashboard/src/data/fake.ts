@@ -9,10 +9,11 @@ import learnedPolicy from "../../../seller-mcp/learned_policy.json";
 
 const PERSONAS = ["price_first", "quality_first", "speed_first", "trust_first", "balanced"] as const;
 const MODELS = ["claude-sonnet-5-5", "gpt-5"] as const;
+// Same ids, titles, list prices and unit costs as supabase/seed.sql, so sample cards match the Rules page.
 const PRODUCTS = [
-  { id: "kb_quietpro_75", seller: "keyforge", list: 14_900, cost: 7_800 },
-  { id: "kb_tactile_tkl", seller: "tactile_co", list: 9_900, cost: 5_200 },
-  { id: "kb_silent_60", seller: "hushkeys", list: 11_900, cost: 6_100 },
+  { id: "kb_keyforge_quiet75", title: "KeyForge Quiet 75", seller: "s_keyforge", list: 12_900, cost: 6_000 },
+  { id: "kb_clackco_tkl", title: "ClackCo TKL Pro", seller: "s_clackco", list: 11_500, cost: 5_500 },
+  { id: "kb_typewell_65", title: "TypeWell 65 Silent", seller: "s_typewell", list: 13_900, cost: 6_500 },
 ];
 
 export const FAKE_PREFIX = "s2-fake-";
@@ -42,7 +43,7 @@ export function fakeRun(policy: "static" | "negotiating", opts: { buyers?: numbe
     tick(400 + r() * 900);
     push({ ...base, actor: "harness", type: "run_started", price_cents: null,
       payload: { policy, buyer_persona: persona, lever_profile: { price: persona === "price_first" ? 1 : 0.4, quality: persona === "quality_first" ? 1 : 0.5 } } });
-    push({ ...base, actor: "buyer", type: "listing_viewed", price_cents: prod.list, payload: {} });
+    push({ ...base, actor: "buyer", type: "listing_viewed", price_cents: prod.list, payload: { product_title: prod.title } });
 
     let ask = Math.round(prod.list * (0.72 + r() * 0.12));
     let seller = prod.list;

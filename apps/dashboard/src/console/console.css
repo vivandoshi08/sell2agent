@@ -16,8 +16,10 @@
 .cx-layout > * { min-width: 0; }
 .cx-facts input { max-width: 100%; }
 
-.cx-facts { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-end; margin-top: 10px; }
-.cx-facts > * { display: grid; gap: 4px; }
+.cx-facts { display: flex; gap: 12px 32px; flex-wrap: wrap; align-items: start; margin-top: 10px; }
+.cx-facts > * { display: grid; grid-template-rows: auto 38px; gap: 4px; align-items: center; }
+.cx-floor input { width: 5.5em; height: 36px; font-size: 1.05rem; font-weight: 600; color: var(--ink); }
+.cx-money > span { color: var(--muted); }
 .cx-facts span { font-size: .8rem; color: var(--muted); }
 .cx-facts b { font: 600 1.3rem var(--font-data); }
 .cx-floorbar { position: relative; height: 14px; margin: 26px 0 22px; border-radius: 7px; background: var(--neg-soft); }

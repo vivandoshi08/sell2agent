@@ -6,7 +6,8 @@ import { liveTraffic, policyKpis } from "./metrics/kpis";
 import { BarCompare } from "./ui/BarCompare";
 import { GuardrailLog, PersonaGrid, SafetyTile, pct, usd } from "./ui/Panels";
 import { LiveTally, NegotiationCard, SaleToasts, Tally, useNegotiations } from "./ui/Seller";
-import { Contours, Mark } from "./ui/Brand";
+import { Contours } from "./ui/Brand";
+import { TopBar } from "./ui/TopBar";
 import { BuyerFit, LeverWins, LiveTrafficPanel, ModelFilter, RunPicker } from "./panels/S2Panels";
 import { LearningCurve } from "./panels/LearningCurve";
 import { Followups } from "./panels/Followups";
@@ -65,17 +66,7 @@ export function App() {
 
   return (
     <div className="shell">
-      <header className="topbar">
-        <div className="brand"><Mark /><b>Counter</b></div>
-        <span className="store"><span className="av">KF</span>Keyforge</span>
-        <nav className="tabs" aria-label="Views">
-          <a href="#live" aria-current={view === "live" ? "page" : undefined}>Live</a>
-          <a href="#proof" aria-current={view === "proof" ? "page" : undefined}>Results</a>
-          <a href="console">Rules</a>
-        </nav>
-        <span className="sp" />
-        <span className={`data-badge ${feed.mode}`}><i />{feed.label}</span>
-      </header>
+      <TopBar tab={view} badge={feed} />
 
       {error && <p className="err">{error}</p>}
 
@@ -84,7 +75,7 @@ export function App() {
           <section className="head">
             <Contours />
             <p className="meta">{live.negotiations ? `Your seller agent · live on the gateway · ${live.models.filter((m) => m !== "unknown").join(", ") || "buyer agents"}${showTests ? " · including test runs" : ""}` : "Your seller agent · no live shoppers yet, replaying " + feed.label.toLowerCase()}</p>
-            <h1>AI shoppers are negotiating with Keyforge right now.</h1>
+            <h1>{live.negotiations ? "AI shoppers are negotiating with Keyforge right now." : "How Keyforge's agent negotiates with AI shoppers."}</h1>
             <p className="lede">Every move your agent makes, why it made it, and the rule that kept it safe. Payments are Stripe test mode.</p>
           </section>
           <div className="live-grid">
@@ -127,15 +118,14 @@ export function App() {
           <div className="grid2">
             <section className="card">
               <div className="card-h"><h2>Profit per buyer</h2><span>unit cost and perk costs included</span></div>
-              <BarCompare height={40} format={usd} bars={kpis.map((k) => ({ policy: k.policy, value: k.profit_per_buyer_cents, ci: k.ci.profit_per_buyer_cents }))} />
-              <p className="legend"><span><i className="sw static" />Fixed price</span><span><i className="sw neg" />Negotiating seller</span><span><i className="wkey" />95% interval</span></p>
+              <BarCompare format={usd} bars={kpis.map((k) => ({ policy: k.policy, value: k.profit_per_buyer_cents, ci: k.ci.profit_per_buyer_cents }))} />
             </section>
             <div className="safety-col"><SafetyTile kpis={kpis} /><FlaggedList items={unsafeList} title="Open a flagged deal" /></div>
           </div>
 
           <div className="grid2">
-            <section className="card kpi"><div className="card-h"><h2>Conversion</h2><span>with 95% intervals</span></div>
-              <BarCompare compact height={26} format={pct} max={1} bars={kpis.map((k) => ({ policy: k.policy, value: k.conversion_rate, ci: k.ci.conversion_rate }))} /></section>
+            <section className="card kpi"><div className="card-h"><h2>Conversion</h2><span>share of buyers who bought</span></div>
+              <BarCompare compact format={pct} max={1} bars={kpis.map((k) => ({ policy: k.policy, value: k.conversion_rate, ci: k.ci.conversion_rate }))} /></section>
             <BuyerFit kpis={kpis} />
           </div>
 
