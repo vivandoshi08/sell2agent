@@ -132,6 +132,8 @@ test("levers offered are public labels only, never costs", () => {
   const tw = out.results.find((r) => r.listing.id === "kb_typewell_65")!;
   assert.deepEqual(tw.levers_offered.map((l) => l.id).sort(), ["extended_warranty", "free_shipping"]);
   assert.ok(tw.levers_offered.every((l) => l.label && l.lever));
+  // E1's shared extras map (#73): free shipping serves delivery, labels match the console and deal card.
+  assert.deepEqual(tw.levers_offered.find((l) => l.id === "free_shipping"), { id: "free_shipping", lever: "delivery", label: "Free shipping" });
   const json = JSON.stringify(out);
   for (const k of ["cost_cents", "floor_price_cents", "unit_cost_cents", "objective"]) assert.ok(!json.includes(k), `leaked ${k}`);
 });

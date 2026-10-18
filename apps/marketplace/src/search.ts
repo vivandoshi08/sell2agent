@@ -6,7 +6,7 @@
 import { Listing, type LeverName, type LeverProfile, type Product } from "@sa/shared";
 import { PRODUCTS } from "./catalog.js";
 import { STATIC_SNAPSHOT, type CatalogSnapshot } from "./catalog-source.js";
-import { leverLabel } from "./deal/card.js";
+import { extraLabel, extraLever } from "@sa/seller-mcp/extras";
 
 export const MAX_RESULTS = 5; // Magentic: buyer agents do worse with long lists
 
@@ -99,18 +99,11 @@ export function resolveCategory(category: string | undefined, categories: string
   });
 }
 
-// Which buyer value each extra serves, when the catalog's lever_menu doesn't say (v1 schema).
-const LEVER_OF: Record<string, LeverName> = {
-  free_shipping: "convenience",
-  extended_warranty: "warranty",
-  bundle_discount: "price",
-  volume_discount: "price",
-};
-
-const valueOf = (id: string, cat: CatalogSnapshot): LeverName => cat.leverValue[id] ?? LEVER_OF[id] ?? "convenience";
+// Which buyer value each extra serves: the catalog's lever_menu wins, else E1's shared extras map (#73).
+const valueOf = (id: string, cat: CatalogSnapshot): LeverName => cat.leverValue[id] ?? extraLever(id) ?? "convenience";
 
 export function leversOffered(product_id: string, cat: CatalogSnapshot = STATIC_SNAPSHOT): OfferedLever[] {
-  return (cat.levers[product_id] ?? []).map((id) => ({ id, lever: valueOf(id, cat), label: leverLabel({ name: id }) }));
+  return (cat.levers[product_id] ?? []).map((id) => ({ id, lever: valueOf(id, cat), label: extraLabel(id) }));
 }
 
 const QUALITY_FLAGS = ["hot_swap", "wireless", "anc"];
