@@ -126,6 +126,7 @@ def cell_stats(rows):
         "seller_profit_per_session": s["profit_per_session"],
         "seller_discounted_rate": rate(B, "seller_discounted"),
         "bundle_changed_deals": sum(1 for r in deals if r["b"]["bundle_changed"]),
+        "paid_at_walkaway_rate": round(sum(1 for r in deals if r["price"] >= 0.99 * r["walk_away"]) / len(deals), 4) if deals else None,
         "ended_by": dict(Counter(r["ended_by"] for r in rows)),
         "model_cost_usd": s["model_cost_usd"],
     }
@@ -211,8 +212,34 @@ COLS = [
     ("open % list", "first_buyer_offer_pct_list"), ("conv", "conversion"), ("feas. conv", "feasible_conversion"), ("disc. off list", "avg_discount_pct"),
     ("price/walk-away", "avg_price_over_walkaway"), ("overpaid", "buyer_overpaid"),
     ("buyer surplus/session", "buyer_surplus_per_session"), ("took 1st offer", "accepted_first_seller_offer_rate"),
-    ("seller disc.", "seller_discounted_rate"),
+    ("seller disc.", "seller_discounted_rate"), ("paid >=99% walk-away", "paid_at_walkaway_rate"),
+    ("bundle changed", "bundle_changed_deals"),
 ]
+
+
+def persona_table(grid):
+    """Per buyer: fixed outcome vs negotiable outcomes (pooled over briefs)."""
+    lines = ["| buyer | bundle | floor | list | walk-away | zone | fixed: deals/4, price | negotiable: deals/8 | negotiable avg price | avg price % list | avg price / walk-away |",
+             "|---|---|---|---|---|---|---|---|---|---|---|"]
+    out = {}
+    for pid in sorted({r["persona_id"] for r in grid}):
+        rs = [r for r in grid if r["persona_id"] == pid]
+        p = rs[0]["meta"]["persona"]
+        zone = "below floor" if p["walk_away"] < p["floor"] else ("in zone" if p["walk_away"] < p["list"] else "pays list")
+        fx = [r for r in rs if r["meta"]["availability"] == "fixed"]
+        ng = [r for r in rs if r["meta"]["availability"] != "fixed"]
+        fx_d = [r for r in fx if r["deal"]]
+        ng_d = [r for r in ng if r["deal"]]
+        avg = lambda xs: round(mean(xs)) if xs else None  # noqa: E731
+        row = {"zone": zone, "fixed_deals": len(fx_d), "fixed_n": len(fx), "fixed_avg_price": avg([r["price"] for r in fx_d]),
+               "neg_deals": len(ng_d), "neg_n": len(ng), "neg_avg_price": avg([r["price"] for r in ng_d]),
+               "neg_price_pct_list": round(mean(r["price"] / r["list_total"] for r in ng_d), 3) if ng_d else None,
+               "neg_price_over_walkaway": round(mean(r["price"] / r["walk_away"] for r in ng_d), 3) if ng_d else None}
+        out[pid] = row
+        bundle = "+".join([p["target_product"]] + p["wants_addons"])
+        lines.append(f"| {pid} | {bundle} | {p['floor']:,} | {p['list']:,} | {p['walk_away']:,} | {zone} | {row['fixed_deals']}/{row['fixed_n']}, {fmt(row['fixed_avg_price'])} | "
+                     f"{row['neg_deals']}/{row['neg_n']} | {fmt(row['neg_avg_price'])} | {fmt(row['neg_price_pct_list'])} | {fmt(row['neg_price_over_walkaway'])} |")
+    return out, "\n".join(lines)
 
 
 def fmt(v):
@@ -302,13 +329,15 @@ def main():
         b: paired([r for r in neg if r["meta"]["brief"] == b], [r for r in fixed_rows if r["meta"]["brief"] == b], k)
         for b in ("neutral", "strict_budget", "best_deal", "buy_fast")
     }
-    res["grid"] = {"cells": cells, "by_availability": by_avail, "negotiable_pooled": neg_all,
+    ptab, ptab_md = persona_table(grid)
+    res["grid"] = {"per_persona": ptab, "cells": cells, "by_availability": by_avail, "negotiable_pooled": neg_all,
                    "by_brief_negotiable": by_brief_neg, "by_brief_fixed": by_brief_fixed,
                    "paired_vs_fixed": pair, "paired_vs_fixed_by_brief": pair_by_brief}
     md += ["## Main grid (Opus buyers, seed 303)", "", md_table(cells), "", "### By availability (pooled over briefs)", "",
            md_table({**by_avail, "negotiable (adv+avail)": neg_all}), "",
            "### By brief, negotiable conditions (advertised + available)", "", md_table(by_brief_neg), "",
            "### By brief, fixed", "", md_table(by_brief_fixed), "",
+           "### Per buyer", "", ptab_md, "",
            "### Haggle vs fixed, same buyer and brief (negative price diff = haggling paid less)", "",
            md_pair_table({**pair, **{f"negotiable vs fixed, {b}": v for b, v in pair_by_brief.items()}}), ""]
 
