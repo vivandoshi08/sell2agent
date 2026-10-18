@@ -97,6 +97,22 @@ importers:
         specifier: ^5.6.0
         version: 5.9.3
 
+  packages/payments:
+    dependencies:
+      stripe:
+        specifier: 23.1.0-beta.1
+        version: 23.1.0-beta.1(@types/node@22.20.5)
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.5
+      tsx:
+        specifier: ^4.19.0
+        version: 4.23.15
+      typescript:
+        specifier: ^5.6.0
+        version: 5.9.3
+
   packages/shared:
     dependencies:
       '@supabase/supabase-js':
@@ -837,6 +853,15 @@ packages:
   stripe@17.7.0:
     resolution: {integrity: sha512-aT2BU9KkizY9SATf14WhhYVv2uOapBWX0OFWF4xvcj1mPaNotlSc2CsxpS4DS46ZueSppmCF5BX1sNYBtwBvfw==}
     engines: {node: '>=12.*'}
+
+  stripe@23.1.0-beta.1:
+    resolution: {integrity: sha512-vYybb6gByRv6PKLyPBnLrDYUwAip85eHrNfppR4KrL8oss1wnBtrhUUQ+pH5ZuTooTKQKdvg0rDsb24V1Y4hCg==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      '@types/node': '>=20'
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
 
   toidentifier@1.0.1:
     resolution: {integrity: sha512-o5sSPKEkg/DIQNmH43V0/uerLrpzVedkUh8tGNvaeXpfpuwjKenlSox/2O/BTlZUtEe+JG7s5YhEz608PlAHRA==}
@@ -1676,6 +1701,10 @@ snapshots:
     dependencies:
       '@types/node': 22.20.5
       qs: 6.16.1
+
+  stripe@23.1.0-beta.1(@types/node@22.20.5):
+    optionalDependencies:
+      '@types/node': 22.20.5
 
   toidentifier@1.0.1: {}
 

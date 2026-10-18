@@ -8,7 +8,9 @@
     "dev:marketplace": "pnpm --filter @sa/marketplace dev",
     "dev:dashboard": "pnpm --filter @sa/dashboard dev",
     "run:buyers": "pnpm --filter @sa/buyer-harness start",
-    "smoke": "tsx scripts/smoke.ts"
+    "smoke": "tsx scripts/smoke.ts",
+    "stripe:smoke": "pnpm --filter @sa/payments smoke",
+    "test:payments": "pnpm --filter @sa/payments test"
   },
   "devDependencies": {
     "tsx": "^4.19.0",
