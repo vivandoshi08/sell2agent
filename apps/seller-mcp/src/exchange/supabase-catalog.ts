@@ -29,7 +29,7 @@ export interface SupabaseCatalogOptions {
   timeout_ms?: number;
 }
 
-const STRATEGIES = ["static", "negotiating", "balanced"] as const;
+const STRATEGIES = ["static", "negotiating", "balanced", "learned"] as const;
 const DEFAULT_MAX_ROUNDS = 6;
 const posInt = (n: unknown): n is number => Number.isInteger(n) && (n as number) > 0;
 const str = (s: unknown): s is string => typeof s === "string" && s.length > 0;

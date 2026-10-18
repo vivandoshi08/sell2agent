@@ -4,7 +4,7 @@
 import { z } from "zod";
 import { createDealModule, dealSummary, fromExchange, type CatalogSource } from "./deal/index.js";
 import { catalog as currentCatalog } from "./catalog-source.js";
-import { exchange, missingBuyer, toCtx, type RequestLike } from "./negotiate.js";
+import { approveLink, exchange, missingBuyer, toCtx, type RequestLike } from "./negotiate.js";
 
 // Public catalog facts for the card (seller name). Never seller policy.
 const catalog: CatalogSource = {
@@ -76,7 +76,10 @@ export function registerDealTools(server: any) {
         const howToCheck = locked
           ? `\nThe person approves and pays inside this card, so you won't see the payment. If asked whether it was bought, call check_offers with negotiation_id ${locked.negotiation_id} and buyer_id ${ctx.buyer_id}: state "paid" means it's bought. The deal stays valid until ${card.expires_at}.`
           : "";
-        return { content: [{ type: "text" as const, text: dealSummary(card) + howToCheck }], structuredContent: card };
+        // Text-only apps can't draw the card: give the hosted approval link here, as the fallback (not in accept_deal).
+        const link = card.status === "ready" ? approveLink(a.deal_id, ctx.buyer_id) : undefined;
+        const fallback = link ? `\nIf the person can't see an Approve & Pay card above (a text-only chat), send them this link to approve and pay before ${card.expires_at}: ${link}` : "";
+        return { content: [{ type: "text" as const, text: dealSummary(card) + howToCheck + fallback }], structuredContent: card };
       } catch (e) {
         return fail(e instanceof Error ? e.message : String(e));
       }
