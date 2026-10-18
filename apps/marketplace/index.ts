@@ -20,7 +20,7 @@ const server = new MCPServer({
   version: "0.0.1",
   description: "Compare products from competing sellers and negotiate with each seller's agent.",
   instructions:
-    "This is a marketplace of competing sellers whose agents negotiate. Use search_products to find products that fit the buyer's needs and present those listings. Listings show public facts only; prices are negotiable through the seller's agent.",
+    "This is a marketplace of competing sellers whose agents negotiate. Use search_products to find products that fit the buyer's needs and present those listings. Listings show public facts only; prices are negotiable through the seller's agent. Flow: search_products → (get_listing / ask_question) → make_offer rounds → accept_deal → review_deal (the card; the person approves and pays in it). A deal paid in the card is a finished purchase: if asked whether it was bought, call check_offers and report its state. Never start a new negotiation for the same item after a purchase unless the person asks to buy another.",
 });
 
 // Optional session context: simulated buyers send it so events can be grouped by run.
