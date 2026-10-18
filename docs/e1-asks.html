@@ -76,7 +76,9 @@ th { font-family: var(--font-data); font-size: .7rem; letter-spacing: .06em; tex
   </header>
   <section class="box">
     <h2>Shipped: use it now <small>branch e1/exchange · PR #11</small></h2>
-    <p class="why" style="color:var(--bad)"><b>Blocker (Neel):</b> the exchange only runs in memory until the contract has an offers table and the wider <code>negotiations.status</code> (asks n2–n4). In-memory state won't survive a stateless deploy at Bridge 1.</p>
+    <p class="why"><b>Deploy (Esha):</b> use <code>await Exchange.fromEnv()</code>. With <code>SUPABASE_URL</code> set, state lives in Supabase, so a stateless deploy works; without it, memory. Also set <code>EXCHANGE_HMAC_SECRET</code> so deal signatures survive restarts.</p>
+    <p class="why"><b>Dashboard (Ananya):</b> exchange state is saved as rows in <code>events</code> with <code>run_id = "exchange_state"</code> and <code>type = "exchange_snapshot"</code>. Filter those out of the feed and KPIs. <code>negotiations</code> and <code>deals</code> rows are kept in sync; status uses the old enum (agreed → <code>accepted</code>, walked away or expired → <code>abandoned</code>).</p>
+    <p class="why" style="color:var(--warn)"><b>Still wanted (Neel, n2–n4):</b> the offers table and wider status enum. That's no longer a blocker, since the snapshot rows cover it, but real tables are cleaner and faster. Not tested against a live Supabase yet: no keys on this machine (g1).</p>
     <p class="why">The exchange runs end to end against Neel's real <code>decide()</code> and <code>voice()</code>. Memory store and seed catalog by default; events go to Supabase when <code>SUPABASE_URL</code> is set. Gate: <code>pnpm --filter @sa/seller-mcp gate</code> runs 30 negotiations (10 normal, 11 recorded E4/E9 attacks, 9 protocol abuses and adversarial sellers): 0 deals below floor, 0 floor or cost figures in seller text, every tamper rejected.</p>
     <div class="table-wrap"><table>
       <thead><tr><th>Who</th><th>Call</th><th>Returns</th></tr></thead>

@@ -66,6 +66,14 @@ export class Exchange {
     this.buffer = o.soft_floor_buffer ?? DEFAULT_SOFT_FLOOR_BUFFER;
   }
 
+  /** Deploy default: Supabase store + events when SUPABASE_URL is set, else in-memory. */
+  static async fromEnv(o: Omit<ExchangeOptions, "store"> = {}): Promise<Exchange> {
+    const catalog = o.catalog ?? new StaticCatalog();
+    const { supabaseStoreFromEnv } = await import("./supabase-store");
+    const store = (await supabaseStoreFromEnv(catalog)) ?? new MemoryStore();
+    return new Exchange({ ...o, catalog, store });
+  }
+
   async handle(move: Move): Promise<ExchangeResponse> {
     const ctx = BuyerContext.safeParse(move?.ctx);
     if (!ctx.success) return fail("bad_request", "ctx needs run_id, buyer_id and buyer_model on every call");
