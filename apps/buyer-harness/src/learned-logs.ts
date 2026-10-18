@@ -11,18 +11,20 @@
  */
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { gunzipSync } from "node:zlib";
 import type { NegotiationEvent } from "@sa/shared";
 import { ARMS, contextOf, type Arm, type BuyerLeverProfile } from "@sa/seller-mcp/sellers";
 import { RUNS_DIR } from "./run-all";
 
 export type Ev = NegotiationEvent & { ts?: string };
 
-/** A run id (apps/buyer-harness/runs/<id>.events.jsonl) or a path to a .jsonl / .json event file. */
+/** A run id (apps/buyer-harness/runs/<id>.events.jsonl) or a path to a .jsonl / .json event file (optionally .gz). */
 export function readEvents(ref: string): Ev[] {
   const file = existsSync(ref) ? ref : resolve(RUNS_DIR, `${ref}.events.jsonl`);
   if (!existsSync(file)) throw new Error(`no events for ${ref} (looked for ${file})`);
-  const text = readFileSync(file, "utf8");
-  return file.endsWith(".json") ? (JSON.parse(text) as Ev[]) : text.trim().split("\n").filter(Boolean).map((l) => JSON.parse(l) as Ev);
+  const raw = readFileSync(file);
+  const text = (file.endsWith(".gz") ? gunzipSync(raw) : raw).toString("utf8");
+  return file.replace(/\.gz$/, "").endsWith(".json") ? (JSON.parse(text) as Ev[]) : text.trim().split("\n").filter(Boolean).map((l) => JSON.parse(l) as Ev);
 }
 
 export interface Session {

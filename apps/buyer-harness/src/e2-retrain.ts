@@ -3,7 +3,7 @@
  *
  *   pnpm e2:retrain --runs b3A_learned,b3A_negotiating,b3A_balanced          # runs/<id>.events.jsonl
  *   pnpm e2:retrain --runs eval_x_learned --from-db                           # Supabase `events` (needs SUPABASE_URL + service key)
- *   options: --epsilon 0.1  --epochs 20  --min-sessions 10  --weighting mixture|logged  --out ../seller-mcp/learned_policy.json
+ *   options: --epsilon 0.1  --epochs 20  --min-sessions 10  --weighting mixture|logged  --order time|interleave  --out ../seller-mcp/learned_policy.json
  *
  * Each negotiation is one session: arm + propensity from the exchange's seller events (learned: payload.arm/propensity;
  * fixed policies: rule_refs policy:<name>, propensity 1), reward = seller profit on its deal (0 if no deal).
@@ -18,9 +18,9 @@
  * Writes a NEW version (previous + 1) with the learning curve. Its gate starts as not passed (so the exchange falls back
  * to negotiating) until a held-out run scores it: pnpm e2:learned --policy-file <out> --gate.
  *
- * Curve: sessions interleaved across runs in log order (as a deployed exchange would see them), cut into epochs; after
- * each epoch, the greedy policy learned so far is valued per session with the all-data IPS means, next to always-negotiating
- * and always-balanced valued the same way.
+ * Curve: sessions in the order they were logged (--order time, default: the real history of what the seller saw), or
+ * round-robin across runs (--order interleave), cut into epochs; after each epoch, the greedy policy learned so far is
+ * valued per session with the all-data IPS means, next to always-negotiating and always-balanced valued the same way.
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -32,7 +32,7 @@ try { process.loadEnvFile(resolve(import.meta.dirname, "../../../.env")); } catc
 
 const { values: f } = parseArgs({ options: {
   runs: { type: "string" }, "from-db": { type: "boolean" }, epsilon: { type: "string", default: "0.1" }, epochs: { type: "string", default: "20" },
-  "min-sessions": { type: "string", default: "10" }, weighting: { type: "string", default: "mixture" },
+  "min-sessions": { type: "string", default: "10" }, weighting: { type: "string", default: "mixture" }, order: { type: "string", default: "time" },
   out: { type: "string" },
 } });
 if (!f.runs) throw new Error("--runs <run id,...> is required");
@@ -51,11 +51,12 @@ async function dbEvents(run_id: string): Promise<Ev[]> {
   }
 }
 
-// ---- sessions, interleaved across runs
+// ---- sessions, in logged order (or interleaved across runs)
 const perRun: Session[][] = [];
 for (const r of runs) perRun.push(sessions(f["from-db"] ? await dbEvents(r) : readEvents(r)).filter((s) => s.arm));
-const all: Session[] = [];
-for (let i = 0; perRun.some((xs) => i < xs.length); i++) for (const xs of perRun) if (i < xs.length) all.push(xs[i]);
+let all: Session[] = [];
+if (f.order === "interleave") { for (let i = 0; perRun.some((xs) => i < xs.length); i++) for (const xs of perRun) if (i < xs.length) all.push(xs[i]); }
+else all = perRun.flat().sort((a, b) => a.ts.localeCompare(b.ts));
 if (!all.length) throw new Error("no bandit sessions in those runs (need seller events from the exchange)");
 
 if (!["mixture", "logged"].includes(f.weighting!)) throw new Error("--weighting is mixture or logged");
