@@ -193,6 +193,10 @@ const DATA = {
       design: ["Plain code. Checks every seller offer before it goes out, and again at <code>pay_deal</code>.", "Floors, allowed add-ons, payment terms."],
       evidence: "E2: blocked 8 below-floor attempts; 0 closed deals broke a rule. E1: blocked an Opus seller accepting $29,200 against a $29,700 floor, so prompt-only rules leak even on the strongest model.",
       open: "E4: do sellers promise financing or freebies in words, which a price check can't catch?" },
+    { name: "Guardrails (cross-cutting)", status: "leaning", who: "Stripe: safe participation",
+      design: ["Input: buyer text is quoted untrusted data; deterministic injection detector; schema-checked offers.", "Decision: strategy and RL actions are masked so nothing below the low can be proposed; optionally the LLM never sees the low or cost.", "Output post-guard on every seller turn: policy engine on the offer, prices in the text must match a valid offer and stay above the low, no floor disclosure, no verbal financing or freebies, \"final\" only when final. Block, regenerate, then fall back to a safe template.", "Transaction: immutable server-side deals; pay_deal rejects tampered amounts, replays, expired deals, and tokens capped below the total.", "Session: max concession per round, circuit breaker on repeated attacks, escalate out-of-policy asks to a human."],
+      evidence: "E1: the policy engine stopped an Opus seller accepting $500 under its floor. E2: 2 sessions where the seller revealed its floor. E1/E5: \"best and final\" bluffs in 10 of 94 and 13 of 70 sessions.",
+      open: "E9 tests each layer: what it catches, and what it costs legitimate sales." },
     { name: "Checkout", status: "decided", who: "Stripe",
       design: ["Deal stored when approved → buyer sends a Shared Payment Token capped at the exact total → <code>pay_deal</code> re-checks the deal and the token → PaymentIntent with an idempotency key.", "The amount always comes from our stored deal.", "Fallback: PaymentIntent with a test card."],
       evidence: "Stripe guide: this is Stripe's documented seller flow, and their Aug 2026 marketplace post describes the same policy-before-payment design.",
@@ -218,6 +222,8 @@ const DATA = {
     ["2026-10-17", "Selling agent", "Never call a price firm or final unless it is the final offer (13 of 147 seller transcripts were flagged for this).", "E7"],
     ["2026-10-17", "Selling agent", "No quote-matching rules: buyers carried each quote to the other seller until one hit its floor.", "E7"],
     ["2026-10-17", "Discovery", "Broker / marketplace mode stays out of the build: buyers shop sellers themselves, and a broker only cut price by about 1 point.", "E7"],
+    ["2026-10-17", "Guardrails", "Guardrails made an explicit cross-cutting layer (input, decision, output post-guard, transaction, session). E9 tests each layer.", "Safety review"],
+    ["2026-10-17", "Selling agent", "Seller priority (profit, conversion, adaptive) becomes a configuration, tested against buyer types in E10.", "Design review"],
     ["2026-10-17", "Selling agent", "Strategy decided: slow Boulware concession with warranty-before-discount. Code computes the target and the true reason, the LLM voices it, and the policy engine holds the floor.", "E5"],
     ["2026-10-17", "Selling agent", "Fixed price is the baseline to beat, not open-ended negotiation: the default negotiator earned less than fixed price.", "E5"],
     ["2026-10-17", "Front door", "request_quote dropped (unused in 116 runs); make_offer keeps structured fields plus an optional message, since free text earned the seller $499 more per deal.", "E1"],
@@ -229,7 +235,9 @@ const DATA = {
   pending: [
     ["E3 · Buyer behavior", "Budget-leak probe; write-up", "Buyer agent, haggle"],
     ["E4 · Red team", "Attacks on prompt-only vs. code rules", "Policy engine"],
-    ["E6 · RL", "Learned policy vs. LLM buyers", "Learning loop"]
+    ["E6 · RL", "Learned policy vs. LLM buyers", "Learning loop"],
+    ["E9 · Guardrails", "Layer-by-layer safety ablation", "Guardrails, policy engine, checkout"],
+    ["E10 · Priorities × buyer types", "Seller priority dial, adaptive selling, needs-fit", "Selling agent, buyer agent"]
   ]
 };
 const $ = (id) => document.getElementById(id);
