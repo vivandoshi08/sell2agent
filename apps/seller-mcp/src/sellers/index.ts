@@ -10,6 +10,7 @@
  */
 export * from "./types";
 export { decide, askPrice, concessionFraction, softFloor, TACTICS, DEFAULT_SOFT_FLOOR_BUFFER, usd } from "./decide";
+export { decideLever, pickLever, DEFAULT_LEVER_THRESHOLD } from "./levers";
 export { voice, checkMessage, templateMessage, dollarsInText } from "./voice";
 export type { VoiceContext, VoiceResult } from "./voice";
 export { answerQuestion, lookupAnswer } from "./answers";
