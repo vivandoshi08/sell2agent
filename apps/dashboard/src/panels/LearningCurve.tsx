@@ -13,14 +13,15 @@ import learned from "../../../seller-mcp/learned_policy.json";
 import { learnedEval, liveArmPicks, orderContexts, type Cell, type LearnedEval } from "../metrics/learned";
 import { personaLabel, policyLabel } from "../ui/labels";
 
-interface ArmStats { n: number; sum: number }
+interface ArmStats { n: number; sum: number; w?: number; wsum?: number }
 interface Learned {
-  version: number; trained_at: string; arms: string[]; epsilon: number;
+  version: number; trained_at: string; arms: string[]; epsilon: number; min_sessions?: number;
   stats: Record<string, Record<string, ArmStats>>; choice: Record<string, string>;
   curve?: { epoch: number; bandit: number; negotiating: number; balanced?: number }[];
   gate?: { passed: boolean; best_fixed_policy: string; learned_minus_best_fixed_cents: number; holdout_buyers: number; diff_vs_negotiating_cents: number; ci95_cents: [number, number]; below_floor: number;
     ci95_vs_best_fixed_cents?: [number, number]; beats_best_fixed?: boolean; source?: string };
-  trained_on?: { source: string; sessions: number; runs?: string[]; previous_version?: number };
+  trained_on?: { source: string; sessions: number; runs?: string[]; previous_version?: number;
+    by_source?: { real: number; sim: number }; reward?: string; contexts?: Record<string, { real: number; sim: number }> };
 }
 const LP = learned as unknown as Learned;
 const usd = (c: number) => `${c < 0 ? "−" : ""}$${(Math.abs(c) / 100).toFixed(2)}`;
@@ -34,7 +35,16 @@ export const ARM: Record<string, { name: string; how: string }> = {
   lever_policy: { name: "Perks first", how: "adds warranty or shipping before cutting price" },
   static: { name: "Fixed price", how: "list price, no haggling" },
   learned: { name: "Learned", how: "picks a playbook per buyer type" },
+  "pkg:free_shipping": { name: "Lead with free shipping", how: "balanced pricing, adds free shipping instead of a cut" },
+  "pkg:extended_warranty": { name: "Lead with warranty", how: "balanced pricing, adds the extended warranty instead of a cut" },
+  "pkg:bundle_discount": { name: "Lead with bundle", how: "balanced pricing, adds the bundle discount instead of a cut" },
 };
+/** Perks the seller can learn to lead with (package arms), in the order the grid shows them. */
+const PERKS = [
+  { arm: "pkg:free_shipping", label: "Free shipping" },
+  { arm: "pkg:extended_warranty", label: "Extended warranty" },
+  { arm: "pkg:bundle_discount", label: "Bundle discount" },
+] as const;
 const armName = (a: string) => ARM[a]?.name ?? policyLabel(a);
 /** Buyer type in sentence case ("Price first"); lower-cased where it sits mid-sentence. */
 const ctxName = (c: string) => (c === "unknown" ? "No stated preference" : personaLabel(c));
@@ -44,7 +54,8 @@ export function smooth(xs: number[], k = 5): number[] {
   return xs.map((_, i) => { const w = xs.slice(Math.max(0, i - k + 1), i + 1); return w.reduce((a, b) => a + b, 0) / w.length; });
 }
 
-const mean = (s?: ArmStats) => (s?.n ? s.sum / s.n : null);
+/** The value the bandit chose by: IPS-weighted when retrained from logs, else the plain mean. */
+const mean = (s?: ArmStats) => (s?.n ? (s.w ? (s.wsum ?? 0) / s.w : s.sum / s.n) : null);
 
 export function LearningCurve({ data = LP, events }: { data?: Learned; events?: NegotiationEvent[] }) {
   const ab = useMemo(() => (events ? learnedEval(events) : null), [events]);
@@ -56,12 +67,16 @@ export function LearningCurve({ data = LP, events }: { data?: Learned; events?: 
     <section className="panel lp" aria-label="What the seller learned">
       <div className="panel-head"><h2>What the seller learned</h2>
         <span className="eyebrow">learned policy v{data.version}{data.trained_on ? ` · ${data.trained_on.source.startsWith("logged") ? `retrained on ${data.trained_on.sessions} logged negotiations` : `${data.trained_on.sessions} training negotiations`}` : ""}</span></div>
-      <p className="sub">For each type of buyer, the seller tried its playbooks and kept the one that earned the most. Every playbook runs through the same floor and concession guards.</p>
+      <p className="sub">For each type of buyer, the seller tried its playbooks and perks and kept the one that best met your goal. Every playbook runs through the same floor and concession guards.</p>
+
+      <Training data={data} />
 
       <div className="card-h"><h3>Playbook per buyer type</h3><span>buyer type = what the buyer weighs most</span></div>
       <div className="lp-picks">
         {contexts.map((c) => <PickTile key={c} context={c} data={data} ab={ab} />)}
       </div>
+
+      {data.arms.some((a) => a.startsWith("pkg:")) && <PerkGrid data={data} contexts={contexts} />}
 
       {ab && <Comparison ab={ab} fixed={fixed} />}
 
@@ -77,10 +92,10 @@ export function LearningCurve({ data = LP, events }: { data?: Learned; events?: 
       )}
 
       <details className="lp-train" open={!ab}>
-        <summary>Training data: profit per buyer and tries, per playbook</summary>
+        <summary>Training data: goal value per buyer and tries, per playbook</summary>
         <div className="scroll">
           <table className="pgrid">
-            <thead><tr><th>Buyer type</th><th>Seller now uses</th>{data.arms.map((a) => <th key={a}>{armName(a)}<br /><span className="th-sub">profit/buyer · tries</span></th>)}</tr></thead>
+            <thead><tr><th>Buyer type</th><th>Seller now uses</th>{data.arms.map((a) => <th key={a}>{armName(a)}<br /><span className="th-sub">goal/buyer · tries</span></th>)}</tr></thead>
             <tbody>
               {contexts.map((c) => (
                 <tr key={c}>
@@ -88,7 +103,7 @@ export function LearningCurve({ data = LP, events }: { data?: Learned; events?: 
                   <td><span className="pill neg">{armName(data.choice[c] ?? "negotiating")}</span></td>
                   {data.arms.map((a) => {
                     const s = data.stats[c]?.[a];
-                    return <td key={a} className={`num${a === data.choice[c] ? " best" : " dim"}`}>{s?.n ? `${usd(Math.round(s.sum / s.n))} · ${s.n}` : "—"}</td>;
+                    return <td key={a} className={`num${a === data.choice[c] ? " best" : " dim"}`}>{s?.n ? `${usd(Math.round(mean(s)!))} · ${s.n}` : "—"}</td>;
                   })}
                 </tr>
               ))}
@@ -98,6 +113,57 @@ export function LearningCurve({ data = LP, events }: { data?: Learned; events?: 
       </details>
       <p className="empty">Playbooks: {data.arms.map((a) => `${armName(a)} ${ARM[a]?.how ?? ""}`.trim()).join("; ")}. Trained {new Date(data.trained_at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })} {data.trained_on?.source.startsWith("logged") ? `on ${data.trained_on.sessions} logged negotiations with AI buyers` : "on simulated lever-profile buyers"}; explores {Math.round(data.epsilon * 100)}% of the time in deployment, and logs the odds of every pick so retraining stays unbiased.</p>
     </section>
+  );
+}
+
+/** What trained this policy: real marketplace shoppers vs simulated buyers, and the reward (the seller's goal). */
+function Training({ data }: { data: Learned }) {
+  const t = data.trained_on;
+  if (!t) return null;
+  const src = t.by_source;
+  return (
+    <div className="lp-train-src">
+      <div className="lp-src"><span className="eyebrow">Real shoppers</span><b className="num">{src ? src.real.toLocaleString() : "—"}</b><small>live negotiations on the marketplace (ChatGPT, Claude, agent testers)</small></div>
+      <div className="lp-src"><span className="eyebrow">Simulated buyers</span><b className="num">{src ? src.sim.toLocaleString() : t.sessions.toLocaleString()}</b><small>AI buyers with set preferences, same exchange and guards</small></div>
+      <div className="lp-src"><span className="eyebrow">Optimizing for</span><b>{t.reward ?? "profit"}</b><small>your goal weights from the console (margin → profit, conversion → revenue)</small></div>
+      <div className="lp-src"><span className="eyebrow">Retrain loop</span><b>v{t.previous_version ?? "—"} → v{data.version}</b><small>every negotiation logs its pick and odds; <code>pnpm e2:retrain --live</code> folds them back in</small></div>
+    </div>
+  );
+}
+
+/** Which perk works for which buyer: goal value per buyer when the seller led with each perk, vs no perk (Balanced). */
+function PerkGrid({ data, contexts }: { data: Learned; contexts: string[] }) {
+  const rows = contexts.filter((c) => c !== "unknown" || contexts.length === 1);
+  return (
+    <div className="lp-perks">
+      <div className="card-h"><h3>Which perk works for which buyer</h3><span>goal value per buyer · tries, when the seller led with that perk instead of a price cut</span></div>
+      <div className="scroll">
+        <table className="pgrid">
+          <thead><tr><th>Buyer type</th><th>No perk<br /><span className="th-sub">Balanced</span></th>{PERKS.map((p) => <th key={p.arm}>{p.label}</th>)}<th>Seller leads with</th></tr></thead>
+          <tbody>
+            {rows.map((c) => {
+              const st = data.stats[c] ?? {};
+              const cols = ["balanced", ...PERKS.map((p) => p.arm)];
+              const vals = cols.map((a) => (st[a]?.n ? mean(st[a]) : null));
+              const best = Math.max(...vals.map((v) => v ?? -Infinity));
+              const choice = data.choice[c] ?? "negotiating";
+              const perk = PERKS.find((p) => p.arm === choice);
+              return (
+                <tr key={c}>
+                  <td className="persona">{ctxName(c)}</td>
+                  {cols.map((a, i) => {
+                    const v = vals[i], n = st[a]?.n ?? 0;
+                    return <td key={a} className={`num${v != null && v === best ? " best" : v == null ? " dim" : ""}`}>{v != null ? <>{usd(Math.round(v))}<br /><span className="th-sub">{n} tries{n < (data.min_sessions ?? 10) ? " · too few" : ""}</span></> : "not tried"}</td>;
+                  })}
+                  <td><span className="pill neg">{perk ? perk.label : `No perk (${armName(choice)})`}</span></td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <p className="empty">A perk is only offered on listings where you enabled it, priced so the deal still clears your floor plus the perk's cost. A perk with fewer than {data.min_sessions ?? 10} tries can't win a buyer type yet.</p>
+    </div>
   );
 }
 

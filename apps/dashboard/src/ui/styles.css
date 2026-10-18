@@ -353,6 +353,12 @@ details.panel summary::-webkit-details-marker { display: none; }
 /* ---------- Bridge 3: what the seller learned ---------- */
 .lp h3 { margin: 0; font-size: 14px; font-weight: 600; }
 .lp code { font-family: var(--mono); font-size: .92em; }
+.lp-train-src { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 4px 0 18px; }
+.lp-src { display: grid; gap: 3px; align-content: start; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--canvas); min-width: 0; }
+.lp-src > b { font-size: 20px; }
+.lp-src small { color: var(--muted); font-size: 12.5px; line-height: 1.35; }
+.lp-perks { margin: 18px 0; }
+@media (max-width: 760px) { .lp-train-src { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .lp-picks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 .lp-pick { display: grid; gap: 4px; align-content: start; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: linear-gradient(170deg, var(--brand-tint), var(--canvas) 62%); min-width: 0; }
 .lp-ctx { font-size: 18px; font-weight: 600; letter-spacing: -.01em; }
