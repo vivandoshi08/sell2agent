@@ -1,7 +1,7 @@
 // E1 exchange: protocol, decision guard, deal lock. Offline (memory store, template voice). Run: pnpm --filter @sa/seller-mcp test
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { Exchange, MemorySink, MemoryStore, StaticCatalog, guardMove, canTransition, TRANSITIONS, ANON_MEMORY_TTL_MS, ANON_START_LIMIT, START_LIMIT, memoryKey, type Decider } from "../src/exchange";
+import { Exchange, MemorySink, MemoryStore, StaticCatalog, guardMove, canTransition, TRANSITIONS, ANON_MEMORY_TTL_MS, ANON_START_LIMIT, OAI_START_LIMIT, START_LIMIT, memoryKey, type Decider } from "../src/exchange";
 import type { ProposedMove } from "../src/sellers";
 
 const ctx = (buyer_id = "b1") => ({ run_id: "e1-test-run", buyer_id, buyer_model: "scripted" });
@@ -244,6 +244,27 @@ test("start limit: 4 per named buyer, ANON_START_LIMIT for the shared anon bucke
   assert.equal(other.ok, true, "per product");
   for (let i = 0; i < START_LIMIT; i++) assert.equal((await ex.handle({ kind: "offer", ctx: ctx("carol"), product_id: P, offer_price_cents: 9000 })).ok, true);
   assert.equal((await ex.handle({ kind: "offer", ctx: ctx("carol"), product_id: P, offer_price_cents: 9000 })).error?.code, "rate_limited");
+});
+
+test("oai_ (ChatGPT user): own bucket, memory expires after the TTL, OAI_START_LIMIT starts", async () => {
+  const { ex, now } = setup();
+  const me = "oai_0123456789abcdef0123456789abcdef";
+  let r = await ex.handle({ kind: "offer", ctx: ctx(me), product_id: P, offer_price_cents: 9000 });
+  while (r.allowed_actions.includes("offer")) r = await ex.handle({ kind: "offer", ctx: ctx(me), product_id: P, negotiation_id: r.negotiation_id, offer_price_cents: 9000 });
+  const last = r.standing_offer!.price_cents;
+  await ex.handle({ kind: "walk", ctx: ctx(me), negotiation_id: r.negotiation_id! });
+  const other = await ex.handle({ kind: "offer", ctx: ctx("oai_ffffffffffffffffffffffffffffffff"), product_id: P, offer_price_cents: 9000 });
+  assert.equal(other.round, 1, "another ChatGPT user is not resumed at my price");
+  const again = await ex.handle({ kind: "offer", ctx: ctx(me), product_id: P, offer_price_cents: 9000 });
+  assert.equal(again.standing_offer!.final, true, "inside the TTL the same user resumes frozen");
+  assert.equal(again.standing_offer!.price_cents, last);
+  await ex.handle({ kind: "walk", ctx: ctx(me), negotiation_id: again.negotiation_id! });
+  now.t += ANON_MEMORY_TTL_MS + 1;
+  const later = await ex.handle({ kind: "offer", ctx: ctx(me), product_id: P, offer_price_cents: 9000 });
+  assert.equal(later.round, 1, "after the TTL the demo account negotiates from list again");
+  assert.equal(later.standing_offer!.final, false);
+  for (let i = 3; i < OAI_START_LIMIT; i++) assert.equal((await ex.handle({ kind: "offer", ctx: ctx(me), product_id: P, offer_price_cents: 9000 })).ok, true, `start ${i + 1}`);
+  assert.equal((await ex.handle({ kind: "offer", ctx: ctx(me), product_id: P, offer_price_cents: 9000 })).error?.code, "rate_limited");
 });
 
 test("clearBuyerMemory (anon:reset): the next anon chat starts from list", async () => {

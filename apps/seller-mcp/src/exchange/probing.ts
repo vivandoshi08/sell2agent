@@ -4,7 +4,7 @@
  *    so two mid-negotiation offers can't be curve-fitted to the floor
  *  - probe breaker: a near-miss deadline bid (within 10% of the gap below the hard floor) or an abandoned deal
  *    closes the final-round accept zone (hard floor..soft floor) for everyone on that product for 24 h
- *  - start limiter: 4 negotiation starts per buyer per product per 24 h (50 for the shared anon bucket)
+ *  - start limiter: 4 negotiation starts per buyer per product per 24 h (50 for the shared anon bucket, 20 per oai_ user)
  * Anonymous buyers (gateway-minted `anon_` ids, one per chat) share one bucket per product for all three
  * (see probeId in store.ts), so opening a fresh chat never buys a better opening, endpoint or start.
  */
@@ -21,6 +21,12 @@ export const START_LIMIT = 4;
  * (and demo rehearsals) after the fourth chat. Override: EXCHANGE_ANON_START_LIMIT.
  */
 export const ANON_START_LIMIT = Number(process.env.EXCHANGE_ANON_START_LIMIT) || 50;
+/** One ChatGPT user (`oai_`): more than a named buyer so rehearsals on one account don't lock out. Override: EXCHANGE_OAI_START_LIMIT. */
+export const OAI_START_LIMIT = Number(process.env.EXCHANGE_OAI_START_LIMIT) || 20;
+
+export function startLimitFor(buyer_id: string): number {
+  return buyer_id.startsWith("anon_") ? ANON_START_LIMIT : buyer_id.startsWith("oai_") ? OAI_START_LIMIT : START_LIMIT;
+}
 export const START_WINDOW_MS = 24 * 3600_000;
 
 /** Deterministic pseudo-random number in [0, 1) for a key. Private: seeded with the server secret. */
