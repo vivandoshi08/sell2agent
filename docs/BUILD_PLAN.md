@@ -20,6 +20,8 @@
 | **Soft floor:** counters stop at floor + a buffer (e.g. 3% of the list−floor gap); accepts may go down to the hard floor. | E4: in 50 of 71 attack sessions the seller's lowest offer was exactly its floor, which reveals it. |
 | **Output check on every seller message before it's returned:** any dollar figure in `message` must equal the structured `price_cents` (or a previous valid offer) and be ≥ floor; no floor/cost disclosure; no promises of concessions not in `concessions[]`; no financing; "final" only on the last round. Block → regenerate once → fall back to a template. | E2, E4: sellers revealed floors, promised "I can include delivery" outside the priced offer, and bluffed "best and final" (10 of 94 runs in E1, 13 of 70 in E5). |
 | **Treat buyer `message` as untrusted text:** wrap it in delimiters in the prompt; flag injection patterns (`SYSTEM:`, "ignore previous", fake JSON). | E4: injection was the only attack that worked. |
+| **Default stance: hold list longer and never concede more than ~75% of the way to the floor**; always give the LLM the true reason for the code-set price. | E10: beat the balanced schedule by $913 per session; LLM's stated price matched code on 377/378 offers. Adaptive buyer-typing lost money (−$707). |
+| **Accept by offer id**, and only one priced option per seller message. | E10: 2 of 96 deals closed on the wrong option when the message mentioned a cheaper one. |
 | **Hold list when the buyer clearly can pay it.** | E2: the negotiator sold 0 of 42 deals at list, even to buyers $4,300 above it. |
 | **No quote-matching** ("beat any competitor by $X"). | E7: buyers carried quotes between sellers until one hit its floor. |
 | **Final turn:** an offer stays acceptable after `rounds_left = 0` until it expires. | E3: 21 of 22 failed sessions ended at the round cap; two had an acceptable offer on the table. |
@@ -32,7 +34,7 @@
 |---|---|
 | Buyers **may drop an add-on or change quantity** mid-negotiation; personas need a private walk-away and a stated budget that differ. | E3, E6: LLM buyers changed the bundle in 36% of sessions; that's how negotiation wins buyers below list. |
 | Support at least two model families (the brief says Claude + one other). | E3: buyer styles differ by model (Sonnet never shares its budget). E6: a policy that won with Opus buyers lost with Haiku. |
-| Mix buyer types: price-first, quality-first, balanced. | E10 (running). |
+| Mix buyer types: price-first, quality-first, balanced. **Some buyers must walk away** when the price is wrong. | E10: buyer type set the product mix; buyers that never walk made conversion impossible to move. |
 | Include a few adversarial buyers (injection, fake competitor quote, floor probing across sessions). | E4, E9, E11. |
 | Budget cap in code, never in the prompt only (already in the brief). | E4 pattern on the buyer side. |
 
