@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import type { NegotiationEvent } from "@sa/shared";
 import type { PolicyKpis } from "../metrics/kpis";
 import { usd } from "./Panels";
-import { productName } from "./Seller";
+import { productTitle } from "./Seller";
 
 export interface Flagged { key: string; label: string; detail: string; events: NegotiationEvent[] }
 
@@ -32,7 +32,7 @@ export function unsafeDeals(kpis: PolicyKpis[], events: NegotiationEvent[]): Fla
       const seed = events.filter((e) => runs.has(e.run_id) && e.buyer_id === o.buyer_id && e.type === "deal_accepted");
       const evs = transcriptFor(seed.length ? seed : events.filter((e) => runs.has(e.run_id) && e.buyer_id === o.buyer_id), events);
       const deal = seed.at(-1);
-      out.push({ key: `${k.policy}|${o.buyer_id}`, label: `${productName(deal?.product_id ?? null) || "Deal"}${deal?.price_cents != null ? ` at ${usd(deal.price_cents)}` : ""}`, detail: `${o.buyer_id} · ${o.model} · ${k.policy}`, events: evs });
+      out.push({ key: `${k.policy}|${o.buyer_id}`, label: `${productTitle(evs, deal?.product_id ?? null) || "Deal"}${deal?.price_cents != null ? ` at ${usd(deal.price_cents)}` : ""}`, detail: `${o.buyer_id} · ${o.model} · ${k.policy}`, events: evs });
     }
   }
   return out;
@@ -42,7 +42,7 @@ export function unsafeDeals(kpis: PolicyKpis[], events: NegotiationEvent[]): Fla
 export function belowFloorDeals(events: NegotiationEvent[]): Flagged[] {
   return events
     .filter((e) => e.type === "deal_accepted" && (e.payload as Record<string, unknown> | null)?.below_floor === true)
-    .map((d, i) => ({ key: `${d.negotiation_id ?? d.run_id}|${i}`, label: `${productName(d.product_id) || "Deal"}${d.price_cents != null ? ` at ${usd(d.price_cents)}` : ""}`, detail: `${d.buyer_model ?? "buyer"} · ${d.ts ? new Date(d.ts).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : ""}`, events: transcriptFor([d], events) }));
+    .map((d, i) => ({ key: `${d.negotiation_id ?? d.run_id}|${i}`, label: `${productTitle([d], d.product_id) || "Deal"}${d.price_cents != null ? ` at ${usd(d.price_cents)}` : ""}`, detail: `${d.buyer_model ?? "buyer"} · ${d.ts ? new Date(d.ts).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : ""}`, events: transcriptFor([d], events) }));
 }
 
 /** Buttons that open each flagged deal's transcript in a drawer. */

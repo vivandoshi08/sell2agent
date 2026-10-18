@@ -21,6 +21,12 @@ export function productName(id: string | null) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
+/** Public listing title the exchange logs (contract v3 `product_title`), else a readable id. */
+export function productTitle(evs: NegotiationEvent[], id: string | null = evs.find((e) => e.product_id)?.product_id ?? null) {
+  for (const e of evs) { const t = str(pl(e).product_title); if (t && (!id || e.product_id === id)) return t; }
+  return productName(id);
+}
+
 /** Which assistant is shopping: contract v3 `agent_operator`, else a guess from `buyer_model`. */
 export function agentName(evs: NegotiationEvent[]) {
   for (const e of evs) { const op = str(pl(e).agent_operator); if (op) return op.charAt(0).toUpperCase() + op.slice(1); }
@@ -93,7 +99,7 @@ export function useNegotiations(events: NegotiationEvent[], limit = 6) {
       const g = groups.get(id); if (g) g.push(e); else groups.set(id, [e]);
     }
     return [...groups.entries()]
-      .map(([id, evs]) => ({ id, evs, last: evs.at(-1)?.ts ?? "", status: statusOf(evs), agent: agentName(events.filter((x) => x.buyer_id === evs[0].buyer_id && x.run_id === evs[0].run_id)), product: productName(evs.find((e) => e.product_id)?.product_id ?? null) }))
+      .map(([id, evs]) => ({ id, evs, last: evs.at(-1)?.ts ?? "", status: statusOf(evs), agent: agentName(events.filter((x) => x.buyer_id === evs[0].buyer_id && x.run_id === evs[0].run_id)), product: productTitle(evs) }))
       .sort((a, b) => (a.last < b.last ? 1 : a.last > b.last ? -1 : 0))
       .slice(0, limit);
   }, [events, limit]);
@@ -133,11 +139,12 @@ export function SaleToasts({ events }: { events: NegotiationEvent[] }) {
   const [toasts, setToasts] = useState<{ id: string; title: string; body: string }[]>([]);
   useEffect(() => {
     const paid = events.filter((e) => e.type === "payment_succeeded");
-    if (seen.current === null) { seen.current = paid.length; return; } // don't replay history on load
+    // Don't replay history: the first batch the feed delivers (possibly after an empty first render) sets the baseline.
+    if (seen.current === null) { if (events.length) seen.current = paid.length; return; }
     const fresh = paid.slice(seen.current);
     seen.current = paid.length;
     if (!fresh.length) return;
-    const add = fresh.map((e, i) => ({ id: `${e.negotiation_id ?? e.run_id}-${paid.length}-${i}`, title: `Sold: ${productName(e.product_id) || "an order"} for ${e.price_cents != null ? usd(e.price_cents) : ""}`, body: `To ${agentName(events.filter((x) => x.buyer_id === e.buyer_id && x.run_id === e.run_id))}'s shopper. Paid in Stripe test mode.` }));
+    const add = fresh.map((e, i) => ({ id: `${e.negotiation_id ?? e.run_id}-${paid.length}-${i}`, title: `Sold: ${productTitle(events.filter((x) => x.negotiation_id && x.negotiation_id === e.negotiation_id), e.product_id) || "an order"} for ${e.price_cents != null ? usd(e.price_cents) : ""}`, body: `To ${agentName(events.filter((x) => x.buyer_id === e.buyer_id && x.run_id === e.run_id))}'s shopper. Paid in Stripe test mode.` }));
     setToasts((t) => [...add, ...t].slice(0, 3));
     const timer = setTimeout(() => setToasts((t) => t.filter((x) => !add.some((a) => a.id === x.id))), 6000);
     return () => clearTimeout(timer);
