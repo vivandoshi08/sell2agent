@@ -1,11 +1,34 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { NegotiationEvent } from "@sa/shared";
 import { pickFeed } from "./data/source";
 import { policyKpis, runPolicies } from "./metrics/kpis";
 import { BarCompare } from "./ui/BarCompare";
 import { GuardrailLog, LiveFeed, PersonaGrid, SafetyTile, pct, usd } from "./ui/Panels";
+import { WaveField } from "./ui/WaveField";
 
 const feed = pickFeed();
+
+function Legend() {
+  return (
+    <span className="legend" aria-hidden="true">
+      <span><i className="sw static" />static</span>
+      <span><i className="sw neg" />negotiating</span>
+    </span>
+  );
+}
+
+function Kpi({ title, sub, better, children }: { title: string; sub: string; better: "higher" | "lower"; children: ReactNode }) {
+  return (
+    <section className="panel kpi" aria-label={title}>
+      <div className="kpi-head">
+        <h3>{title}</h3>
+        <span className={`dir ${better}`}>{better === "higher" ? "↑ higher is better" : "↓ lower is better"}</span>
+      </div>
+      <p className="sub">{sub}</p>
+      {children}
+    </section>
+  );
+}
 
 export function App() {
   const [events, setEvents] = useState<NegotiationEvent[]>([]);
@@ -23,62 +46,74 @@ export function App() {
   const buyers = kpis.reduce((s, k) => s + k.buyers, 0);
 
   return (
-    <main className="app">
-      <header className="top">
-        <div>
-          <span className="eyebrow">Seller agents · proof</span>
-          <h1>Static listings vs. negotiating sellers</h1>
+    <>
+      <WaveField />
+      <main className="app">
+        <header className="top">
+          <div className="title">
+            <span className="eyebrow">Seller agents · proof</span>
+            <h1>Static listings <span className="vs">vs.</span> <span className="hl">negotiating sellers</span></h1>
+          </div>
+          <div className="badges">
+            <span className={`badge ${feed.mode}`}>{feed.mode === "live" ? "Live · Supabase" : "Sample data · illustrative"}</span>
+            <span className="badge num">{buyers} buyers</span>
+            <span className="badge num">{events.length} events</span>
+          </div>
+        </header>
+
+        {error && <p className="err">{error}</p>}
+
+        <div className="lead">
+          <section className="panel hero" aria-label="Profit per buyer">
+            <div className="hero-nums">
+              <span className="eyebrow">Profit per buyer session</span>
+              {neg && <div className="hero-num neg num"><b>{neg.profit_per_buyer_cents == null ? "—" : usd(neg.profit_per_buyer_cents)}</b><span>{neg.policy} sellers</span></div>}
+              {base && <div className="hero-num base num"><b>{base.profit_per_buyer_cents == null ? "—" : usd(base.profit_per_buyer_cents)}</b><span>static listings</span></div>}
+              {lift != null && <span className="delta num">{lift >= 0 ? "+" : ""}{Math.round(lift * 100)}% per buyer</span>}
+            </div>
+            <div className="hero-chart">
+              <BarCompare height={48} format={usd} bars={kpis.map((k) => ({ policy: k.policy, value: k.profit_per_buyer_cents, ci: k.ci.profit_per_buyer_cents }))} />
+              <p className="ci-note"><span className="wk" aria-hidden="true" />95% interval, bootstrapped over buyers</p>
+            </div>
+          </section>
+          <SafetyTile kpis={kpis} />
         </div>
-        <div className="badges">
-          <span className={`badge ${feed.mode}`}>{feed.mode === "live" ? "Live · Supabase" : "Sample data"}</span>
-          <span className="badge num">{buyers} buyers</span>
-          <span className="badge num">{events.length} events</span>
+
+        <div className="kpis-head"><Legend /></div>
+        <div className="kpis">
+          <Kpi title="Conversion" sub="Buyers who reached a deal" better="higher">
+            <BarCompare compact height={28} format={pct} max={1} bars={kpis.map((k) => ({ policy: k.policy, value: k.conversion_rate, ci: k.ci.conversion_rate }))} />
+          </Kpi>
+          <Kpi title="Safe conversion" sub="Deals that broke no seller rule" better="higher">
+            <BarCompare compact height={28} format={pct} max={1} bars={kpis.map((k) => ({ policy: k.policy, value: k.safe_conversion_rate, ci: k.ci.safe_conversion_rate }))} />
+          </Kpi>
+          <Kpi title="Margin after lever costs" sub="Mean over deals" better="higher">
+            <BarCompare compact height={28} format={(v) => `${v.toFixed(0)}%`} max={100} bars={kpis.map((k) => ({ policy: k.policy, value: k.avg_margin_pct }))} />
+          </Kpi>
+          <Kpi title="Time to first offer" sub="Median seller reply" better="lower">
+            <BarCompare compact height={28} format={(v) => `${(v / 1000).toFixed(1)} s`} bars={kpis.map((k) => ({ policy: k.policy, value: k.median_ms_to_first_offer }))} />
+          </Kpi>
         </div>
-      </header>
 
-      {error && <p className="err">{error}</p>}
-
-      <section className="panel hero" aria-label="Profit per buyer">
-        <div className="hero-nums">
-          <span className="eyebrow">Profit per buyer session</span>
-          {neg && <div className="hero-num neg"><b>{neg.profit_per_buyer_cents == null ? "—" : usd(neg.profit_per_buyer_cents)}</b><span>{neg.policy} sellers</span></div>}
-          {base && <div className="hero-num"><b>{base.profit_per_buyer_cents == null ? "—" : usd(base.profit_per_buyer_cents)}</b><span>static listings</span></div>}
-          {lift != null && <span className="delta">{lift >= 0 ? "+" : ""}{Math.round(lift * 100)}% per buyer</span>}
+        <div className="row2">
+          <section className="panel">
+            <div className="panel-head"><h2>Live negotiations</h2><span className="eyebrow">newest first</span></div>
+            <LiveFeed events={events} policyOf={(r) => policies.get(r) ?? r} freshFrom={freshFrom} />
+          </section>
+          <section className="panel">
+            <div className="panel-head"><h2>Guardrail log</h2><span className="eyebrow">blocked in code</span></div>
+            <GuardrailLog events={events} />
+          </section>
         </div>
-        <BarCompare height={44} format={usd} bars={kpis.map((k) => ({ policy: k.policy, value: k.profit_per_buyer_cents, ci: k.ci.profit_per_buyer_cents }))} />
-      </section>
 
-      <div className="legend" aria-hidden="true"><span><i style={{ background: "var(--static)" }} />static listings</span><span><i style={{ background: "var(--neg)" }} />negotiating sellers</span></div>
-      <section className="kpis">
-        <div className="panel kpi"><h3>Conversion</h3><p className="sub">Buyers who reached a deal</p>
-          <BarCompare compact height={26} format={pct} max={1} bars={kpis.map((k) => ({ policy: k.policy, value: k.conversion_rate, ci: k.ci.conversion_rate }))} /></div>
-        <div className="panel kpi"><h3>Safe conversion</h3><p className="sub">Deals that broke no seller rule</p>
-          <BarCompare compact height={26} format={pct} max={1} bars={kpis.map((k) => ({ policy: k.policy, value: k.safe_conversion_rate, ci: k.ci.safe_conversion_rate }))} /></div>
-        <div className="panel kpi"><h3>Margin after lever costs</h3><p className="sub">Mean over deals</p>
-          <BarCompare compact height={26} format={(v) => `${v.toFixed(0)}%`} max={100} bars={kpis.map((k) => ({ policy: k.policy, value: k.avg_margin_pct }))} /></div>
-        <div className="panel kpi"><h3>Time to first offer</h3><p className="sub">Median seller reply</p>
-          <BarCompare compact height={26} format={(v) => `${(v / 1000).toFixed(1)} s`} bars={kpis.map((k) => ({ policy: k.policy, value: k.median_ms_to_first_offer }))} /></div>
-      </section>
+        <section className="panel">
+          <div className="panel-head"><h2>Who buys, by buyer type</h2><Legend /></div>
+          <PersonaGrid kpis={kpis} />
+          <p className="grid-note">Faded rows have fewer than 5 buyers: a hint, not a result.</p>
+        </section>
 
-      <section className="row3">
-        <SafetyTile kpis={kpis} />
-        <div className="panel">
-          <div className="panel-head"><h2>Live negotiations</h2><span className="eyebrow">newest first</span></div>
-          <LiveFeed events={events} policyOf={(r) => policies.get(r) ?? r} freshFrom={freshFrom} />
-        </div>
-        <div className="panel">
-          <div className="panel-head"><h2>Guardrail log</h2><span className="eyebrow">blocked in code</span></div>
-          <GuardrailLog events={events} />
-        </div>
-      </section>
-
-      <section className="panel">
-        <div className="panel-head"><h2>Who buys, by buyer type</h2>
-          <span className="legend"><span><i style={{ background: "var(--static)" }} />static</span><span><i style={{ background: "var(--neg)" }} />negotiating</span></span></div>
-        <PersonaGrid kpis={kpis} />
-      </section>
-
-      <p className="foot">Bars show 95% intervals, bootstrapped over buyers. A deal converts when it's accepted; profit counts unit cost and the cost of any levers included.{feed.mode === "sample" ? " Sample data: made-up buyers, so every number here is illustrative." : ""}</p>
-    </main>
+        <p className="foot">Whiskers show 95% intervals, bootstrapped over buyers. Margin and time to first offer show point values only. A deal converts when it's accepted; profit counts unit cost and the cost of any levers included.{feed.mode === "sample" ? " Sample data: made-up buyers, so every number here is illustrative." : ""}</p>
+      </main>
+    </>
   );
 }
