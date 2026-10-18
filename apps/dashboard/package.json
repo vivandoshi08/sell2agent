@@ -9,7 +9,8 @@
     "typecheck": "tsc -p .",
     "test": "node --import tsx --test test/*.test.ts",
     "seed:fake": "tsx scripts/seed-fake.ts",
-    "seed:fake:clean": "tsx scripts/seed-fake.ts --clean"
+    "seed:fake:clean": "tsx scripts/seed-fake.ts --clean",
+    "preview:html": "node scripts/build-preview.mjs"
   },
   "dependencies": {
     "@sa/shared": "workspace:*",
