@@ -9,6 +9,7 @@ import { LiveTally, NegotiationCard, SaleToasts, Tally, useNegotiations } from "
 import { Contours, Mark } from "./ui/Brand";
 import { BuyerFit, LeverWins, LiveTrafficPanel, ModelFilter, RunPicker } from "./panels/S2Panels";
 import { LearningCurve } from "./panels/LearningCurve";
+import { RecoveryPanel } from "./panels/Recovery";
 import { FlaggedList, belowFloorDeals, unsafeDeals } from "./ui/Transcript";
 import { EvalRunner } from "./ui/EvalRunner";
 import "./ui/fonts";
@@ -81,6 +82,7 @@ export function App() {
             </section>
             <aside className="side" aria-label="Today">
               <section className="card"><h2>{live.negotiations ? "Real shoppers today" : "Today"}</h2>{live.negotiations ? <LiveTally live={live} /> : <Tally events={liveEvents} />}</section>
+              <RecoveryPanel events={liveEvents} />
               {floorList.length > 0 && <section className="card"><FlaggedList items={floorList} title="Flagged below floor" /></section>}
               <section className="card"><h2>Blocked by your rules</h2><GuardrailLog events={liveEvents} /></section>
             </aside>

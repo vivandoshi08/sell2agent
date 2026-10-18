@@ -107,6 +107,7 @@ details.panel summary { list-style: none; }
 .livebar input { accent-color: var(--brand); }
 .status.s-negotiating { background: var(--amber-tint); color: var(--amber); }
 .status.s-agreed, .status.s-paid { background: var(--brand-tint); color: var(--brand); }
+.status.s-saved { background: var(--brand-tint); color: var(--brand); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand) 30%, transparent); }
 .moves { list-style: none; margin: 0; padding: 10px 18px 14px; display: grid; }
 .move { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 12px; padding: 8px 0; position: relative; }
 .move:not(:last-child)::after { content: ""; position: absolute; left: 6px; top: 24px; bottom: -8px; width: 2px; background: var(--line); }
@@ -143,6 +144,16 @@ details.panel summary { list-style: none; }
 .filters { display: flex; gap: 10px; flex-wrap: wrap; }
 .filters:empty { display: none; }
 .badge { font-size: 13px; padding: 6px 10px; border: 1px solid var(--line-2); border-radius: 9px; background: var(--canvas); color: var(--ink-2); }
+
+/* walk-aways recovered */
+.recovery { transition: border-color .6s, box-shadow .6s; }
+.recovery.glow { border-color: color-mix(in srgb, var(--brand) 45%, var(--line)); box-shadow: 0 0 0 3px var(--brand-tint); }
+.recovery .tally b small { font-size: 13px; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+.rc-last { margin: 0; font-size: 13px; color: var(--ink-2); }
+.rc-last b { font-weight: 600; color: var(--ink); }
+.rc-row { display: grid; gap: 6px; }
+.rc-chips { list-style: none; margin: 0; padding: 0; display: flex; gap: 6px; flex-wrap: wrap; }
+.rc-chips .pill b { font-weight: 600; margin-left: 3px; }
 
 .toasts { position: fixed; right: max(20px, env(safe-area-inset-right, 0px)); top: 74px; z-index: 10; display: grid; gap: 10px; width: min(360px, calc(100vw - 40px)); }
 .toast { display: flex; gap: 12px; align-items: flex-start; background: var(--canvas); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; box-shadow: 0 20px 44px -22px rgba(0,0,0,.45); }
