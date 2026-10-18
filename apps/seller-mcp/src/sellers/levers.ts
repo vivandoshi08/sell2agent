@@ -46,7 +46,7 @@ export function decideLever(state: SellerState, policy: SellerPolicy, profile?: 
   const includedCost = included.reduce((s, l) => s + l.cost_cents, 0);
   const effSoft = softFloor(list, floor, buffer) + includedCost; // margin after levers
 
-  const { ask: curveAsk, frac } = askPrice(state, TACTICS.negotiating, buffer);
+  const { ask: curveAsk, frac } = askPrice(state, TACTICS[policy.base_tactic ?? "negotiating"], buffer);
   // Never below the floor that covers the extras already promised (and never above our last offer).
   const ask = Math.min(prev ?? list, Math.max(curveAsk, effSoft));
   const bid = state.buyer_offer_cents === undefined ? undefined : Math.min(state.buyer_offer_cents, list);
@@ -66,7 +66,7 @@ export function decideLever(state: SellerState, policy: SellerPolicy, profile?: 
       const pkg = [...included, lever];
       return { ...base, action: "offer", price_cents: prev, final: false, reason: "lever_instead_of_cut",
         lever_package: pkg.map(pub), lever_cost_cents: includedCost + lever.cost_cents,
-        reason_text: `You said ${lever.lever} matters to you, so instead of lowering the price this round we're adding ${lever.label}. The price stays ${usd(prev)}${pkg.length > 1 ? `, including ${listLabels(pkg)}` : ""}.` };
+        reason_text: `${policy.lever_pitch === "offer" ? "Instead of lowering the price this round" : `You said ${lever.lever} matters to you, so instead of lowering the price this round`} we're adding ${lever.label}. The price stays ${usd(prev)}${pkg.length > 1 ? `, including ${listLabels(pkg)}` : ""}.` };
     }
   }
 

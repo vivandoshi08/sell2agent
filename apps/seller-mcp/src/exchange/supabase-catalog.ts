@@ -156,6 +156,7 @@ export class SupabaseCatalog implements Catalog {
       unit_cost_cents: unit,
       allowed_levers: [...new Set(allowed)],
       ...(lever_costs ? { lever_costs } : {}),
+      ...(objectiveOf(pol.objective) ? { objective: objectiveOf(pol.objective)! } : {}),
       strategy: (STRATEGIES as readonly unknown[]).includes(pol.policy) ? (pol.policy as ProductConfig["strategy"]) : withProd.strategy,
       max_rounds: base.max_rounds, // never from the DB (see header)
     };
@@ -172,4 +173,15 @@ export async function supabaseCatalogFromEnv(opts: SupabaseCatalogOptions = {}):
   if (!process.env.SUPABASE_URL) return null;
   const { db } = await import("@sa/shared/db");
   return new SupabaseCatalog(db, opts);
+}
+
+/** seller_policies.objective → the 0..1 weights the console saved; anything else is ignored (reward falls back to default). */
+function objectiveOf(o: unknown): Record<string, number> | null {
+  if (!o || typeof o !== "object") return null;
+  const out: Record<string, number> = {};
+  for (const k of ["margin", "conversion", "clear_stock", "repeat_customers", "premium_image"]) {
+    const v = (o as Record<string, unknown>)[k];
+    if (typeof v === "number" && v >= 0 && v <= 1) out[k] = v;
+  }
+  return Object.keys(out).length ? out : null;
 }
