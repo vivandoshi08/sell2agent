@@ -50,7 +50,7 @@ export function ucpProfile(mcpUrl: string) {
 export function serverCard(mcpUrl: string, tools: ToolInfo[]) {
   return {
     name: `${namespaceFor(mcpUrl)}/marketplace`,
-    title: "Keyboard Marketplace",
+    title: "sell2agent",
     description: "Compare products from competing sellers and negotiate price and extras with each seller's agent.",
     version: "0.0.1",
     remotes: [{ type: "streamable-http", url: mcpUrl }],
@@ -61,7 +61,7 @@ export function serverCard(mcpUrl: string, tools: ToolInfo[]) {
 export function openRpc(mcpUrl: string, tools: ToolInfo[]) {
   return {
     openrpc: "1.3.2",
-    info: { title: "Keyboard Marketplace (MCP tools)", version: "0.0.1" },
+    info: { title: "sell2agent (MCP tools)", version: "0.0.1" },
     servers: [{ name: "mcp", url: mcpUrl }],
     methods: tools.map((t) => ({
       name: t.name,
