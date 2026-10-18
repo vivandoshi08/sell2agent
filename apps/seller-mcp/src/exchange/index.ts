@@ -24,6 +24,7 @@ export { guardMove, capClamp, CONCESSION_CAP } from "./decision-guard";
 export { inspectInput, delimit } from "./input-guard";
 export { checkOutput, fallbackMessage } from "./output-guard";
 export { ProbeBreaker, StartLimiter, buyerEndpoint, jitterStep, leverCost, DEFAULT_LEVER_COSTS, START_LIMIT, ANON_START_LIMIT, OAI_START_LIMIT, startLimitFor } from "./probing";
+export { EXTRAS, EXTRAS_BY_ID, EXTRA_IDS, isExtra, extraLever, extraLabel, extraPhrase, extrasPackage, type ExtraDef } from "./extras";
 export { SupabaseStore, LEGACY_STATUS, SNAPSHOT_RUN, SNAPSHOT_TYPE } from "./supabase-store";
 export { Outreach, FOLLOWUP_DELAY_MS, FOLLOWUP_TTL_MS } from "./outreach";
 export type { Sender } from "./outreach";
