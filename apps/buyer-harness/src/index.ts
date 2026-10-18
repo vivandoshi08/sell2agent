@@ -5,4 +5,5 @@ export { runBuyer, type BuyerOutcome } from "./agents/buyer";
 export { ClaudeBrain, OpenAIBrain, ScriptedBrain, brainFor, type Brain, type Exec } from "./agents/brains";
 export { LocalGateway } from "./gateway/local";
 export { McpGateway } from "./gateway/mcp";
+export { ExchangeGateway, type Strategy } from "./gateway/exchange";
 export type { Gateway } from "./gateway/types";

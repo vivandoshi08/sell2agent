@@ -99,6 +99,7 @@ export async function runAll(cfg: RunAllConfig): Promise<{ summary: Summary; out
   emit({ run_id: cfg.run_id, buyer_id: null, buyer_model: null, seller_id: null, product_id: null, negotiation_id: null,
     actor: "harness", type: "run_started", price_cents: null, payload: { label: cfg.label, policy: cfg.label, buyers: cfg.buyers.length, gateway: cfg.gateway.kind } });
 
+  cfg.gateway.attach?.(emit); // seller-side events (E1's exchange) go to the same log
   const outcomes: BuyerOutcome[] = new Array(cfg.buyers.length);
   let next = 0;
   const worker = async () => {
