@@ -17,6 +17,8 @@ import { inspectInput } from "./input-guard";
 import { checkOutput, fallbackMessage, type OutputContext } from "./output-guard";
 import { allowedActions, assertTransition } from "./state";
 import { MemoryStore, memoryKey, type ExchangeStore } from "./store";
+import { ProbeBreaker, StartLimiter, buyerEndpoint, jitterStep, leverCost, NEAR_MISS_BAND } from "./probing";
+import { CONCESSION_CAP } from "./decision-guard";
 import type { AcceptMove, Catalog, ExchangeError, ExchangeResponse, Move, Negotiation, NegotiationState, OfferMove,
   ProductConfig, StandingOffer, StatusMove, WalkMove, LockedDeal } from "./types";
 
@@ -41,6 +43,8 @@ export class Exchange {
   readonly store: ExchangeStore;
   readonly catalog: Catalog;
   readonly deals: Deals;
+  readonly breaker: ProbeBreaker;
+  private limiter: StartLimiter;
   private sinkP: Promise<EventSink>;
   private llm: Llm | null;
   private decideFn: Decider;
@@ -52,7 +56,9 @@ export class Exchange {
     this.store = o.store ?? new MemoryStore();
     this.catalog = o.catalog ?? new StaticCatalog();
     this.now = o.now ?? Date.now;
-    this.deals = new Deals(this.store, this.catalog, this.now);
+    this.breaker = new ProbeBreaker(this.now);
+    this.limiter = new StartLimiter(this.now);
+    this.deals = new Deals(this.store, this.catalog, this.now, (pid) => this.breaker.trip(pid));
     this.sinkP = o.sink ? Promise.resolve(o.sink) : defaultSink();
     this.llm = o.llm ?? null;
     this.decideFn = o.decide ?? e2decide;
@@ -97,6 +103,8 @@ export class Exchange {
     if (!m.negotiation_id) {
       p = await this.catalog.get(m.product_id);
       if (!p) return fail("unknown_product", `no product ${m.product_id}; use search_products to find one`);
+      if (!this.limiter.allow(memoryKey(m.ctx.buyer_id, p.product_id)))
+        return fail("rate_limited", "too many negotiations started on this product today; continue an existing negotiation_id instead");
       n = this.newNegotiation(m, p, qty);
       // E11 buyer memory: a returning buyer resumes where they left off. Never quoted higher than before,
       // and the concession clock doesn't restart, so restarting can't bisect toward the floor.
@@ -116,6 +124,16 @@ export class Exchange {
       p = await this.catalog.get(n.product_id);
       if (!p) return fail("unknown_product", `product ${n.product_id} is no longer sold`);
     }
+
+    // lever package: only levers this listing offers; price is checked against floor + lever costs
+    const levers = [...new Set(m.levers ?? n.levers ?? [])];
+    const bad = levers.filter((l) => !p!.allowed_levers.includes(l));
+    if (bad.length) return fail("bad_lever", `${bad.join(", ")} isn't offered on this listing; available: ${p.allowed_levers.join(", ") || "none"}`);
+    const cost = leverCost(levers, p.lever_costs);
+    if (p.floor_price_cents + cost > p.list_price_cents) return fail("bad_lever", "that package can't be offered; try fewer extras");
+    if (levers.join() !== (n.levers ?? []).join()) n.levers = levers;
+    const base = p;
+    p = { ...p, floor_price_cents: p.floor_price_cents + cost }; // effective floor for this package
 
     const standing = n.standing_offer_id ? await this.store.getOffer(n.standing_offer_id) : null;
     const atCap = n.round >= p.max_rounds;
@@ -149,12 +167,31 @@ export class Exchange {
     const proposed = this.decideFn(
       { round: n.round, terms: { product_id: p.product_id, title: p.title, list_price_cents: p.list_price_cents, floor_price_cents: p.floor_price_cents,
         unit_cost_cents: p.unit_cost_cents, max_rounds: p.max_rounds }, history: n.history.slice(0, -1), buyer_offer_cents: m.offer_price_cents },
-      { name: p.strategy, soft_floor_buffer: this.buffer }, m.buyer_profile);
-    const { move, blocks } = guardMove({ move: proposed, product: p, round: n.round, prev_seller_offer_cents: prevSeller, frozen: n.frozen, soft_floor_buffer: this.buffer });
+      { name: p.strategy, soft_floor_buffer: this.buffer, final_round_accept_zone: !n.frozen && this.breaker.open(base.product_id) }, m.buyer_profile);
+    let { move, blocks } = guardMove({ move: proposed, product: p, round: n.round, prev_seller_offer_cents: prevSeller, frozen: n.frozen, soft_floor_buffer: this.buffer });
     for (const b of blocks) await this.emit(n, "guardrail_blocked", "seller", move.price_cents, { ...b });
 
+    // E11 jitter: noisy steps toward a private per-buyer endpoint (not when frozen: a frozen price is final)
+    if (move.action === "offer" && !n.frozen) {
+      const soft = softFloor(p.list_price_cents, p.floor_price_cents, this.buffer);
+      const end = buyerEndpoint(n.buyer_id, base.product_id, soft, p.list_price_cents, p.floor_price_cents);
+      const maxStep = Math.ceil(CONCESSION_CAP * (p.list_price_cents - p.floor_price_cents));
+      let price = prevSeller === undefined ? Math.max(move.price_cents, end)
+        : jitterStep(prevSeller, move.price_cents, `${n.buyer_id}|${base.product_id}|${n.round}`, end, maxStep);
+      if (prevSeller !== undefined && prevSeller >= soft) price = Math.min(price, prevSeller);
+      if (price !== move.price_cents) move = { ...move, price_cents: price, reason_text: `We can offer ${usd(price)} this round.` };
+    }
+    // E11 probe breaker: a deadline bid just under the floor that we refuse closes the accept zone for 24 h
+    if (n.round >= p.max_rounds && move.action === "offer") {
+      const gap = base.list_price_cents - base.floor_price_cents;
+      if (m.offer_price_cents < p.floor_price_cents && m.offer_price_cents >= p.floor_price_cents - NEAR_MISS_BAND * gap) {
+        this.breaker.trip(base.product_id);
+        await this.emit(n, "guardrail_blocked", "seller", null, { rule: "probe_breaker", reason: "near-miss deadline bid; final-round accept zone closed for 24 h" });
+      }
+    }
+
     // voice → output guard
-    const message = await this.speak(n, p, move, input.sanitized, m.buyer_profile);
+    const message = await this.speak(n, p, move, input.sanitized, m.buyer_profile, n.levers, base.floor_price_cents);
 
     if (move.action === "accept") {
       const offer = this.newOffer(n, move, qty, "accepted");
@@ -197,7 +234,7 @@ export class Exchange {
       return this.respond(n, p, null, { ok: false, error: { code: "offer_expired", message: "that offer expired; make a new offer to get a fresh quote" } });
     }
     if (!allowedActions(n.state, false).includes("accept")) return fail("not_allowed", `can't accept while the negotiation is ${n.state}`);
-    if (o.price_cents < p.floor_price_cents) { // policy re-check (floor may have moved)
+    if (o.price_cents - leverCost(o.levers, p.lever_costs) < p.floor_price_cents) { // policy re-check (floor may have moved)
       await this.emit(n, "guardrail_blocked", "seller", o.price_cents, { rule: "policy_recheck", reason: "offer no longer passes the seller's policy" });
       return fail("not_allowed", "this offer can no longer be honored; make a new offer");
     }
@@ -232,14 +269,14 @@ export class Exchange {
 
   // ---------------------------------------------------------------- helpers
 
-  private async speak(n: Negotiation, p: ProductConfig, move: ProposedMove, buyerText: string, profile?: BuyerLeverProfile): Promise<string> {
+  private async speak(n: Negotiation, p: ProductConfig, move: ProposedMove, buyerText: string, profile?: BuyerLeverProfile, levers: string[] = [], hardFloor = p.floor_price_cents): Promise<string> {
     const prior = n.history.map((h) => h.price_cents);
     const vctx: VoiceContext = { terms: { product_id: p.product_id, title: p.title, list_price_cents: p.list_price_cents,
       floor_price_cents: p.floor_price_cents, unit_cost_cents: p.unit_cost_cents, max_rounds: p.max_rounds },
       prior_prices_cents: prior, buyer_message: buyerText, buyer_profile: profile };
     const octx: OutputContext = { offer_price_cents: move.price_cents, allowed_prices_cents: [p.list_price_cents, ...prior.filter((x) => x >= softFloor(p.list_price_cents, p.floor_price_cents, this.buffer))],
-      low_cents: softFloor(p.list_price_cents, p.floor_price_cents, this.buffer), private_cents: [p.floor_price_cents, p.unit_cost_cents],
-      final: move.final, levers_in_offer: [] };
+      low_cents: softFloor(p.list_price_cents, p.floor_price_cents, this.buffer), private_cents: [hardFloor, p.floor_price_cents, p.unit_cost_cents],
+      final: move.final, levers_in_offer: levers };
     let text: string;
     try { text = (await this.voiceFn(move, vctx, this.llm)).message; } catch { text = ""; }
     const findings = text ? checkOutput(text, octx) : [{ rule: "voice_error", detail: "no message" }];
@@ -258,11 +295,11 @@ export class Exchange {
   private newNegotiation(m: OfferMove, p: ProductConfig, qty: number): Negotiation {
     const t = new Date(this.now()).toISOString();
     return { id: `neg_${randomUUID()}`, run_id: m.ctx.run_id, buyer_id: m.ctx.buyer_id, buyer_model: m.ctx.buyer_model, seller_id: p.seller_id,
-      product_id: p.product_id, quantity: qty, state: "open", round: 0, history: [], attack_flags: 0, frozen: false, escalations: [], created_at: t, updated_at: t };
+      product_id: p.product_id, quantity: qty, state: "open", round: 0, history: [], attack_flags: 0, frozen: false, escalations: [], levers: [], created_at: t, updated_at: t };
   }
 
   private newOffer(n: Negotiation, move: ProposedMove, qty: number, status: StandingOffer["status"]): StandingOffer {
-    return { offer_id: `off_${randomUUID()}`, negotiation_id: n.id, buyer_id: n.buyer_id, price_cents: move.price_cents, quantity: qty, levers: [],
+    return { offer_id: `off_${randomUUID()}`, negotiation_id: n.id, buyer_id: n.buyer_id, price_cents: move.price_cents, quantity: qty, levers: [...(n.levers ?? [])],
       final: move.final, expires_at: new Date(this.now() + OFFER_TTL_MS).toISOString(), status, round: n.round };
   }
 

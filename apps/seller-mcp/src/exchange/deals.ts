@@ -5,6 +5,7 @@
  */
 import { createHmac, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import type { ExchangeStore } from "./store";
+import { leverCost } from "./probing";
 import type { Catalog, LockedDeal } from "./types";
 
 const SECRET = process.env.EXCHANGE_HMAC_SECRET ?? randomBytes(32).toString("hex");
@@ -39,7 +40,8 @@ export type PaymentCheck =
       reason: string; fix?: string; payment_intent_id?: string };
 
 export class Deals {
-  constructor(private store: ExchangeStore, private catalog: Catalog, private now: () => number = Date.now) {}
+  constructor(private store: ExchangeStore, private catalog: Catalog, private now: () => number = Date.now,
+    private onAbandoned: (product_id: string) => void = () => {}) {}
 
   /** S2: the deal card + pay handler read the deal from here. */
   async getLockedDeal(deal_id: string): Promise<LockedDeal | null> {
@@ -54,11 +56,14 @@ export class Deals {
     if (!verify(d)) return { ok: false, code: "tampered", reason: "deal record failed its signature check" };
     if (d.status === "paid") return { ok: false, code: "already_paid", reason: "deal is already paid", payment_intent_id: d.payment_intent_id };
     if (d.buyer_id !== buyer_id) return { ok: false, code: "wrong_buyer", reason: "deal belongs to a different buyer" };
-    if (Date.parse(d.expires_at) <= this.now()) return { ok: false, code: "expired", reason: "deal expired", fix: "make a new offer" };
+    if (Date.parse(d.expires_at) <= this.now()) {
+      this.onAbandoned(d.product_id); // E11 probe breaker: an abandoned deal closes the accept zone
+      return { ok: false, code: "expired", reason: "deal expired", fix: "make a new offer" };
+    }
     if (amount_cents !== undefined && amount_cents !== d.total_cents)
       return { ok: false, code: "amount_mismatch", reason: `amount ${amount_cents} does not match the deal total ${d.total_cents} (cents)`, fix: `pay ${d.total_cents}` };
     const p = await this.catalog.get(d.product_id);
-    if (!p || d.unit_price_cents < p.floor_price_cents)
+    if (!p || d.unit_price_cents - leverCost(d.levers, p.lever_costs) < p.floor_price_cents)
       return { ok: false, code: "policy_recheck_failed", reason: "deal no longer passes the seller's policy" };
     return { ok: true, deal: d };
   }

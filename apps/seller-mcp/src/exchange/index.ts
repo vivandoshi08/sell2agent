@@ -23,3 +23,4 @@ export { TRANSITIONS, canTransition, allowedActions } from "./state";
 export { guardMove, CONCESSION_CAP } from "./decision-guard";
 export { inspectInput, delimit } from "./input-guard";
 export { checkOutput, fallbackMessage } from "./output-guard";
+export { ProbeBreaker, StartLimiter, buyerEndpoint, jitterStep, leverCost, DEFAULT_LEVER_COSTS, START_LIMIT } from "./probing";

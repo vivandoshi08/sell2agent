@@ -37,6 +37,8 @@ export interface OfferMove extends MoveBase {
   quantity?: number;
   message?: string; // UNTRUSTED free text from the buyer agent
   buyer_profile?: BuyerLeverProfile;
+  /** Lever package the buyer wants included (must be in the listing's allowed levers). Omit to keep the current one. */
+  levers?: string[];
 }
 /** accept_deal: accept the seller's standing offer, by its offer_id. */
 export interface AcceptMove extends MoveBase {
@@ -107,6 +109,7 @@ export interface Negotiation {
   attack_flags: number; // buyer messages flagged by the input guard (circuit breaker)
   frozen: boolean; // breaker tripped: price frozen at current ask, truthfully final
   escalations: string[]; // out-of-policy asks logged for a human
+  levers: string[]; // current lever package
   created_at: string;
   updated_at: string;
 }
@@ -123,6 +126,8 @@ export interface ExchangeError {
     | "unknown_offer"
     | "offer_expired"
     | "round_cap" // past the round cap: only accept or walk
+    | "rate_limited" // too many negotiation starts
+    | "bad_lever" // lever not offered, or package costs more than the price allows
     | "closed";
   message: string; // agent-readable: what went wrong and what to do
 }
@@ -154,6 +159,7 @@ export interface ProductConfig {
   unit_cost_cents: number;
   max_rounds: number;
   allowed_levers: string[];
+  lever_costs?: Record<string, number>; // seller cost per lever, cents (default DEFAULT_LEVER_COSTS)
   strategy: "static" | "negotiating" | "balanced";
 }
 export interface Catalog {
