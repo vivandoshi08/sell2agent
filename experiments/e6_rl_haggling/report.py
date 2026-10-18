@@ -79,7 +79,12 @@ def main():
     }
 
     cost = {}
-    p2 = load(RUNS / "phase2.jsonl")
+    p2, seen = [], set()
+    for o in load(RUNS / "phase2.jsonl"):  # one session per (condition, buyer, persona), errors dropped
+        key = (o["meta"]["condition"], o["meta"]["buyer"], o["persona_id"])
+        if o["ended_by"] != "error" and key not in seen:
+            seen.add(key)
+            p2.append(o)
     if p2:
         res["phase2"] = {}
         for buyer in ("opus", "haiku"):
@@ -92,6 +97,15 @@ def main():
                 "paired_learned_minus_fixed": paired(g["best_fixed"], g["learned"]),
                 "unpaired_compare": compare(g["best_fixed"], g["learned"]),
             }
+            e5 = [o for o in p2 if o["meta"]["buyer"] == buyer and o["meta"]["condition"] == "e5:bundle_first"]
+            if e5:
+                res["phase2"][buyer]["e5_bundle_first"] = pick(summarize(e5))
+                res["phase2"][buyer]["paired_learned_minus_e5_bundle_first"] = paired(e5, g["learned"])
+                res["phase2"][buyer]["paired_best_fixed_minus_e5_bundle_first"] = paired(e5, g["best_fixed"])
+            feas = lambda xs: [o for o in xs if o["feasible"]]  # noqa: E731
+            res["phase2"][buyer]["feasible_only_paired_learned_minus_fixed"] = paired(feas(g["best_fixed"]), feas(g["learned"]))
+            res["phase2"][buyer]["infeasible_only_paired_learned_minus_fixed"] = paired(
+                [o for o in g["best_fixed"] if not o["feasible"]], [o for o in g["learned"] if not o["feasible"]])
         # Same 10 personas: Opus vs Haiku buyers, per condition.
         ids10 = {o["persona_id"] for o in p2 if o["meta"]["buyer"] == "haiku"}
         res["phase2"]["opus_on_haiku_personas"] = {

@@ -62,6 +62,35 @@ def close_reasons(factory, buyers, seed=11) -> dict:
     }
 
 
+def move_responses(transcripts: list[list[dict]]) -> dict:
+    """For each learned-policy move type, what did the buyer do next? (sim-to-real check for R8/G7)"""
+    out = defaultdict(Counter)
+    for tr in transcripts:
+        for i, t in enumerate(tr):
+            if t["role"] != "seller" or not (t.get("note") or "").startswith("strategy: "):
+                continue
+            move = t["note"].replace("strategy: ", "")
+            nxt = tr[i + 1] if i + 1 < len(tr) else None
+            if nxt is None:
+                resp = "none (session ended)"
+            elif nxt["action"] == "offer":
+                prev = [x["offer"]["price"] for x in tr[:i] if x["role"] == "buyer" and x["action"] == "offer" and x["offer"]]
+                up = prev and nxt["offer"]["price"] > prev[-1]
+                resp = "counter, moved up" if up else "counter, no move"
+            else:
+                resp = nxt["action"]
+            out[move][resp] += 1
+    return {m: dict(c) for m, c in sorted(out.items())}
+
+
+def sim_transcripts(factory, buyers, seed=11) -> list[list[dict]]:
+    trs = []
+    for i, (p, k) in enumerate(buyers):
+        res = run_episode(p, k, factory(), random.Random(seed * 1_000_003 + i), keep_state=True)
+        trs.append([t.to_dict() for t in res.state.transcript])
+    return trs
+
+
 def q_policy_table(path) -> list[dict]:
     """The greedy action in the most-visited states, in words."""
     d = json.load(open(path))
@@ -77,33 +106,33 @@ def q_policy_table(path) -> list[dict]:
 
 
 def word_checks(rows: list[dict]) -> dict:
-    """Free checks on seller messages, by condition."""
-    out = defaultdict(lambda: Counter())
+    """Free checks on seller messages, by condition: is the enforced price stated, and does the seller
+    say "final" / "best I can do" / "can't go lower" and later offer or accept less *for the same bundle*?"""
+    final_re = re.compile(r"\bfinal\b|\bbest I can do\b|\bcan.t go (any )?lower\b|\bbottom line\b", re.I)
+    out = defaultdict(Counter)
     for o in rows:
         cond = o["meta"].get("condition", "?") + ("/" + o["meta"]["buyer"] if "buyer" in o["meta"] else "")
-        seller_offers = []
-        for t in o["transcript"]:
-            if t["role"] != "seller":
-                continue
-            msg = t["message"]
-            if t["action"] == "offer" and t["offer"]:
-                price = t["offer"]["price"]
-                nums = {int(x.replace(",", "")) for x in DOLLARS.findall(msg)}
+        claim = None  # (price, bundle) at the first "final"-type statement
+        lower = False
+        last_offer = None
+        tr = o["transcript"]
+        for i, t in enumerate(tr):
+            if t["role"] == "seller" and t["action"] == "offer" and t["offer"]:
+                price, bundle = t["offer"]["price"], (t["offer"]["product_id"], tuple(sorted(t["offer"]["addons"])))
+                nums = {int(x.replace(",", "")) for x in DOLLARS.findall(t["message"])}
                 out[cond]["offers"] += 1
                 out[cond]["offer_price_stated"] += int(price in nums)
-                seller_offers.append(price)
-            said_final = bool(re.search(r"\bfinal\b|\bbest and final\b|\bcan't go (any )?lower\b|\bbottom line\b", msg, re.I))
-            if said_final:
-                out[cond]["said_final_turns"] += 1
-                t["_final_at"] = seller_offers[-1] if seller_offers else None
-        # did the seller say "final"/"can't go lower" and later offer or accept less?
-        finals = [(i, t) for i, t in enumerate(o["transcript"]) if t["role"] == "seller" and t.get("_final_at")]
-        if finals:
-            i0, t0 = finals[0]
-            later = [t["offer"]["price"] for t in o["transcript"][i0 + 1:] if t["role"] == "seller" and t["action"] == "offer" and t["offer"]]
-            went_lower = any(p < t0["_final_at"] for p in later) or (o["deal"] and o["price"] is not None and o["price"] < t0["_final_at"])
+                if claim and bundle == claim[1] and price < claim[0]:
+                    lower = True
+                last_offer = (price, bundle)
+                if final_re.search(t["message"]):
+                    out[cond]["said_final_turns"] += 1
+                    claim = claim or last_offer
+        if claim and o["deal"] and (o["product_id"], tuple(sorted(o["addons"]))) == claim[1] and o["price"] < claim[0]:
+            lower = True
+        if claim:
             out[cond]["sessions_said_final"] += 1
-            out[cond]["said_final_then_went_lower"] += int(went_lower)
+            out[cond]["said_final_then_went_lower_same_bundle"] += int(lower)
         out[cond]["sessions"] += 1
     return {k: dict(v) for k, v in out.items()}
 
@@ -115,6 +144,8 @@ def run_judge(files: list[Path]) -> list[dict]:
     todo = []
     for f in files:
         for o in load(f):
+            if o["meta"].get("split") == "train":  # budget: judge phase 3's held-out evals, not its training batches
+                continue
             if o["ended_by"] != "error" and o["session_id"] not in done:
                 todo.append((f.name, o))
 
@@ -151,6 +182,10 @@ def main():
         best: close_reasons(fixed_by_name(best), held),
     }
     res["r8_top_states"] = q_policy_table(HERE / "qtable.json")[:40]
+    res["r8_move_responses_sim"] = move_responses(sim_transcripts(lambda: QPolicy(q, q_backoff=qb), held))
+    p2 = [o for o in load(RUNS / "phase2.jsonl") if o["ended_by"] != "error" and o["meta"]["condition"] == "learned"]
+    for buyer in ("opus", "haiku"):
+        res[f"r8_move_responses_llm_{buyer}"] = move_responses([o["transcript"] for o in p2 if o["meta"]["buyer"] == buyer])
 
     files = [f for f in (RUNS / "phase2.jsonl", RUNS / "phase3.jsonl") if f.exists()]
     rows = [o for f in files for o in load(f) if o["ended_by"] != "error"]
