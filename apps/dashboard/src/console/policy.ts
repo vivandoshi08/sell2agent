@@ -21,8 +21,8 @@ export const LEVER_CATALOG: { id: string; lever: LeverName; label: string }[] = 
 
 export interface ConsoleLever extends LeverOption { enabled: boolean }
 export type Objective = SellerObjective;
-/** Policies the exchange can run today (E1's ProductConfig.strategy). */
-export const CONSOLE_POLICIES = ["static", "negotiating", "balanced"] as const satisfies readonly PolicyName[];
+/** Policies the exchange can run today (E1's ProductConfig.strategy). `learned` runs as negotiating until its held-out gate passes. */
+export const CONSOLE_POLICIES = ["static", "negotiating", "balanced", "learned"] as const satisfies readonly PolicyName[];
 export type ConsolePolicyName = (typeof CONSOLE_POLICIES)[number];
 
 export interface ConsolePolicy {

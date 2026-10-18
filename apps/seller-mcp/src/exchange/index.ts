@@ -31,4 +31,6 @@ export { SupabaseStore, LEGACY_STATUS, SNAPSHOT_RUN, SNAPSHOT_TYPE } from "./sup
 export { Outreach, FOLLOWUP_DELAY_MS, FOLLOWUP_TTL_MS, BUYER_FOLLOWUP_CAP_MS, maskAddress } from "./outreach";
 export type { Sender, SendReceipt, InboundMeta } from "./outreach";
 export { parseInbound, stripQuoted } from "./inbound";
+export { learnedPolicy, setLearnedPolicy, readLearnedPolicy, checkLearnedPolicy, leverMenu, LEARNED_POLICY_FILE } from "./learned";
+export type { LearnedLoad } from "./learned";
 export type { InboundIntent } from "./inbound";

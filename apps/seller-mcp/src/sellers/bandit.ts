@@ -6,7 +6,13 @@
  * Reward  = seller profit for the session in cents (0 when the buyer walks).
  * Choice  = highest mean reward per context (UCB1 while learning); in deployment a small ε of random
  *           choices, with the probability of the chosen arm logged (so outcomes stay unbiased to evaluate).
- * Output  = learned_policy.json (versioned), loaded by the seller module as the `learned` policy.
+ * Output  = learned_policy.json (versioned), loaded by the exchange as the `learned` strategy (exchange/learned.ts).
+ *
+ * Retraining from logged outcomes (pnpm e2:retrain) weights each session by 1/propensity (IPS; with several logging
+ * policies, the mixture propensity), so arms the deployed policy rarely picked still get an unbiased mean. `n`/`sum`/
+ * `sumSq` stay raw counts and sums (what the dashboard shows); `w`/`wsum` hold the weighted totals the choice uses.
+ * Files without `w` are unweighted. `min_sessions`: an arm needs that many logged sessions in a context before the
+ * greedy choice trusts it (a lucky 3-session arm doesn't take over a context).
  */
 import type { BuyerLeverProfile, PolicyName } from "./types";
 
@@ -14,7 +20,21 @@ export type Arm = Exclude<PolicyName, "static">;
 export const ARMS: Arm[] = ["negotiating", "balanced", "lever_policy"];
 export const DEFAULT_ARM: Arm = "negotiating";
 
-export interface ArmStats { n: number; sum: number; sumSq: number }
+export interface ArmStats { n: number; sum: number; sumSq: number; w?: number; wsum?: number }
+/** Held-out verdict. `passed` = beats `negotiating` (the fallback) with a paired 95% CI above 0 and 0 deals below floor. */
+export interface LearnedGate {
+  passed: boolean;
+  best_fixed_policy: string;
+  learned_minus_best_fixed_cents: number;
+  holdout_buyers: number;
+  diff_vs_negotiating_cents: number;
+  ci95_cents: [number, number];
+  below_floor: number;
+  /** Logged-outcome gates only: paired 95% CI of learned − best fixed, and whether that clears 0 (the "offer as default" bar). */
+  ci95_vs_best_fixed_cents?: [number, number];
+  beats_best_fixed?: boolean;
+  source?: string;
+}
 export interface LearnedPolicy {
   version: number;
   trained_at: string;
@@ -24,6 +44,12 @@ export interface LearnedPolicy {
   stats: Record<string, Record<string, ArmStats>>;
   /** context → chosen arm (greedy) */
   choice: Record<string, Arm>;
+  /** Arms with fewer sessions than this in a context aren't chosen there (when some arm has enough). */
+  min_sessions?: number;
+  curve?: { epoch: number; bandit: number; negotiating: number; balanced?: number }[];
+  gate?: LearnedGate;
+  /** Where the training sessions came from ("scripted" | "logged:<run ids>"), and how many. */
+  trained_on?: { source: string; sessions: number; runs?: string[]; previous_version?: number };
 }
 
 /** The buyer's strongest non-trivial lever; ties broken by a fixed order. */
@@ -37,16 +63,18 @@ export function contextOf(profile?: BuyerLeverProfile): string {
 
 export class Bandit {
   stats: LearnedPolicy["stats"] = {};
-  constructor(public arms: Arm[] = ARMS, public epsilon = 0.1) {}
+  constructor(public arms: Arm[] = ARMS, public epsilon = 0.1, public minSessions = 0) {}
 
   private s(ctx: string, arm: Arm): ArmStats {
     this.stats[ctx] ??= {};
     return (this.stats[ctx][arm] ??= { n: 0, sum: 0, sumSq: 0 });
   }
 
+  /** IPS-weighted mean when weights were logged, else the plain mean. */
   mean(ctx: string, arm: Arm) {
     const s = this.stats[ctx]?.[arm];
-    return s && s.n ? s.sum / s.n : 0;
+    if (!s || !s.n) return 0;
+    return s.w ? (s.wsum ?? 0) / s.w : s.sum / s.n;
   }
 
   /** UCB1 while training: try every arm once, then mean + exploration bonus (reward scale in dollars). */
@@ -63,40 +91,44 @@ export class Bandit {
   }
 
   greedy(ctx: string): Arm {
+    const n = (a: Arm) => this.stats[ctx]?.[a]?.n ?? 0;
+    const trusted = this.arms.some((a) => n(a) >= Math.max(1, this.minSessions));
     let best: Arm = DEFAULT_ARM, bv = -Infinity;
     for (const a of this.arms) {
-      if (!this.stats[ctx]?.[a]?.n) continue;
+      if (!n(a) || (trusted && n(a) < this.minSessions)) continue;
       const m = this.mean(ctx, a);
       if (m > bv) { bv = m; best = a; }
     }
     return best;
   }
 
-  update(ctx: string, arm: Arm, rewardCents: number) {
+  /** `weight` = 1/propensity for logged sessions (IPS); omit for on-policy training. */
+  update(ctx: string, arm: Arm, rewardCents: number, weight?: number) {
     const s = this.s(ctx, arm);
     s.n++; s.sum += rewardCents; s.sumSq += rewardCents * rewardCents;
+    if (weight !== undefined) { s.w = (s.w ?? 0) + weight; s.wsum = (s.wsum ?? 0) + weight * rewardCents; }
   }
 
   export(version: number): LearnedPolicy {
     const choice: Record<string, Arm> = {};
     for (const ctx of Object.keys(this.stats)) choice[ctx] = this.greedy(ctx);
-    return { version, trained_at: new Date().toISOString(), arms: this.arms, epsilon: this.epsilon, stats: this.stats, choice };
+    return { version, trained_at: new Date().toISOString(), arms: this.arms, epsilon: this.epsilon, stats: this.stats, choice,
+      ...(this.minSessions ? { min_sessions: this.minSessions } : {}) };
   }
 }
 
 /**
  * Deployment choice from a learned policy: greedy per context, with ε random exploration.
- * Returns the arm and the probability it had of being picked (log it as payload.propensity).
+ * Returns the arm, the probability it had of being picked (log it as payload.propensity), and every arm's probability
+ * (payload.arm_probs: lets retraining compute mixture propensities across logging policies).
  * `rand` is injectable for tests; contexts never seen fall back to the default arm.
  */
-export function chooseArm(lp: LearnedPolicy | null, profile?: BuyerLeverProfile, rand = Math.random): { arm: Arm; propensity: number; context: string } {
+export function chooseArm(lp: LearnedPolicy | null, profile?: BuyerLeverProfile, rand = Math.random): { arm: Arm; propensity: number; context: string; probs: Partial<Record<Arm, number>> } {
   const context = contextOf(profile);
   const greedy = lp?.choice[context] ?? DEFAULT_ARM;
-  if (!lp) return { arm: greedy, propensity: 1, context };
+  if (!lp) return { arm: greedy, propensity: 1, context, probs: { [greedy]: 1 } };
   const k = lp.arms.length, eps = lp.epsilon;
-  if (rand() < eps) {
-    const arm = lp.arms[Math.floor(rand() * k)] ?? greedy;
-    return { arm, propensity: eps / k + (arm === greedy ? 1 - eps : 0), context };
-  }
-  return { arm: greedy, propensity: 1 - eps + eps / k, context };
+  const probs = Object.fromEntries(lp.arms.map((a) => [a, eps / k + (a === greedy ? 1 - eps : 0)])) as Partial<Record<Arm, number>>;
+  const arm = rand() < eps ? lp.arms[Math.floor(rand() * k)] ?? greedy : greedy;
+  return { arm, propensity: probs[arm] ?? 1, context, probs };
 }

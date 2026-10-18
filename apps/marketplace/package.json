@@ -11,7 +11,8 @@
     "build": "mcp-use build",
     "start": "mcp-use start --host 0.0.0.0",
     "typecheck": "tsc -p .",
-    "test": "node --import tsx --test \"test/**/*.test.ts\" \"src/**/*.test.ts\""
+    "test": "node --import tsx --test \"test/**/*.test.ts\" \"src/**/*.test.ts\"",
+    "check:learned-bundle": "node scripts/check-learned-bundle.mjs"
   },
   "dependencies": {
     "@mcp-use/client": "2.4.4",

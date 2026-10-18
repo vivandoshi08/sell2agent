@@ -8,7 +8,7 @@
 import { randomUUID } from "node:crypto";
 import { BuyerChannel, BuyerContext, type NegotiationEvent } from "@sa/shared";
 import { decide as e2decide, voice as e2voice, offerSummary, dealSummary, type Llm, type ProposedMove, type SellerPolicy, type SellerState,
-  type BuyerLeverProfile, type VoiceContext, type VoiceResult, DEFAULT_SOFT_FLOOR_BUFFER, softFloor } from "../sellers";
+  type BuyerLeverProfile, type VoiceContext, type VoiceResult, type PolicyName, DEFAULT_SOFT_FLOOR_BUFFER, softFloor, chooseArm, contextOf, DEFAULT_ARM } from "../sellers";
 import { StaticCatalog } from "./catalog";
 import { guardMove } from "./decision-guard";
 import { Deals, lockDeal } from "./deals";
@@ -20,8 +20,9 @@ import { MemoryStore, liveMemory, memoryKey, limitKey, breakerKey, probeId, isEv
 import { ProbeBreaker, StartLimiter, startLimitFor, buyerEndpoint, jitterStep, leverCost, NEAR_MISS_BAND } from "./probing";
 import { CONCESSION_CAP, holdAtCap } from "./decision-guard";
 import { Outreach, type InboundMeta, type Sender } from "./outreach";
+import { learnedPolicy, leverMenu } from "./learned";
 import type { AcceptMove, Catalog, ExchangeError, ExchangeResponse, Move, Negotiation, NegotiationState, OfferMove,
-  ProductConfig, StandingOffer, StatusMove, WalkMove, LockedDeal } from "./types";
+  ProductConfig, StandingOffer, StatusMove, WalkMove, LockedDeal, Strategy } from "./types";
 
 export const OFFER_TTL_MS = 15 * 60_000;
 export const BREAKER_THRESHOLD = 2; // E9: 2 flagged buyer messages → freeze
@@ -140,7 +141,7 @@ export class Exchange {
         return fail("rate_limited", "too many negotiations started on this product today; continue an existing negotiation_id instead");
       n = this.newNegotiation(m, p, qty);
       this.client(n, m.ctx, p);
-      if (m.strategy && isEvalRun(m.ctx.run_id) && ["static", "negotiating", "balanced"].includes(m.strategy)) n.strategy = m.strategy;
+      if (m.strategy && isEvalRun(m.ctx.run_id) && ["static", "negotiating", "balanced", "learned"].includes(m.strategy)) n.strategy = m.strategy;
       // E11 buyer memory: a returning buyer resumes where they left off. Never quoted higher than before,
       // and the concession clock doesn't restart, so restarting can't bisect toward the floor.
       const mem = liveMemory(n.buyer_id, await this.store.getBuyerMemory(memoryKey(n.buyer_id, p.product_id, n.run_id)), this.now());
@@ -170,6 +171,7 @@ export class Exchange {
     const cost = leverCost(levers, p.lever_costs);
     if (p.floor_price_cents + cost > p.list_price_cents) return fail("bad_lever", "that package can't be offered; try fewer extras");
     if (levers.join() !== (n.levers ?? []).join()) n.levers = levers;
+    if (n.learned?.added_levers) n.learned.added_levers = n.learned.added_levers.filter((l) => levers.includes(l));
     if (m.buyer_profile) n.buyer_profile = m.buyer_profile;
     const base = p;
     p = { ...p, floor_price_cents: p.floor_price_cents + cost }; // effective floor for this package
@@ -204,10 +206,21 @@ export class Exchange {
 
     // decide → guard
     const prevSeller = lastSeller(n);
+    const name = this.policyName(n, p.strategy, m.buyer_profile); // `learned`: the arm drawn for this negotiation
+    if (n.learned) refs.push(`arm:${n.learned.arm}`);
+    const added = n.learned?.added_levers ?? []; // extras lever_policy put in; it prices them itself (floor below excludes them)
     const proposed = this.decideFn(
-      { round: n.round, terms: { product_id: p.product_id, title: p.title, list_price_cents: p.list_price_cents, floor_price_cents: p.floor_price_cents,
-        unit_cost_cents: p.unit_cost_cents, max_rounds: p.max_rounds }, history: n.history.slice(0, -1), buyer_offer_cents: m.offer_price_cents },
-      { name: p.strategy, soft_floor_buffer: this.buffer, final_round_accept_zone: !n.frozen && this.breaker.open(breakerKey(base.product_id, n.run_id)) }, m.buyer_profile);
+      { round: n.round, terms: { product_id: p.product_id, title: p.title, list_price_cents: p.list_price_cents, floor_price_cents: p.floor_price_cents - leverCost(added, base.lever_costs),
+        unit_cost_cents: p.unit_cost_cents, max_rounds: p.max_rounds }, history: markLevers(n.history.slice(0, -1), added), buyer_offer_cents: m.offer_price_cents },
+      { name, soft_floor_buffer: this.buffer, final_round_accept_zone: !n.frozen && this.breaker.open(breakerKey(base.product_id, n.run_id)),
+        ...(name === "lever_policy" ? { lever_menu: leverMenu(base) } : {}) }, m.buyer_profile);
+    // lever_policy can hold the price and add an extra instead of a cut: it joins the package and the floor rises by its cost, before the guard
+    const extra = (proposed.lever_package ?? []).map((l) => l.id).filter((id) => !n.levers.includes(id) && base.allowed_levers.includes(id));
+    if (extra.length) {
+      n.levers = [...n.levers, ...extra];
+      n.learned = { ...n.learned!, added_levers: [...added, ...extra] };
+      p = { ...base, floor_price_cents: base.floor_price_cents + leverCost(n.levers, base.lever_costs) };
+    }
     let { move, blocks } = guardMove({ move: proposed, product: p, round: n.round, prev_seller_offer_cents: prevSeller, frozen: n.frozen, soft_floor_buffer: this.buffer });
     for (const b of blocks) { refs.push(ruleRef(b.rule)); await this.emit(n, "guardrail_blocked", "seller", move.price_cents, { ...b }); }
     // past the round cap (a counter to a follow-up): hold the price already offered, no extra round below it
@@ -336,6 +349,17 @@ export class Exchange {
     return fallbackMessage(octx, p.title);
   }
 
+  /** Strategy → decide() policy. `learned` draws one arm per negotiation (ε-greedy, chooseArm) and keeps it; no usable file → negotiating. */
+  private policyName(n: Negotiation, s: Strategy, profile?: BuyerLeverProfile): PolicyName {
+    if (s !== "learned") return s;
+    if (!n.learned) {
+      const got = learnedPolicy();
+      const c = got.policy ? chooseArm(got.policy, profile) : { arm: DEFAULT_ARM, propensity: 1, context: contextOf(profile), probs: { [DEFAULT_ARM]: 1 } };
+      n.learned = { arm: c.arm, propensity: c.propensity, context: c.context, probs: c.probs, version: got.policy?.version ?? null, ...(got.fallback ? { fallback: got.fallback } : {}) };
+    }
+    return n.learned.arm;
+  }
+
   private async remember(n: Negotiation, offer_cents: number) {
     const k = memoryKey(n.buyer_id, n.product_id, n.run_id);
     const prev = liveMemory(n.buyer_id, await this.store.getBuyerMemory(k), this.now()); // expired anon memory starts over
@@ -441,7 +465,10 @@ export class Exchange {
         negotiation_id: n.id, actor, type, price_cents: price,
         payload: { ...payload, ...(type === "guardrail_blocked" ? { severity: guardrailSeverity(payload.rule), seller_message: payload.seller_message ?? sellerMessage(payload.rule) } : {}),
           ...(n.product_title ? { product_title: n.product_title } : {}), ...(n.channel ? { channel: n.channel } : {}),
-          ...(n.agent_operator ? { agent_operator: n.agent_operator } : {}), state: n.state } });
+          ...(n.agent_operator ? { agent_operator: n.agent_operator } : {}), state: n.state,
+          // `learned`: what was drawn and with what probability, so retraining can IPS-weight logged outcomes (pnpm e2:retrain)
+          ...(n.learned ? { policy: "learned", arm: n.learned.arm, propensity: n.learned.propensity, arm_probs: n.learned.probs, bandit_context: n.learned.context,
+            policy_version: n.learned.version, ...(n.learned.fallback ? { learned_fallback: n.learned.fallback } : {}) } : {}) } });
     } catch (e) {
       console.error("[exchange] event sink failed", (e as Error).message);
     }
@@ -455,6 +482,13 @@ const REASON_REF: Partial<Record<ProposedMove["reason"], string>> = {
 /** Rule chips for a seller move: guards that fired this turn, the decision's reason, the policy and the extras included. */
 function ruleRefs(refs: string[], move: ProposedMove, p: ProductConfig, o: StandingOffer): string[] {
   return [...refs, REASON_REF[move.reason] ?? move.reason, `policy:${p.strategy}`, ...(o.final && move.action === "offer" ? ["last_round"] : []), ...o.levers.map((l) => `lever:${l}`)];
+}
+
+/** lever_policy reads the extras already promised from the last seller entry of the history. */
+function markLevers(h: Negotiation["history"], levers: string[]): SellerState["history"] {
+  if (!levers.length) return h;
+  const i = h.map((x) => x.by).lastIndexOf("seller");
+  return h.map((x, j) => (j === i ? { ...x, levers } : x));
 }
 
 function lastSeller(n: Negotiation): number | undefined {
