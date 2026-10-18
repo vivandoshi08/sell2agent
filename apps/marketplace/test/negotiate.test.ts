@@ -104,3 +104,19 @@ test("make_offer accepts an eval strategy and an unsigned run is otherwise uncha
   assert.equal(withStrategy.ok, true);
   assert.equal(withStrategy.standing_offer.price_cents, plain.standing_offer.price_cents, "unsigned run_id must not change the seller");
 });
+
+// Contract v3: channel + agent_operator on every exchange call.
+import { buyerChannel, toCtx } from "../src/negotiate";
+const client = (name: string) => ({ client: { info: () => ({ name }) } });
+
+test("channel and agent_operator from the client's name; explicit args win", () => {
+  assert.deepEqual(buyerChannel({}, client("openai-mcp")), { channel: "mcp_app", agent_operator: "chatgpt" });
+  assert.deepEqual(buyerChannel({}, client("instinct-agent")), { channel: "messaging", agent_operator: "instinct" });
+  assert.deepEqual(buyerChannel({}, client("connectors-manager")), { channel: "mcp_app", agent_operator: "connectors-manager" });
+  assert.deepEqual(buyerChannel({ channel: "harness", agent_operator: "harness" }, client("openai-mcp")), { channel: "harness", agent_operator: "harness" });
+  assert.deepEqual(buyerChannel({ channel: "bogus" }), { channel: "mcp_app", agent_operator: "unknown" });
+  const ctx = toCtx({ buyer_id: "b1" }, client("instinct-agent"));
+  assert.equal(ctx.channel, "messaging");
+  assert.equal(ctx.agent_operator, "instinct");
+  assert.equal(ctx.buyer_model, "instinct");
+});

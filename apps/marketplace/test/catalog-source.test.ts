@@ -87,3 +87,29 @@ test("an empty catalog in the database falls back to the seed rather than showin
   const src = new SupabaseCatalogSource(fakeDb({ products: [], sellers, seller_policies: [] }).db);
   assert.equal(await src.get(), STATIC_SNAPSHOT);
 });
+
+// Live DB before 0002: seller_policies has no lever_menu. Asking for it must not drop the live catalog.
+test("no lever_menu column yet: retries with v1 columns, never asks for floors or costs", async () => {
+  const asked: string[] = [];
+  const db = async () => ({
+    from: (t: string) => ({
+      select: async (cols: string) => {
+        asked.push(`${t}:${cols}`);
+        if (t === "seller_policies" && cols.includes("lever_menu")) return { data: null, error: { message: "column seller_policies.lever_menu does not exist" } };
+        if (t === "products") return { data: [product("kb_a", "s_a")], error: null };
+        if (t === "sellers") return { data: sellers, error: null };
+        return { data: [{ product_id: "kb_a", allowed_concessions: ["free_shipping"] }], error: null };
+      },
+    }),
+  });
+  let now = 0;
+  const src = new SupabaseCatalogSource(db, { now: () => now, ttl_ms: 1 });
+  const s = await src.get();
+  assert.equal(s.source, "supabase", "the live catalog is served, not the code seed");
+  assert.deepEqual(s.levers, { kb_a: ["free_shipping"] });
+  now = 10;
+  await src.get(); // second load remembers: no repeated failing query
+  const policyQueries = asked.filter((q) => q.startsWith("seller_policies"));
+  assert.equal(policyQueries.filter((q) => q.includes("lever_menu")).length, 1);
+  for (const q of policyQueries) for (const c of ["floor_price_cents", "unit_cost_cents", "target_margin_pct", "*"]) assert.ok(!q.includes(c), `asked for ${c}: ${q}`);
+});

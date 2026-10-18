@@ -35,6 +35,11 @@ type Row = Record<string, unknown>;
 
 const str = (s: unknown): s is string => typeof s === "string" && s.length > 0;
 
+// Only what the gateway may show; floors, costs and margins are never even loaded into gateway memory.
+// lever_menu exists from contract v2 (0002); before it's applied, fall back to the v1 column alone.
+const POLICY_COLUMNS = "product_id,allowed_concessions,lever_menu";
+const POLICY_COLUMNS_V1 = "product_id,allowed_concessions";
+
 /** Build a public snapshot from raw rows; bad product rows are skipped. Exported for tests. */
 export function toSnapshot(products: Row[], sellers: Row[], policies: Row[], warn: (m: string) => void = () => {}): CatalogSnapshot {
   const prods: Product[] = [];
@@ -85,13 +90,26 @@ export class SupabaseCatalogSource {
     console.warn(`[gateway catalog] ${m}`);
   };
 
+  private v1 = false;
+
+  /** seller_policies, public columns only; retries without lever_menu (and remembers) until 0002 is applied. */
+  private async policies(db: Db) {
+    if (!this.v1) {
+      const r = await db.from("seller_policies").select(POLICY_COLUMNS);
+      if (!r?.error || !/lever_menu/.test(r.error.message ?? "")) return r;
+      this.v1 = true;
+      this.warn("seller_policies has no lever_menu yet (0002 not applied); reading allowed_concessions only");
+    }
+    return db.from("seller_policies").select(POLICY_COLUMNS_V1);
+  }
+
   private async load(): Promise<void> {
     let timer: ReturnType<typeof setTimeout> | undefined;
     try {
       const db = await this.db();
       const timeout = new Promise<never>((_, rej) => { timer = setTimeout(() => rej(new Error(`timed out after ${this.opts.timeout_ms ?? 3000} ms`)), this.opts.timeout_ms ?? 3000); });
       const res = await Promise.race([
-        Promise.all([db.from("products").select("*"), db.from("sellers").select("id,name"), db.from("seller_policies").select("*")]),
+        Promise.all([db.from("products").select("*"), db.from("sellers").select("id,name"), this.policies(db)]),
         timeout,
       ]);
       for (const [t, r] of [["products", res[0]], ["sellers", res[1]], ["seller_policies", res[2]]] as const) if (r?.error) throw new Error(`${t}: ${r.error.message}`);
