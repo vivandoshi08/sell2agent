@@ -21,8 +21,8 @@ import { followupCourier, registerFollowups, startOutreachTimer } from "./src/fo
 const MCP_URL = new URL("/mcp", process.env.MCP_URL ?? "http://localhost:3002").toString();
 
 const server = new MCPServer({
-  name: "sa-marketplace",
-  title: "Keyboard Marketplace",
+  name: "sell2agent",
+  title: "sell2agent",
   version: "0.0.1",
   description: "Compare products from competing sellers and negotiate with each seller's agent.",
   instructions:
