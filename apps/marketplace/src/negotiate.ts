@@ -11,6 +11,7 @@ import { Exchange, type ExchangeResponse, type Move } from "@sa/seller-mcp/excha
 import { defaultLlm, dealSummary as dealLine, SUMMARY_MAX } from "@sa/seller-mcp/sellers";
 import { approveUrl } from "./deal/approve.js";
 import { followupSender } from "./followup/index.js";
+import { preferencesFor, preferencesSchema } from "./preferences.js";
 
 let exP: Promise<Exchange> | undefined;
 /** Supabase-backed when SUPABASE_URL is set (stateless-safe), else in-memory (single instance). */
@@ -163,6 +164,7 @@ export function registerNegotiationTools(server: any, opts: { approveOrigin?: st
         quantity: z.number().int().positive().optional(),
         message: z.string().max(2000).optional().describe("Optional note to the seller"),
         levers: z.array(z.string()).optional().describe("Extras you want included, from the listing (e.g. free_shipping)"),
+        preferences: preferencesSchema.optional().describe("Optional: what the buyer values, same as search_products. Defaults to what this buyer_id sent to search_products."),
         strategy: z
           .enum(["static", "negotiating", "balanced", "learned"])
           .optional()
@@ -172,10 +174,14 @@ export function registerNegotiationTools(server: any, opts: { approveOrigin?: st
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
     },
-    async (a: any, rc?: RequestLike) => run({ kind: "offer", ctx: toCtx(a, rc, { mint: !a.negotiation_id }), product_id: a.product_id, negotiation_id: a.negotiation_id, offer_price_cents: a.offer_price_cents,
-      quantity: a.quantity, message: a.message, levers: a.levers,
+    async (a: any, rc?: RequestLike) => {
+      const ctx = toCtx(a, rc, { mint: !a.negotiation_id });
+      const buyer_profile = preferencesFor(ctx.buyer_id, a.preferences);
+      return run({ kind: "offer", ctx, product_id: a.product_id, negotiation_id: a.negotiation_id, offer_price_cents: a.offer_price_cents,
+      quantity: a.quantity, message: a.message, levers: a.levers, ...(buyer_profile ? { buyer_profile } : {}),
       // E1 decides whether to honour it (signed eval run_id only); the gateway just passes it along.
-      ...(a.strategy ? { strategy: a.strategy } : {}) }),
+      ...(a.strategy ? { strategy: a.strategy } : {}) });
+    },
   );
 
   server.tool(

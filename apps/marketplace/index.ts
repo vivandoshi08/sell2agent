@@ -12,6 +12,7 @@ import { deal, registerDealTools } from "./src/deal-tools.js";
 import { registerApprovePage } from "./src/deal/index.js";
 import { registerListingTools } from "./src/listing-tools.js";
 import { registerDiscovery } from "./src/discovery.js";
+import { leverNames, preferencesSchema, rememberPreferences } from "./src/preferences.js";
 import { followupCourier, registerFollowups, startOutreachTimer } from "./src/followup/index.js";
 
 // mcp-use and Manufact set MCP_URL to the public origin (no path); the endpoint is served at /mcp.
@@ -46,22 +47,6 @@ const listingSchema = z.object({
   in_stock: z.boolean(),
   mcp_url: z.string(),
 });
-
-const leverNames = ["price", "quality", "delivery", "warranty", "trust", "convenience"] as const;
-const weight = z.number().min(0).max(1);
-const preferencesSchema = z
-  .object({
-    price: weight.optional(),
-    quality: weight.optional(),
-    delivery: weight.optional(),
-    warranty: weight.optional(),
-    trust: weight.optional(),
-    convenience: weight.optional(),
-  })
-  .describe(
-    "What the buyer values, each 0..1 (1 = matters most): price, quality, delivery (speed), warranty, trust, convenience. " +
-      "E.g. a quality-first buyer: { quality: 1, warranty: 0.8, price: 0.2 }. Results are ranked by fit to these.",
-  );
 
 const offeredLeverSchema = z.object({ id: z.string(), lever: z.enum(leverNames), label: z.string() });
 
@@ -116,6 +101,8 @@ export const searchProductsTool = server.tool(
       max_price_cents: a.max_price_cents,
       preferences,
     });
+    // make_offer reads these back as the seller's buyer_profile (the learned seller's context)
+    rememberPreferences(buyer_id, contract.preferences);
     const legacy = SearchQuery.parse({ q: query, category: a.category, max_price_cents: a.max_price_cents });
     const cat = await catalog();
     const out = searchProducts({ ...legacy, must_have: contract.hard_needs, preferences: contract.preferences }, MCP_URL, cat);
