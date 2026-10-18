@@ -120,3 +120,21 @@ test("channel and agent_operator from the client's name; explicit args win", () 
   assert.equal(ctx.agent_operator, "instinct");
   assert.equal(ctx.buyer_model, "instinct");
 });
+
+// Instinct told a person there was "no stated expiry": the locked-deal text and summary must state it.
+import { expiryText } from "../src/negotiate";
+test("a locked deal's text and summary state when it expires", async () => {
+  const o = (await call("make_offer", { product_id: "kb_typewell_65", offer_price_cents: 13900, buyer_id: "s1-exp-1", run_id: "s1-test-exp" })).structuredContent;
+  const r = await call("accept_deal", { negotiation_id: o.negotiation_id, offer_id: o.standing_offer.offer_id, buyer_id: "s1-exp-1" });
+  const d = r.structuredContent.deal;
+  assert.ok(d.expires_at, "deal carries expires_at");
+  assert.match(r.content[0].text, new RegExp(`expires ${d.expires_at.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} \\(in about \\d+ min\\)`));
+  if (r.structuredContent.summary) {
+    assert.match(r.structuredContent.summary, /Expires (in about \d+ min|now) \(\d\d:\d\d UTC\)\./);
+    assert.ok(r.structuredContent.summary.length <= 280);
+  }
+});
+test("expiryText says expired once the deadline passes", () => {
+  assert.equal(expiryText("2026-01-01T00:00:00.000Z", Date.parse("2026-01-01T00:15:00.000Z")), "2026-01-01T00:00:00.000Z (expired)");
+  assert.match(expiryText("2026-01-01T00:15:00.000Z", Date.parse("2026-01-01T00:00:00.000Z")), /in about 15 min/);
+});
