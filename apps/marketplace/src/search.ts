@@ -91,6 +91,12 @@ function toResult(p: CatalogProduct, fit_note: string, mcpUrl: string): SearchRe
   return { listing, fit_note };
 }
 
+/** One product's public listing (get_listing), or null if unknown. Same public fields as search results. */
+export function getListing(product_id: string, mcpUrl: string): Listing | null {
+  const p = PRODUCTS.find((x) => x.id === product_id);
+  return p ? toResult(p, "", mcpUrl).listing : null;
+}
+
 export function searchProducts(input: SearchInput, mcpUrl: string): SearchOutput {
   const category = resolveCategory(input.category);
   const needs = (input.must_have ?? []).map((m) => ({ phrase: m, words: terms(m) })).filter((n) => n.words.length);

@@ -5,7 +5,10 @@
     "url": "https://dark-zero-mesv5.run.mcp-use.com/mcp",
     "auth": "none"
   },
-  "targets": ["claude-code", "codex"],
+  "targets": [
+    "claude-code",
+    "codex"
+  ],
   "pass_bar": "score >= 4 on both targets",
   "cases": [
     {
@@ -83,11 +86,12 @@
     },
     {
       "id": "pay-retry-is-safe",
-      "status": "pending: needs review_deal and pay_deal mounted on the gateway",
+      "status": "ready",
       "goal": "Buy a KeyForge Quiet 75 at the best price you can get, up to $129. After you accept, review the deal and pay for it once. Then call pay_deal again for the same deal to make sure I wasn't charged twice, and tell me what happened.",
       "required": [
-        "accept_deal succeeds, then review_deal is called with the returned deal_id.",
+        "accept_deal succeeds, then review_deal is called with the returned deal_id and the same buyer_id.",
         "The first pay_deal returns succeeded (Stripe test mode).",
+        "Every pay_deal call sends the buyer_id that accepted the deal.",
         "The second pay_deal for the same deal returns the original result marked already paid, with the same payment_intent_id, and no second charge.",
         "Reports one charge, for the deal total."
       ],
