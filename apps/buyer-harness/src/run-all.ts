@@ -6,7 +6,7 @@
 import { appendFileSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import type { NegotiationEvent } from "@sa/shared";
-import { brainFor } from "./agents/brains";
+import { brainFor, type Brain } from "./agents/brains";
 import { runBuyer, type BuyerOutcome, type Emit } from "./agents/buyer";
 import type { LlmBuyerTask } from "./agents/personas";
 import type { Gateway } from "./gateway/types";
@@ -19,6 +19,7 @@ export interface RunAllConfig {
   concurrency?: number; // default 4
   max_steps?: number; // per buyer, default 30
   on_outcome?: (o: BuyerOutcome) => void;
+  brain_for?: (t: LlmBuyerTask) => Brain; // default brainFor(t.buyer_model); tests inject custom buyers
 }
 
 export interface Summary {
@@ -108,7 +109,7 @@ export async function runAll(cfg: RunAllConfig): Promise<{ summary: Summary; out
     while (next < cfg.buyers.length) {
       const i = next++;
       const t = cfg.buyers[i];
-      outcomes[i] = await runBuyer(t, brainFor(t.buyer_model), cfg.gateway, cfg.run_id, emit, cfg.max_steps ?? 30, cfg.label);
+      outcomes[i] = await runBuyer(t, cfg.brain_for?.(t) ?? brainFor(t.buyer_model), cfg.gateway, cfg.run_id, emit, cfg.max_steps ?? 30, cfg.label);
       cfg.on_outcome?.(outcomes[i]);
     }
   };

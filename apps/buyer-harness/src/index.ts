@@ -7,3 +7,5 @@ export { LocalGateway } from "./gateway/local";
 export { McpGateway } from "./gateway/mcp";
 export { ExchangeGateway, type Strategy } from "./gateway/exchange";
 export type { Gateway } from "./gateway/types";
+export { runFollowupSim, runProbers, wilson, bootMean, type FollowupSimConfig, type FollowupSimResult } from "./followup-sim";
+export { ScriptedReplier, ClaudeReplier, type Replier } from "./agents/replier";

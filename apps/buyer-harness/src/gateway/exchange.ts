@@ -7,7 +7,7 @@
  * The exchange logs seller-side events itself; they're forwarded to the run's event log (attach()).
  */
 import type { BuyerContext, NegotiationEvent } from "@sa/shared";
-import { Exchange, StaticCatalog, SEED_PRODUCTS } from "@sa/seller-mcp/exchange";
+import { Exchange, StaticCatalog, SEED_PRODUCTS, type ExchangeOptions } from "@sa/seller-mcp/exchange";
 import { answerQuestion, type BuyerLeverProfile, type Llm } from "@sa/seller-mcp/sellers";
 import { LocalGateway } from "./local";
 import { NegotiationBook, type ExchangeLike } from "./exchange-map";
@@ -24,12 +24,17 @@ export class ExchangeGateway implements Gateway {
   private emit: ((e: NegotiationEvent) => void) | null = null;
   private listings: LocalGateway; // public catalog + search (keyboards; same ids as the exchange's seed)
 
-  /** @param opts.max_rounds override every product's round cap (E1's seed uses 3–4; PR #39 proposes 6). */
-  constructor(public strategy: Strategy, private sellerLlm: Llm | null = null, opts: { max_rounds?: number } = {}) {
+  /**
+   * @param opts.max_rounds override every product's round cap (E1's seed uses 3–4; PR #39 proposes 6).
+   * @param opts.now / opts.send / opts.decide passed to the Exchange (follow-up sim: fake clock, capturing sender, seller variants).
+   */
+  constructor(public strategy: Strategy, private sellerLlm: Llm | null = null,
+    opts: { max_rounds?: number } & Pick<ExchangeOptions, "now" | "send" | "decide"> = {}) {
     this.exchange = new Exchange({
       catalog: new StaticCatalog(SEED_PRODUCTS, { strategy, ...(opts.max_rounds ? { max_rounds: opts.max_rounds } : {}) }),
       llm: sellerLlm,
       sink: async (e) => { this.emit?.(e); }, // → runAll's sink: jsonl + Supabase when configured
+      now: opts.now, send: opts.send, decide: opts.decide,
     });
     this.listings = new LocalGateway(strategy === "static" ? "static" : "negotiating", sellerLlm);
   }

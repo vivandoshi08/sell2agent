@@ -14,7 +14,8 @@
     "e2:personas": "tsx src/persona-check.ts",
     "e2:summaries": "tsx src/e2-summaries.ts",
     "e2:learned": "tsx src/e2-learned.ts",
-    "e2:retrain": "tsx src/e2-retrain.ts"
+    "e2:retrain": "tsx src/e2-retrain.ts",
+    "followups": "tsx src/followup-cli.ts"
   },
   "dependencies": {
     "@sa/shared": "workspace:*",
