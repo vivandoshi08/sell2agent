@@ -100,3 +100,21 @@ test("sample data: two policies, prefixed run ids, negotiating ahead on profit",
   const grid = personaGrid(ks);
   assert.equal(grid.length, 5);
 });
+
+test("buyer fit: weighted by what the buyer values; null when not scorable", async () => {
+  const { buyerFit, leverWins } = await import("../src/metrics/levers");
+  // price-first buyer, 10% off list → price half served (full credit at 20%).
+  assert.equal(buyerFit({ price: 1 }, [], 10_000, 9_000), 0.5);
+  // quality+warranty buyer gets the warranty, no discount: warranty fully served, price/quality not scorable → 1.
+  assert.equal(buyerFit({ quality: 1, warranty: 0.8 }, ["extended_warranty"], 10_000, 10_000), 1);
+  // delivery buyer without shipping lever, list price: 0.
+  assert.equal(buyerFit({ delivery: 1, price: 0.5 }, [], 10_000, 10_000), 0);
+  assert.equal(buyerFit(undefined, [], 10_000, 9_000), null);
+  assert.equal(buyerFit({ quality: 1 }, [], 10_000, 9_000), null);
+  const wins = leverWins([
+    { persona: "quality_first", policy: "negotiating", converted: true, levers: ["extended_warranty"] },
+    { persona: "quality_first", policy: "negotiating", converted: true, levers: [] },
+    { persona: "quality_first", policy: "negotiating", converted: false, levers: [] },
+  ]);
+  assert.deepEqual(wins.map((w) => [w.package, w.deals, w.share]), [["extended_warranty", 1, 0.5], ["price only", 1, 0.5]]);
+});
