@@ -19,7 +19,9 @@ test("anonymous buyer: first offer mints anon_ id; later calls must echo it; acc
   const s2 = r2.structuredContent;
   assert.equal(s2.round, 2);
   const lost = await call("make_offer", { product_id: "kb_keyforge_quiet75", negotiation_id: s1.negotiation_id, offer_price_cents: 11000 });
-  assert.equal(lost.structuredContent.error.code, "wrong_buyer", "forgetting buyer_id can't hijack the negotiation");
+  assert.equal(lost.structuredContent.error.code, "missing_buyer_id", "forgetting buyer_id can't hijack the negotiation");
+  const other = await call("make_offer", { product_id: "kb_keyforge_quiet75", negotiation_id: s1.negotiation_id, offer_price_cents: 11000, buyer_id: "anon_someone-else" });
+  assert.equal(other.structuredContent.error.code, "wrong_buyer");
   const acc = await call("accept_deal", { negotiation_id: s1.negotiation_id, offer_id: s2.standing_offer.offer_id, buyer_id: s1.buyer_id });
   assert.equal(acc.structuredContent.state, "agreed");
   assert.ok(acc.structuredContent.deal.total_cents >= 10500);
@@ -71,4 +73,25 @@ test("a second ChatGPT user doesn't inherit the first user's price", async () =>
   const second = (await call("make_offer", { product_id: p, offer_price_cents: 9000 }, chatgpt("user-second"))).structuredContent;
   assert.ok(second.standing_offer.price_cents > firstPrice, `second user opened at ${second.standing_offer.price_cents}, first ended at ${firstPrice}`);
   assert.equal(second.standing_offer.final, false);
+});
+
+// Vivan's repro on #48: a client without openai/subject (e.g. Claude) that drops buyer_id got a freshly minted
+// anon_ id and a misleading wrong_buyer. Now only a first make_offer mints; later calls get missing_buyer_id.
+test("no subject and no buyer_id on a later call: clear missing_buyer_id, nothing minted", async () => {
+  const o = (await call("make_offer", { product_id: "kb_clackco_tkl", offer_price_cents: 10000 })).structuredContent;
+  assert.match(o.buyer_id, /^anon_/);
+  for (const [name, args] of [
+    ["accept_deal", { negotiation_id: o.negotiation_id, offer_id: o.standing_offer.offer_id }],
+    ["check_offers", { negotiation_id: o.negotiation_id }],
+    ["walk_away", { negotiation_id: o.negotiation_id }],
+    ["make_offer", { product_id: "kb_clackco_tkl", negotiation_id: o.negotiation_id, offer_price_cents: 10500 }],
+  ] as const) {
+    const r = await call(name, args);
+    assert.equal(r.structuredContent.error.code, "missing_buyer_id", name);
+    assert.equal(r.isError, true);
+    assert.match(r.content[0].text, /first make_offer/);
+  }
+  // Sending the id back still works afterwards: the negotiation wasn't touched.
+  const acc = (await call("accept_deal", { negotiation_id: o.negotiation_id, offer_id: o.standing_offer.offer_id, buyer_id: o.buyer_id })).structuredContent;
+  assert.equal(acc.state, "agreed");
 });

@@ -4,7 +4,7 @@
 import { z } from "zod";
 import { createDealModule, dealSummary, fromExchange, type CatalogSource } from "./deal/index.js";
 import { PRODUCTS, SELLERS } from "./catalog.js";
-import { exchange, toCtx, type RequestLike } from "./negotiate.js";
+import { exchange, missingBuyer, toCtx, type RequestLike } from "./negotiate.js";
 
 // Public catalog facts for the card (seller name). Never seller policy.
 const catalog: CatalogSource = {
@@ -90,6 +90,7 @@ export function registerDealTools(server: any) {
     async (a: { deal_id: string; buyer_id?: string; payment_token?: string; run_id?: string; buyer_model?: string }, rc?: RequestLike) => {
       try {
         const ctx = toCtx(a, rc);
+        if (!ctx.buyer_id) return missingBuyer();
         const r = await (await deal()).payApprovedDeal(a.deal_id, a.payment_token, { buyer: ctx, run_id: ctx.run_id });
         const text = r.status === "succeeded" ? `Paid ${r.payment_intent_id ?? ""} (Stripe test mode).`.trim()
           : `Payment ${r.status}.${r.reasons?.length ? ` ${r.reasons.join(" ")}` : ""}${r.fix ? ` Fix: ${r.fix}` : ""}`;

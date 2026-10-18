@@ -2,9 +2,10 @@
 //
 // Buyer identity, in order: a buyer_id the caller sends (simulated buyers, or the id echoed back by the model);
 // else ChatGPT's per-user `openai/subject`, hashed to `oai_<hex>` so one person keeps one id across chats;
-// else the first make_offer mints `anon_<uuid>` and returns it, and the model must send it back on later calls.
+// else the first make_offer (no negotiation_id) mints `anon_<uuid>` and returns it, and the model must send it back.
+// Later calls with no id at all get `missing_buyer_id` (never a fresh anon_ id, which would read as wrong_buyer).
 // Offers stay bound to that id, so another buyer can't accept them.
-import { createHash, randomUUID } from "node:crypto";
+import { createHmac, randomUUID } from "node:crypto";
 import { z } from "zod";
 import { Exchange, type ExchangeResponse, type Move } from "@sa/seller-mcp/exchange";
 
@@ -17,23 +18,37 @@ const ctxFields = {
   buyer_model: z.string().optional().describe("Buyer model name, if known"),
 };
 const buyerIdNew = z.string().optional().describe("Your buyer_id from an earlier response. Omit on your very first offer and one is created for you.");
-const buyerIdReq = z.string().optional().describe("The buyer_id returned by your first make_offer. Send it on every later call.");
+const buyerIdReq = z.string().optional().describe("The buyer_id returned by your first make_offer. Send it on every later call; it can be omitted only when the client identifies the user (ChatGPT).");
 
 /** The slice of mcp-use's request context we read: client-reported OpenAI user hints (unverified, not auth). */
 export type RequestLike = { client?: { user?: () => { subject?: string } | undefined } };
 
-/** `oai_` + hash of ChatGPT's anonymized user id, or undefined when the client sent none. */
+// Keyed, so ids in `events` (readable with the anon key) can't be linked back to a known subject.
+const SUBJECT_KEY = process.env.EXCHANGE_HMAC_SECRET ?? "dev-subject-secret";
+
+/** `oai_` + keyed hash of ChatGPT's anonymized user id, or undefined when the client sent none. */
 export function subjectBuyerId(rc?: RequestLike): string | undefined {
   const subject = rc?.client?.user?.()?.subject;
-  return subject ? `oai_${createHash("sha256").update(subject).digest("hex").slice(0, 32)}` : undefined;
+  return subject ? `oai_${createHmac("sha256", SUBJECT_KEY).update(subject).digest("hex").slice(0, 32)}` : undefined;
 }
 
-export function toCtx(a: { run_id?: string; buyer_id?: string; buyer_model?: string }, rc?: RequestLike) {
+/** buyer_id is "" when nothing identifies the buyer and `mint` is off; `run` turns that into missing_buyer_id. */
+export function toCtx(a: { run_id?: string; buyer_id?: string; buyer_model?: string }, rc?: RequestLike, { mint = false } = {}) {
   const fromSubject = subjectBuyerId(rc);
   return {
     run_id: a.run_id ?? "live",
-    buyer_id: a.buyer_id ?? fromSubject ?? `anon_${randomUUID()}`,
+    buyer_id: a.buyer_id ?? fromSubject ?? (mint ? `anon_${randomUUID()}` : ""),
     buyer_model: a.buyer_model ?? (fromSubject ? "chatgpt" : "unknown"),
+  };
+}
+
+export const MISSING_BUYER_ID = "buyer_id missing: send the buyer_id from your first make_offer response on this call.";
+
+export function missingBuyer() {
+  return {
+    content: [{ type: "text" as const, text: `Error missing_buyer_id: ${MISSING_BUYER_ID}` }],
+    structuredContent: { ok: false, error: { code: "missing_buyer_id", message: MISSING_BUYER_ID }, allowed_actions: [] },
+    isError: true,
   };
 }
 
@@ -53,6 +68,7 @@ export function render(r: ExchangeResponse, buyer_id: string) {
 }
 
 async function run(move: Move) {
+  if (!move.ctx.buyer_id) return missingBuyer();
   return render(await (await exchange()).handle(move), move.ctx.buyer_id);
 }
 
@@ -76,7 +92,7 @@ export function registerNegotiationTools(server: any) {
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
     },
-    async (a: any, rc?: RequestLike) => run({ kind: "offer", ctx: toCtx(a, rc), product_id: a.product_id, negotiation_id: a.negotiation_id, offer_price_cents: a.offer_price_cents,
+    async (a: any, rc?: RequestLike) => run({ kind: "offer", ctx: toCtx(a, rc, { mint: !a.negotiation_id }), product_id: a.product_id, negotiation_id: a.negotiation_id, offer_price_cents: a.offer_price_cents,
       quantity: a.quantity, message: a.message, levers: a.levers }),
   );
 
