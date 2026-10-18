@@ -24,9 +24,10 @@ export class ExchangeGateway implements Gateway {
   private emit: ((e: NegotiationEvent) => void) | null = null;
   private listings: LocalGateway; // public catalog + search (keyboards; same ids as the exchange's seed)
 
-  constructor(public strategy: Strategy, private sellerLlm: Llm | null = null) {
+  /** @param opts.max_rounds override every product's round cap (E1's seed uses 3–4; PR #39 proposes 6). */
+  constructor(public strategy: Strategy, private sellerLlm: Llm | null = null, opts: { max_rounds?: number } = {}) {
     this.exchange = new Exchange({
-      catalog: new StaticCatalog(SEED_PRODUCTS, { strategy }),
+      catalog: new StaticCatalog(SEED_PRODUCTS, { strategy, ...(opts.max_rounds ? { max_rounds: opts.max_rounds } : {}) }),
       llm: sellerLlm,
       sink: async (e) => { this.emit?.(e); }, // → runAll's sink: jsonl + Supabase when configured
     });
