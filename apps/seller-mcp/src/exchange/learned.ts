@@ -7,29 +7,41 @@
  *
  * Fallback: no file, an unreadable file, or a file whose held-out gate didn't pass → null, and the exchange uses
  * `negotiating` (logged as `learned_fallback`). Evals and tests can pin a policy with setLearnedPolicy().
+ *
+ * Source: learned_policy.json is a static JSON import, so bundlers (the marketplace gateway's mcp-use/rolldown build)
+ * inline it. A path computed from import.meta.dirname pointed at apps/marketplace/ on the deploy and always fell back.
+ * LEARNED_POLICY_PATH (or an explicit path) reads a file from disk instead.
  */
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import bundled from "../../learned_policy.json" with { type: "json" };
 import { ARMS, type Arm, type LearnedPolicy, type Lever } from "../sellers";
 import { extrasPackage } from "./extras";
 import { leverCost } from "./probing";
 import type { ProductConfig } from "./types";
 
+/** Source path of the committed file (scripts and tests; at runtime the bundled copy is used unless a path is given). */
 export const LEARNED_POLICY_FILE = resolve(import.meta.dirname, "../../learned_policy.json");
 
 export type LearnedLoad = { policy: LearnedPolicy; fallback?: undefined } | { policy: null; fallback: "no_policy" | "gate_failed" | "bad_policy" };
 
-/** Parse + sanity-check a policy file. Never throws. */
-export function readLearnedPolicy(file = process.env.LEARNED_POLICY_PATH || LEARNED_POLICY_FILE): LearnedLoad {
+/** Sanity-check a parsed policy. Never throws. */
+export function checkLearnedPolicy(raw: unknown): LearnedLoad {
+  const lp = raw as LearnedPolicy | null;
+  const ok = !!lp && Array.isArray(lp.arms) && lp.arms.length > 0 && lp.arms.every((a) => ARMS.includes(a))
+    && typeof lp.epsilon === "number" && lp.epsilon >= 0 && lp.epsilon <= 1
+    && !!lp.choice && typeof lp.choice === "object" && Object.values(lp.choice).every((a) => ARMS.includes(a));
+  if (!ok) return { policy: null, fallback: "bad_policy" };
+  if (lp.gate?.passed !== true) return { policy: null, fallback: "gate_failed" };
+  return { policy: lp };
+}
+
+/** The bundled policy, or a file from disk when a path (or LEARNED_POLICY_PATH) is given. Never throws. */
+export function readLearnedPolicy(file = process.env.LEARNED_POLICY_PATH || undefined): LearnedLoad {
+  if (!file) return checkLearnedPolicy(bundled);
   if (!existsSync(file)) return { policy: null, fallback: "no_policy" };
   try {
-    const lp = JSON.parse(readFileSync(file, "utf8")) as LearnedPolicy;
-    const ok = Array.isArray(lp.arms) && lp.arms.length > 0 && lp.arms.every((a) => ARMS.includes(a))
-      && typeof lp.epsilon === "number" && lp.epsilon >= 0 && lp.epsilon <= 1
-      && Object.values(lp.choice ?? {}).every((a) => ARMS.includes(a));
-    if (!ok) return { policy: null, fallback: "bad_policy" };
-    if (lp.gate?.passed !== true) return { policy: null, fallback: "gate_failed" };
-    return { policy: lp };
+    return checkLearnedPolicy(JSON.parse(readFileSync(file, "utf8")));
   } catch {
     return { policy: null, fallback: "bad_policy" };
   }

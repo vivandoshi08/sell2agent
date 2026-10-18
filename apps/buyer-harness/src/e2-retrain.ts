@@ -14,6 +14,9 @@
  *   runs. Logs usually mix policies (fixed A/B runs at p=1 plus an ε-greedy run where an explored arm has p=0.1); plain
  *   IPS then lets a handful of explored sessions outweigh a hundred fixed-policy ones. The mixture weight is unbiased
  *   too and has far lower variance.
+ * Context `unknown` (the buyer sent no lever profile: every live make_offer through the gateway today) is learned from ALL
+ * sessions pooled, i.e. the best arm when you don't know the buyer type. Without it a live `learned` seller fell back to
+ * negotiating for every real buyer.
  *
  * Writes a NEW version (previous + 1) with the learning curve. Its gate starts as not passed (so the exchange falls back
  * to negotiating) until a held-out run scores it: pnpm e2:learned --policy-file <out> --gate.
@@ -62,8 +65,18 @@ if (!all.length) throw new Error("no bandit sessions in those runs (need seller 
 if (!["mixture", "logged"].includes(f.weighting!)) throw new Error("--weighting is mixture or logged");
 const mix: Record<string, Partial<Record<Arm, number>>> = {}, count: Record<string, number> = {};
 for (const s of all) { count[s.context] = (count[s.context] ?? 0) + 1; for (const a of ARMS) (mix[s.context] ??= {})[a] = (mix[s.context][a] ?? 0) + (s.probs[a] ?? 0); }
+const mixAll: Partial<Record<Arm, number>> = {};
+for (const s of all) for (const a of ARMS) mixAll[a] = (mixAll[a] ?? 0) + (s.probs[a] ?? 0);
 const weight = (s: Session) => (f.weighting === "logged" ? 1 / s.propensity : count[s.context] / mix[s.context][s.arm!]!);
-const train = (xs: Session[]) => { const b = new Bandit(ARMS, Number(f.epsilon), Number(f["min-sessions"])); for (const s of xs) b.update(s.context, s.arm!, s.reward_cents, weight(s)); return b; };
+const weightAll = (s: Session) => (f.weighting === "logged" ? 1 / s.propensity : all.length / mixAll[s.arm!]!);
+const train = (xs: Session[]) => {
+  const b = new Bandit(ARMS, Number(f.epsilon), Number(f["min-sessions"]));
+  for (const s of xs) {
+    if (s.context !== "unknown") b.update(s.context, s.arm!, s.reward_cents, weight(s));
+    b.update("unknown", s.arm!, s.reward_cents, weightAll(s)); // pooled: the choice when the buyer's type isn't known
+  }
+  return b;
+};
 const full = train(all);
 const share: Record<string, number> = {};
 for (const s of all) share[s.context] = (share[s.context] ?? 0) + 1 / all.length;
@@ -87,7 +100,7 @@ const lp: LearnedPolicy = {
 
 // ---- report
 console.log(`\nRetrained from ${all.length} logged negotiations in ${runs.length} runs → v${lp.version}${prev ? ` (was v${prev.version})` : ""} · ${f.weighting} IPS · min ${f["min-sessions"]} sessions per arm\n`);
-console.log("Per buyer type: IPS mean profit per negotiation (sessions) → choice");
+console.log("Per buyer type: IPS mean profit per negotiation (sessions) → choice   (unknown = all sessions pooled: buyers who send no profile)");
 for (const ctx of Object.keys(lp.stats).sort()) {
   const cells = ARMS.map((a) => { const s = lp.stats[ctx][a]; return `${a} ${s?.n ? usd(Math.round(full.mean(ctx, a))) : "—"} (${s?.n ?? 0})`; }).join("   ");
   console.log(`  ${ctx.padEnd(9)} ${(lp.choice[ctx] + (prev?.choice[ctx] && prev.choice[ctx] !== lp.choice[ctx] ? ` (was ${prev.choice[ctx]})` : "")).padEnd(28)} | ${cells}`);

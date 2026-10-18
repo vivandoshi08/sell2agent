@@ -1,6 +1,6 @@
 {
-  "version": 3,
-  "trained_at": "2026-10-18T10:36:47.271Z",
+  "version": 4,
+  "trained_at": "2026-10-18T11:19:41.730Z",
   "arms": [
     "negotiating",
     "balanced",
@@ -29,6 +29,29 @@
         "sumSq": 877690000,
         "w": 992.7786499215124,
         "wsum": 2358649.921507075
+      }
+    },
+    "unknown": {
+      "negotiating": {
+        "n": 782,
+        "sum": 1771300,
+        "sumSq": 10930830000,
+        "w": 2181.4098690836017,
+        "wsum": 4941088.620342416
+      },
+      "balanced": {
+        "n": 1157,
+        "sum": 3196100,
+        "sumSq": 18575270000,
+        "w": 2240.2027086063886,
+        "wsum": 6188342.158147613
+      },
+      "lever_policy": {
+        "n": 277,
+        "sum": 548000,
+        "sumSq": 3442720000,
+        "w": 2215.200288704445,
+        "wsum": 4382417.8996752
       }
     },
     "delivery": {
@@ -103,6 +126,7 @@
   },
   "choice": {
     "price": "balanced",
+    "unknown": "balanced",
     "delivery": "balanced",
     "quality": "balanced",
     "trust": "balanced"
@@ -233,20 +257,20 @@
   "gate": {
     "passed": true,
     "best_fixed_policy": "balanced",
-    "learned_minus_best_fixed_cents": -106,
+    "learned_minus_best_fixed_cents": -103,
     "holdout_buyers": 300,
-    "diff_vs_negotiating_cents": 621,
+    "diff_vs_negotiating_cents": 625,
     "ci95_cents": [
-      355,
-      887
+      358,
+      892
     ],
     "below_floor": 0,
     "ci95_vs_best_fixed_cents": [
-      -335,
-      122
+      -310,
+      105
     ],
     "beats_best_fixed": false,
-    "source": "held-out claude-haiku-5-5 buyers, seed 777, runs b3C_learned, b3C_negotiating, b3C_balanced"
+    "source": "held-out claude-haiku-5-5 buyers, seed 777, runs b3C4_learned, b3C_negotiating, b3C_balanced"
   },
   "trained_on": {
     "source": "logged, mixture IPS",
@@ -260,6 +284,6 @@
       "b3B_negotiating",
       "b3B_balanced"
     ],
-    "previous_version": 2
+    "previous_version": 3
   }
 }

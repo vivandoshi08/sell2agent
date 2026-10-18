@@ -159,7 +159,7 @@ export function registerNegotiationTools(server: any, opts: { approveOrigin?: st
         message: z.string().max(2000).optional().describe("Optional note to the seller"),
         levers: z.array(z.string()).optional().describe("Extras you want included, from the listing (e.g. free_shipping)"),
         strategy: z
-          .enum(["static", "negotiating", "balanced"])
+          .enum(["static", "negotiating", "balanced", "learned"])
           .optional()
           .describe("Eval runs only: seller strategy for A/B tests. Honoured by the exchange only for a signed eval run_id; ignored otherwise."),
         buyer_id: buyerIdNew,

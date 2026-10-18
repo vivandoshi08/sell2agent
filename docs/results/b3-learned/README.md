@@ -15,12 +15,17 @@ minus the cost of any extras.
 
 | Held-out test (fresh buyers) | learned | negotiating | balanced | learned − negotiating (95% CI) | learned − balanced (95% CI) | below floor |
 | --- | --- | --- | --- | --- | --- | --- |
-| **v3**, 300 buyers, seed 777 | 68%, **$39.87** | 55%, $33.66 | 71%, $40.93 | **+$6.21 [$3.55, $8.87]** | −$1.06 [−$3.35, $1.22] | 0 |
+| **v4 (live file)**, 300 buyers, seed 777 | 69%, **$39.90** | 55%, $33.66 | 71%, $40.93 | **+$6.25 [$3.58, $8.92]** | −$1.03 [−$3.10, $1.05] | 0 |
+| v3, 300 buyers, seed 777 | 68%, **$39.87** | 55%, $33.66 | 71%, $40.93 | **+$6.21 [$3.55, $8.87]** | −$1.06 [−$3.35, $1.22] | 0 |
 | v2, 300 buyers, seed 4242 | 65%, $38.08 | 61%, $37.62 | 75%, $43.19 | +$0.46 [−$2.41, $3.33] | **−$5.11 [−$7.99, −$2.23]** | 0 |
 
 Cells show the share who bought, then profit per buyer.
 
-- **Gate passes (v3):** `learned` beats `negotiating` (the fallback and current default) with a CI above 0 and 0 deals below
+- **v4 = v3 plus a choice for buyers who send no lever profile.** On live traffic that is every buyer, because the gateway
+  passes `preferences` to `search_products` only, never to `make_offer`. v4 learns the `unknown` context from all 2,216
+  sessions pooled, and it comes out as balanced. The held-out buyers all carry profiles, so v4 scores like v3. Its gate was
+  re-run anyway.
+- **Gate passes (v3, v4):** `learned` beats `negotiating` (the fallback and current default) with a CI above 0 and 0 deals below
   floor. `gate.passed = true`, so a product set to `learned` now uses v3 instead of falling back.
 - **Not offered as a default:** `learned` doesn't beat the best fixed policy, `balanced` (−$1.06, CI spans 0).
   `gate.beats_best_fixed = false`. No default was changed.
@@ -38,6 +43,7 @@ Cells show the share who bought, then profit per buyer.
 | v1 | 1,200 scripted sessions (UCB) | balanced · balanced · balanced · negotiating | sims only |
 | v2 | 795 logged sessions: phase A (100 buyers × negotiating, balanced, learned v1 at ε=0.3) + an exploration batch (200 buyers, uniform arms) | balanced · balanced · **lever_policy** · **lever_policy** | seed 4242: −$5.11 vs balanced |
 | v3 | 2,216 logged sessions: v2's data + seed 4242's three runs (logged with propensities) | balanced · balanced · balanced · balanced | seed 777: +$6.21 vs negotiating |
+| v4 | same as v3, plus `unknown` (no profile) learned from all sessions pooled → balanced | balanced · balanced · balanced · balanced · unknown: balanced | seed 777: +$6.25 vs negotiating |
 
 v2 bet on `lever_policy` for quality and trust buyers, based on 20 and 10 training sessions. Held-out buyers punished
 that bet. On the same seed-4242 buyers, profit per buyer was:
@@ -64,20 +70,33 @@ take three contexts. It also let 5 explored `negotiating` sessions outweigh 76 f
 
 The exchange logs `arm_probs`, so mixture propensities are exact going forward.
 
+## Deploy fix (found in review)
+
+On Manufact, `learned` always fell back with `learned_fallback: no_policy`. The cause: `learned.ts` built the file path from
+`import.meta.dirname`, which the gateway bundle (mcp-use / rolldown) resolved to `apps/marketplace/`. The policy is now a
+static JSON import, so the bundle inlines it. Check it after every retrain:
+
+```bash
+pnpm --filter @sa/marketplace build && pnpm --filter @sa/marketplace check:learned-bundle
+# check-learned-bundle: OK, gateway bundle inlines learned_policy v4 (gate passed = true, ...)
+```
+
+`make_offer`'s eval-only `strategy` option now accepts `learned` too, so a signed eval run can A/B it through the gateway.
+
 ## Cost
 
-2,302 Haiku buyer sessions: 39.0M input and 3.1M output tokens. At $0.10 / $0.50 per MTok that is **≈ $5.46**. The seller
+2,602 Haiku buyer sessions: 44.1M input and 3.52M output tokens. At $0.10 / $0.50 per MTok that is **≈ $6.17**. The seller
 side cost nothing because it used template voice. Each 300-buyer run took about 6 minutes at concurrency 8.
 
 ## Reproduce
 
 ```bash
 cd apps/buyer-harness
-# retrain v3 from the committed logs (gunzipped on the fly); identical stats, choice and curve
+# retrain from the committed logs (gunzipped on the fly); reproduces v4's stats, choices and curve
 npx -y pnpm@9.12.0 e2:retrain --runs ../../docs/results/b3-learned/runs/b3A_learned.events.jsonl.gz,../../docs/results/b3-learned/runs/run_202610181012_negotiating.events.jsonl.gz,../../docs/results/b3-learned/runs/run_202610181013_balanced.events.jsonl.gz,../../docs/results/b3-learned/runs/b3X_learned.events.jsonl.gz,../../docs/results/b3-learned/runs/b3B_learned.events.jsonl.gz,../../docs/results/b3-learned/runs/b3B_negotiating.events.jsonl.gz,../../docs/results/b3-learned/runs/b3B_balanced.events.jsonl.gz --out /tmp/v3.json
 # a new held-out run (real model calls)
 SUPABASE_URL= BUYER_CLAUDE_MODEL=claude-haiku-5-5 npx -y pnpm@9.12.0 e2:learned --id b3D --n 300 --seed 9001 --policy-file ../seller-mcp/learned_policy.json --gate
 ```
 
 Files: `runs/*.events.jsonl.gz` holds every run's event log (A, exploration X, held-out B and C). `learned_policy.v2.json`
-is v2 with its failed gate. The live file is `apps/seller-mcp/learned_policy.json` (v3).
+is v2 with its failed gate; `learned_policy.v3.json` is v3 with its gate. The live file is `apps/seller-mcp/learned_policy.json` (v4).

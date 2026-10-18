@@ -1,7 +1,7 @@
 // E2 `learned` strategy through E1's exchange: arm per negotiation, logged propensity, fallback, lever arm floors. Offline.
 import { test, afterEach } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Exchange, MemorySink, MemoryStore, StaticCatalog, SEED_PRODUCTS, leverCost, setLearnedPolicy, readLearnedPolicy, LEARNED_POLICY_FILE } from "../src/exchange";
@@ -120,6 +120,22 @@ test("readLearnedPolicy: missing → no_policy, failed gate → gate_failed, jun
   assert.notEqual(readLearnedPolicy(LEARNED_POLICY_FILE).fallback, "bad_policy");
 });
 
+test("default policy is the bundled copy of the committed file, not a path (Manufact build looked in apps/marketplace/)", () => {
+  const saved = process.env.LEARNED_POLICY_PATH;
+  delete process.env.LEARNED_POLICY_PATH;
+  try {
+    const onDisk = JSON.parse(readFileSync(LEARNED_POLICY_FILE, "utf8"));
+    const got = readLearnedPolicy();
+    assert.notEqual(got.fallback, "no_policy");
+    if (onDisk.gate?.passed === true) assert.deepEqual(got.policy, onDisk);
+    else assert.equal(got.fallback, "gate_failed");
+    const src = readFileSync(new URL("../src/exchange/learned.ts", import.meta.url), "utf8");
+    assert.match(src, /import bundled from "\.\.\/\.\.\/learned_policy\.json" with \{ type: "json" \}/, "static JSON import so bundlers inline it");
+  } finally {
+    if (saved !== undefined) process.env.LEARNED_POLICY_PATH = saved;
+  }
+});
+
 test("Bandit IPS: weighted mean uses 1/propensity weights; raw n/sum stay counts", () => {
   const b = new Bandit();
   b.update("price", "balanced", 1000, 1 / 0.8);
@@ -140,4 +156,15 @@ test("Bandit min_sessions: a lucky arm with too few sessions doesn't take a cont
   const lone = new Bandit(undefined, 0.1, 10); lone.update("price", "lever_policy", 100);
   assert.equal(lone.greedy("price"), "lever_policy");
   assert.equal(lone.export(1).min_sessions, 10);
+});
+
+test("learned: a buyer with no lever profile (every live gateway buyer) gets the policy's `unknown` choice, not negotiating", async () => {
+  setLearnedPolicy(policy({ price: "negotiating", unknown: "balanced" }));
+  const { ex, events } = setup();
+  await haggle(ex, "b-anon", undefined as unknown as BuyerLeverProfile);
+  const e = events.events.find((x) => x.type === "offer_countered")!;
+  assert.equal(e.payload.bandit_context, "unknown"); assert.equal(e.payload.arm, "balanced");
+  setLearnedPolicy(undefined);
+  const committed = readLearnedPolicy();
+  if (committed.policy) assert.ok(committed.policy.choice.unknown, "committed policy has a choice for buyers who send no profile");
 });

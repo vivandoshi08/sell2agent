@@ -33,6 +33,10 @@ and the floor rises by its cost before the guard.
 
 - Seller events carry `arm`, `propensity`, `bandit_context`, `policy_version` (and `learned_fallback` when it fell back).
 - No file, a bad file, or a file whose `gate.passed` isn't true → `negotiating`.
+- The file is a static JSON import, so the gateway bundle (rolldown) inlines it. Run `pnpm --filter @sa/marketplace build && pnpm --filter @sa/marketplace check:learned-bundle`
+  after retraining. `LEARNED_POLICY_PATH` reads a file from disk instead.
+- Buyers who send no lever profile (all live `make_offer` calls today: the gateway passes `preferences` only to search) get
+  context `unknown`, learned from all sessions pooled.
 - `pnpm e2:retrain --runs <run ids>` rebuilds the policy from logged negotiations (jsonl or `--from-db`), IPS-weighted on the
   logged propensity, as a new version with a learning curve. Its gate starts not passed.
 - `pnpm e2:learned --id <id> --seed <held-out seed> --policy-file <file> --gate` scores it against the fixed policies on the same
