@@ -169,6 +169,28 @@ export function getListing(product_id: string, mcpUrl: string, cat: CatalogSnaps
   return p ? toResult(p, "", mcpUrl, cat).listing : null;
 }
 
+/**
+ * Products the buyer named in the query that max_price_cents filtered out. Without this, "TypeWell 65 Silent" capped at
+ * $80 silently returns other keyboards and the buyer agent concludes the TypeWell doesn't exist (Armature
+ * infeasible-budget dry-run, 2026-10-18). Named = 2+ query words in the title, or the title's first word (the brand).
+ * Only list prices are shown; floors stay private.
+ */
+function overBudgetNote(cat: CatalogSnapshot, max: number | undefined, category: string | undefined, queryTerms: string[]): string | undefined {
+  if (max === undefined || !queryTerms.length) return undefined;
+  const named = cat.products
+    .filter((p) => p.inventory > 0 && (!category || p.category === category) && p.list_price_cents > max)
+    .filter((p) => {
+      const title = p.title.toLowerCase();
+      const brand = title.split(/[^a-z0-9]+/)[0];
+      const hits = queryTerms.filter((t) => title.includes(t));
+      return hits.length >= 2 || hits.includes(brand);
+    })
+    .slice(0, 3);
+  if (!named.length) return undefined;
+  const list = named.map((p) => `${p.title} ($${(p.list_price_cents / 100).toFixed(2)} list, id ${p.id})`).join("; ");
+  return `Over your max price, so not listed: ${list}. List prices are negotiable: make_offer to ask that seller for its best price.`;
+}
+
 export function searchProducts(input: SearchInput, mcpUrl: string, cat: CatalogSnapshot = STATIC_SNAPSHOT): SearchOutput {
   const categories = categoriesOf(cat);
   const category = resolveCategory(input.category, categories);
@@ -180,6 +202,7 @@ export function searchProducts(input: SearchInput, mcpUrl: string, cat: CatalogS
     .filter((p) => !category || p.category === category)
     .filter((p) => input.max_price_cents === undefined || p.list_price_cents <= input.max_price_cents);
   const scores = leverScores(inScope, cat);
+  const budgetNote = overBudgetNote(cat, input.max_price_cents, category, queryTerms);
 
   const pool = inScope.map((p) => {
     const text = haystack(p);
@@ -208,7 +231,7 @@ export function searchProducts(input: SearchInput, mcpUrl: string, cat: CatalogS
       const base = fits.length ? `Matches: ${[...new Set(fits)].join(", ")}.` : "In the requested category.";
       return toResult(p, base + strongNote(fit), mcpUrl, cat, fit?.score);
     });
-    return { results, relaxed: false, note: categoryNote };
+    return { results, relaxed: false, note: [categoryNote, budgetNote].filter(Boolean).join(" ") || undefined };
   }
 
   // Nothing met every need: show the closest options (fewest misses) and say exactly what each misses.
@@ -227,6 +250,7 @@ export function searchProducts(input: SearchInput, mcpUrl: string, cat: CatalogS
   const note = [
     results.length ? "No product meets every need; these are the closest options." : "No products in this category and budget.",
     categoryNote,
+    budgetNote,
   ]
     .filter(Boolean)
     .join(" ");
