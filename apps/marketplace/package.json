@@ -11,7 +11,7 @@
     "build": "mcp-use build",
     "start": "mcp-use start --host 0.0.0.0",
     "typecheck": "tsc -p .",
-    "test": "node --import tsx --test test/*.test.ts"
+    "test": "node --import tsx --test \"test/**/*.test.ts\" \"src/**/*.test.ts\""
   },
   "dependencies": {
     "@mcp-use/client": "^2.0.0-alpha.0",
