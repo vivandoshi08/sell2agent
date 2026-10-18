@@ -19,7 +19,7 @@ export function SafetyTile({ kpis }: { kpis: PolicyKpis[] }) {
       <p className="safety-of num">of {deals} deals</p>
       <p className="safety-note">
         {unsafe
-          ? `${unsafe} deal${unsafe === 1 ? " was" : "s were"} below floor or judged unsafe. See the guardrail log.`
+          ? `${unsafe} deal${unsafe === 1 ? " was" : "s were"} below floor or judged unsafe. Open its transcript below.`
           : <>No deal went below a seller's floor or broke a rule. <b className="num">{blocks}</b> unsafe moves were stopped in code before reaching a buyer.</>}
       </p>
     </section>

@@ -9,6 +9,8 @@ import { LiveTally, NegotiationCard, SaleToasts, Tally, useNegotiations } from "
 import { Contours, Mark } from "./ui/Brand";
 import { BuyerFit, LeverWins, LiveTrafficPanel, ModelFilter, RunPicker } from "./panels/S2Panels";
 import { LearningCurve } from "./panels/LearningCurve";
+import { FlaggedList, belowFloorDeals, unsafeDeals } from "./ui/Transcript";
+import { EvalRunner } from "./ui/EvalRunner";
 import "./ui/fonts";
 
 const feed = pickFeed();
@@ -42,6 +44,8 @@ export function App() {
   const neg = kpis.find((k) => k.policy !== "static");
   const ratio = base?.profit_per_buyer_cents && neg?.profit_per_buyer_cents != null ? neg.profit_per_buyer_cents / base.profit_per_buyer_cents : null;
   const unsafe = kpis.reduce((s, k) => s + k.unsafe_deals, 0);
+  const unsafeList = useMemo(() => (unsafe ? unsafeDeals(kpis, filtered) : []), [unsafe, kpis, filtered]);
+  const floorList = useMemo(() => (live.below_floor ? belowFloorDeals(liveEvents) : []), [live, liveEvents]);
   const buyers = kpis.reduce((s, k) => s + k.buyers, 0);
   const profitDiff = neg?.profit_per_buyer_cents != null && base?.profit_per_buyer_cents != null ? neg.profit_per_buyer_cents - base.profit_per_buyer_cents : null;
 
@@ -77,6 +81,7 @@ export function App() {
             </section>
             <aside className="side" aria-label="Today">
               <section className="card"><h2>{live.negotiations ? "Real shoppers today" : "Today"}</h2>{live.negotiations ? <LiveTally live={live} /> : <Tally events={liveEvents} />}</section>
+              {floorList.length > 0 && <section className="card"><FlaggedList items={floorList} title="Flagged below floor" /></section>}
               <section className="card"><h2>Blocked by your rules</h2><GuardrailLog events={liveEvents} /></section>
             </aside>
           </div>
@@ -92,6 +97,7 @@ export function App() {
           </section>
           <div className="filters"><ModelFilter models={models} model={model} onChange={setModel} /></div>
           <LiveTrafficPanel live={live} />
+          <FlaggedList items={floorList} title="Live deals flagged below floor" />
           <RunPicker runs={runs} selected={selected} onChange={setSelected} isDefault={isDefault} />
 
           <section className="strip" aria-label="Key metrics">
@@ -109,7 +115,7 @@ export function App() {
               <BarCompare height={40} format={usd} bars={kpis.map((k) => ({ policy: k.policy, value: k.profit_per_buyer_cents, ci: k.ci.profit_per_buyer_cents }))} />
               <p className="legend"><span><i className="sw static" />Fixed price</span><span><i className="sw neg" />Negotiating seller</span><span><i className="wkey" />95% interval</span></p>
             </section>
-            <SafetyTile kpis={kpis} />
+            <div className="safety-col"><SafetyTile kpis={kpis} /><FlaggedList items={unsafeList} title="Open a flagged deal" /></div>
           </div>
 
           <div className="grid2">
@@ -121,6 +127,7 @@ export function App() {
           <LeverWins kpis={kpis} />
           <section className="card"><div className="card-h"><h2>Who buys, by buyer type</h2></div><PersonaGrid kpis={kpis} /></section>
           <LearningCurve />
+          <EvalRunner />
 
           <p className="foot">Intervals are 95%, bootstrapped over buyers; margin and time to first offer are point values. A deal converts when it's accepted; profit counts unit cost and perk costs.{feed.mode === "sample" ? " Sample data: made-up buyers, so every number here is illustrative." : ""}</p>
         </main>
