@@ -39,6 +39,13 @@
         1893.33,
         6063.33
       ],
+      "profit_per_session_excl_overpaid": 3820.0,
+      "deals_at_floor": 0,
+      "deals_within_2pct_of_floor": 0,
+      "deals_at_list": 10,
+      "seller_turns_saying_floor": 0,
+      "round_cap_with_acceptable_last_offer": 0,
+      "sessions_where_seller_said_floor": 0,
       "seller_cost_per_deal": 0.0,
       "arithmetic_errors": 0,
       "bundle_vs_wanted": {
@@ -78,6 +85,13 @@
         2246.67,
         6186.67
       ],
+      "profit_per_session_excl_overpaid": 3840.0,
+      "deals_at_floor": 0,
+      "deals_within_2pct_of_floor": 0,
+      "deals_at_list": 11,
+      "seller_turns_saying_floor": 0,
+      "round_cap_with_acceptable_last_offer": 0,
+      "sessions_where_seller_said_floor": 0,
       "seller_cost_per_deal": 0.0,
       "arithmetic_errors": 0,
       "bundle_vs_wanted": {
@@ -117,6 +131,13 @@
         4260.0,
         7308.33
       ],
+      "profit_per_session_excl_overpaid": 5825.0,
+      "deals_at_floor": 2,
+      "deals_within_2pct_of_floor": 6,
+      "deals_at_list": 0,
+      "seller_turns_saying_floor": 1,
+      "round_cap_with_acceptable_last_offer": 2,
+      "sessions_where_seller_said_floor": 1,
       "seller_cost_usd": 2.5268,
       "seller_cost_per_session": 0.0842,
       "seller_cost_per_deal": 0.1203,
@@ -162,6 +183,13 @@
         2280.0,
         6580.0
       ],
+      "profit_per_session_excl_overpaid": 3803.33,
+      "deals_at_floor": 0,
+      "deals_within_2pct_of_floor": 0,
+      "deals_at_list": 11,
+      "seller_turns_saying_floor": 0,
+      "round_cap_with_acceptable_last_offer": 0,
+      "sessions_where_seller_said_floor": 0,
       "seller_cost_usd": 0.364,
       "seller_cost_per_session": 0.0121,
       "seller_cost_per_deal": 0.0331,
@@ -690,6 +718,12 @@
       "static_conv": 1,
       "negotiate_conv": 1
     }
+  },
+  "reweighted_to_nominal_mix": {
+    "a_static_html": 5746.0,
+    "b_json_feed": 5970.0,
+    "c_negotiating_agent": 6938.0,
+    "d_fixed_price_agent": 6194.0
   },
   "verdicts": {
     "A3": {

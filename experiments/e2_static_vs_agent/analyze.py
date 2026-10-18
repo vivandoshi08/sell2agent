@@ -233,6 +233,32 @@ def oracle(personas) -> dict:
     return out
 
 
+def _last_offer_ok(r: dict) -> bool:
+    offers = [t["offer"] for t in r["transcript"] if t["role"] == "seller" and t["action"] == "offer" and t.get("offer")]
+    return bool(offers) and offers[-1]["price"] <= r["walk_away"]
+
+
+def extras(rows: list[dict]) -> dict:
+    """Sensitivity and behavior checks that the harness summary doesn't cover."""
+    ok = [r for r in rows if r["ended_by"] != "error"]
+    deals = [r for r in ok if r["deal"]]
+    clean_profit = sum(r["profit"] for r in deals if not r.get("buyer_overpaid"))
+    seller_turns = [t for r in ok for t in r["transcript"] if t["role"] == "seller"]
+    return {
+        # Count deals where the buyer paid above its walk-away as no deal (they're buyer errors).
+        "profit_per_session_excl_overpaid": round(clean_profit / len(ok), 2) if ok else None,
+        "deals_at_floor": sum(1 for r in deals if r["price"] == r["floor_total"]),
+        "deals_within_2pct_of_floor": sum(1 for r in deals if r["price"] <= r["floor_total"] * 1.02),
+        "deals_at_list": sum(1 for r in deals if r["price"] >= r["list_total"]),
+        "seller_turns_saying_floor": sum(1 for t in seller_turns if "floor" in t["message"].lower()),
+        # Round cap hit right after the seller made an offer the buyer could have accepted (<= walk-away).
+        # The harness ends on the seller's last turn, so the buyer never gets to say yes.
+        "round_cap_with_acceptable_last_offer": sum(1 for r in ok if r["ended_by"] == "round_cap" and _last_offer_ok(r)),
+        "sessions_where_seller_said_floor": sum(
+            1 for r in ok if any(t["role"] == "seller" and "floor" in t["message"].lower() for t in r["transcript"])),
+    }
+
+
 def seller_cost(rows: list[dict]) -> dict:
     ok = [r for r in rows if r["ended_by"] != "error"]
     deals = [r for r in ok if r["deal"]]
@@ -263,6 +289,7 @@ def main() -> None:
     res: dict = {"seed": SEED, "n_personas": N, "zones": dict(Counter(zones.values())), "arms": {}, "comparisons": {}}
     for k, rows in arms.items():
         s = summarize(rows)
+        s.update(extras(rows))
         if k in "cd":
             s.update(seller_cost(rows))
             s["sessions_with_false_claims"] = sum(1 for r in rows if r.get("false_claims"))
@@ -295,6 +322,13 @@ def main() -> None:
         res["decomposition_d_vs_a"] = decompose(arms["a"], arms["d"])
     res["by_persona_type"] = zone_breakdown(named, zones)
     res["oracle_ceilings"] = oracle(personas)
+    # Seed 202 drew only 2/30 above-list buyers; the generator's nominal mix is ~30/50/20.
+    # Reweight per-zone profit/session to that mix as a sensitivity check.
+    mix = {"below_floor": 0.3, "haggle_zone": 0.5, "above_list": 0.2}
+    res["reweighted_to_nominal_mix"] = {
+        arm: round(sum(mix[z] * res["by_persona_type"][z][arm]["profit_per_session"] for z in ZONES), 0)
+        for arm in named if all(arm in res["by_persona_type"][z] for z in ZONES)
+    }
 
     # Verdicts against the bar in EXPERIMENTS.md.
     verdicts = {}
@@ -343,6 +377,8 @@ def main() -> None:
             print(f"\n## {key}\n")
             for cat, d in res[key].items():
                 print(f"- {cat}: n={d['n']}, profit diff ${d['profit_diff']:,}")
+    print("\n## Profit/session reweighted to the nominal 30/50/20 zone mix\n")
+    print(res["reweighted_to_nominal_mix"])
     print("\n## Oracle ceilings (no model)\n")
     for z, o in res["oracle_ceilings"].items():
         print(f"- {z}: {o}")
@@ -350,7 +386,8 @@ def main() -> None:
     print(persona_table(named, personas))
     print("\n## Other\n")
     for k, s in res["arms"].items():
-        extra = {x: s.get(x) for x in ("seller_cost_per_deal", "judge_cost_usd", "sessions_with_false_claims",
+        extra = {x: s.get(x) for x in ("profit_per_session_excl_overpaid", "deals_at_floor", "deals_within_2pct_of_floor",
+                                        "deals_at_list", "round_cap_with_acceptable_last_offer", "sessions_where_seller_said_floor", "seller_cost_per_deal", "judge_cost_usd", "sessions_with_false_claims",
                                         "deals_with_false_claims", "ended_by", "arithmetic_errors", "bundle_vs_wanted",
                                         "model_cost_usd", "errors") if x in s}
         print(f"- {k}: {extra}")
