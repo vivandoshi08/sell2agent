@@ -65,3 +65,37 @@ test("real exchange: wrong or missing buyer is refused before any charge", async
   assert.match(missing.fix ?? "", /buyer_id/);
   assert.equal(charges.length, 0);
 });
+
+test("real exchange: approve-link payment (no run_id) logs the negotiation's run_id and buyer_model, not live", async () => {
+  const ex = new Exchange();
+  const { deal_id } = await lockedDeal(ex, "b_link");
+  const { mod, events } = setup(ex);
+  // What approvePay passes: just the buyer_id from the signed token.
+  const r = await mod.payApprovedDeal(deal_id, undefined, { buyer: { buyer_id: "b_link" } });
+  assert.equal(r.status, "succeeded");
+  const e = events.at(-1)!;
+  assert.equal(e.type, "payment_succeeded");
+  assert.equal(e.run_id, "s2-test-int");
+  assert.equal(e.buyer_model, "scripted");
+
+  // A caller-supplied run_id can't relabel the deal's run either.
+  const ex2 = new Exchange();
+  const d2 = await lockedDeal(ex2, "b_tool");
+  const s2 = setup(ex2);
+  await s2.mod.payApprovedDeal(d2.deal_id, undefined, { buyer: { buyer_id: "b_tool", run_id: "relabel" }, run_id: "relabel" });
+  assert.equal(s2.events.at(-1)?.run_id, "s2-test-int");
+});
+
+test("payment events fall back to the caller's run_id, then live, when the negotiation can't be found", async () => {
+  const pay = async (ctx: { buyer: { buyer_id: string }; run_id?: string }) => {
+    const ex = new Exchange();
+    const { deal_id } = await lockedDeal(ex, ctx.buyer.buyer_id);
+    const gone = { deals: ex.deals, markPaid: (d: string, pi: string) => ex.markPaid(d, pi), store: { getNegotiation: async () => null } };
+    const { mod, events } = setup(gone as unknown as Exchange);
+    await mod.payApprovedDeal(deal_id, undefined, ctx);
+    assert.equal(events.at(-1)?.type, "payment_succeeded");
+    return events.at(-1)!;
+  };
+  assert.equal((await pay({ buyer: { buyer_id: "b_gone" } })).run_id, "live");
+  assert.equal((await pay({ buyer: { buyer_id: "b_gone2" }, run_id: "caller_run" })).run_id, "caller_run");
+});

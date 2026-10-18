@@ -54,11 +54,15 @@ export function createPayHandler(deps: PayDeps) {
 
   async function log(type: "payment_succeeded" | "payment_failed" | "guardrail_blocked", deal: StoredDeal | null, deal_id: string, r: PayResult, ctx: PayContext) {
     try {
+      // The run comes from the deal's own negotiation (server-side), so approve-link payments (no run_id in the link)
+      // don't log as "live" revenue and a caller can't relabel a deal's run. The caller's run_id is only a fallback.
+      const neg = deal?.negotiation_id && deps.deals.runContext ? await deps.deals.runContext(deal.negotiation_id).catch(() => null) : null;
       await deps.logEvent({
-        run_id: ctx.run_id ?? ctx.buyer?.run_id ?? "live",
+        run_id: neg?.run_id || ctx.run_id || ctx.buyer?.run_id || "live",
         // Who attempted the payment (on a wrong_buyer refusal that's not the deal's owner).
         buyer_id: ctx.buyer?.buyer_id ?? deal?.buyer_id ?? null,
-        buyer_model: ctx.buyer?.buyer_model ?? null,
+        // The negotiation's model only for its own buyer (a wrong_buyer attempt keeps the attempter's).
+        buyer_model: (!ctx.buyer?.buyer_id || ctx.buyer.buyer_id === deal?.buyer_id ? neg?.buyer_model : null) || ctx.buyer?.buyer_model || null,
         seller_id: deal?.seller_id ?? null,
         product_id: deal?.product_id ?? null,
         negotiation_id: deal?.negotiation_id ?? null,

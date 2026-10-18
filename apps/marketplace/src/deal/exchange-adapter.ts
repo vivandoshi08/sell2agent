@@ -24,6 +24,8 @@ export interface ExchangeLike {
       Promise<{ ok: true; deal: E1LockedDeal } | { ok: false; code: string; reason: string; fix?: string; payment_intent_id?: string }>;
   };
   markPaid(deal_id: string, payment_intent_id: string): Promise<void>;
+  /** E1's store: negotiation → run_id / buyer_model (payment events log the deal's own run, not the caller's). */
+  store?: { getNegotiation(id: string): Promise<{ run_id?: string | null; buyer_model?: string | null } | null> };
 }
 
 const STATE = { locked: "AGREED", paid: "PAID", expired: "EXPIRED" } as const;
@@ -56,5 +58,9 @@ export function fromExchange(ex: ExchangeLike): DealSource {
       return { ok: false, code, reason: r.reason, fix: r.fix, payment_intent_id: r.payment_intent_id };
     },
     markPaid: (deal_id, pi) => ex.markPaid(deal_id, pi),
+    async runContext(negotiation_id) {
+      const n = ex.store ? await ex.store.getNegotiation(negotiation_id) : null;
+      return n ? { run_id: n.run_id ?? null, buyer_model: n.buyer_model ?? null } : null;
+    },
   };
 }

@@ -1,7 +1,7 @@
 /**
  * E1 · Supabase-backed Catalog: the merchant console's `seller_policies` edits reach live negotiations.
  *
- * Reads all `products` + `seller_policies` rows (select "*", so it works on the v1 schema and on contract v2) and
+ * Reads all `products` + `seller_policies` rows (only the policy columns below; v2 columns dropped on a v1 schema) and
  * caches the merged map for ttl_ms (EXCHANGE_CATALOG_TTL_MS, default 5 s). Per product, the code seed is the base:
  *  - products        → title, list_price_cents, seller_id
  *  - seller_policies → floor_price_cents, unit_cost_cents; allowed_levers from v2 `lever_menu` ids when non-empty,
@@ -29,7 +29,12 @@ export interface SupabaseCatalogOptions {
   timeout_ms?: number;
 }
 
-const STRATEGIES = ["static", "negotiating", "balanced", "learned"] as const;
+/** The seller_policies columns build() reads (v2 adds lever_menu + policy). */
+const POLICY_COLUMNS_V1 = "product_id,floor_price_cents,unit_cost_cents,allowed_concessions";
+const POLICY_COLUMNS = `${POLICY_COLUMNS_V1},lever_menu,policy`;
+const V2_MISSING = /lever_menu|\.policy\b|"policy"|column policy\b/;
+
+const STRATEGIES =["static", "negotiating", "balanced", "learned"] as const;
 const DEFAULT_MAX_ROUNDS = 6;
 const posInt = (n: unknown): n is number => Number.isInteger(n) && (n as number) > 0;
 const str = (s: unknown): s is string => typeof s === "string" && s.length > 0;
@@ -72,11 +77,24 @@ export class SupabaseCatalog implements Catalog {
     console.warn(`[exchange catalog] ${msg}`);
   }
 
+  private v1 = false;
+
+  /** seller_policies, only the columns build() reads; retries without the v2 columns (and remembers) on a v1 schema. */
+  private async policies() {
+    if (!this.v1) {
+      const r = await this.db.from("seller_policies").select(POLICY_COLUMNS);
+      if (!r?.error || !V2_MISSING.test(r.error.message ?? "")) return r;
+      this.v1 = true;
+      this.warn("seller_policies has no lever_menu/policy yet (0002 not applied); reading v1 columns only");
+    }
+    return this.db.from("seller_policies").select(POLICY_COLUMNS_V1);
+  }
+
   private async load(): Promise<void> {
     let timer: ReturnType<typeof setTimeout> | undefined;
     try {
       const timeout = new Promise<never>((_, rej) => { timer = setTimeout(() => rej(new Error(`timed out after ${this.timeout} ms`)), this.timeout); });
-      const [prods, pols] = await Promise.race([Promise.all([this.db.from("products").select("*"), this.db.from("seller_policies").select("*")]), timeout]);
+      const [prods, pols] = await Promise.race([Promise.all([this.db.from("products").select("*"), this.policies()]), timeout]);
       for (const [t, r] of [["products", prods], ["seller_policies", pols]] as const) if (r?.error) throw new Error(`${t}: ${r.error.message}`);
       this.snap = { map: this.merge((prods.data ?? []) as Row[], (pols.data ?? []) as Row[]), at: this.now() };
       this.failing = false;
