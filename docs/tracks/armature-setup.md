@@ -1,6 +1,6 @@
 # Armature: environment setup
 
-Companion to [armature.md](./armature.md) (steps 6–7). This is the "how do I run it" half.
+Companion to the [archived Armature plan](../archive/tracks/armature-guide.md) (steps 6–7). This is the "how do I run it" half.
 
 ## One-time, per machine
 
