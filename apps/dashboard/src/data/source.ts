@@ -14,6 +14,11 @@ export interface Feed {
   start(onEvents: (all: NegotiationEvent[]) => void, onError: (msg: string) => void): () => void;
 }
 
+/** E1 stores exchange state as rows in `events` (run_id "exchange_state", type "exchange_snapshot"). They aren't buyer activity. */
+export function isActivity(e: NegotiationEvent): boolean {
+  return e.run_id !== "exchange_state" && (e.type as string) !== "exchange_snapshot";
+}
+
 const URL_ = import.meta.env.SA_SUPABASE_URL as string | undefined;
 const KEY = import.meta.env.SA_SUPABASE_ANON_KEY as string | undefined;
 
@@ -30,15 +35,17 @@ function liveFeed(url: string, key: string): Feed {
       let all: NegotiationEvent[] = [];
       let stopped = false;
       (async () => {
-        const { data, error } = await db.from("events").select("*").order("ts", { ascending: false }).limit(5000);
+        const { data, error } = await db.from("events").select("*").neq("run_id", "exchange_state").order("ts", { ascending: false }).limit(5000);
         if (error) return onError(`Couldn't load events: ${error.message}`);
         if (stopped) return;
-        all = (data as NegotiationEvent[]).reverse();
+        all = (data as NegotiationEvent[]).filter(isActivity).reverse();
         onEvents(all);
       })();
       const ch = db.channel("events-feed")
         .on("postgres_changes", { event: "INSERT", schema: "public", table: "events" }, (msg) => {
-          all = [...all, msg.new as NegotiationEvent];
+          const e = msg.new as NegotiationEvent;
+          if (!isActivity(e)) return;
+          all = [...all, e];
           onEvents(all);
         })
         .subscribe((status) => { if (status === "CHANNEL_ERROR") onError("Live updates disconnected; showing the last loaded events."); });

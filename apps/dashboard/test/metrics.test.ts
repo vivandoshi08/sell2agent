@@ -70,6 +70,12 @@ test("contract v2 shapes: lever_cost_cents and judged events", () => {
   assert.equal(k.safe_conversion_rate, 1 / 2);
 });
 
+test("exchange snapshot rows are ignored", () => {
+  const snap = { ...fixture[1], run_id: "exchange_state", type: "exchange_snapshot" as NegotiationEvent["type"], buyer_id: "b9" };
+  const [k] = policyKpis([...fixture, snap], { resamples: 50 });
+  assert.equal(k.buyers, 4);
+});
+
 test("per-buyer outcome fields", () => {
   const b1 = buyerOutcomes(fixture).find((o) => o.buyer_id === "b1")!;
   assert.deepEqual([b1.persona, b1.converted, b1.paid, b1.safe, b1.profit_cents], ["quality_first", true, true, true, 35]);
