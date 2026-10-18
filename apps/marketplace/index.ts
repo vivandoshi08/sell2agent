@@ -67,7 +67,7 @@ export const searchProductsTool = server.tool(
     name: "search_products",
     title: "Search products",
     description:
-      "Find products from competing sellers. Drops products that miss a hard need, ranks the rest by fit to what the buyer values (preferences), and returns up to 5, best fit first. Each result lists the extras its seller can offer.",
+      "Find products from competing sellers. Drops products that miss a hard need, ranks the rest by fit to what the buyer values (preferences), and returns up to 5, best fit first.",
     inputSchema: z.object({
       query: z.string().optional().describe("What the buyer wants, e.g. 'quiet wireless keyboard'"),
       q: z.string().optional().describe("Same as query (older clients)"),
@@ -88,7 +88,7 @@ export const searchProductsTool = server.tool(
           listing: listingSchema,
           fit_note: z.string(),
           fit_score: z.number().optional().describe("0..1 fit to preferences, when given"),
-          levers_offered: z.array(offeredLeverSchema).describe("Extras the seller can include; ask for them in make_offer.levers"),
+          levers_offered: z.array(offeredLeverSchema).describe("Extras the seller can include"),
         }),
       ),
       relaxed: z.boolean().describe("true when no product met every need and these are the closest options"),
@@ -133,10 +133,11 @@ export const searchProductsTool = server.tool(
       },
     });
 
-    const lines = out.results.map((r) => {
-      const extras = r.levers_offered.length ? ` Extras: ${r.levers_offered.map((l) => l.label).join(", ")}.` : "";
-      return `${r.listing.title} by ${r.listing.seller_name}: $${(r.listing.list_price_cents / 100).toFixed(2)} list (id ${r.listing.id}). ${r.fit_note}${extras}`;
-    });
+    // Extras stay out of model-facing text: E2's A/B showed offering them costs sellers ~$11/buyer (#58).
+    // levers_offered remains in structuredContent for code (E2's harness gates it on E2_BUYER_EXTRAS).
+    const lines = out.results.map(
+      (r) => `${r.listing.title} by ${r.listing.seller_name}: $${(r.listing.list_price_cents / 100).toFixed(2)} list (id ${r.listing.id}). ${r.fit_note}`,
+    );
     const text =
       [out.note, ...lines].filter(Boolean).join("\n") ||
       `No products found. Categories: ${CATEGORIES.join(", ")}. Try fewer hard needs or a higher budget.`;
