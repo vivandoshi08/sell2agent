@@ -1,4 +1,5 @@
--- PROPOSAL (S2, not applied): turn on Row Level Security for the shared Supabase project.
+-- APPLIED to the shared Supabase project Sun Oct 18, 1:18 am PT (S2, after S1 confirmed the gateway uses the service-role key).
+-- Verified: anon reads events (2448) + products (6), reads 0 rows of seller_policies/deals, and an anon insert into events is refused; service_role insert works.
 -- Owner to decide and apply: Vivan (E1) / Neel (migrations are frozen; copy into a migration if adopted).
 --
 -- Why: RLS is off on all 8 public tables, and the dashboard ships the anon key to every browser. Today anyone
