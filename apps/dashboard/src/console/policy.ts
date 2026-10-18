@@ -89,9 +89,14 @@ export function toSellerPolicyRow(p: ConsolePolicy) {
   };
 }
 
-/** Back from a `seller_policies` row onto the console's view of a product (unknown levers are ignored). */
-export function applyRow(base: ConsolePolicy, row: { floor_price_cents?: number; policy?: string | null; objective?: unknown; lever_menu?: unknown }): ConsolePolicy {
+/**
+ * Back from a `seller_policies` row onto the console's view of a product (unknown levers are ignored). Same lever
+ * rule as the exchange's SupabaseCatalog: a non-empty `lever_menu` wins, else `allowed_concessions` says which are on
+ * (rows 0002 just added have `lever_menu = []`, and a merchant who switches every lever off writes both empty).
+ */
+export function applyRow(base: ConsolePolicy, row: { floor_price_cents?: number; policy?: string | null; objective?: unknown; lever_menu?: unknown; allowed_concessions?: unknown }): ConsolePolicy {
   const menu = Array.isArray(row.lever_menu) ? (row.lever_menu as { id?: string; cost_cents?: number }[]) : null;
+  const on = Array.isArray(row.allowed_concessions) ? new Set(row.allowed_concessions as string[]) : null;
   const obj = SellerObjective.safeParse(row.objective ?? {});
   return {
     ...base,
@@ -101,6 +106,6 @@ export function applyRow(base: ConsolePolicy, row: { floor_price_cents?: number;
     levers: menu && menu.length ? base.levers.map((l) => {
       const m = menu.find((x) => x.id === l.id);
       return m ? { ...l, enabled: true, cost_cents: m.cost_cents ?? l.cost_cents } : { ...l, enabled: false };
-    }) : base.levers,
+    }) : on ? base.levers.map((l) => ({ ...l, enabled: on.has(l.id) })) : base.levers,
   };
 }

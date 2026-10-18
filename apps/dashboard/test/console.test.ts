@@ -2,6 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { SellerPolicy } from "@sa/shared";
+import { Exchange, MemorySink, SEED_PRODUCTS, SupabaseCatalog } from "@sa/seller-mcp/exchange";
 import { toCatalogPatch, toSellerPolicyRow, validate } from "../src/console/policy";
 import { memoryStore } from "../src/console/store";
 import { tryPolicy } from "../src/console/api";
@@ -108,4 +109,73 @@ test("Supabase store on the v1 table: saves floor + enabled levers, keeps the re
   const back = (await store.get(PID))!;
   assert.equal(back.policy, "balanced");
   assert.equal(back.levers.find((l) => l.id === "extended_warranty")!.enabled, false);
+});
+
+// Contract v2 (0002): one fake Supabase serving both the console store and E1's SupabaseCatalog (what the gateway runs).
+function fakeV2Db() {
+  const tables: Record<string, Record<string, any>[]> = {
+    products: SEED_PRODUCTS.map((p) => ({ id: p.product_id, seller_id: p.seller_id, category: "x", title: p.title, description: "", specs: {},
+      list_price_cents: p.list_price_cents, inventory: 10, shipping_days: 3 })),
+    // As 0002 leaves the live rows: lever_menu [], objective null, policy 'negotiating'; allowed_concessions from seed.sql.
+    seller_policies: SEED_PRODUCTS.map((p) => ({ product_id: p.product_id, floor_price_cents: p.floor_price_cents, unit_cost_cents: p.unit_cost_cents,
+      target_margin_pct: 35, max_rounds: 4, allowed_concessions: [...p.allowed_levers], lever_menu: [], objective: null, policy: "negotiating", min_margin_after_levers_pct: null })),
+  };
+  const db: any = { from: (t: string) => ({
+    select: () => {
+      let ids: string[] | null = null;
+      const b: any = { limit: () => b, in: (_c: string, v: string[]) => { ids = v; return b; },
+        then: (res: any) => Promise.resolve({ data: structuredClone(tables[t]!.filter((r) => !ids || ids.includes(r.product_id))), error: null }).then(res) };
+      return b;
+    },
+    update: (patch: Record<string, unknown>) => ({ eq: async (_c: string, id: string) => {
+      const r = tables[t]!.find((x) => x.product_id === id);
+      if (!r) return { error: null, count: 0 };
+      if (Object.keys(patch).some((k) => !(k in r))) return { error: { message: "column does not exist" }, count: null };
+      Object.assign(r, structuredClone(patch)); return { error: null, count: 1 };
+    } }),
+  }) };
+  return { db, row: (id: string) => tables.seller_policies!.find((r) => r.product_id === id)! };
+}
+
+test("contract v2: console saves lever_menu + objective, the gateway's catalog offers the new lever, floor + lever cost hold", async () => {
+  const { supabaseStore } = await import("../src/console/store");
+  const { db, row } = fakeV2Db();
+  const TKL = "kb_clackco_tkl"; // seed: free_shipping only, floor $95, list $115, unit cost $55
+  const store = supabaseStore(db);
+  assert.equal(await store.schema(), "v2");
+  assert.equal(await store.notice(), null);
+  const p = (await store.get(TKL))!;
+  assert.deepEqual(p.levers.filter((l) => l.enabled).map((l) => l.id), ["free_shipping"], "fresh v2 row: allowed_concessions says which levers are on");
+
+  const ex = new Exchange({ catalog: new SupabaseCatalog(db, { ttl_ms: 0 }), llm: null, sink: new MemorySink().sink });
+  const ask = async (buyer: string) => (await ex.handle({ kind: "offer", ctx: { run_id: "s2-test-console", buyer_id: buyer, buyer_model: "scripted" },
+    product_id: TKL, offer_price_cents: 9_000, levers: ["extended_warranty"] } as any)) as any;
+  assert.equal((await ask("b_before")).error?.code, "bad_lever", "not on the menu yet");
+
+  const edit = { ...p, objective: { ...p.objective, margin: 0.8 }, levers: p.levers.map((l) => (l.id === "extended_warranty" ? { ...l, enabled: true } : l)) };
+  assert.equal((await store.save(edit)).ok, true);
+  assert.deepEqual(row(TKL).lever_menu.map((m: any) => m.id), ["free_shipping", "extended_warranty"]);
+  assert.equal(row(TKL).lever_menu[1].cost_cents, 1_200);
+  assert.equal(row(TKL).objective.margin, 0.8);
+  assert.deepEqual(row(TKL).allowed_concessions, ["free_shipping", "extended_warranty"], "v1 readers still see the menu");
+  assert.equal((await store.get(TKL))!.objective.margin, 0.8);
+
+  let r = await ask("b_after");
+  assert.equal(r.ok, true, JSON.stringify(r));
+  assert.deepEqual(r.standing_offer.levers, ["extended_warranty"]);
+  for (let i = 0; i < 8 && r.ok && !r.standing_offer?.final; i++) {
+    r = (await ex.handle({ kind: "offer", ctx: { run_id: "s2-test-console", buyer_id: "b_after", buyer_model: "scripted" },
+      negotiation_id: r.negotiation_id, offer_price_cents: 9_000 } as any)) as any;
+    assert.ok(!r.ok || r.standing_offer.price_cents >= 9_500 + 1_200, `price ${r.standing_offer?.price_cents} is under floor + warranty cost`);
+  }
+
+  // A row priced past the room between floor and list (console refuses; tampered row): the exchange won't offer it.
+  row(TKL).lever_menu[1].cost_cents = 5_000;
+  assert.match((await ask("b_tampered")).error?.message ?? "", /can't be offered/);
+
+  // Every lever off writes both columns empty: console and gateway agree there are none.
+  assert.equal((await store.save({ ...edit, levers: edit.levers.map((l) => ({ ...l, enabled: false })) })).ok, true);
+  assert.deepEqual(row(TKL).lever_menu, []);
+  assert.deepEqual((await store.get(TKL))!.levers.filter((l) => l.enabled), []);
+  assert.equal((await ask("b_off")).error?.code, "bad_lever");
 });
