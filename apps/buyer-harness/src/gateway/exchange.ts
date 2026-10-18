@@ -38,7 +38,13 @@ export class ExchangeGateway implements Gateway {
     this.emit = emit;
   }
 
-  private extras = new Map(SEED_PRODUCTS.map((p) => [p.product_id, p.allowed_levers]));
+  /**
+   * Buyer-requested extras are OPT-IN (E2_BUYER_EXTRAS=on). A/B on the same 30 Claude buyers (docs/results/extras-ab):
+   * offering extras cost the seller -$11.10/buyer (95% CI -$17.46 to -$4.74): buyers ask for free shipping on nearly
+   * every deal, which raises the seller's floor by its cost. Same lesson as E11 (levers-first lost money).
+   */
+  readonly extrasEnabled = process.env.E2_BUYER_EXTRAS === "on";
+  private extras = new Map(SEED_PRODUCTS.map((p) => [p.product_id, this.extrasEnabled ? p.allowed_levers : []]));
   async search(ctx: BuyerContext, query: string, max?: number) {
     return (await this.listings.search(ctx, query, max)).map((l) => ({ ...l, extras: this.extras.get(l.product_id) ?? [] }));
   }
@@ -53,7 +59,7 @@ export class ExchangeGateway implements Gateway {
 
   async offer(ctx: BuyerContext, a: GwOfferArgs): Promise<GwOfferResult> {
     const resp = (await this.exchange.handle({ kind: "offer", ctx, product_id: a.product_id, negotiation_id: a.negotiation_id,
-      offer_price_cents: a.offer_price_cents, message: a.message, buyer_profile: a.buyer_profile as BuyerLeverProfile, levers: a.levers })) as ExchangeLike;
+      offer_price_cents: a.offer_price_cents, message: a.message, buyer_profile: a.buyer_profile as BuyerLeverProfile, levers: this.extrasEnabled ? a.levers : undefined })) as ExchangeLike;
     return this.book.record(resp, a.product_id, a.offer_price_cents);
   }
 
