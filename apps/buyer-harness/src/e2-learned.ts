@@ -108,7 +108,7 @@ if (all.includes("learned") && fixed.length) {
     lp.gate = { passed, best_fixed_policy: best, learned_minus_best_fixed_cents: Math.round(diffs[best].mean), holdout_buyers: common.length,
       diff_vs_negotiating_cents: Math.round(vsNeg?.mean ?? 0), ci95_cents: (vsNeg?.ci ?? [0, 0]).map(Math.round) as [number, number], below_floor: below,
       ci95_vs_best_fixed_cents: diffs[best].ci.map(Math.round) as [number, number], beats_best_fixed: beatsBest,
-      source: `held-out ${f.models} buyers, seed ${f.seed}, runs ${all.map((p) => runIds[p]).join(", ")}` };
+      source: `held-out ${f.models === "claude" && process.env.BUYER_CLAUDE_MODEL ? process.env.BUYER_CLAUDE_MODEL : f.models} buyers, seed ${f.seed}, runs ${all.map((p) => runIds[p]).join(", ")}` };
     writeFileSync(policyFile, JSON.stringify(lp, null, 2) + "\n");
     console.log(`Wrote gate into ${policyFile} (passed = ${passed}, beats_best_fixed = ${beatsBest}).`);
   }
