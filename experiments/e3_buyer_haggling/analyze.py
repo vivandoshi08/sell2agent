@@ -208,7 +208,7 @@ def n2_table(rows):
 
 COLS = [
     ("n", "sessions"), ("counter", "counter_rate"), ("haggled", "haggled_rate"), ("rounds", "avg_rounds"),
-    ("conv", "conversion"), ("feas. conv", "feasible_conversion"), ("disc. off list", "avg_discount_pct"),
+    ("open % list", "first_buyer_offer_pct_list"), ("conv", "conversion"), ("feas. conv", "feasible_conversion"), ("disc. off list", "avg_discount_pct"),
     ("price/walk-away", "avg_price_over_walkaway"), ("overpaid", "buyer_overpaid"),
     ("buyer surplus/session", "buyer_surplus_per_session"), ("took 1st offer", "accepted_first_seller_offer_rate"),
     ("seller disc.", "seller_discounted_rate"),
@@ -223,6 +223,31 @@ def fmt(v):
     if isinstance(v, int) and abs(v) >= 1000:
         return f"{v:,}"
     return str(v)
+
+
+def _ci(m, ci, pct=False):
+    if m is None:
+        return ""
+    f = (lambda v: f"{v*100:+.1f}%") if pct else (lambda v: f"{v:+,.2f}" if abs(v) < 2 else f"{v:+,.0f}")
+    if ci and ci[0] is not None:
+        return f"{f(m)} [{f(ci[0])}, {f(ci[1])}]"
+    return f(m)
+
+
+def md_pair_table(pairs: dict):
+    lines = ["| comparison | pairs | both closed (same bundle) | price diff, same bundle [95% CI] | haggle cheaper / equal | "
+             "discount diff, pp [CI] | conversion diff [CI] | buyer surplus diff/session [CI] |",
+             "|---|---|---|---|---|---|---|---|"]
+    for name, d in pairs.items():
+        if not d.get("pairs"):
+            continue
+        lines.append(
+            f"| {name} | {d['pairs']} | {d['both_closed']} ({d['both_closed_same_bundle']}) | "
+            f"{_ci(d['price_diff_pct_same_bundle'], d['price_diff_pct_ci95'], True)} | "
+            f"{d['n_haggle_cheaper']} / {d['n_equal']} | {_ci(d['discount_diff_pp'], d['discount_diff_ci95'], True)} | "
+            f"{_ci(d['conversion_diff'], d['conversion_diff_ci95'], True)} | "
+            f"{_ci(d['buyer_surplus_diff_per_session'], d['buyer_surplus_diff_ci95'])} |")
+    return "\n".join(lines)
 
 
 def md_table(cells: dict, cols=COLS):
@@ -284,8 +309,8 @@ def main():
            md_table({**by_avail, "negotiable (adv+avail)": neg_all}), "",
            "### By brief, negotiable conditions (advertised + available)", "", md_table(by_brief_neg), "",
            "### By brief, fixed", "", md_table(by_brief_fixed), "",
-           "### Haggle vs fixed, same buyer and brief", "", "```", json.dumps(pair, indent=1), "```", "",
-           "### Haggle vs fixed by brief", "", "```", json.dumps(pair_by_brief, indent=1), "```", ""]
+           "### Haggle vs fixed, same buyer and brief (negative price diff = haggling paid less)", "",
+           md_pair_table({**pair, **{f"negotiable vs fixed, {b}": v for b, v in pair_by_brief.items()}}), ""]
 
     # ---- model sweep
     ms = parts["models"]
@@ -301,7 +326,7 @@ def main():
             mpair[m] = paired(adv, fix, lambda r: r["persona_id"])
     res["models"] = {"cells": mcells, "paired_advertised_vs_fixed": mpair}
     md += ["## Model sweep (seed 304, neutral brief, Opus seller)", "", md_table(mcells), "",
-           "### Advertised vs fixed, same buyer, per model", "", "```", json.dumps(mpair, indent=1), "```", ""]
+           "### Advertised vs fixed, same buyer, per model", "", md_pair_table(mpair), ""]
 
     # ---- leak probe + baseline
     LCOLS = [("n", "sessions"), ("walk-away leak", "walkaway_leak_rate"), ("budget disclosed", "budget_disclosed_rate"),
@@ -348,7 +373,8 @@ def main():
         b8pair = paired(b8, lk_opus, lambda r: r["persona_id"])
         res["b8"] = {"cells": b8cells, "paired_budget_only_minus_default": b8pair}
         md += ["## B8: stated budget only vs private walk-away (Opus buyers, seller asks)", "",
-               md_table(b8cells, LCOLS), "", "Paired (budget-only minus default):", "```", json.dumps(b8pair, indent=1), "```", ""]
+               md_table(b8cells, LCOLS), "", "Paired, budget-only minus default (price diff > 0 = budget-only paid more):", "",
+               md_pair_table({"budget-only vs default": b8pair}), ""]
 
     # ---- N2
     n2_rows = [r for r in grid + ms + lk + b8 if r["meta"]["availability"] != "fixed"]

@@ -1,0 +1,16 @@
+grid: 6 jobs, 0 already done, 6 to run
+[grid] 1/6 done (30s)
+[grid] 2/6 done (33s)
+[grid] 3/6 done (43s)
+[grid] 4/6 done (49s)
+[grid] 5/6 done (60s)
+[grid] 6/6 done (76s)
+done: 6 sessions, 5 deals, 0 errors, $0.35
+leak: 2 jobs, 0 already done, 2 to run
+[leak] 1/2 done (53s)
+[leak] 2/2 done (61s)
+done: 2 sessions, 2 deals, 0 errors, $0.19
+models: 2 jobs, 0 already done, 2 to run
+[models] 1/2 done (40s)
+[models] 2/2 done (48s)
+done: 2 sessions, 2 deals, 0 errors, $0.13
