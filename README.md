@@ -19,7 +19,7 @@ https://dark-zero-mesv5.run.mcp-use.com/mcp
 | ChatGPT | Add a custom MCP server with the URL, no authentication; type `@` to use it |
 | Anything else | Streamable HTTP at the URL above. `/.well-known/ucp` and `/.well-known/mcp/server-card.json` describe it |
 
-Then tell the agent: *"Use the keyboard marketplace tools. Find a quiet mechanical keyboard under $130, negotiate the price, and show me the deal."* It searches four competing sellers, haggles, locks a deal, and shows a **deal card** (an MCP App) with an **Approve & Pay** button. Agents that can't render the card get a plain-text summary and a hosted approve link.
+Then tell the agent: *"Use the keyboard marketplace tools. Find a quiet mechanical keyboard under $130, negotiate the price, and show me the deal."* It searches four competing sellers, haggles, locks a deal, and shows a **deal card** (an MCP App) with an **Approve & Pay** button. After `accept_deal` the agent calls `review_deal`, which shows the card; agents that can't render it get the hosted approve link in that same reply.
 
 **Dashboard.** The seller's view (live negotiation feed, guardrail log, static-vs-negotiating results, merchant console) runs from this repo; there is no hosted copy yet. `npx -y pnpm@9.12.0 dev:dashboard` serves it at <http://localhost:3000>: **Live** tab for real traffic, **Results** tab (`#proof`) for the A/B runs, `/console` for the merchant console. It reads the shared Supabase `events` table, so you need the keys from `.env` (see Run it locally).
 
@@ -41,13 +41,14 @@ Every number below comes from a saved run; each row says where.
 
 **Bridge 1 (a real person buying in ChatGPT).** In real ChatGPT on production, the agent haggled a $129 keyboard to a **$110** deal and paid with **Approve & Pay** in the deal card: `payment_succeeded`, a Stripe test PaymentIntent (`pi_3URoOK…`), every step in Supabase `events`. A later ChatGPT recheck on production, with a plain prompt, bought at $118 after 5 rounds and confirmed the purchase through `check_offers`. Source: E1 log, "Bridge 1 closed" and the 1:00 am #65 entry.
 
-**Bridge 3 (follow-ups and learning): in progress.** Other sessions are building these now; numbers land here when they exist.
+**Bridge 3 (follow-ups and learning).** Checked on production `main` `c5a9689` (deployed 4:43 am PT Sun Oct 18).
 
 | Item | State | Numbers |
 |---|---|---|
-| Follow-ups after a walk-away, from the seller's verified Inkbox identity | In progress. The scheduler and reply parser are on `main` (`apps/seller-mcp/src/exchange/outreach.ts`); the Inkbox door is being wired | TODO |
-| Learned policy (bandit over lever packages, `learned_policy.json`) gated on LLM buyers | In progress. The bandit is on `main`; the gate on real buyers is running | TODO. Scripted-buyer result only so far: +$5.66/buyer over `negotiating` [$4.62–$6.70], 900 held-out scripted buyers ([E2 log](docs/live/e2.md)); not the headline |
-| Full demo twice in a row with no manual fix | Check with `scripts/demo-check.sh` | TODO |
+| Follow-ups after a walk-away | **Live on production.** `apps/marketplace/scripts/followup-e2e.mjs` passes against production: walk-away with consent → nothing sent before the 60 s delay → follow-up via the log courier → `/outbox` → an unclear reply gets a clarifying question → ACCEPT locks the deal and returns an approve link → a second walk-away is capped. Delivery is the log courier until Inkbox is on (being wired now) | Simulated: when buyer agents walk away and opt in to one follow-up, the seller wins back **33%** of them (30 of 92, 95% CI 24–43%), **+$2.58 profit per buyer** [$1.70–$3.50]. 0 deals below floor, 0 follow-ups below the buyer's last price. 600 simulated Claude Haiku buyers, in-process through the real exchange. Source: `docs/results/followups/README.md` in [PR #94](https://github.com/vivandoshi08/sales-agent/pull/94) (merged) |
+| Learned policy (bandit over lever packages, `learned_policy.json`) gated on LLM buyers | **Gate passed; live on production but not the default.** A signed eval check on production logged arm `balanced`, `policy_version` 4 | v4, 300 held-out Claude Haiku buyers, seed 777: **+$6.25/buyer vs `negotiating` [$3.58, $8.92]**, −$1.03 vs `balanced` [−$3.10, $1.05], 0 below floor. It does not beat `balanced`, so `balanced` stays the default. Source: [docs/results/b3-learned](docs/results/b3-learned/README.md) (PR #91) |
+| Merchant console → live negotiations | **Done-test passed on production** (PR #92): `npx -y pnpm@9.12.0 --filter @sa/dashboard console:e2e` | — |
+| Full demo twice in a row with no manual fix | **Passed.** 5:04–5:05 am PT, `scripts/demo-check.sh --runs 2 --pay` on production `c5a9689` | 2 of 2 runs clean, 8/8 PASS each, 0 warnings, no manual fix between |
 
 ## How it works
 
@@ -112,7 +113,7 @@ cp .env.example .env     # paste the shared keys: Supabase, Stripe TEST, Anthrop
 | Simulated buyers against the deployed gateway, static vs negotiating | `npx -y pnpm@9.12.0 buyers --compare --gateway https://dark-zero-mesv5.run.mcp-use.com/mcp --n 10` |
 | Full eval with confidence intervals | `npx -y pnpm@9.12.0 --filter @sa/dashboard eval --gateway <url> --models claude --n 100 --concurrency 8` |
 | Stripe go/no-go (6 checks, test mode) | `npx -y pnpm@9.12.0 stripe:smoke` |
-| Clear leftover anonymous-buyer memory (before any demo) | `npx -y pnpm@9.12.0 --filter @sa/seller-mcp anon:reset --all` |
+| Clear leftover anonymous-buyer memory (only needed after a rehearsal that walked away: since #97 a paid deal clears that buyer's memory, and anonymous memory expires after 10 min) | `npx -y pnpm@9.12.0 --filter @sa/seller-mcp anon:reset --all` |
 | Everything the demo needs, read-only | `scripts/demo-check.sh` |
 
 Stripe is **test mode only**: `@sa/payments` refuses live keys. All Stripe calls go through `@sa/payments`; see [packages/payments/README.md](packages/payments/README.md).
