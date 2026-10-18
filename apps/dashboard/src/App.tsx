@@ -9,7 +9,8 @@ import { LiveTally, NegotiationCard, SaleToasts, Tally, useNegotiations } from "
 import { Contours } from "./ui/Brand";
 import { TopBar } from "./ui/TopBar";
 import { BuyerFit, LeverWins, LiveTrafficPanel, ModelFilter, RunPicker } from "./panels/S2Panels";
-import { LearningCurve } from "./panels/LearningCurve";
+import { LP } from "./panels/LearningCurve";
+import { LearnedPage } from "./panels/LearnedPage";
 import { Followups } from "./panels/Followups";
 import { fakeLearnedEval } from "./data/fake";
 import { FlaggedList, belowFloorDeals, unsafeDeals } from "./ui/Transcript";
@@ -19,8 +20,8 @@ import "./ui/fonts";
 const feed = pickFeed();
 // `?tests` puts teammates' test runs (s1-test-…, s2-test-…) in the Live view, to check the pipe end to end. Eval runs never.
 const showTests = new URLSearchParams(location.search).has("tests");
-type View = "live" | "proof";
-const viewFromHash = (): View => (location.hash === "#proof" ? "proof" : "live");
+type View = "live" | "proof" | "learned";
+const viewFromHash = (): View => (location.hash === "#proof" ? "proof" : location.hash === "#learned" ? "learned" : "live");
 
 export function App() {
   const [events, setEvents] = useState<NegotiationEvent[]>([]);
@@ -70,7 +71,7 @@ export function App() {
 
       {error && <p className="err">{error}</p>}
 
-      {view === "live" ? (
+      {view === "learned" ? <LearnedPage events={learnedEvents} /> : view === "live" ? (
         <main className="page" id="live">
           <section className="head">
             <Contours />
@@ -131,7 +132,11 @@ export function App() {
 
           <LeverWins kpis={kpis} />
           <section className="card"><div className="card-h"><h2>Who buys, by buyer type</h2></div><PersonaGrid kpis={kpis} /></section>
-          <LearningCurve events={learnedEvents} />
+          <section className="panel lp-link">
+            <div><span className="eyebrow">Learning loop · policy v{LP.version}</span><h2>What the seller learned</h2>
+              <p className="sub">Which playbook works for which buyer, what perks are worth, how each negotiation trains it, and one logged negotiation step by step.</p></div>
+            <a className="cx-primary" href="#learned">Open →</a>
+          </section>
           <EvalRunner current={current} />
 
           <p className="foot">Intervals are 95%, bootstrapped over buyers; margin and time to first offer are point values. A deal converts when it's accepted; profit counts unit cost and perk costs.{feed.mode === "sample" ? " Sample data: made-up buyers, so every number here is illustrative." : ""}</p>

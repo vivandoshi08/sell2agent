@@ -21,15 +21,19 @@ interface Learned {
   gate?: { passed: boolean; best_fixed_policy: string; learned_minus_best_fixed_cents: number; holdout_buyers: number; diff_vs_negotiating_cents: number; ci95_cents: [number, number]; below_floor: number;
     ci95_vs_best_fixed_cents?: [number, number]; beats_best_fixed?: boolean; source?: string };
   trained_on?: { source: string; sessions: number; runs?: string[]; previous_version?: number;
-    by_source?: { real: number; sim: number }; reward?: string; contexts?: Record<string, { real: number; sim: number }> };
+    by_source?: { real: number; sim: number }; reward?: string; contexts?: Record<string, { real: number; sim: number }>; baseline?: "listing" | "none" };
 }
-const LIVE = learned as unknown as Learned;
+export type { Learned };
+/** Stats trained against the listing baseline are "vs the listing's average", not a per-buyer amount. */
+export const relative = (d: Learned) => d.trained_on?.baseline === "listing";
+const per = (d: Learned) => (relative(d) ? " vs listing avg" : "/buyer");
+export const LIVE = learned as unknown as Learned;
 // A retrain writes learned_policy.candidate.json first; it replaces the live file only after its held-out gate passes.
 // The panel shows the newest one, and says which version the live seller runs.
 const CANDIDATE = Object.values(import.meta.glob("../../../seller-mcp/learned_policy.candidate.json", { eager: true, import: "default" }))[0] as Learned | undefined;
-const LP = CANDIDATE && CANDIDATE.version > LIVE.version ? CANDIDATE : LIVE;
-const usd = (c: number) => `${c < 0 ? "−" : ""}$${(Math.abs(c) / 100).toFixed(2)}`;
-const signed = (c: number) => `${c >= 0 ? "+" : "−"}${usd(Math.abs(c))}`;
+export const LP = CANDIDATE && CANDIDATE.version > LIVE.version ? CANDIDATE : LIVE;
+export const usd = (c: number) => `${c < 0 ? "−" : ""}$${(Math.abs(c) / 100).toFixed(2)}`;
+export const signed = (c: number) => `${c >= 0 ? "+" : "−"}${usd(Math.abs(c))}`;
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 
 /** The seller's playbooks (bandit arms) in merchant words. */
@@ -49,9 +53,9 @@ const PERKS = [
   { arm: "pkg:extended_warranty", label: "Extended warranty" },
   { arm: "pkg:bundle_discount", label: "Bundle discount" },
 ] as const;
-const armName = (a: string) => ARM[a]?.name ?? policyLabel(a);
+export const armName = (a: string) => ARM[a]?.name ?? policyLabel(a);
 /** Buyer type in sentence case ("Price first"); lower-cased where it sits mid-sentence. */
-const ctxName = (c: string) => (c === "unknown" ? "No stated preference" : personaLabel(c));
+export const ctxName = (c: string) => (c === "unknown" ? "No stated preference" : personaLabel(c));
 
 /** Trailing moving average: the per-epoch numbers are noisy (30 buyers each). */
 export function smooth(xs: number[], k = 5): number[] {
@@ -59,9 +63,9 @@ export function smooth(xs: number[], k = 5): number[] {
 }
 
 /** The value the bandit chose by: IPS-weighted when retrained from logs, else the plain mean. */
-const mean = (s?: ArmStats) => (s?.n ? (s.w ? (s.wsum ?? 0) / s.w : s.sum / s.n) : null);
+export const mean = (s?: ArmStats) => (s?.n ? (s.w ? (s.wsum ?? 0) / s.w : s.sum / s.n) : null);
 
-export function LearningCurve({ data = LP, events }: { data?: Learned; events?: NegotiationEvent[] }) {
+export function LearningCurve({ data = LP, events, perks = true, heading = true }: { data?: Learned; events?: NegotiationEvent[]; perks?: boolean; heading?: boolean }) {
   const ab = useMemo(() => (events ? learnedEval(events) : null), [events]);
   const live = useMemo(() => (events ? liveArmPicks(events) : []), [events]);
   const curve = data.curve ?? [];
@@ -69,23 +73,23 @@ export function LearningCurve({ data = LP, events }: { data?: Learned; events?: 
   const fixed = ab ? ab.policies.filter((x) => x !== "learned") : [];
   return (
     <section className="panel lp" aria-label="What the seller learned">
-      <div className="panel-head"><h2>What the seller learned</h2>
+      {heading && <><div className="panel-head"><h2>What the seller learned</h2>
         <span className="eyebrow">learned policy v{data.version}{data.trained_on ? ` · ${data.trained_on.source.startsWith("logged") ? `retrained on ${data.trained_on.sessions} logged negotiations` : `${data.trained_on.sessions} training negotiations`}` : ""}</span></div>
-      <p className="sub">For each type of buyer, the seller tried its playbooks and perks and kept the one that best met your goal. Every playbook runs through the same floor and concession guards.</p>
+      <p className="sub">For each type of buyer, the seller tried its playbooks and perks and kept the one that best met your goal. Every playbook runs through the same floor and concession guards. <a href="#learned">See everything it learned →</a></p>
 
-      <Training data={data} />
+      <Training data={data} /></>}
 
       <div className="card-h"><h3>Playbook per buyer type</h3><span>buyer type = what the buyer weighs most</span></div>
       <div className="lp-picks">
         {contexts.map((c) => <PickTile key={c} context={c} data={data} ab={ab} />)}
       </div>
 
-      {data.arms.some((a) => a.startsWith("pkg:")) && <PerkGrid data={data} contexts={contexts} />}
+      {perks && data.arms.some((a) => a.startsWith("pkg:")) && <PerkGrid data={data} contexts={contexts} />}
 
       {ab && <Comparison ab={ab} fixed={fixed} />}
 
       <div className="lp-curve">
-        <div className="card-h"><h3>Learning curve</h3><span>profit per buyer by training epoch, 5-epoch average</span></div>
+        <div className="card-h"><h3>Learning curve</h3><span>{relative(data) ? "goal value vs the listing's average" : "goal value per buyer"} by training epoch, 5-epoch average</span></div>
         {curve.length ? <CurveChart curve={curve} /> : <p className="empty">No learning curve yet: run <code>pnpm e2:bandit</code>.</p>}
       </div>
 
@@ -102,7 +106,7 @@ export function LearningCurve({ data = LP, events }: { data?: Learned; events?: 
         <summary>Training data: goal value per buyer and tries, per playbook</summary>
         <div className="scroll">
           <table className="pgrid">
-            <thead><tr><th>Buyer type</th><th>Seller now uses</th>{data.arms.map((a) => <th key={a}>{armName(a)}<br /><span className="th-sub">goal/buyer · tries</span></th>)}</tr></thead>
+            <thead><tr><th>Buyer type</th><th>Seller now uses</th>{data.arms.map((a) => <th key={a}>{armName(a)}<br /><span className="th-sub">{relative(data) ? "vs listing avg" : "goal/buyer"} · tries</span></th>)}</tr></thead>
             <tbody>
               {contexts.map((c) => (
                 <tr key={c}>
@@ -110,7 +114,7 @@ export function LearningCurve({ data = LP, events }: { data?: Learned; events?: 
                   <td><span className="pill neg">{armName(data.choice[c] ?? "negotiating")}</span></td>
                   {data.arms.map((a) => {
                     const s = data.stats[c]?.[a];
-                    return <td key={a} className={`num${a === data.choice[c] ? " best" : " dim"}`}>{s?.n ? `${usd(Math.round(mean(s)!))} · ${s.n}` : "—"}</td>;
+                    return <td key={a} className={`num${a === data.choice[c] ? " best" : " dim"}`}>{s?.n ? `${relative(data) ? signed(Math.round(mean(s)!)) : usd(Math.round(mean(s)!))} · ${s.n}` : "—"}</td>;
                   })}
                 </tr>
               ))}
@@ -124,7 +128,7 @@ export function LearningCurve({ data = LP, events }: { data?: Learned; events?: 
 }
 
 /** What trained this policy: real marketplace shoppers vs simulated buyers, and the reward (the seller's goal). */
-function Training({ data }: { data: Learned }) {
+export function Training({ data }: { data: Learned }) {
   const t = data.trained_on;
   if (!t) return null;
   const src = t.by_source;
@@ -139,11 +143,12 @@ function Training({ data }: { data: Learned }) {
 }
 
 /** Which perk works for which buyer: goal value per buyer when the seller led with each perk, vs no perk (Balanced). */
-function PerkGrid({ data, contexts }: { data: Learned; contexts: string[] }) {
+export function PerkGrid({ data, contexts, title = "Which perk works for which buyer", sub }: { data: Learned; contexts: string[]; title?: string; sub?: string }) {
   const rows = contexts.filter((c) => c !== "unknown" || contexts.length === 1);
+  const fmt = (v: number) => (relative(data) ? signed(Math.round(v)) : usd(Math.round(v)));
   return (
     <div className="lp-perks">
-      <div className="card-h"><h3>Which perk works for which buyer</h3><span>goal value per buyer · tries, when the seller led with that perk instead of a price cut</span></div>
+      <div className="card-h"><h3>{title}</h3><span>{sub ?? `${relative(data) ? "goal value vs the listing's average" : "goal value per buyer"} · tries, when the seller led with that perk instead of a price cut`}</span></div>
       <div className="scroll">
         <table className="pgrid">
           <thead><tr><th>Buyer type</th><th>No perk<br /><span className="th-sub">Balanced</span></th>{PERKS.map((p) => <th key={p.arm}>{p.label}</th>)}<th>Seller leads with</th></tr></thead>
@@ -161,7 +166,7 @@ function PerkGrid({ data, contexts }: { data: Learned; contexts: string[] }) {
                   <td className="persona">{ctxName(c)}</td>
                   {cols.map((a, i) => {
                     const v = vals[i], n = st[a]?.n ?? 0;
-                    return <td key={a} className={`num${v != null && v === best && enough(a) ? " best" : v == null || !enough(a) ? " dim" : ""}`}>{v != null ? <>{usd(Math.round(v))}<br /><span className="th-sub">{n} tries{n < (data.min_sessions ?? 10) ? " · too few" : ""}</span></> : "not tried"}</td>;
+                    return <td key={a} className={`num${v != null && v === best && enough(a) ? " best" : v == null || !enough(a) ? " dim" : ""}`}>{v != null ? <>{fmt(v)}<br /><span className="th-sub">{n} tries{n < (data.min_sessions ?? 10) ? " · too few" : ""}</span></> : "not tried"}</td>;
                   })}
                   <td><span className="pill neg">{perk ? perk.label : `No perk (${armName(choice)})`}</span></td>
                 </tr>
@@ -196,7 +201,7 @@ function PickTile({ context, data, ab }: { context: string; data: Learned; ab: L
           {baseline && mine.profit_per_buyer_cents != null && <><br /><span className={mine.profit_per_buyer_cents >= baseline[1].profit_per_buyer_cents! ? "up" : "down"}>{signed(Math.round(mine.profit_per_buyer_cents - baseline[1].profit_per_buyer_cents!))}</span>/buyer vs {armName(baseline[0])}</>}
         </span>
       ) : chosen != null ? (
-        <span className="lp-ev num">{usd(Math.round(chosen))}/buyer over {data.stats[context][arm].n} tries{arm !== "negotiating" && neg != null && <><br /><span className={chosen >= neg ? "up" : "down"}>{signed(Math.round(chosen - neg))}</span>/buyer vs Negotiating</>}</span>
+        <span className="lp-ev num">{relative(data) ? signed(Math.round(chosen)) : usd(Math.round(chosen))}{per(data)} over {data.stats[context][arm].n} tries{arm !== "negotiating" && neg != null && <><br /><span className={chosen >= neg ? "up" : "down"}>{signed(Math.round(chosen - neg))}</span>/buyer vs Negotiating</>}</span>
       ) : null}
     </div>
   );

@@ -12,33 +12,45 @@ Four changes, so the learning loop does what the seller-side UI claims:
 The dashboard's "What the seller learned" panel shows all four: real vs simulated training counts, the goal being optimized,
 a "which perk works for which buyer" grid, and the gate status. The console's Objective box says what the learned seller optimizes.
 
-## Run
+## Run (corrected 6:20 am)
 
-1. Exploration `b4X`: 300 simulated Claude Sonnet 5.5 buyers (5 personas + 10% red team), seed 515, `learned` at ε = 1 (uniform over
-   the arms each listing can play), through the real exchange in-process, `SUPABASE_URL=` empty. 77% bought [71–83%],
-   $51.99 profit/buyer, 0 below floor. ~3.8M input tokens.
-2. Retrain → **v5 candidate** (`apps/seller-mcp/learned_policy.candidate.json`): `b3-learned` runs + `b4X`
-   + live marketplace traffic (23). **23 real + 4,549 simulated** sessions, reward **50% profit + 50% revenue** (no product has
-   saved console goals yet, so every session uses the default).
+1. Exploration `b4X`: 300 simulated Claude Sonnet 5.5 buyers, seed 515, `learned` at ε = 1, through the real exchange in-process.
+   77% bought, $51.99 profit/buyer, 0 below floor. **Its package-arm sessions don't count:** a `pkg:*` arm only offered its
+   extra when that round's cut exceeded the extra's cost, so only 17 of 76 free-shipping and 6 of 27 warranty sessions ever
+   offered the perk. Fixed: package arms now lead with their perk at the first concession (`pickLever` lead mode). Learned
+   events carry `arm_rev: 2`, and retraining drops older package sessions. b4X's base-arm sessions are still used.
+2. **Like-for-like baseline.** A package arm can only be drawn on listings that offer its extra, so raw rewards compared arms
+   across listings with different prices (warranty "won" for price-first buyers who give warranty zero weight). Retraining now
+   subtracts each listing's average (`--baseline listing`, the default), so every number is "vs the listing's average".
+3. **Perk lesson, `b4S`:** 2,000 scripted buyers through the real exchange, ε = 1, no model calls. Scripted buyers now value
+   perks by their preferences (free shipping $15 × delivery weight, warranty $20 × warranty weight, bundle $15 × price weight)
+   and pick among affordable listings. Perks fired in 468/468 and 63/63 package sessions. Result (`scripted_policy.json`,
+   vs listing average): **no perk pays for itself for any buyer type.**
 
-| Buyer type | v4 chose | v5 chooses | Why (IPS goal value per negotiation, tries) |
+| Buyer type | Balanced (no perk) | Lead with free shipping | Lead with warranty |
 | --- | --- | --- | --- |
-| Price | balanced | balanced | balanced $40.63 (1,263) beats free shipping $33.09 (33) |
-| Quality | balanced | **lead with free shipping** | free shipping $39.06 (16) vs balanced $36.25 (484) |
-| Delivery | balanced | balanced | warranty $68.13 but only 8 tries (below the 10-try minimum); balanced $41.78 (639) |
-| Trust | balanced | **lead with free shipping** | free shipping $51.31 (18) vs balanced $37.28 (269) |
-| No stated preference | balanced | balanced | balanced $39.77 (2,655) |
+| Price | +$6.28 (214) | −$9.30 (185) | +$2.54 (29) |
+| Quality | +$9.09 (99) | −$5.17 (89) | −$33.33 (16) |
+| Delivery | +$6.50 (108) | −$5.29 (89) | −$6.60 (7, too few) |
+| Trust | +$8.03 (88) | −$4.12 (105) | +$2.17 (11) |
 
-No arm tried bundle discount: no simulated buyer landed on a listing that offers it.
+   Why: the perk raises the seller's floor by its cost and buyers' budgets are hard caps, so it can't buy a higher price. This
+   matches E11 (levers-first lost $730/session) and the extras A/B (~−$11/buyer). Not modeled: buyers comparing sellers, where
+   a perk can win the sale from a rival.
+4. **v5 candidate** (`apps/seller-mcp/learned_policy.candidate.json`): `b3-learned` runs + `b4X` (base arms) + 24 live
+   negotiations = **24 real + 4,446 simulated**, reward 50% profit + 50% revenue, listing baseline. Chooses **Balanced for
+   every buyer type**. Balanced vs Negotiating (same listing): price +$5.77, quality +$7.21, delivery +$9.01, trust +$7.90.
+
+## Where it shows
+
+Dashboard tab **What it learned** (`#learned`): the three lessons, training sources and goal, how one negotiation teaches the
+seller (which steps are AI and which are code), one logged LLM negotiation step by step, the perk grid, version history
+v1→v5, the learning curve and the gate.
 
 ## What this does and doesn't show
 
-- **Shows:** the loop now learns perks per buyer type, scores sessions with the seller's goal, and takes in real traffic, end to end,
-  with 0 deals below floor. The two new picks rest on 16 and 18 tries each, just above the minimum.
-- **Not yet:** v5 has **no held-out gate**. It is a candidate; the live `learned_policy.json` stays v4 (gate passed). The gate needs
-  ~900 more simulated buyers (`pnpm e2:learned --id b4G --n 300 --seed 2121 --policy-file ../seller-mcp/learned_policy.candidate.json --gate`,
-  with `BUYER_CLAUDE_MODEL=claude-haiku-5-5` to keep it cheap). It was blocked at 6:05 am: the Anthropic API key is out of credits.
-  A second exploration (`b4Y`, 600 buyers) failed for the same reason and is not used.
-- **Real traffic is small:** 23 live negotiations, 19 with no stated preference (they predate the preferences fix, which isn't deployed yet).
-  Live products run fixed policies, so real sessions teach the base arms only, not the perks.
-- **Buyers:** the exploration used Sonnet buyers (the harness default), not the Haiku buyers of `b3-learned`.
+- **v5 has no held-out gate.** The live `learned_policy.json` stays v4 (gate passed). The gate needs ~900 more simulated buyers
+  (`BUYER_CLAUDE_MODEL=claude-haiku-5-5 pnpm e2:learned --id b4G --n 300 --seed 2121 --policy-file ../seller-mcp/learned_policy.candidate.json --gate`).
+  It was blocked at 6:05 am: the Anthropic API key is out of credits. A 600-buyer LLM exploration (`b4Y`) failed for the same reason.
+- **Perk evidence with LLM buyers is zero** after dropping the stale b4X sessions. v5 will explore perks at ε = 0.1 once deployed.
+- **Real traffic is small:** 24 live negotiations, most with no stated preference (before the preferences fix, which isn't deployed yet).
