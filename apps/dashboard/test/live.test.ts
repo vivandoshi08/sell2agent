@@ -54,5 +54,7 @@ test("buyer-model filter keeps whole buyers of that model, plus run-level rows",
   const only = filterByModel(evs, "claude-sonnet-5-5");
   assert.deepEqual(only.map((e) => e.buyer_id), [null, "a", "a"]);
   // Test runs never become the default selection.
-  assert.deepEqual(defaultSelection(listRuns([...evs, ...live])).sort(), ["live", "r1"]);
+  // Once eval runs exist, live traffic isn't part of the default comparison either.
+  assert.deepEqual(defaultSelection(listRuns([...evs, ...live])).sort(), ["r1"]);
+  assert.deepEqual(defaultSelection(listRuns(live)), ["live"]);
 });
