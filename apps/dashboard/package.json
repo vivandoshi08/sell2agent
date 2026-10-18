@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@sa/buyer-harness": "workspace:*",
+    "@sa/payments": "workspace:*",
     "@sa/seller-mcp": "workspace:*",
     "@sa/shared": "workspace:*",
     "@supabase/supabase-js": "^2.45.0",

@@ -9,6 +9,13 @@ function consoleApi(env: Record<string, string>): Plugin {
     name: "sa-console-api",
     configureServer(server) {
       let api: Promise<{ store: string; handler: (req: any, res: any, next: () => void) => Promise<void> }> | null = null;
+      // My store (/api/store/*): Stripe Connect payouts + pickup, same server-only pattern.
+      let store: Promise<{ handler: (req: any, res: any, next: () => void) => Promise<void> }> | null = null;
+      server.middlewares.use((req, res, next) => {
+        if (!req.url?.startsWith("/api/store/")) return next();
+        store ??= server.ssrLoadModule("/src/store/server.ts").then((m) => m.makeStoreApi(env));
+        store.then((a) => a.handler(req, res, next)).catch((e) => { res.statusCode = 500; res.end(JSON.stringify({ error: String(e) })); });
+      });
       server.middlewares.use((req, res, next) => {
         if (!req.url?.startsWith("/api/console/")) return next();
         api ??= server.ssrLoadModule("/src/console/server.ts").then((m) => {

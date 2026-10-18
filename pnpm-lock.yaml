@@ -54,6 +54,9 @@ importers:
       '@sa/buyer-harness':
         specifier: workspace:*
         version: link:../buyer-harness
+      '@sa/payments':
+        specifier: workspace:*
+        version: link:../../packages/payments
       '@sa/seller-mcp':
         specifier: workspace:*
         version: link:../seller-mcp
