@@ -4,7 +4,7 @@
  *    so two mid-negotiation offers can't be curve-fitted to the floor
  *  - probe breaker: a near-miss deadline bid (within 10% of the gap below the hard floor) or an abandoned deal
  *    closes the final-round accept zone (hard floor..soft floor) for everyone on that product for 24 h
- *  - start limiter: 4 negotiation starts per buyer per product per 24 h
+ *  - start limiter: 4 negotiation starts per buyer per product per 24 h (50 for the shared anon bucket)
  * Anonymous buyers (gateway-minted `anon_` ids, one per chat) share one bucket per product for all three
  * (see probeId in store.ts), so opening a fresh chat never buys a better opening, endpoint or start.
  */
@@ -16,6 +16,11 @@ export const ENDPOINT_SPREAD = 0.03;
 export const NEAR_MISS_BAND = 0.1;
 export const BREAKER_COOLDOWN_MS = 24 * 3600_000;
 export const START_LIMIT = 4;
+/**
+ * The anon bucket is every ChatGPT/Claude chat on a product, not one buyer, so 4 would lock out real shoppers
+ * (and demo rehearsals) after the fourth chat. Override: EXCHANGE_ANON_START_LIMIT.
+ */
+export const ANON_START_LIMIT = Number(process.env.EXCHANGE_ANON_START_LIMIT) || 50;
 export const START_WINDOW_MS = 24 * 3600_000;
 
 /** Deterministic pseudo-random number in [0, 1) for a key. Private: seeded with the server secret. */
@@ -54,10 +59,10 @@ export class StartLimiter {
   private starts = new Map<string, number[]>();
   constructor(private now: () => number) {}
   /** Records a start; false when over the limit. */
-  allow(key: string): boolean {
+  allow(key: string, limit = START_LIMIT): boolean {
     const t = this.now();
     const recent = (this.starts.get(key) ?? []).filter((x) => t - x < START_WINDOW_MS);
-    if (recent.length >= START_LIMIT) { this.starts.set(key, recent); return false; }
+    if (recent.length >= limit) { this.starts.set(key, recent); return false; }
     recent.push(t);
     this.starts.set(key, recent);
     return true;
