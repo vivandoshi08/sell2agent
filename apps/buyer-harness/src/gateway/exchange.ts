@@ -38,11 +38,13 @@ export class ExchangeGateway implements Gateway {
     this.emit = emit;
   }
 
-  search(ctx: BuyerContext, query: string, max?: number) {
-    return this.listings.search(ctx, query, max);
+  private extras = new Map(SEED_PRODUCTS.map((p) => [p.product_id, p.allowed_levers]));
+  async search(ctx: BuyerContext, query: string, max?: number) {
+    return (await this.listings.search(ctx, query, max)).map((l) => ({ ...l, extras: this.extras.get(l.product_id) ?? [] }));
   }
-  getListing(ctx: BuyerContext, product_id: string) {
-    return this.listings.getListing(ctx, product_id);
+  async getListing(ctx: BuyerContext, product_id: string) {
+    const l = await this.listings.getListing(ctx, product_id);
+    return l ? { ...l, extras: this.extras.get(product_id) ?? [] } : null;
   }
   async ask(_ctx: BuyerContext, product_id: string, question: string) {
     const a = await answerQuestion(byId(product_id).public, question, this.sellerLlm);
@@ -51,7 +53,7 @@ export class ExchangeGateway implements Gateway {
 
   async offer(ctx: BuyerContext, a: GwOfferArgs): Promise<GwOfferResult> {
     const resp = (await this.exchange.handle({ kind: "offer", ctx, product_id: a.product_id, negotiation_id: a.negotiation_id,
-      offer_price_cents: a.offer_price_cents, message: a.message, buyer_profile: a.buyer_profile as BuyerLeverProfile })) as ExchangeLike;
+      offer_price_cents: a.offer_price_cents, message: a.message, buyer_profile: a.buyer_profile as BuyerLeverProfile, levers: a.levers })) as ExchangeLike;
     return this.book.record(resp, a.product_id, a.offer_price_cents);
   }
 

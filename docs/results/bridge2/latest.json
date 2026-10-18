@@ -1,0 +1,1 @@
+{"eval_id":"bridge2_claude_100","events":"bridge2_claude_100.events.json","results":"bridge2_claude_100.results.json","policies":["static","negotiating"],"buyers":100,"models":["claude"]}
