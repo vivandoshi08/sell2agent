@@ -4,7 +4,7 @@ Seller-side negotiating agents for agentic commerce. Start with [CLAUDE.md](./CL
 
 ## Research and experiments
 
-Everything we tested before the build lives on this branch's `docs/` and `experiments/` folders:
+Everything we tested before the build lives in the `docs/` and `experiments/` folders:
 
 - [docs/NORTHSTAR.md](docs/NORTHSTAR.md): the problem and what we're building toward
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): layer-by-layer decisions with the experiment evidence behind them
