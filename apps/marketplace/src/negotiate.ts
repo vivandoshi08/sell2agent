@@ -146,7 +146,11 @@ export function render(r: ExchangeResponse, buyer_id: string) {
 
 async function run(move: Move) {
   if (!move.ctx.buyer_id) return missingBuyer();
-  const out = render(await (await exchange()).handle(move), move.ctx.buyer_id);
+  const ex = await exchange();
+  // A due follow-up must show up on check_offers even when nothing else calls runDue() (prod turns the timer off and
+  // nothing may hit POST /cron/outreach). runDue() is idempotent: each job is claimed before it is sent.
+  if (move.kind === "status") await ex.outreach.runDue().catch((e: Error) => console.error("[followup] runDue on check_offers", e.message));
+  const out = render(await ex.handle(move), move.ctx.buyer_id);
   if (move.kind === "walk" && move.followup && out.structuredContent.ok) out.content[0].text += "\n" + followupHint(move.followup, out.structuredContent.negotiation_id, move.ctx.buyer_id);
   return out;
 }
