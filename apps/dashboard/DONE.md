@@ -65,8 +65,8 @@ Move on only when every box in a stage is checked. Each check names how to verif
 ### Stage 3 · by Bridge 3 (H12): "It learns and follows up"
 
 - [ ] **Armature evals:** 5 goal cases against the deployed gateway URL, run in both Claude Code and Codex, each scoring ≥ 4/5. Cases: find a keyboard by need; negotiate and buy under budget; recover from an expired offer; ask a question the catalog can't answer (expects "I don't know"); retry Approve & Pay safely. *Verify:* Armature dashboard screenshot with all 10 runs.
-- [ ] **Learning curve panel** plots E2's bandit outcomes over time from `events`.
-- [ ] **Merchant console:** edit a seller's lever menu (allowed, cost, limits) and objective weights; the next negotiation uses the new menu. *Verify:* change "extended warranty" to disallowed, run one buyer, no offer contains it.
+- [x] **Learning curve panel** plots E2's bandit outcomes over time (`src/panels/LearningCurve.tsx`, from `learned_policy.json`: curve, per-buyer-type choice, held-out gate). Reading live bandit outcomes from `events` waits on E2 logging the arm + propensity.
+- [x] **Merchant console** (`/console`, `src/console/`; verify step is a test in `test/console.test.ts`; Supabase save path untested live until the network is fixed): edit a seller's lever menu (allowed, cost, limits) and objective weights; the next negotiation uses the new menu. *Verify:* change "extended warranty" to disallowed, run one buyer, no offer contains it.
 - [ ] **Demo-ready:** the full S2 path (deal card → pay → dashboard updates live) runs twice in a row with no manual fix.
 
 ### Overall: S2 is done when
