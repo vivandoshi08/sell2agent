@@ -7,7 +7,7 @@ import { BarCompare } from "./ui/BarCompare";
 import { GuardrailLog, PersonaGrid, SafetyTile, pct, usd } from "./ui/Panels";
 import { LiveTally, NegotiationCard, SaleToasts, Tally, useNegotiations } from "./ui/Seller";
 import { Contours, Mark } from "./ui/Brand";
-import { BuyerFit, LeverWins, ModelFilter, RunPicker } from "./panels/S2Panels";
+import { BuyerFit, LeverWins, LiveTrafficPanel, ModelFilter, RunPicker } from "./panels/S2Panels";
 import { LearningCurve } from "./panels/LearningCurve";
 import "./ui/fonts";
 
@@ -29,9 +29,6 @@ export function App() {
   const live = useMemo(() => liveTraffic(events), [events]);
   const liveEvents = useMemo(() => { if (!live.negotiations) return events; const ids = new Set(live.run_ids); return events.filter((e) => ids.has(e.run_id)); }, [events, live]);
   const negs = useNegotiations(liveEvents, 6);
-  const [model, setModel] = useState<string | null>(null);
-  const models = useMemo(() => [...new Set(events.map((e) => e.buyer_model).filter((m): m is string => !!m))].sort(), [events]);
-  const scoped = useMemo(() => (model ? events.filter((e) => e.buyer_model === model || e.actor === "harness" && !e.buyer_id) : events), [events, model]);
   const freshIds = useMemo(() => {
     const now = new Set(negs.map((n) => `${n.id}|${n.evs.length}`));
     const fresh = new Set([...now].filter((k) => !prevIds.current.has(k)).map((k) => k.split("|")[0]));
@@ -39,7 +36,7 @@ export function App() {
     return fresh;
   }, [negs]);
 
-  const { runs, selected, setSelected, filtered, isDefault } = useRunSelection(scoped);
+  const { runs, selected, setSelected, filtered, isDefault, models, model, setModel } = useRunSelection(events);
   const kpis = useMemo(() => policyKpis(filtered, { resamples: 600 }), [filtered]);
   const base = kpis.find((k) => k.policy === "static");
   const neg = kpis.find((k) => k.policy !== "static");
@@ -94,6 +91,7 @@ export function App() {
             <p className="lede">Same catalog, same buyers. One group saw fixed listings; the other negotiated with the seller agent inside the seller's floors and perks.</p>
           </section>
           <div className="filters"><ModelFilter models={models} model={model} onChange={setModel} /></div>
+          <LiveTrafficPanel live={live} />
           <RunPicker runs={runs} selected={selected} onChange={setSelected} isDefault={isDefault} />
 
           <section className="strip" aria-label="Key metrics">
