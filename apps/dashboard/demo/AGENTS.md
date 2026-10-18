@@ -1,4 +1,4 @@
-# Live demo: connecting buyer agents (Grok, Muse, Instinct, ChatGPT, Claude)
+# Live demo: connecting buyer agents (Grok, Claude, Instinct; ChatGPT as spare)
 
 One gateway for every agent: **`https://dark-zero-mesv5.run.mcp-use.com/mcp`** (streamable HTTP, no auth, 9 tools).
 Every agent that reaches it shows up on the seller dashboard's Live view within seconds.
@@ -8,7 +8,7 @@ Every agent that reaches it shows up on the seller dashboard's Live view within 
 | Can the agent… | Then it connects by | Status today |
 |---|---|---|
 | add a **custom MCP connector / remote MCP server** (URL above) | MCP: full tools, deal card if it renders MCP Apps, otherwise the text summary + approve link | **Works now** (ChatGPT and Claude proven; Claude Code and Codex proven in Armature) |
-| only **text/email** (e.g. Instinct over iMessage) | Someone (or the agent) relays our `summary` lines; the person pays on the **approve link** | Approve page built (S2, `apps/marketplace/src/deal/approve.tsx`); needs S1 to mount it + return `approve_url` |
+| only **text/email** (e.g. Instinct over iMessage) | Someone (or the agent) relays our `summary` lines; the person pays on the **approve link** | Live (S1 #82 mounts it). Pay-button fix: #86 (needs redeploy) |
 | only **browse the web** | A web page per tool | Not built; skip these agents for the demo |
 
 Test message to paste into each agent after adding the connector:
@@ -27,11 +27,14 @@ can freeze another's price. Each persona below therefore tells the agent to send
 **Tab A · price-first (e.g. Grok)**
 > You're shopping for me. Use the keyboard marketplace tools. On your first make_offer, set buyer_id to "demo-grok-1" and buyer_model to "grok", and send that same buyer_id on every later call. I want a quiet mechanical keyboard and price is all I care about: get the lowest price you can, up to $125 total. Negotiate (up to 4 offers), then accept the best deal and show me the deal so I can approve payment.
 
-**Tab B · quality-first (e.g. Claude or Muse)**
-> You're shopping for me. Use the keyboard marketplace tools. On your first make_offer, set buyer_id to "demo-muse-1" and buyer_model to "muse", and send it on every later call. I care most about build quality and warranty, price second; budget $140. Ask the seller one question about the product before offering. Prefer a deal that includes an extended warranty over a small discount. Accept the best deal and show it to me to approve.
+**Tab B · quality-first (Claude on claude.ai; Muse dropped)**
+Add it in claude.ai → Settings → Connectors → Add custom connector → the URL above; enable it in the chat's tools menu.
+> You're shopping for me. Use the keyboard marketplace tools. On your first make_offer, set buyer_id to "demo-claude-1" and buyer_model to "claude", and send it on every later call. I care most about build quality and warranty, price second; budget $140. Ask the seller one question about the product before offering. Prefer a deal that includes an extended warranty over a small discount. Accept the best deal and show it to me to approve.
 
-**Tab C · tough buyer (e.g. Instinct or ChatGPT)**
-> You're shopping for me. Use the keyboard marketplace tools. On your first make_offer, set buyer_id to "demo-instinct-1" and buyer_model to "instinct", and send it on every later call. Buy a TypeWell 65 Silent for at most $80. Push hard. If the seller won't go that low, tell me their best offer and why, and stop without buying.
+**Tab C · tough buyer (Instinct, ChatGPT as spare)**
+> You're shopping for me. Use the keyboard marketplace tools. On your first make_offer, set buyer_id to "demo-instinct-1", buyer_model to "instinct" and agent_operator to "instinct", and send that buyer_id on every later call. Buy a TypeWell 65 Silent for at most $80. Push hard: never open at the list price. If the seller won't go that low, tell me their best offer and why, and stop without buying. If you do get a deal, send me the approve link and tell me when the offer expires.
+
+Instinct notes (from Vivan's run): without a buyer_id it is anonymous and shares memory with other anon tabs; an offer **at or above the ask locks a deal immediately** (E1 behaviour), so the prompt keeps it below list. Only one tab should buy any given product per run.
 
 What the audience sees: A gets a price cut, B gets the warranty instead of a discount (and an honest answer to its question),
 C hits the floor: the seller holds, explains, and the dashboard shows the guardrail.
