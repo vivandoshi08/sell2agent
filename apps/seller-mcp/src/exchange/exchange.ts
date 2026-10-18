@@ -16,8 +16,8 @@ import { defaultSink, type EventSink } from "./events";
 import { inspectInput } from "./input-guard";
 import { checkOutput, fallbackMessage, type OutputContext } from "./output-guard";
 import { allowedActions, assertTransition } from "./state";
-import { MemoryStore, memoryKey, probeId, type ExchangeStore } from "./store";
-import { ProbeBreaker, StartLimiter, buyerEndpoint, jitterStep, leverCost, NEAR_MISS_BAND } from "./probing";
+import { MemoryStore, isAnon, liveMemory, memoryKey, probeId, type ExchangeStore } from "./store";
+import { ANON_START_LIMIT, ProbeBreaker, START_LIMIT, StartLimiter, buyerEndpoint, jitterStep, leverCost, NEAR_MISS_BAND } from "./probing";
 import { CONCESSION_CAP } from "./decision-guard";
 import { Outreach, type Sender } from "./outreach";
 import type { AcceptMove, Catalog, ExchangeError, ExchangeResponse, Move, Negotiation, NegotiationState, OfferMove,
@@ -131,12 +131,12 @@ export class Exchange {
     if (!m.negotiation_id) {
       p = await this.catalog.get(m.product_id);
       if (!p) return fail("unknown_product", `no product ${m.product_id}; use search_products to find one`);
-      if (!this.limiter.allow(memoryKey(m.ctx.buyer_id, p.product_id)))
+      if (!this.limiter.allow(memoryKey(m.ctx.buyer_id, p.product_id), isAnon(m.ctx.buyer_id) ? ANON_START_LIMIT : START_LIMIT))
         return fail("rate_limited", "too many negotiations started on this product today; continue an existing negotiation_id instead");
       n = this.newNegotiation(m, p, qty);
       // E11 buyer memory: a returning buyer resumes where they left off. Never quoted higher than before,
       // and the concession clock doesn't restart, so restarting can't bisect toward the floor.
-      const mem = await this.store.getBuyerMemory(memoryKey(n.buyer_id, p.product_id));
+      const mem = liveMemory(n.buyer_id, await this.store.getBuyerMemory(memoryKey(n.buyer_id, p.product_id)), this.now());
       if (mem) {
         n.round = Math.min(mem.round, p.max_rounds - 1);
         n.frozen = mem.round >= p.max_rounds; // deadline already used: one final offer per buyer, at their best price
@@ -318,7 +318,7 @@ export class Exchange {
 
   private async remember(n: Negotiation, offer_cents: number) {
     const k = memoryKey(n.buyer_id, n.product_id);
-    const prev = await this.store.getBuyerMemory(k);
+    const prev = liveMemory(n.buyer_id, await this.store.getBuyerMemory(k), this.now()); // expired anon memory starts over
     await this.store.putBuyerMemory(k, { lowest_offer_cents: Math.min(offer_cents, prev?.lowest_offer_cents ?? offer_cents),
       round: Math.max(n.round, prev?.round ?? 0), sessions: (prev?.sessions ?? 0) + (n.round === 1 || !prev ? 1 : 0), updated_at: new Date(this.now()).toISOString() });
   }

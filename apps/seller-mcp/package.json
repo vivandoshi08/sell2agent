@@ -8,7 +8,8 @@
     "typecheck": "tsc -p .",
     "test": "node --import tsx --test test/*.test.ts",
     "gate": "tsx scripts/run30.ts",
-    "supabase:smoke": "tsx --env-file-if-exists=../../.env scripts/supabase-smoke.ts"
+    "supabase:smoke": "tsx --env-file-if-exists=../../.env scripts/supabase-smoke.ts",
+    "anon:reset": "tsx --env-file-if-exists=../../.env scripts/anon-reset.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.30.0",
