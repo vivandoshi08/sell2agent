@@ -26,6 +26,7 @@
   },
   "exports": {
     "./sellers": "./src/sellers/index.ts",
-    "./exchange": "./src/exchange/index.ts"
+    "./exchange": "./src/exchange/index.ts",
+    "./extras": "./src/exchange/extras.ts"
   }
 }
