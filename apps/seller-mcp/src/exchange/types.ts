@@ -11,6 +11,9 @@
 import type { BuyerContext } from "@sa/shared";
 import type { BuyerLeverProfile } from "../sellers";
 
+/** Seller strategy per product. `learned` picks one vetted policy per negotiation from learned_policy.json (exchange/learned.ts). */
+export type Strategy = "static" | "negotiating" | "balanced" | "learned";
+
 // ---------- State machine ----------
 export type NegotiationState =
   | "open" // session created, no seller offer yet
@@ -40,7 +43,7 @@ export interface OfferMove extends MoveBase {
   /** Lever package the buyer wants included (must be in the listing's allowed levers). Omit to keep the current one. */
   levers?: string[];
   /** Eval A/B only: seller strategy for this negotiation. Honoured only for a signed eval run_id (signEvalRun); floors still hold. */
-  strategy?: "static" | "negotiating" | "balanced";
+  strategy?: Strategy;
 }
 /** accept_deal: accept the seller's standing offer, by its offer_id. */
 export interface AcceptMove extends MoveBase {
@@ -124,7 +127,10 @@ export interface Negotiation {
   id: string;
   run_id: string;
   /** Eval A/B override (signed eval runs only); absent = the product's catalog strategy. */
-  strategy?: "static" | "negotiating" | "balanced";
+  strategy?: Strategy;
+  /** `learned` strategy: the arm drawn for this negotiation (kept for every turn), its probability, and the policy version. */
+  learned?: { arm: "negotiating" | "balanced" | "lever_policy"; propensity: number; context: string; version: number | null;
+    fallback?: "no_policy" | "gate_failed" | "bad_policy"; added_levers?: string[] };
   /** Seller-facing event fields (Instinct demo): public listing title, and how the buyer reached us (from ctx). */
   product_title?: string;
   channel?: string; // "messaging" (Instinct) | "mcp_app" (ChatGPT/Claude) | "web" | "harness"
@@ -200,7 +206,7 @@ export interface ProductConfig {
   max_rounds: number;
   allowed_levers: string[];
   lever_costs?: Record<string, number>; // seller cost per lever, cents (default DEFAULT_LEVER_COSTS)
-  strategy: "static" | "negotiating" | "balanced";
+  strategy: Strategy;
 }
 export interface Catalog {
   get(product_id: string): Promise<ProductConfig | null>;

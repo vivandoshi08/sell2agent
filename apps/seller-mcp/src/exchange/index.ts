@@ -28,6 +28,8 @@ export { ProbeBreaker, StartLimiter, buyerEndpoint, jitterStep, leverCost, DEFAU
 export { EXTRAS, EXTRAS_BY_ID, EXTRA_IDS, isExtra, extraLever, extraLabel, extraPhrase, extrasPackage, type ExtraDef } from "./extras";
 export { SupabaseStore, LEGACY_STATUS, SNAPSHOT_RUN, SNAPSHOT_TYPE } from "./supabase-store";
 export { Outreach, FOLLOWUP_DELAY_MS, FOLLOWUP_TTL_MS } from "./outreach";
+export { learnedPolicy, setLearnedPolicy, readLearnedPolicy, leverMenu, LEARNED_POLICY_FILE } from "./learned";
+export type { LearnedLoad } from "./learned";
 export type { Sender } from "./outreach";
 export { parseInbound } from "./inbound";
 export type { InboundIntent } from "./inbound";

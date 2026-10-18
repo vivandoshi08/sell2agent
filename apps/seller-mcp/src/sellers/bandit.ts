@@ -6,7 +6,11 @@
  * Reward  = seller profit for the session in cents (0 when the buyer walks).
  * Choice  = highest mean reward per context (UCB1 while learning); in deployment a small ε of random
  *           choices, with the probability of the chosen arm logged (so outcomes stay unbiased to evaluate).
- * Output  = learned_policy.json (versioned), loaded by the seller module as the `learned` policy.
+ * Output  = learned_policy.json (versioned), loaded by the exchange as the `learned` strategy (exchange/learned.ts).
+ *
+ * Retraining from logged outcomes (pnpm e2:retrain) weights each session by 1/propensity (IPS), so arms the
+ * deployed policy rarely picked still get an unbiased mean. `n`/`sum`/`sumSq` stay raw counts and sums (what the
+ * dashboard shows); `w`/`wsum` hold the weighted totals the choice uses. Files without `w` are unweighted.
  */
 import type { BuyerLeverProfile, PolicyName } from "./types";
 
@@ -14,7 +18,21 @@ export type Arm = Exclude<PolicyName, "static">;
 export const ARMS: Arm[] = ["negotiating", "balanced", "lever_policy"];
 export const DEFAULT_ARM: Arm = "negotiating";
 
-export interface ArmStats { n: number; sum: number; sumSq: number }
+export interface ArmStats { n: number; sum: number; sumSq: number; w?: number; wsum?: number }
+/** Held-out verdict. `passed` = beats `negotiating` (the fallback) with a paired 95% CI above 0 and 0 deals below floor. */
+export interface LearnedGate {
+  passed: boolean;
+  best_fixed_policy: string;
+  learned_minus_best_fixed_cents: number;
+  holdout_buyers: number;
+  diff_vs_negotiating_cents: number;
+  ci95_cents: [number, number];
+  below_floor: number;
+  /** Logged-outcome gates only: paired 95% CI of learned − best fixed, and whether that clears 0 (the "offer as default" bar). */
+  ci95_vs_best_fixed_cents?: [number, number];
+  beats_best_fixed?: boolean;
+  source?: string;
+}
 export interface LearnedPolicy {
   version: number;
   trained_at: string;
@@ -24,6 +42,10 @@ export interface LearnedPolicy {
   stats: Record<string, Record<string, ArmStats>>;
   /** context → chosen arm (greedy) */
   choice: Record<string, Arm>;
+  curve?: { epoch: number; bandit: number; negotiating: number; balanced?: number }[];
+  gate?: LearnedGate;
+  /** Where the training sessions came from ("scripted" | "logged:<run ids>"), and how many. */
+  trained_on?: { source: string; sessions: number; runs?: string[]; previous_version?: number };
 }
 
 /** The buyer's strongest non-trivial lever; ties broken by a fixed order. */
@@ -44,9 +66,11 @@ export class Bandit {
     return (this.stats[ctx][arm] ??= { n: 0, sum: 0, sumSq: 0 });
   }
 
+  /** IPS-weighted mean when weights were logged, else the plain mean. */
   mean(ctx: string, arm: Arm) {
     const s = this.stats[ctx]?.[arm];
-    return s && s.n ? s.sum / s.n : 0;
+    if (!s || !s.n) return 0;
+    return s.w ? (s.wsum ?? 0) / s.w : s.sum / s.n;
   }
 
   /** UCB1 while training: try every arm once, then mean + exploration bonus (reward scale in dollars). */
@@ -72,9 +96,11 @@ export class Bandit {
     return best;
   }
 
-  update(ctx: string, arm: Arm, rewardCents: number) {
+  /** `weight` = 1/propensity for logged sessions (IPS); omit for on-policy training. */
+  update(ctx: string, arm: Arm, rewardCents: number, weight?: number) {
     const s = this.s(ctx, arm);
     s.n++; s.sum += rewardCents; s.sumSq += rewardCents * rewardCents;
+    if (weight !== undefined) { s.w = (s.w ?? 0) + weight; s.wsum = (s.wsum ?? 0) + weight * rewardCents; }
   }
 
   export(version: number): LearnedPolicy {
