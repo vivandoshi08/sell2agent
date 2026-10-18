@@ -13,6 +13,8 @@ test("negotiating opens at list in round 1", () => {
   assert.equal(m.action, "offer"); assert.equal(m.price_cents, 12900); assert.equal(m.reason, "opening_at_list"); assert.equal(m.final, false);
 });
 
+test("soft floor is a whole-dollar price", () => assert.equal(softFloor(11500, 9500) % 100, 0));
+
 test("concedes slowly: never more than 75% of the gap, never below soft floor, never back up", () => {
   const hist: SellerState["history"] = []; let prev = Infinity;
   for (let r = 1; r <= 8; r++) {
@@ -47,7 +49,8 @@ test("never accepts below hard floor, even on the final round with the accept zo
 
 test("static always offers list, final", () => {
   const m = decide(st(5, [], 12000), { name: "static" });
-  assert.deepEqual([m.action, m.price_cents, m.final, m.reason], ["offer", 12900, true, "fixed_price"]);
+  assert.deepEqual([m.action, m.price_cents, m.final, m.reason], ["offer", 12900, false, "fixed_price"]);
+  assert.equal(decide(st(8, [], 12000), { name: "static" }).final, true);
 });
 
 const move: ProposedMove = { action: "offer", price_cents: 12500, final: false, reason: "pacing", reason_text: "We can come down from $129 to $125 this round.", conceded_fraction: 0.2 };

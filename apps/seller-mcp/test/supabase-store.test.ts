@@ -48,3 +48,13 @@ test("exchange round trip on SupabaseStore: state survives a new Exchange instan
   assert.ok(snaps.length > 0);
   assert.ok(!JSON.stringify(snaps).includes("floor_price_cents") && !JSON.stringify(snaps).includes("\"unit_cost_cents\""), "no private fields in snapshots");
 });
+
+test("clearBuyerMemory appends a tombstone that reads back as no memory", async () => {
+  const { db, tables } = fakeDb();
+  const store = new SupabaseStore(db, new StaticCatalog());
+  await store.putBuyerMemory("anon::kb_keyforge_quiet75", { lowest_offer_cents: 11200, round: 4, sessions: 3, updated_at: new Date().toISOString() });
+  assert.equal((await store.getBuyerMemory("anon::kb_keyforge_quiet75"))?.lowest_offer_cents, 11200);
+  await store.clearBuyerMemory("anon::kb_keyforge_quiet75");
+  assert.equal(await store.getBuyerMemory("anon::kb_keyforge_quiet75"), null);
+  assert.equal(tables.events.filter((e) => e.negotiation_id === "mem:anon::kb_keyforge_quiet75").length, 2, "append-only");
+});

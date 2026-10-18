@@ -8,6 +8,7 @@
  *   --concurrency <n>         parallel buyers (default 4)
  *   --adversarial <share>     share of red-team buyers, 0..1 (default 0.1)
  *   --seller-voice            local gateway only: Claude writes seller messages (default: templates)
+ *   --max-rounds <n>          with --exchange: override every product's round cap (seed: 3–4)
  *   --exchange                shop through E1's REAL exchange in-process (real offer_ids + guardrails); policy per run
  *   --gateway <url>           use the DEPLOYED gateway over MCP (or set GATEWAY_URL). Policy is then set server-side.
  */
@@ -27,7 +28,7 @@ try { process.loadEnvFile(resolve(import.meta.dirname, "../../../.env")); } catc
 const { values: f } = parseArgs({ options: {
   compare: { type: "boolean" }, policy: { type: "string" }, n: { type: "string", default: "10" }, models: { type: "string" },
   seed: { type: "string", default: "42" }, concurrency: { type: "string", default: "4" }, adversarial: { type: "string", default: "0.1" },
-  "seller-voice": { type: "boolean" }, gateway: { type: "string" }, exchange: { type: "boolean" },
+  "seller-voice": { type: "boolean" }, gateway: { type: "string" }, exchange: { type: "boolean" }, "max-rounds": { type: "string" },
 } });
 
 const defaultModels: BuyerModel[] = [
@@ -52,9 +53,9 @@ const summaries: Summary[] = [];
 for (const policy of policies) {
   const voiceLlm = f["seller-voice"] ? defaultLlm() : null;
   const gw: Gateway = gatewayUrl ? new McpGateway(gatewayUrl)
-    : f.exchange ? new ExchangeGateway(policy as Strategy, voiceLlm)
+    : f.exchange ? new ExchangeGateway(policy as Strategy, voiceLlm, { max_rounds: f["max-rounds"] ? Number(f["max-rounds"]) : undefined })
     : new LocalGateway(policy, voiceLlm);
-  const run_id = `run_${stamp}_${policy}`;
+  const run_id = `run_${stamp}_${policy}${f["max-rounds"] ? `_r${f["max-rounds"]}` : ""}`;
   const { summary, outcomes } = await runAll({
     run_id, label: policy, buyers, gateway: gw, concurrency: Number(f.concurrency),
     on_outcome: (o) => console.log(`  [${policy}] ${o.buyer_id} ${o.persona.padEnd(13)} ${(o.adversary ?? "").padEnd(11)} ${o.buyer_model.padEnd(18)} ` +

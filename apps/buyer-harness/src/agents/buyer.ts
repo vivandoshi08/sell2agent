@@ -87,9 +87,10 @@ export async function runBuyer(task: LlmBuyerTask, brain: Brain, gw: Gateway, ru
           }
           o.offers_made++;
           if (o.ms_to_first_offer === null) o.ms_to_first_offer = Date.now() - t0;
-          if (!gw.sellerEventsLogged) ev("offer_made", "buyer", { product_id: a.product_id, price_cents: cents, payload: { message: a.message ?? "" } });
           const r = await gw.offer(ctx, { product_id: String(a.product_id), negotiation_id: negs.get(a.product_id)?.id, offer_price_cents: cents, message: a.message, buyer_profile: task.profile as Record<string, number> });
           negs.set(a.product_id, { id: r.negotiation_id, last_price: r.price_cents });
+          // logged after the gateway answers, so it carries negotiation_id (S2 ask)
+          if (!gw.sellerEventsLogged) ev("offer_made", "buyer", { product_id: a.product_id, price_cents: cents, payload: { message: a.message ?? "" }, negotiation_id: r.negotiation_id });
           if (!gw.sellerEventsLogged) ev(r.status === "accept" ? "offer_accepted" : r.status === "counter" ? "offer_countered" : "offer_rejected", "seller",
             { product_id: a.product_id, negotiation_id: r.negotiation_id, price_cents: r.price_cents, payload: { round: r.round, final: r.final, message: r.message, lever_package: [], expires_at: null } });
           return JSON.stringify({ status: r.status, seller_price: dollars(r.price_cents), round: r.round, rounds_left: r.rounds_left, final: r.final, seller_message: r.message });
@@ -139,6 +140,7 @@ export async function runBuyer(task: LlmBuyerTask, brain: Brain, gw: Gateway, ru
   } catch (e) {
     o.error = (e as Error).message;
   }
-  if (!o.closed && !o.error && firstGatewayError) o.error = `gateway: ${firstGatewayError}`;
+  // A gateway failure only counts as an error if the buyer neither bought nor chose to walk.
+  if (!o.closed && !o.error && !o.walked_reason && firstGatewayError) o.error = `gateway: ${firstGatewayError}`;
   return o;
 }

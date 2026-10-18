@@ -4,7 +4,7 @@
 import { z } from "zod";
 import { createDealModule, dealSummary, fromExchange, type CatalogSource } from "./deal/index.js";
 import { PRODUCTS, SELLERS } from "./catalog.js";
-import { exchange, toCtx } from "./negotiate.js";
+import { exchange, missingBuyer, toCtx, type RequestLike } from "./negotiate.js";
 
 // Public catalog facts for the card (seller name). Never seller policy.
 const catalog: CatalogSource = {
@@ -56,7 +56,7 @@ export function registerDealTools(server: any) {
         "Show a locked deal as a card the person can approve: product, included extras, negotiated vs. list price, expiry. Call after accept_deal with its deal_id. Nothing is charged until the person approves.",
       inputSchema: z.object({
         deal_id: z.string().describe("deal.deal_id from accept_deal"),
-        buyer_id: z.string().describe("The buyer_id that accepted the deal"),
+        buyer_id: z.string().optional().describe("The buyer_id that accepted the deal (from accept_deal)"),
         ...ctxFields,
       }),
       outputSchema: dealCardSchema,
@@ -81,15 +81,16 @@ export function registerDealTools(server: any) {
         "Pay for a locked deal after the person approves it (Stripe test mode). Charges exactly the stored deal total, at most once per deal. Send the same buyer_id that accepted the deal.",
       inputSchema: z.object({
         deal_id: z.string().describe("deal.deal_id from accept_deal"),
-        buyer_id: z.string().describe("The buyer_id that accepted the deal"),
+        buyer_id: z.string().optional().describe("The buyer_id that accepted the deal (from accept_deal)"),
         payment_token: z.string().optional().describe("Payment token from the buyer's wallet, if any"),
         ...ctxFields,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
     },
-    async (a: { deal_id: string; buyer_id: string; payment_token?: string; run_id?: string; buyer_model?: string }) => {
+    async (a: { deal_id: string; buyer_id?: string; payment_token?: string; run_id?: string; buyer_model?: string }, rc?: RequestLike) => {
       try {
-        const ctx = toCtx(a);
+        const ctx = toCtx(a, rc);
+        if (!ctx.buyer_id) return missingBuyer();
         const r = await (await deal()).payApprovedDeal(a.deal_id, a.payment_token, { buyer: ctx, run_id: ctx.run_id });
         const text = r.status === "succeeded" ? `Paid ${r.payment_intent_id ?? ""} (Stripe test mode).`.trim()
           : `Payment ${r.status}.${r.reasons?.length ? ` ${r.reasons.join(" ")}` : ""}${r.fix ? ` Fix: ${r.fix}` : ""}`;

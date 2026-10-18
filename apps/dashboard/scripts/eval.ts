@@ -1,7 +1,8 @@
 /**
  * S2 eval runner: the same simulated buyers against each seller policy, scored with S2's metrics.
  *
- *   pnpm --filter @sa/dashboard eval                                   # 20 buyers, static vs negotiating, local stand-in
+ *   pnpm --filter @sa/dashboard eval                                   # 20 buyers, static vs negotiating, through E1's real exchange (in-process)
+ *   pnpm --filter @sa/dashboard eval --stand-in                        # E2's simpler stand-in instead (no E1 guardrails)
  *   pnpm --filter @sa/dashboard eval --n 200 --models claude,gpt       # real LLM buyers (needs API keys)
  *   pnpm --filter @sa/dashboard eval --policies static,negotiating,balanced --gateway https://<deployed>/mcp
  *   pnpm --filter @sa/dashboard eval --models claude --seller-voice         # Claude writes the seller messages too
@@ -16,7 +17,7 @@ import { resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { createClient } from "@supabase/supabase-js";
 import type { NegotiationEvent } from "@sa/shared";
-import { LocalGateway, McpGateway, makeBuyers, runAll, type BuyerModel, type Gateway } from "@sa/buyer-harness";
+import { ExchangeGateway, LocalGateway, McpGateway, makeBuyers, runAll, type BuyerModel, type Gateway } from "@sa/buyer-harness";
 import { defaultLlm } from "@sa/seller-mcp/sellers";
 import { policyKpis } from "../src/metrics/kpis";
 import { computeRunResult } from "../src/server/run-result";
@@ -26,7 +27,7 @@ const { values: f } = parseArgs({ options: {
   n: { type: "string", default: "20" }, models: { type: "string", default: "scripted" }, seed: { type: "string", default: "42" },
   policies: { type: "string", default: "static,negotiating" }, concurrency: { type: "string", default: "4" },
   adversarial: { type: "string", default: "0.1" }, gateway: { type: "string" }, id: { type: "string" },
-  "seller-voice": { type: "boolean" }, rescore: { type: "string" },
+  "seller-voice": { type: "boolean" }, rescore: { type: "string" }, "stand-in": { type: "boolean" },
 } });
 
 const models = f.models!.split(",") as BuyerModel[];
@@ -46,14 +47,15 @@ const harnessRuns = resolve(import.meta.dirname, "../../buyer-harness/runs");
 const outDir = resolve(import.meta.dirname, "../public/runs");
 mkdirSync(outDir, { recursive: true });
 
-console.log(`\n${evalId}: ${buyers.length} buyers · ${models.join(", ")} · ${gatewayUrl ?? "local stand-in"} · ${policies.join(" vs ")}${sellerLlm ? " · Claude seller voice" : ""}${db ? " · Supabase on" : ""}\n`);
+console.log(`\n${evalId}: ${buyers.length} buyers · ${models.join(", ")} · ${gatewayUrl ?? (f["stand-in"] ? "E2 stand-in" : "E1 exchange (in-process)")} · ${policies.join(" vs ")}${sellerLlm ? " · Claude seller voice" : ""}${db ? " · Supabase on" : ""}\n`);
 
 const allEvents: NegotiationEvent[] = [];
 const results = [];
 for (const policy of policies) {
   const run_id = `${evalId}_${policy}`;
   if (!f.rescore) {
-    const gw: Gateway = gatewayUrl ? new McpGateway(gatewayUrl) : new LocalGateway(policy, sellerLlm);
+    // Default: E1's real exchange in-process (real guardrails, offer ids, deal locks). --stand-in: E2's simpler mock.
+    const gw: Gateway = gatewayUrl ? new McpGateway(gatewayUrl) : f["stand-in"] ? new LocalGateway(policy, sellerLlm) : new ExchangeGateway(policy, sellerLlm);
     let done = 0;
     await runAll({ run_id, label: policy, buyers, gateway: gw, concurrency: Number(f.concurrency),
       on_outcome: () => { done++; if (done % 10 === 0 || done === buyers.length) process.stdout.write(`  ${policy}: ${done}/${buyers.length}\r`); } });

@@ -41,8 +41,9 @@ export function concessionFraction(t: Tactic, round: number, maxRounds: number):
   return t.max_concession * x ** t.exponent;
 }
 
+/** Soft floor = hard floor + buffer, rounded UP to whole dollars (no "$105.72" offers). Never above list. */
 export function softFloor(list: number, floor: number, buffer = DEFAULT_SOFT_FLOOR_BUFFER): number {
-  return Math.min(list, floor + Math.ceil(buffer * (list - floor)));
+  return Math.min(list, Math.ceil((floor + buffer * (list - floor)) / 100) * 100);
 }
 
 /** Our lowest offer so far in this negotiation (offers only ever go down). */
@@ -80,7 +81,8 @@ export function decide(state: SellerState, policy: SellerPolicy, buyerProfile?: 
       return { action: "accept", price_cents: bid, final: true, reason: "buyer_offer_meets_ask",
         reason_text: `Your offer of ${usd(bid)} meets our price, so we accept.`, conceded_fraction: 0 };
     }
-    return { action: "offer", price_cents: list, final: true, reason: "fixed_price",
+    // `final` only on the last round (E1's bluff rule); the fixed price is stated in words instead.
+    return { action: "offer", price_cents: list, final: isFinal, reason: "fixed_price",
       reason_text: `Our price is fixed at ${usd(list)}; we don't negotiate on price.`, conceded_fraction: 0 };
   }
 
