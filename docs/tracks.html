@@ -183,8 +183,8 @@ footer { color: var(--muted); font-size: 0.85rem; }
     <div class="section-head"><span class="eyebrow">Architecture</span><h2>Where each sponsor plugs in</h2>
       <p class="lede">The selling agent and the policy engine stay ours. E8 found no protocol or sponsor that negotiates price, which is the gap we fill.</p></div>
     <div class="pipeline">
-      <div class="stage"><h3>Discovery</h3><span class="sponsor m">Armature</span><p><code>/.well-known/ucp</code> pointing at our MCP server, plus an agent card with a proposed "negotiable" field.</p></div>
-      <div class="stage"><h3>MCP front door</h3><span class="sponsor m">Manufact</span><span class="sponsor m">Armature</span><p>mcp-use on Manufact Cloud: public HTTPS, OAuth, an MCP App deal card.</p></div>
+      <div class="stage"><h3>Discovery</h3><span class="sponsor">Open standards</span><p><code>/.well-known/ucp</code> pointing at our MCP server, plus an agent card with a proposed "negotiable" field. No sponsor product here.</p></div>
+      <div class="stage"><h3>MCP front door</h3><span class="sponsor m">Manufact: build, host, publish</span><span class="sponsor m">Armature: judge + eval</span><p>Official Python MCP SDK on Manufact Cloud with an MCP App deal card. Armature evals and judged sessions measure how well agents use it.</p></div>
       <div class="stage"><h3>Selling agent</h3><span class="sponsor">Ours</span><p>Strategy from E5/E6 picks the price; the LLM writes the message.</p></div>
       <div class="stage"><h3>Policy engine</h3><span class="sponsor">Ours</span><span class="sponsor s">Stripe</span><p>Code-enforced floor and terms: the merchant's control over its agent.</p></div>
       <div class="stage"><h3>Checkout</h3><span class="sponsor s">Stripe</span><p>Shared Payment Token capped at the agreed total, charged with a PaymentIntent.</p></div>
@@ -216,10 +216,10 @@ footer { color: var(--muted); font-size: 0.85rem; }
         <div class="plan-cols">
           <ol>
             <li>An AX scorecard from the experiments: completion, tool errors, rounds to close, structured vs. free-text tools, agent interface vs. static page vs. JSON feed, behavior across buyer models.</li>
-            <li>Discoverability: <code>/.well-known/ucp</code> listing our MCP endpoint, plus an agent card. No standard field says a seller negotiates, so we propose one.</li>
+            <li>Armature Evals against the deployed URL: five goal cases scored 0–5 by their judge, run before and after each tool change. No SDK needed.</li><li>Armature MCP Analytics on the live server: every real session judged Succeeded / Partial / Failed. It adds a <code>telemetry</code> field to each tool, so we A/B it against E1 first.</li><li>Self-onboarding files (<code>/.well-known/ucp</code>, agent card) as part of the agent experience. These are open standards, not an Armature product.</li>
             <li>Tool descriptions rewritten from E1's failure modes.</li>
             <li>What the agent sees: annotated traces of a real buying agent going from need to paid order.</li>
-            <li>Ask Armature whether their platform can run against our server, and include their read if so.</li>
+            <li>Ask Armature to switch on Evals for our workspace (they enable it per workspace on request).</li>
           </ol>
           <dl class="side">
             <div><dt>Proof</dt><dd>The experiment numbers. Here the experiments are the submission.</dd></div>

@@ -17,6 +17,25 @@
 
 **Decided 2026-10-17: Armature, Stripe, Manufact.** It's one build seen three ways: Manufact judges the server, Armature judges the experience agents have using it, and Stripe judges how safely money moves at the end of the same flow. None of the three is a bolt-on.
 
+## Integration check (verified against sponsor docs, 2026-10-17)
+
+Each sponsor gets **one job it is built for**, and the demo shows that job once. Nothing is added just to name-drop a sponsor.
+
+| Sponsor | Its one job in our build | Features we actually use | What we don't claim |
+|---|---|---|---|
+| **Manufact** | Build, host, and publish the MCP front door | Manufact Cloud deploy (Python projects are detected from `pyproject.toml`; a Dockerfile is the fallback), gateway URL and slug, Inspector, MCP Apps deal-card widget, publish checks and submission pack for Claude/ChatGPT listing, Sessions with payload capture as raw transcripts for the learning loop | We don't use the mcp-use framework (see below). Manufact Sessions labels outcomes but doesn't judge AX; that's Armature's job. |
+| **Armature** | Judge and evaluate the agent experience of the front door | **Evals:** tester agents run goal cases against our deployed URL, a judge model scores each criterion and the run 0–5. No SDK needed. This is our before/after gate for tool changes. **MCP Analytics:** an LLM judge scores every real session Succeeded / Partial / Failed with evidence, and groups failures into issues. | Armature is **not** a discovery channel. Its discoverability product is a paid managed service that measures which dev tools coding agents pick; it doesn't apply to shopping agents. Our discovery files are open standards (UCP, agent card). |
+| **Stripe** | Move the money, with controls on both sides | Shared Payment Token capped at the deal total, PaymentIntent, test-mode token helper, idempotency keys | The buyer-side token is simulated in test mode, and the demo says so. |
+
+**Verified facts and the trade-offs they create:**
+- **Armature's analytics SDK supports our exact stack:** the official MCP Python SDK (`FastMCP` 1.27+ and `MCPServer` 2.x) via `pip install "armature-mcp-analytics[mcp]"`. Its TypeScript SDK supports the official TS SDK; **mcp-use isn't listed for either**. So staying on the official Python SDK is what lets Manufact hosting and Armature analytics coexist.
+- **The SDK changes our tool surface.** It adds a `telemetry` input (user intent, agent thinking, frustration) to every tool, which can't be switched off, and injects a `request_capability` tool (which can be). We'll A/B it against an E1 subset before keeping it, and we keep `request_capability` because it records what buyers asked for that we don't offer.
+- **We don't feed Armature's telemetry to the selling agent.** A buyer's reported intent or frustration is for measuring our AX, not for negotiating against that buyer.
+- **Stateless HTTP needs Armature's `StatelessHttpSessionMiddleware`**, or sessions can't be told apart.
+- **Armature evals are switched on per workspace on request** (email or booth). Free tier: 100 runs a month, 1 model target per case, no scheduling.
+- **Manufact Cloud hosts Python**, but its docs don't mention the official SDK by name; the Dockerfile path is the guaranteed fallback.
+- **Open question for Manufact's booth, first thing:** do the judges expect mcp-use itself? If yes, the fallback is an mcp-use TypeScript front door calling our Python seller as a backend, with Armature limited to evals (which are framework-agnostic).
+
 ## Scoring
 
 | Track | Matches the brief | Sponsor tech does real work | Evidence so far | Work left by 10am |
@@ -33,10 +52,11 @@
 
 ```
 Discovery ──> MCP front door ──> Selling agent ──> Policy engine ──> Checkout ──> Learning
- Armature      Manufact           (ours)            Stripe:           Stripe       Manufact
- (/.well-      (mcp-use +                           merchant's        (SPT →       session
- known/ucp)    Cloud + MCP App)                     control           PaymentIntent) replay
-               Armature (AX)
+ open          Manufact: build,   (ours)            (ours) Stripe     Stripe:      Manufact
+ standards     host, publish,                       judges it as      token →      session
+ (UCP, card)   widget                               merchant control  PaymentIntent replay
+               Armature: judge
+               + eval the AX
 ```
 
 ### Manufact: the front door, built and hosted on their stack
