@@ -1,0 +1,266 @@
+<title>Prize Track Fit</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: decision memo. Verdict strip first, then the scoring ledger, the pipeline with sponsors overlaid, and one build plan per track we enter. Same tokens as the experiment board. */
+:root {
+  --bg: #f4f6f5;
+  --surface: #ffffff;
+  --ink: #18211d;
+  --muted: #5a6762;
+  --line: #dce2de;
+  --accent: #1f5f86;
+  --ok: #2b7a4b;   --ok-bg: #e3f2e8;
+  --warn: #85660a; --warn-bg: #f7efd3;
+  --idle: #66726d; --idle-bg: #eceff0;
+  --font-display: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111513; --surface: #182019; --ink: #e4eae6; --muted: #98a59f; --line: #2a332e;
+    --accent: #79b4da; --ok: #7fd3a0; --ok-bg: #173323; --warn: #e5c76a; --warn-bg: #352c11;
+    --idle: #a3aeaa; --idle-bg: #222a26; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111513; --surface: #182019; --ink: #e4eae6; --muted: #98a59f; --line: #2a332e;
+  --accent: #79b4da; --ok: #7fd3a0; --ok-bg: #173323; --warn: #e5c76a; --warn-bg: #352c11;
+  --idle: #a3aeaa; --idle-bg: #222a26; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+.wrap { max-width: 1080px; margin: 0 auto; display: grid; gap: 40px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(2rem, 4vw, 2.75rem); font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 1.5rem; font-weight: 600; }
+h3 { font-size: 1.2rem; font-weight: 600; }
+p { margin: 0; }
+a { color: var(--accent); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.eyebrow { font-family: var(--font-data); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.lede { color: var(--muted); max-width: 70ch; font-size: 1.05rem; }
+header, section { display: grid; gap: 14px; }
+.section-head { display: grid; gap: 4px; }
+
+.pill { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-data); font-size: 0.72rem; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; white-space: nowrap; justify-self: start; }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.enter { color: var(--ok); background: var(--ok-bg); }
+.cond { color: var(--warn); background: var(--warn-bg); }
+.skip { color: var(--idle); background: var(--idle-bg); }
+
+.verdicts { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.verdict { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.verdict.primary { border-color: color-mix(in srgb, var(--ok) 45%, var(--line)); }
+.verdict.conditional { border-color: color-mix(in srgb, var(--warn) 45%, var(--line)); }
+.verdict p { font-size: 0.95rem; }
+.verdict .who { font-family: var(--font-data); font-size: 0.75rem; color: var(--muted); }
+
+.skips { display: flex; flex-wrap: wrap; gap: 8px 16px; color: var(--muted); font-size: 0.92rem; }
+.skips span b { color: var(--ink); font-weight: 600; }
+
+.table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+table { width: 100%; border-collapse: collapse; min-width: 760px; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; font-size: 0.92rem; }
+th { font-family: var(--font-data); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+tr:last-child td { border-bottom: 0; }
+td.track { font-weight: 600; white-space: nowrap; }
+.score { font-family: var(--font-data); font-variant-numeric: tabular-nums; font-weight: 500; margin-right: 6px; }
+.dots { display: inline-flex; gap: 3px; vertical-align: 1px; margin-right: 6px; }
+.dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); display: block; }
+.dots i.on { background: var(--accent); }
+
+.pipeline { display: flex; flex-wrap: wrap; gap: 8px; }
+.stage { flex: 1 1 140px; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: grid; gap: 8px; align-content: start; }
+.stage h3 { font-size: 1.05rem; }
+.sponsor { font-family: var(--font-data); font-size: 0.72rem; padding: 2px 7px; border-radius: 4px; border: 1px solid var(--line); color: var(--muted); justify-self: start; }
+.sponsor.m { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 40%, var(--line)); }
+.sponsor.s { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, var(--line)); }
+.stage p { font-size: 0.85rem; color: var(--muted); line-height: 1.35; }
+
+.plans { display: grid; gap: 14px; }
+.plan { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 12px; min-width: 0; }
+.plan-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px; }
+.plan-cols { display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px; }
+.plan ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 0.95rem; }
+.plan .side { display: grid; gap: 10px; align-content: start; font-size: 0.92rem; }
+.plan .side dt { font-family: var(--font-data); font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.plan .side dd { margin: 2px 0 0; }
+.ask { font-size: 0.92rem; color: var(--muted); border-left: 3px solid var(--line); padding-left: 10px; }
+.ask strong { color: var(--ink); }
+code { font-family: var(--font-data); font-size: 0.85em; background: var(--idle-bg); padding: 1px 5px; border-radius: 4px; }
+
+footer { color: var(--muted); font-size: 0.85rem; }
+@media (max-width: 720px) { .plan-cols { grid-template-columns: 1fr; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">sales-agent · hackathon submission · due 10:00 tomorrow</span>
+    <h1>Prize Track Fit</h1>
+    <p class="lede">Which tracks to enter and where each sponsor's product does real work in our architecture. Two tests per track: are we close to 1:1 with what it asks for, and does the sponsor's tech carry weight instead of being wrapped around the project. The organizers asked for one or two focused tracks, so we go deep on few.</p>
+  </header>
+
+  <section>
+    <div class="section-head"><span class="eyebrow">The call</span><h2>Enter two, a third if payment works</h2></div>
+    <div class="verdicts">
+      <article class="verdict primary">
+        <span class="pill enter">Enter</span>
+        <h3>Manufact: Best MCP Server for Agents</h3>
+        <p>Our product is an MCP server whose primary customer is a buying agent. Manufact's framework and cloud build and host it, and their MCP Apps carry the human approval step.</p>
+        <span class="who">Brief match 5/5 · Sponsor tech 5/5</span>
+      </article>
+      <article class="verdict primary">
+        <span class="pill enter">Enter</span>
+        <h3>Armature: Best Agent Experience</h3>
+        <p>Our thesis is agent experience for commerce, and the experiments measure it: completion, tool errors, agent interface vs. static page, behavior across buyer models.</p>
+        <span class="who">Brief match 5/5 · Judges the experience itself</span>
+      </article>
+      <article class="verdict conditional">
+        <span class="pill cond">Enter if it works</span>
+        <h3>Stripe: agents in the economy</h3>
+        <p>Our checkout step. Enter only if a real test-mode payment runs: a Shared Payment Token capped at the negotiated price, charged with a PaymentIntent.</p>
+        <span class="who">Brief match 4/5 · Sponsor tech 4/5</span>
+      </article>
+    </div>
+    <div class="skips">
+      <span><b>Skip Inkbox:</b> A2A would be a second front door.</span>
+      <span><b>Skip Primitive:</b> email is too slow to haggle over.</span>
+      <span><b>Skip Blaxel:</b> theme fits, tech wouldn't do work.</span>
+      <span><b>Skip InsForge:</b> no need for agent computers.</span>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="eyebrow">Scoring</span><h2>Every track against both tests</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Track</th><th>Matches the brief</th><th>Sponsor tech does real work</th><th>Evidence so far</th><th>Work left</th><th>Call</th></tr></thead>
+        <tbody>
+          <tr><td class="track">Manufact</td>
+            <td><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>"MCP server built for agents as the primary customer" is our front door</td>
+            <td><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>mcp-use, Cloud hosting with OAuth, an MCP App widget, session replay</td>
+            <td>E1: real Claude buyer completed purchases over MCP. E4, E8.</td><td>Medium</td><td><span class="pill enter">Enter</span></td></tr>
+          <tr><td class="track">Armature</td>
+            <td><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>"A dedicated agent-facing interface… the best experience for them"</td>
+            <td>Not required: the track judges the experience</td>
+            <td>E1 tool errors and completion, E2 interface vs. page, E3 buyer behavior</td><td>Low</td><td><span class="pill enter">Enter</span></td></tr>
+          <tr><td class="track">Stripe</td>
+            <td><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>"Safely participate in the economy… clear control over what they can do and spend"</td>
+            <td><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>SPT capped at the deal price, PaymentIntent, policy engine as merchant control</td>
+            <td>E4 policy engine, E8 payment flow</td><td>Medium; preview API</td><td><span class="pill cond">If it works</span></td></tr>
+          <tr><td class="track">Inkbox</td>
+            <td><span class="dots"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>Identity and messaging; our core is selling</td>
+            <td><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>A2A tasks fit counteroffers; directory for discovery; iMessage for merchant approval</td>
+            <td>E8 only; E7 pending</td><td>High</td><td><span class="pill skip">Skip</span></td></tr>
+          <tr><td class="track">Primitive</td>
+            <td><span class="dots"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>Async agent messaging</td>
+            <td><span class="dots"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>Async quotes with PDF attachments</td>
+            <td>None</td><td>Medium</td><td><span class="pill skip">Skip</span></td></tr>
+          <tr><td class="track">Blaxel</td>
+            <td><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>A store no human would want fits the theme</td>
+            <td><span class="dots"><i class="on"></i><i></i><i></i><i></i><i></i></span>Sandboxes would only host us</td>
+            <td>None</td><td>Low, but a wrapper</td><td><span class="pill skip">Skip</span></td></tr>
+          <tr><td class="track">InsForge</td>
+            <td><span class="dots"><i class="on"></i><i></i><i></i><i></i><i></i></span>Agent computers and backend</td>
+            <td><span class="dots"><i class="on"></i><i></i><i></i><i></i><i></i></span>Nothing for it to do</td>
+            <td>None</td><td>n/a</td><td><span class="pill skip">Skip</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="eyebrow">Architecture</span><h2>Where each sponsor plugs in</h2>
+      <p class="lede">The selling agent and the policy engine stay ours. E8 found no protocol or sponsor that negotiates price, which is the gap we fill.</p></div>
+    <div class="pipeline">
+      <div class="stage"><h3>Discovery</h3><span class="sponsor m">Armature</span><p><code>/.well-known/ucp</code> pointing at our MCP server, plus an agent card with a proposed "negotiable" field.</p></div>
+      <div class="stage"><h3>MCP front door</h3><span class="sponsor m">Manufact</span><span class="sponsor m">Armature</span><p>mcp-use on Manufact Cloud: public HTTPS, OAuth, an MCP App deal card.</p></div>
+      <div class="stage"><h3>Selling agent</h3><span class="sponsor">Ours</span><p>Strategy from E5/E6 picks the price; the LLM writes the message.</p></div>
+      <div class="stage"><h3>Policy engine</h3><span class="sponsor">Ours</span><span class="sponsor s">Stripe</span><p>Code-enforced floor and terms: the merchant's control over its agent.</p></div>
+      <div class="stage"><h3>Checkout</h3><span class="sponsor s">Stripe</span><p>Shared Payment Token capped at the agreed total, charged with a PaymentIntent.</p></div>
+      <div class="stage"><h3>Learning</h3><span class="sponsor m">Manufact</span><p>Session replay feeds transcripts into the haggling policy.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="eyebrow">Build plans</span><h2>What we build for each track we enter</h2></div>
+    <div class="plans">
+      <article class="plan">
+        <div class="plan-head"><h3>Manufact: the front door, on their stack</h3><span class="pill enter">Enter</span></div>
+        <div class="plan-cols">
+          <ol>
+            <li>Move the seller's MCP server onto mcp-use's Python server, or deploy our FastMCP server on Manufact Cloud if it accepts one. Either way: a public HTTPS URL with OAuth. ChatGPT only mounts remote servers.</li>
+            <li>Ship the tool design that wins E1 (structured offers vs. free-text negotiate). The negotiation ID travels as a tool argument; the current MCP spec has no session header.</li>
+            <li>One MCP App widget: a deal card for the person behind the buying agent, with what's included, price, savings vs. list, and approve and pay.</li>
+            <li>Test as a remote connector in Claude and ChatGPT.</li>
+            <li>Pipe session replay into the learning loop.</li>
+          </ol>
+          <dl class="side">
+            <div><dt>Proof</dt><dd>E1 completion and tool-error numbers, E4 zero violations, a live run in Claude.</dd></div>
+            <div><dt>Risk</dt><dd>Unverified whether Manufact Cloud hosts a plain FastMCP server. Fallback: port to mcp-use's Python server, same tool code.</dd></div>
+          </dl>
+        </div>
+      </article>
+      <article class="plan">
+        <div class="plan-head"><h3>Armature: agent experience, measured</h3><span class="pill enter">Enter</span></div>
+        <div class="plan-cols">
+          <ol>
+            <li>An AX scorecard from the experiments: completion, tool errors, rounds to close, structured vs. free-text tools, agent interface vs. static page vs. JSON feed, behavior across buyer models.</li>
+            <li>Discoverability: <code>/.well-known/ucp</code> listing our MCP endpoint, plus an agent card. No standard field says a seller negotiates, so we propose one.</li>
+            <li>Tool descriptions rewritten from E1's failure modes.</li>
+            <li>What the agent sees: annotated traces of a real buying agent going from need to paid order.</li>
+            <li>Ask Armature whether their platform can run against our server, and include their read if so.</li>
+          </ol>
+          <dl class="side">
+            <div><dt>Proof</dt><dd>The experiment numbers. Here the experiments are the submission.</dd></div>
+            <div><dt>Risk</dt><dd>Low. Mostly packaging plus one round of tool polish.</dd></div>
+          </dl>
+        </div>
+      </article>
+      <article class="plan">
+        <div class="plan-head"><h3>Stripe: checkout with controls on both sides</h3><span class="pill cond">Enter if it works</span></div>
+        <div class="plan-cols">
+          <ol>
+            <li><code>pay_deal(deal_id, spt)</code>: the buyer agent sends a Shared Payment Token capped at the agreed total; we charge it with a PaymentIntent in test mode. The deal locks before the token exists.</li>
+            <li>Fallback: a Checkout Session with a custom amount. That puts a human on a hosted page, which is weaker for this track.</li>
+            <li>Show both controls refusing: the seller won't go below its floor, and payment fails above the buyer's cap.</li>
+          </ol>
+          <dl class="side">
+            <div><dt>Proof</dt><dd>A real test-mode payment ID for a negotiated price, plus E4's red-team numbers.</dd></div>
+            <div><dt>Risk</dt><dd>Shared Payment Tokens are a preview API. If our account can't use them, Stripe drops out.</dd></div>
+          </dl>
+        </div>
+        <p class="ask"><strong>Needed from us:</strong> a Stripe test-mode secret key set as an environment variable, and a check that the token preview works on our account.</p>
+      </article>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="eyebrow">Still running</span><h2>What the pending experiments decide</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Experiment</th><th>What it decides for the submission</th></tr></thead>
+        <tbody>
+          <tr><td class="track">E1 · MCP end to end</td><td>Which tool design the front door ships, and the completion-rate claim for Manufact and Armature</td></tr>
+          <tr><td class="track">E2 · Page vs. agent</td><td>The headline: does an agent-facing seller earn more than a static page?</td></tr>
+          <tr><td class="track">E4 · Red team</td><td>Whether we can claim "safe" for Stripe and Armature</td></tr>
+          <tr><td class="track">E5 / E6 · Strategy, RL</td><td>Which haggling strategy powers the seller. Split-the-difference leads on scripted buyers so far.</td></tr>
+          <tr><td class="track">E3 · Buyer behavior</td><td>Whether the agent-experience story holds across buyer models</td></tr>
+          <tr><td class="track">E7 · Marketplace</td><td>Background only, unless we revisit Inkbox or a broker</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>Source: <a href="https://github.com/vivandoshi08/sales-agent/blob/experiments/docs/TRACKS.md">docs/TRACKS.md</a> · Evidence: <a href="https://github.com/vivandoshi08/sales-agent/blob/experiments/docs/research/README.md">docs/research</a> and the experiment board. Drafted 2026-10-17 while E1–E7 run; revised when their verdicts land.</footer>
+</div>
