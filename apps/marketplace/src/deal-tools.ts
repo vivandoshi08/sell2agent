@@ -71,7 +71,11 @@ export function registerDealTools(server: any) {
         const locked = await (await exchange()).deals.getLockedDeal(a.deal_id);
         if (locked && locked.buyer_id !== ctx.buyer_id) return fail("This deal belongs to a different buyer. Send the buyer_id that accepted it.");
         const card = await (await deal()).reviewDeal(a.deal_id);
-        return { content: [{ type: "text" as const, text: dealSummary(card) }], structuredContent: card };
+        // Payment happens inside the card, which the model never sees; point it at the source of truth.
+        const howToCheck = locked
+          ? `\nThe person approves and pays inside this card, so you won't see the payment. If asked whether it was bought, call check_offers with negotiation_id ${locked.negotiation_id} and buyer_id ${ctx.buyer_id}: state "paid" means it's bought. The deal stays valid until ${card.expires_at}.`
+          : "";
+        return { content: [{ type: "text" as const, text: dealSummary(card) + howToCheck }], structuredContent: card };
       } catch (e) {
         return fail(e instanceof Error ? e.message : String(e));
       }

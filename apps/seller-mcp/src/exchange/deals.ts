@@ -41,7 +41,7 @@ export type PaymentCheck =
 
 export class Deals {
   constructor(private store: ExchangeStore, private catalog: Catalog, private now: () => number = Date.now,
-    private onAbandoned: (product_id: string) => void = () => {}) {}
+    private onAbandoned: (product_id: string, negotiation_id: string) => unknown = () => {}) {}
 
   /** S2: the deal card + pay handler read the deal from here. */
   async getLockedDeal(deal_id: string): Promise<LockedDeal | null> {
@@ -57,7 +57,7 @@ export class Deals {
     if (d.status === "paid") return { ok: false, code: "already_paid", reason: "deal is already paid", payment_intent_id: d.payment_intent_id };
     if (d.buyer_id !== buyer_id) return { ok: false, code: "wrong_buyer", reason: "deal belongs to a different buyer" };
     if (Date.parse(d.expires_at) <= this.now()) {
-      this.onAbandoned(d.product_id); // E11 probe breaker: an abandoned deal closes the accept zone
+      await this.onAbandoned(d.product_id, d.negotiation_id); // E11 probe breaker: an abandoned deal closes the accept zone
       return { ok: false, code: "expired", reason: "deal expired", fix: "make a new offer" };
     }
     if (amount_cents !== undefined && amount_cents !== d.total_cents)

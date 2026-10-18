@@ -62,7 +62,8 @@ export function render(r: ExchangeResponse, buyer_id: string) {
   const lines = [
     r.message,
     o ? `Standing offer ${o.offer_id}: ${usd(o.price_cents)}${o.levers.length ? ` incl. ${o.levers.join(", ")}` : ""}${o.final ? " (final)" : ""}, expires ${o.expires_at}.` : "",
-    r.deal ? `Deal ${r.deal.deal_id} locked at ${usd(r.deal.total_cents)}. Ask the person to approve and pay.` : "",
+    r.state === "paid" ? `PAID: the purchase is complete${r.deal ? ` (deal ${r.deal.deal_id}, ${usd(r.deal.total_cents)})` : ""}. Tell the person it's bought; don't negotiate this item again.` : "",
+    r.deal && r.state !== "paid" ? `Deal ${r.deal.deal_id} locked at ${usd(r.deal.total_cents)}. Ask the person to approve and pay.` : "",
     r.error ? `Error ${r.error.code}: ${r.error.message}` : "",
     r.negotiation_id ? `negotiation_id ${r.negotiation_id} · buyer_id ${buyer_id} (send both on every later call) · next: ${r.allowed_actions.join(", ") || "none"}` : "",
   ].filter(Boolean);
@@ -89,13 +90,19 @@ export function registerNegotiationTools(server: any) {
         quantity: z.number().int().positive().optional(),
         message: z.string().max(2000).optional().describe("Optional note to the seller"),
         levers: z.array(z.string()).optional().describe("Extras you want included, from the listing (e.g. free_shipping)"),
+        strategy: z
+          .enum(["static", "negotiating", "balanced"])
+          .optional()
+          .describe("Eval runs only: seller strategy for A/B tests. Honoured by the exchange only for a signed eval run_id; ignored otherwise."),
         buyer_id: buyerIdNew,
         ...ctxFields,
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
     },
     async (a: any, rc?: RequestLike) => run({ kind: "offer", ctx: toCtx(a, rc, { mint: !a.negotiation_id }), product_id: a.product_id, negotiation_id: a.negotiation_id, offer_price_cents: a.offer_price_cents,
-      quantity: a.quantity, message: a.message, levers: a.levers }),
+      quantity: a.quantity, message: a.message, levers: a.levers,
+      // E1 decides whether to honour it (signed eval run_id only); the gateway just passes it along.
+      ...(a.strategy ? { strategy: a.strategy } : {}) }),
   );
 
   server.tool(

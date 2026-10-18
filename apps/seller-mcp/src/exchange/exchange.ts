@@ -16,7 +16,7 @@ import { defaultSink, guardrailSeverity, type EventSink } from "./events";
 import { inspectInput } from "./input-guard";
 import { checkOutput, fallbackMessage, type OutputContext } from "./output-guard";
 import { allowedActions, assertTransition } from "./state";
-import { MemoryStore, liveMemory, memoryKey, probeId, type ExchangeStore } from "./store";
+import { MemoryStore, liveMemory, memoryKey, limitKey, breakerKey, probeId, isEvalRun, type ExchangeStore } from "./store";
 import { ProbeBreaker, StartLimiter, startLimitFor, buyerEndpoint, jitterStep, leverCost, NEAR_MISS_BAND } from "./probing";
 import { CONCESSION_CAP } from "./decision-guard";
 import { Outreach, type Sender } from "./outreach";
@@ -61,7 +61,8 @@ export class Exchange {
     this.now = o.now ?? Date.now;
     this.breaker = new ProbeBreaker(this.now);
     this.limiter = new StartLimiter(this.now);
-    this.deals = new Deals(this.store, this.catalog, this.now, (pid) => this.breaker.trip(pid));
+    this.deals = new Deals(this.store, this.catalog, this.now, async (pid, negotiation_id) =>
+      this.breaker.trip(breakerKey(pid, (await this.store.getNegotiation(negotiation_id))?.run_id)));
     this.sinkP = o.sink ? Promise.resolve(o.sink) : defaultSink();
     this.llm = o.llm ?? null;
     this.decideFn = o.decide ?? e2decide;
@@ -131,12 +132,13 @@ export class Exchange {
     if (!m.negotiation_id) {
       p = await this.catalog.get(m.product_id);
       if (!p) return fail("unknown_product", `no product ${m.product_id}; use search_products to find one`);
-      if (!this.limiter.allow(memoryKey(m.ctx.buyer_id, p.product_id), startLimitFor(m.ctx.buyer_id)))
+      if (!this.limiter.allow(limitKey(m.ctx.buyer_id, p.product_id, m.ctx.run_id), startLimitFor(m.ctx.buyer_id)))
         return fail("rate_limited", "too many negotiations started on this product today; continue an existing negotiation_id instead");
       n = this.newNegotiation(m, p, qty);
+      if (m.strategy && isEvalRun(m.ctx.run_id) && ["static", "negotiating", "balanced"].includes(m.strategy)) n.strategy = m.strategy;
       // E11 buyer memory: a returning buyer resumes where they left off. Never quoted higher than before,
       // and the concession clock doesn't restart, so restarting can't bisect toward the floor.
-      const mem = liveMemory(n.buyer_id, await this.store.getBuyerMemory(memoryKey(n.buyer_id, p.product_id)), this.now());
+      const mem = liveMemory(n.buyer_id, await this.store.getBuyerMemory(memoryKey(n.buyer_id, p.product_id, n.run_id)), this.now());
       if (mem) {
         n.round = Math.min(mem.round, p.max_rounds - 1);
         n.frozen = mem.round >= p.max_rounds; // deadline already used: one final offer per buyer, at their best price
@@ -153,6 +155,7 @@ export class Exchange {
       if (!p) return fail("unknown_product", `product ${n.product_id} is no longer sold`);
     }
 
+    if (n.strategy) p = { ...p, strategy: n.strategy }; // eval A/B override (signed eval runs only)
     // lever package: only levers this listing offers; price is checked against floor + lever costs
     const levers = [...new Set(m.levers ?? n.levers ?? [])];
     const bad = levers.filter((l) => !p!.allowed_levers.includes(l));
@@ -196,14 +199,14 @@ export class Exchange {
     const proposed = this.decideFn(
       { round: n.round, terms: { product_id: p.product_id, title: p.title, list_price_cents: p.list_price_cents, floor_price_cents: p.floor_price_cents,
         unit_cost_cents: p.unit_cost_cents, max_rounds: p.max_rounds }, history: n.history.slice(0, -1), buyer_offer_cents: m.offer_price_cents },
-      { name: p.strategy, soft_floor_buffer: this.buffer, final_round_accept_zone: !n.frozen && this.breaker.open(base.product_id) }, m.buyer_profile);
+      { name: p.strategy, soft_floor_buffer: this.buffer, final_round_accept_zone: !n.frozen && this.breaker.open(breakerKey(base.product_id, n.run_id)) }, m.buyer_profile);
     let { move, blocks } = guardMove({ move: proposed, product: p, round: n.round, prev_seller_offer_cents: prevSeller, frozen: n.frozen, soft_floor_buffer: this.buffer });
     for (const b of blocks) await this.emit(n, "guardrail_blocked", "seller", move.price_cents, { ...b });
 
     // E11 jitter: noisy steps toward a private per-buyer endpoint (not when frozen: a frozen price is final)
     if (move.action === "offer" && !n.frozen) {
       const soft = softFloor(p.list_price_cents, p.floor_price_cents, this.buffer);
-      const who = probeId(n.buyer_id); // anon buyers share one endpoint + jitter stream per product
+      const who = probeId(n.buyer_id, n.run_id); // anon buyers share one endpoint + jitter stream per product
       const end = buyerEndpoint(who, base.product_id, soft, p.list_price_cents, p.floor_price_cents);
       const maxStep = Math.ceil(CONCESSION_CAP * (p.list_price_cents - p.floor_price_cents));
       let price = prevSeller === undefined ? Math.max(move.price_cents, end)
@@ -215,7 +218,7 @@ export class Exchange {
     if (n.round >= p.max_rounds && move.action === "offer") {
       const gap = base.list_price_cents - base.floor_price_cents;
       if (m.offer_price_cents < p.floor_price_cents && m.offer_price_cents >= p.floor_price_cents - NEAR_MISS_BAND * gap) {
-        this.breaker.trip(base.product_id);
+        this.breaker.trip(breakerKey(base.product_id, n.run_id));
         await this.emit(n, "guardrail_blocked", "seller", null, { rule: "probe_breaker", reason: "near-miss deadline bid; final-round accept zone closed for 24 h" });
       }
     }
@@ -227,7 +230,7 @@ export class Exchange {
       const offer = this.newOffer(n, move, qty, "accepted");
       await this.supersede(standing);
       await this.store.putOffer(offer);
-      const deal = await this.lock(n, p, offer);
+      const deal = await this.lock(n, base, offer); // base floor: lock() subtracts lever cost itself (p's floor already includes it)
       await this.emit(n, "offer_accepted", "seller", move.price_cents, { offer_id: offer.offer_id, lever_package: offer.levers, message, final: true, expires_at: deal.expires_at });
       return this.respond(n, p, offer, { ok: true, status: "accept", message, reason: move.reason, deal });
     }
@@ -317,7 +320,7 @@ export class Exchange {
   }
 
   private async remember(n: Negotiation, offer_cents: number) {
-    const k = memoryKey(n.buyer_id, n.product_id);
+    const k = memoryKey(n.buyer_id, n.product_id, n.run_id);
     const prev = liveMemory(n.buyer_id, await this.store.getBuyerMemory(k), this.now()); // expired anon memory starts over
     await this.store.putBuyerMemory(k, { lowest_offer_cents: Math.min(offer_cents, prev?.lowest_offer_cents ?? offer_cents),
       round: Math.max(n.round, prev?.round ?? 0), sessions: (prev?.sessions ?? 0) + (n.round === 1 || !prev ? 1 : 0), updated_at: new Date(this.now()).toISOString() });
