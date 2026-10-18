@@ -8,6 +8,7 @@
 | [discovery.md](discovery.md) | G5, D1 |
 | [buying-agents.md](buying-agents.md) | B10, H1 |
 | [identity-and-payments.md](identity-and-payments.md) | F5, C1 |
+| [a2a-stripe-flow.md](a2a-stripe-flow.md) | Craigslist A2A: buyer pay paths, Connect, identity, pickup |
 | [stack.md](stack.md) | G8 |
 | [rl-negotiation.md](rl-negotiation.md) | R11 (plus R5, R8, R12) |
 
