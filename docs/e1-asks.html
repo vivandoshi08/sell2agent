@@ -1,0 +1,204 @@
+<title>E1 Team Asks</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column of per-person ask lists with a status control per ask. Same tokens as the other project pages. */
+:root {
+  --bg: #f4f6f5; --surface: #ffffff; --ink: #18211d; --muted: #5a6762; --line: #dce2de; --accent: #1f5f86;
+  --eng: #3d4fa8; --eng-bg: #eceefb; --surf: #1c7a62; --surf-bg: #e2f3ed; --warn: #b06a12; --warn-bg: #fbefdc;
+  --ok: #2b7a4b; --ok-bg: #e3f2e8; --bad: #b1281f; --bad-bg: #fbe6e4; --chip: #eceff0;
+  --font-display: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #111513; --surface: #182019; --ink: #e4eae6; --muted: #98a59f; --line: #2a332e; --accent: #79b4da;
+  --eng: #a9b3f2; --eng-bg: #1e2340; --surf: #7fd3b6; --surf-bg: #143229; --warn: #f0b764; --warn-bg: #3a2a12;
+  --ok: #7fd3a0; --ok-bg: #173323; --bad: #f19a92; --bad-bg: #3a1a17; --chip: #222a26; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #111513; --surface: #182019; --ink: #e4eae6; --muted: #98a59f; --line: #2a332e; --accent: #79b4da;
+  --eng: #a9b3f2; --eng-bg: #1e2340; --surf: #7fd3b6; --surf-bg: #143229; --warn: #f0b764; --warn-bg: #3a2a12;
+  --ok: #7fd3a0; --ok-bg: #173323; --bad: #f19a92; --bad-bg: #3a1a17; --chip: #222a26; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px 48px; }
+.wrap { max-width: 920px; margin: 0 auto; display: grid; gap: 22px; }
+h1, h2 { font-family: var(--font-display); margin: 0; line-height: 1.15; text-wrap: balance; }
+h1 { font-size: clamp(1.8rem, 4vw, 2.4rem); }
+h2 { font-size: 1.25rem; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+h2 small { font-family: var(--font-data); font-size: .72rem; color: var(--muted); font-weight: 400; letter-spacing: .04em; }
+p { margin: 0; }
+.eyebrow { font-family: var(--font-data); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.lede { color: var(--muted); max-width: 70ch; }
+code { font-family: var(--font-data); font-size: .84em; background: var(--chip); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+.summary { display: flex; flex-wrap: wrap; gap: 8px; }
+.pill { font-family: var(--font-data); font-size: .75rem; padding: 3px 9px; border-radius: 999px; background: var(--chip); color: var(--muted); }
+.pill.open { background: var(--warn-bg); color: var(--warn); }
+.pill.done { background: var(--ok-bg); color: var(--ok); }
+.pill.push { background: var(--bad-bg); color: var(--bad); }
+section.person { display: grid; gap: 10px; }
+.why { color: var(--muted); font-size: .92rem; max-width: 72ch; }
+.asks { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.ask { background: var(--surface); padding: 12px 14px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 16px; align-items: start; }
+.ask[data-status="done"] { background: color-mix(in srgb, var(--ok-bg) 45%, var(--surface)); }
+.ask[data-status="push"] { background: color-mix(in srgb, var(--bad-bg) 45%, var(--surface)); }
+.ask .t { font-weight: 600; }
+.ask .d { color: var(--muted); font-size: .9rem; grid-column: 1; }
+.ask .by { grid-column: 1 / -1; font-family: var(--font-data); font-size: .72rem; color: var(--muted); }
+.ask .when { font-family: var(--font-data); font-size: .7rem; color: var(--eng); background: var(--eng-bg); padding: 1px 6px; border-radius: 4px; margin-left: 6px; white-space: nowrap; }
+.ctl { grid-column: 2; grid-row: 1 / span 2; display: grid; gap: 6px; justify-items: end; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { font: inherit; font-size: .8rem; font-weight: 600; padding: 5px 9px; border: 0; background: transparent; color: var(--ink); cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"][data-s="open"] { background: var(--warn-bg); color: var(--warn); }
+.seg button[aria-pressed="true"][data-s="done"] { background: var(--ok-bg); color: var(--ok); }
+.seg button[aria-pressed="true"][data-s="push"] { background: var(--bad-bg); color: var(--bad); }
+.seg button:disabled { cursor: default; opacity: .7; }
+.note { font: inherit; font-size: .85rem; width: 220px; max-width: 100%; padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink); }
+button:focus-visible, .note:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.box { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 8px; }
+.box ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; min-width: 520px; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; font-size: .88rem; }
+th { font-family: var(--font-data); font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+#sync { font-family: var(--font-data); font-size: .72rem; color: var(--muted); }
+@media (max-width: 620px) { .ask { grid-template-columns: 1fr; } .ctl { grid-column: 1; grid-row: auto; justify-items: start; } .note { width: 100%; } }
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:8px">
+    <span class="eyebrow">sales-agent · E1 exchange &amp; safety · Vivan</span>
+    <h1>What E1 needs from you</h1>
+    <p class="lede">I'm building the exchange in <code>apps/seller-mcp/src/exchange/</code>: state machine, offers, deals, guardrails, events. These are the things I can't do myself. Mark each one <b>Done</b> or <b>Push back</b> with a note so I don't have to chase in chat. Everything else I build against mocks.</p>
+    <div class="summary" id="summary"></div>
+    <span id="sync">Status sync loading…</span>
+  </header>
+  <section class="box">
+    <h2>Shipped: use it now <small>branch e1/exchange · PR #11</small></h2>
+    <p class="why"><b>Deploy (Esha):</b> use <code>await Exchange.fromEnv()</code>. With <code>SUPABASE_URL</code> set, state lives in Supabase, so a stateless deploy works; without it, memory. Also set <code>EXCHANGE_HMAC_SECRET</code> so deal signatures survive restarts.</p>
+    <p class="why"><b>Dashboard (Ananya):</b> exchange state is saved as rows in <code>events</code> with <code>run_id = "exchange_state"</code> and <code>type = "exchange_snapshot"</code>. Filter those out of the feed and KPIs. <code>negotiations</code> and <code>deals</code> rows are kept in sync; status uses the old enum (agreed → <code>accepted</code>, walked away or expired → <code>abandoned</code>).</p>
+    <p class="why" style="color:var(--warn)"><b>Still wanted (Neel, n2–n4):</b> the offers table and wider status enum. That's no longer a blocker, since the snapshot rows cover it, but real tables are cleaner and faster. Not tested against a live Supabase yet: no keys on this machine (g1).</p>
+    <p class="why">The exchange runs end to end against Neel's real <code>decide()</code> and <code>voice()</code>. Memory store and seed catalog by default; events go to Supabase when <code>SUPABASE_URL</code> is set. Gate: <code>pnpm --filter @sa/seller-mcp gate</code> runs 30 negotiations (10 normal, 11 recorded E4/E9 attacks, 9 protocol abuses and adversarial sellers): 0 deals below floor, 0 floor or cost figures in seller text, every tamper rejected.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Who</th><th>Call</th><th>Returns</th></tr></thead>
+      <tbody>
+        <tr><td>Esha</td><td><code>import { Exchange } from "@sa/seller-mcp/exchange"</code><br><code>ex.handle({ kind: "offer", ctx, product_id, negotiation_id?, offer_price_cents, message? })</code></td><td><code>{ ok, negotiation_id, state, status, standing_offer: { offer_id, price_cents, final, expires_at, levers }, round, rounds_left, allowed_actions, message, error? }</code></td></tr>
+        <tr><td>Esha</td><td><code>{ kind: "accept", ctx, negotiation_id, offer_id }</code> · <code>{ kind: "walk", … }</code> · <code>{ kind: "status", … }</code></td><td>Accept locks a deal and returns <code>deal</code>. Errors carry a <code>code</code> and an agent-readable fix: <code>stale_offer</code>, <code>wrong_buyer</code>, <code>offer_expired</code>, <code>round_cap</code>…</td></tr>
+        <tr><td>Ananya</td><td><code>ex.deals.getLockedDeal(deal_id)</code></td><td>Your shape: <code>deal_id, negotiation_id, buyer_id, seller_id, product_id, title, quantity, unit_price_cents, total_cents, list_price_cents, levers, expires_at, status</code></td></tr>
+        <tr><td>Ananya</td><td><code>ex.deals.validateForPayment(deal_id, buyer_id, amount_cents?)</code> then <code>payDeal</code>, then <code>ex.markPaid(deal_id, payment_intent_id)</code></td><td><code>{ ok: true, deal }</code> or <code>{ ok: false, code, reason, fix }</code> with code <code>unknown_deal | tampered | expired | already_paid | wrong_buyer | amount_mismatch | policy_recheck_failed</code></td></tr>
+        <tr><td>Everyone</td><td>events</td><td><code>offer_made</code>, <code>offer_countered</code>, <code>offer_accepted</code>, <code>deal_accepted</code>, <code>buyer_walked_away</code>, <code>guardrail_blocked</code> with <code>payload.rule</code>, <code>proposed_price_cents</code>, <code>clamped_to_cents</code>, <code>reason</code>; every payload carries <code>state</code></td></tr>
+      </tbody>
+    </table></div>
+    <p class="why"><b>Stage 2 (PR e1/stage2):</b> make_offer takes optional <code>levers: ["free_shipping", …]</code>. Only the listing's allowed levers, price always covers floor + lever cost, and the deal carries them (Ananya: show <code>deal.levers</code> on the card). New error codes <code>bad_lever</code> and <code>rate_limited</code> (4 starts per buyer per product per day). Anti-probing from E11: per-buyer jittered endpoints, and a probe breaker that closes the last-round accept zone for 24 h after a near-miss bid or an abandoned deal.</p>
+    <p class="why"><b>Stage 3, follow-ups (Esha's Inkbox door):</b> buyers opt in with <code>walk</code> + <code>followup: { reply_to, channel: "email" | "sms" | "a2a" }</code>, or later with <code>ex.allowFollowups(negotiation_id, buyer_id, consent)</code>. Pass <code>new Exchange({ send })</code> or <code>Exchange.fromEnv({ send })</code> with your Inkbox sender, and call <code>ex.outreach.runDue()</code> on a timer. Each message is <code>{ channel, reply_to, subject, text, offer: { offer_id, price_cents, levers, expires_at, accept: "ACCEPT off_…" } }</code>: one per negotiation, at most one per buyer per week, never below the buyer's last price. For replies, call <code>ex.inbound(negotiation_id, buyer_id, text)</code>. It returns the exchange's response plus <code>intent</code> (accept, counter, walk, unsubscribe, or clarify with a question to send back). It never guesses.</p>
+    <p class="why"><b>Decision on accept vs. pay:</b> <code>accept</code> only locks the deal. Charging happens in Ananya's pay handler on Approve &amp; Pay, which matches FINAL_ARCHITECTURE.</p>
+  </section>
+
+  <div id="people"></div>
+
+  <section class="box">
+    <h2>What you get from me, and when</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>When</th><th>Who</th><th>What</th></tr></thead>
+      <tbody>
+        <tr><td>H1</td><td>Esha</td><td><code>exchange/types.ts</code>: the <code>Move</code> and <code>Response</code> shapes for <code>handle(move)</code>, so your fake exchange matches the real one</td></tr>
+        <tr><td>H1</td><td>Ananya</td><td><code>validateForPayment()</code> signature and its refusal codes, for your pay handler</td></tr>
+        <tr><td>H2–H4</td><td>Everyone</td><td><code>events</code> rows for every step: offers, counters, accepts, walk-aways, <code>guardrail_blocked</code> with <code>payload.rule</code></td></tr>
+        <tr><td>H5</td><td>Esha</td><td>Real <code>handle()</code> ready to swap in for Bridge 1, passing the 30-negotiation safety script</td></tr>
+        <tr><td>H6+</td><td>Neel</td><td>Exchange calls your real <code>decide()</code> and <code>voice()</code> in place of my stub</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section class="box">
+    <h2>If the contract is late</h2>
+    <p class="why">I keep moving: states map onto today's enum (negotiating → <code>open</code>, agreed → <code>accepted</code>, walked away or expired → <code>abandoned</code>), extra fields go in <code>events.payload</code>, offers stay in memory. Everything sits behind one store interface, so switching to the real tables is one file. It still has to land before the deploy at Bridge 1, because Manufact is stateless and in-memory offers won't survive.</p>
+  </section>
+</div>
+
+<script>
+const PEOPLE = [
+  { who: "Neel", role: "contract owner + E2", why: "packages/shared and supabase/migrations are frozen, and they're missing what the exchange needs to be safe. One PR for all of these is ideal.", asks: [
+    { id: "n1", when: "H1", t: "offer_id, final, expires_at on MakeOfferOutput", d: "AcceptDealInput only takes negotiation_id today. It needs offer_id so a buyer can only accept the live offer made to them, not a stale one or someone else's." },
+    { id: "n2", when: "H1", t: "Widen negotiations.status", d: "The CHECK allows only open, accepted, rejected, paid, abandoned. Add negotiating, agreed, walked_away, follow_up, escalated, expired, or Supabase rejects the writes." },
+    { id: "n3", when: "H1", t: "Add an offers table", d: "0001_init.sql has none. Columns: id, negotiation_id, buyer_id, price_cents, levers, final, expires_at, status (live, superseded, accepted, expired)." },
+    { id: "n4", when: "H1", t: "deals: expires_at, buyer_id, levers, signature", d: "Deals are locked and signed so pay_deal can reject a tampered amount, a replay, or the wrong buyer." },
+    { id: "n5", when: "H1", t: "Lever package type on offers and deals", d: "Today there's only the Concession enum. A shared lever package type lets your policy, my guards and the deal card agree." },
+    { id: "n6", when: "H1", t: "Guardrail event types, or OK to use guardrail_blocked + payload.rule", d: "Either works for me. Say which so Ananya's guardrail log reads the same field." },
+    { id: "n7", when: "H1", t: "pay_deal and check_offers in TOOL_NAMES", d: "FINAL_ARCHITECTURE lists them; the contract doesn't." },
+    { id: "n8", when: "H2", t: "Confirm decide() and voice() signatures", d: "decide(state, sellerPolicy, buyerProfile) → proposedMove and voice(move, reason, prefs) → message. My stub implements exactly these until H6." }
+  ]},
+  { who: "Esha", role: "S1 gateway", why: "Your gateway is the only caller of the exchange. We need to agree how it calls me before either of us writes much.", asks: [
+    { id: "e1", when: "H1", t: "How does the gateway reach the exchange?", d: "Your code is in apps/marketplace, mine in apps/seller-mcp. Workspace import (an @sa/seller-mcp/exchange export) or HTTP? I lean import: one process, one deploy, no extra latency." },
+    { id: "e2", when: "H1", t: "Build your fake exchange on exchange/types.ts", d: "I publish it in H1. Then the Bridge 1 swap is one line." },
+    { id: "e3", when: "H1", t: "Pass buyer_id and buyer_model on every call", d: "Offers are bound to the buyer. Without a stable buyer_id per session, accept-by-offer_id can't be checked." }
+  ]},
+  { who: "Ananya", role: "S2 UI & proof", why: "Your DONE.md has the pay_deal handler. I own the deal lock, so we split the payment step.", asks: [
+    { id: "a1", when: "H1", t: "Pay split: I validate, you charge", d: "Your handler calls my validateForPayment(deal_id, buyer, credential) first. It re-checks policy and rejects tampering, replays and expired or unknown deals. Then you call payDeal with the amount from the stored deal." },
+    { id: "a2", when: "H2", t: "Read guardrail rule from payload.rule, state from payload.state", d: "That's how the exchange will log them until Neel adds dedicated fields." }
+  ]},
+  { who: "Anyone", role: "setup", why: "Small things that block testing against the real database.", asks: [
+    { id: "g1", when: "now", t: "Post Supabase and Stripe test keys in the group chat", d: "SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, STRIPE_SECRET_KEY (sk_test only)." },
+    { id: "g2", when: "now", t: "Run 0001_init.sql and seed.sql in Supabase", d: "Plus Neel's new migration once it lands." },
+    { id: "g3", when: "now", t: "Fill in the H0 clock time in BUILD_PLAN.md", d: "So H1, H5 and the rest mean the same thing to everyone." }
+  ]}
+];
+const LABEL = { open: "Open", done: "Done", push: "Push back" };
+let state = {}; let db = null; let user = null; let readOnly = false;
+
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+async function render() {
+  const ids = [...new Set(Object.values(state).map(s => s.by).filter(Boolean))];
+  const ps = user && ids.length ? await user.profiles(ids) : {};
+  const root = document.getElementById("people"); root.replaceChildren();
+  const counts = { open: 0, done: 0, push: 0 };
+  for (const p of PEOPLE) {
+    const sec = el("section", "person");
+    const h = el("h2", null, p.who); h.append(el("small", null, p.role)); sec.append(h, el("p", "why", p.why));
+    const list = el("div", "asks");
+    for (const a of p.asks) {
+      const s = state[a.id] || {}; const st = s.status || "open"; counts[st]++;
+      const row = el("div", "ask"); row.dataset.status = st;
+      const t = el("div", "t", a.t); t.append(el("span", "when", a.when));
+      const ctl = el("div", "ctl"); const seg = el("div", "seg");
+      for (const k of ["open", "done", "push"]) {
+        const b = el("button", null, LABEL[k]); b.type = "button"; b.dataset.s = k;
+        b.setAttribute("aria-pressed", String(st === k)); b.disabled = !db || readOnly;
+        b.onclick = () => save(a.id, { status: k }); seg.append(b);
+      }
+      const note = el("input", "note"); note.id = "note-" + a.id; note.placeholder = "Note (optional)";
+      note.value = s.note || ""; note.disabled = !db || readOnly;
+      note.onchange = () => save(a.id, { note: note.value.slice(0, 300) });
+      ctl.append(seg, note);
+      row.append(t, ctl, el("div", "d", a.d));
+      if (s.by) row.append(el("div", "by", "Updated by " + ((ps[s.by] && ps[s.by].name) || "someone") + (s.at ? " · " + new Date(s.at).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" }) : "")));
+      list.append(row);
+    }
+    sec.append(list); root.append(sec);
+  }
+  const sum = document.getElementById("summary"); sum.replaceChildren();
+  for (const k of ["open", "done", "push"]) sum.append(el("span", "pill " + k, counts[k] + " " + LABEL[k].toLowerCase()));
+}
+
+async function save(id, patch) {
+  if (!db) return;
+  const me = user ? await user.id() : null;
+  const next = { ...(state[id] || {}), ...patch, by: me, at: new Date().toISOString() };
+  try { await db.collection("asks").doc(id).set(next); }
+  catch (e) { if (e && e.code === "invalid_argument") { readOnly = true; document.getElementById("sync").textContent = "View only: ask Vivan for Contributor access to update status."; render(); } }
+}
+
+render();
+(async () => {
+  user = await window.claude?.use?.("user") ?? null;
+  db = await window.claude?.use?.("db") ?? null;
+  const sync = document.getElementById("sync");
+  if (!db) { sync.textContent = "Status sync is off in this view. Reply in the group chat instead."; render(); return; }
+  if (user && (await user.can("data.write")) === false) { readOnly = true; sync.textContent = "View only: ask Vivan for Contributor access to update status."; }
+  else sync.textContent = "Live: changes show for everyone.";
+  db.collection("asks").onSnapshot(snap => { const s = {}; snap.docs.forEach(d => { s[d.id] = d.data(); }); state = s; render(); },
+    () => { sync.textContent = "Status sync stopped. Reload the page."; });
+})();
+</script>
