@@ -118,3 +118,14 @@ test("buyer fit: weighted by what the buyer values; null when not scorable", asy
   ]);
   assert.deepEqual(wins.map((w) => [w.package, w.deals, w.share]), [["extended_warranty", 1, 0.5], ["price only", 1, 0.5]]);
 });
+
+test("run list and default selection: latest run per policy", async () => {
+  const { listRuns, defaultSelection } = await import("../src/data/runs");
+  const mk = (run_id: string, policy: string, ts: string) => [
+    { run_id, buyer_id: null, buyer_model: null, seller_id: null, product_id: null, negotiation_id: null, actor: "harness", type: "run_started", price_cents: null, payload: { policy }, ts } as NegotiationEvent,
+    { run_id, buyer_id: "b1", buyer_model: "m", seller_id: null, product_id: null, negotiation_id: null, actor: "buyer", type: "search", price_cents: null, payload: { policy }, ts } as NegotiationEvent,
+  ];
+  const runs = listRuns([...mk("old_static", "static", "2026-10-17T20:00:00Z"), ...mk("new_static", "static", "2026-10-17T22:00:00Z"), ...mk("new_neg", "negotiating", "2026-10-17T22:01:00Z")]);
+  assert.deepEqual(runs.map((r) => r.run_id), ["new_neg", "new_static", "old_static"]);
+  assert.deepEqual(defaultSelection(runs).sort(), ["new_neg", "new_static"]);
+});
