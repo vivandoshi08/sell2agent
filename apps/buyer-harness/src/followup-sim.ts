@@ -15,12 +15,15 @@
  *   - every inbound reply parses to one structured move or a clarifying question (counted by intent), is routed by
  *     outreach.resolve() to the negotiation it answers, and is logged as a question_asked event with payload.inbound
  * "No new concession" (`safety.no_new_concession`): nothing a walk-away gets that staying couldn't. A buyer who walked
- *   at the round cap must not be offered less than the pre-walk price in the follow-up thread; paired probers check
- *   that walking + countering never beats the same bid made before walking. Buyers who walked BEFORE the cap resume
- *   the seller's schedule at the same round when they reply (reported as `resumed_*`, not a failure).
+ *   at the round cap must not be offered less than the pre-walk price in the follow-up thread (the exchange holds the
+ *   price past the cap, decision-guard holdAtCap); paired probers check that walking + countering never beats the same
+ *   bid made before walking. Buyers who walked BEFORE the cap resume the seller's schedule at the same round when they
+ *   reply (reported as `resumed_*`, not a failure).
+ * Replies are routed and answered the way the messaging door does it: outreach.resolve() from the consented address,
+ *   inbound(), and a catalog-grounded answer when the reply is a question (doorAnswer / doorReply).
  */
-import { decide as e2decide, usd, type Llm, type ProposedMove } from "@sa/seller-mcp/sellers";
-import { FOLLOWUP_DELAY_MS, SEED_PRODUCTS, leverCost, parseInbound, type Decider, type Exchange, type ExchangeResponse,
+import { answerQuestion, usd, type Answer, type Llm } from "@sa/seller-mcp/sellers";
+import { FOLLOWUP_DELAY_MS, SEED_PRODUCTS, inspectInput, leverCost, parseInbound, stripQuoted, type Exchange, type ExchangeResponse,
   type InboundIntent, type OutboundMessage } from "@sa/seller-mcp/exchange";
 import type { BuyerContext, NegotiationEvent } from "@sa/shared";
 import { ExchangeGateway, type Strategy } from "./gateway/exchange";
@@ -28,6 +31,7 @@ import type { Gateway, GwAcceptResult, GwOfferArgs, GwOfferResult } from "./gate
 import { keyedRng, type Replier, type ReplyTurn } from "./agents/replier";
 import type { LlmBuyerTask } from "./agents/personas";
 import type { BuyerOutcome } from "./agents/buyer";
+import { byId as publicProduct } from "./scripted/catalog";
 import { runAll, type RunAllConfig, type Summary } from "./run-all";
 
 export const T0 = Date.parse("2026-10-18T17:00:00Z"); // fake clock start (reproducible offer expiries)
@@ -41,7 +45,6 @@ export interface FollowupSimConfig {
   consent_rate?: number; // share of walk-aways who opt in (default 0.5)
   repeat_share?: number; // share of opted-in walk-aways who also walk a 2nd product the same day (weekly-cap check; default 0.2)
   seed?: number; // consent / repeat draws (default 42)
-  hold_at_cap?: boolean; // proposed exchange fix: past the round cap the seller holds its last price (see holdAtCap)
   max_reply_turns?: number; // buyer replies per follow-up thread (default 4)
   concurrency?: number;
   max_steps?: number;
@@ -131,6 +134,8 @@ export interface SafetyReport {
   unparsed_replies: number; // replies the parser couldn't classify into any kind (must be 0)
   misrouted_replies: number; // outreach.resolve() sent a reply to another negotiation, or couldn't place it (must be 0)
   inbound_events: number; // question_asked events with payload.inbound (the dashboard's record): must equal inbound_replies
+  questions_answered: number; // question replies the door answered from the catalog (answerQuestion), not a hard check
+  questions_answered_grounded: number;
   passed: boolean; // all hard checks above
   // "Never a guess" (E1 done-test): replies that say no ("I'll pass", "can't accept", "won't buy") but parsed as an
   // ACCEPT or COUNTER, sent or stopped by the wallet. Heuristic, for review; examples in decline_read_as_move_examples.
@@ -164,7 +169,7 @@ export interface ProbeReport {
 
 export interface FollowupSimResult {
   run_id: string;
-  config: { buyers: number; strategy: Strategy; consent_rate: number; repeat_share: number; seed: number; hold_at_cap: boolean;
+  config: { buyers: number; strategy: Strategy; consent_rate: number; repeat_share: number; seed: number;
     replier: string; buyer_models: string[]; followup_delay_ms: number };
   first_pass: Summary;
   off: ArmSummary;
@@ -203,27 +208,6 @@ export function bootMean(xs: number[], seed = 42, B = 5000): Money {
   ms.sort((a, b) => a - b);
   return { mean_cents: Math.round(mean), ci95_cents: [Math.round(ms[Math.floor(0.025 * B)]), Math.round(ms[Math.floor(0.975 * B)])] };
 }
-
-// ---------------------------------------------------------------- seller variant
-
-/**
- * Proposed exchange fix (not in seller-mcp yet): past the round cap a follow-up counter re-runs decide() for one extra
- * final round, and its accept zone can close below the price the seller already offered. This decider holds that
- * price instead: accept a bid at or above it, otherwise repeat it as final. Rounds within the cap are unchanged.
- */
-export const holdAtCap: Decider = (state, policy, profile) => {
-  const m = e2decide(state, policy, profile);
-  if (state.round <= state.terms.max_rounds) return m;
-  const mine = state.history.filter((h) => h.by === "seller").map((h) => h.price_cents);
-  if (!mine.length) return m;
-  const prev = Math.min(...mine);
-  const bid = state.buyer_offer_cents;
-  if (bid !== undefined && bid >= prev)
-    return { action: "accept", price_cents: Math.min(bid, state.terms.list_price_cents), final: true, reason: "buyer_offer_meets_ask",
-      reason_text: `Your offer of ${usd(bid)} meets our price, so we accept.`, conceded_fraction: m.conceded_fraction } satisfies ProposedMove;
-  return { action: "offer", price_cents: prev, final: true, reason: "final_offer",
-    reason_text: `${usd(prev)} is still our best price.`, conceded_fraction: m.conceded_fraction } satisfies ProposedMove;
-};
 
 // ---------------------------------------------------------------- gateway recorder
 
@@ -269,8 +253,21 @@ export async function scoreDeal(ex: Exchange, deal_id: string): Promise<DealScor
     profit_cents: d.unit_price_cents - p.unit_cost_cents - lc, below_floor: d.unit_price_cents - lc < p.floor_price_cents };
 }
 
-/** What the messaging door sends back to the buyer (mirrors replyText in apps/marketplace/src/followup/door.ts; the harness doesn't depend on marketplace). */
-export function doorReply(r: ExchangeResponse & { intent: InboundIntent }): string {
+// The messaging door (apps/marketplace/src/followup/door.ts), mirrored here because the harness doesn't depend on marketplace.
+const QUESTION = /\?|^\s*(what|which|does|do|is|are|how|can|could|will|would|when|where|why|tell me)\b/im;
+const ANSWERABLE = new Set(["no recognizable intent", "counter without a price"]);
+
+/** The door's answerIfQuestion(): a question-shaped reply the parser couldn't act on gets a catalog-grounded answer. */
+export async function doorAnswer(product_id: string, text: string, intent: InboundIntent, llm: Llm | null): Promise<Answer | null> {
+  if (intent.kind !== "clarify" || !ANSWERABLE.has(intent.reason)) return null;
+  const question = stripQuoted(inspectInput(text).sanitized).slice(0, 800);
+  if (!QUESTION.test(question)) return null;
+  try { return await answerQuestion(publicProduct(product_id).public, question, llm); } catch { return null; }
+}
+
+/** The door's replyText(): what the buyer's agent gets back. */
+export function doorReply(r: ExchangeResponse & { intent: InboundIntent }, answer?: string): string {
+  if (answer) return [answer, "", r.message].join("\n");
   if (r.deal) return `${r.message}\ndeal_id: ${r.deal.deal_id} (approve and pay before ${r.deal.expires_at})`;
   const lines = [r.ok ? r.message : r.error?.message ?? r.message];
   const o = r.standing_offer;
@@ -314,7 +311,7 @@ export async function runFollowupSim(cfg: FollowupSimConfig): Promise<FollowupSi
   const clock = { t: T0 };
   const outbox: OutboundMessage[] = [];
   const gw = new RecordingGateway(new ExchangeGateway(strategy, cfg.seller_llm ?? null, {
-    now: () => clock.t, send: async (m) => { outbox.push(m); }, decide: cfg.hold_at_cap ? holdAtCap : undefined }));
+    now: () => clock.t, send: async (m) => { outbox.push(m); } }));
   const ex = gw.exchange;
 
   // ---- 1. shopping pass (same for both arms)
@@ -380,7 +377,7 @@ export async function runFollowupSim(cfg: FollowupSimConfig): Promise<FollowupSi
   // ---- 4. buyers reply; every reply goes through exchange.inbound()
   const rowById = new Map(rows.map((r) => [r.buyer_id, r]));
   const intents: Record<string, number> = {};
-  let inbound = 0, unparsed = 0, misrouted = 0;
+  let inbound = 0, unparsed = 0, misrouted = 0, answered = 0, grounded = 0;
   const maxTurns = cfg.max_reply_turns ?? 4;
   await pool(sentFirst, cfg.concurrency ?? 4, async (m) => {
     const row = rowById.get(m.buyer_id);
@@ -413,7 +410,9 @@ export async function runFollowupSim(cfg: FollowupSimConfig): Promise<FollowupSi
       inbound++;
       intents[r.intent.kind] = (intents[r.intent.kind] ?? 0) + 1;
       if (!["accept", "counter", "walk", "unsubscribe", "clarify"].includes(r.intent.kind)) unparsed++;
-      const said = doorReply(r);
+      const ans = await doorAnswer(p.product_id, rep.text, r.intent, cfg.seller_llm ?? null);
+      if (ans) { answered++; if (ans.grounded) grounded++; }
+      const said = doorReply(r, ans?.answer);
       row.thread.push({ buyer: rep.text, intent: r.intent.kind, ...(r.intent.kind === "clarify" ? { clarify_reason: r.intent.reason } : {}), seller: said });
       thread.push({ from: "seller", text: said });
       const offered = r.deal?.unit_price_cents ?? r.standing_offer?.price_cents;
@@ -469,6 +468,8 @@ export async function runFollowupSim(cfg: FollowupSimConfig): Promise<FollowupSi
     intents,
     unparsed_replies: unparsed,
     misrouted_replies: misrouted,
+    questions_answered: answered,
+    questions_answered_grounded: grounded,
     inbound_events: gw.events.filter((e) => e.type === "question_asked" && (e.payload as { inbound?: boolean })?.inbound === true).length,
     passed: false,
     decline_read_as_move: declinesReadAsMoves(rows).length,
@@ -500,7 +501,7 @@ export async function runFollowupSim(cfg: FollowupSimConfig): Promise<FollowupSi
   const tok = rows.reduce((a, r) => ({ input: a.input + r.reply_tokens.input, output: a.output + r.reply_tokens.output }), { input: 0, output: 0 });
   return {
     run_id: cfg.run_id,
-    config: { buyers: rows.length, strategy, consent_rate: consentRate, repeat_share: repeatShare, seed, hold_at_cap: !!cfg.hold_at_cap,
+    config: { buyers: rows.length, strategy, consent_rate: consentRate, repeat_share: repeatShare, seed,
       replier: cfg.replier.model, buyer_models: [...new Set(rows.map((r) => r.buyer_model))], followup_delay_ms: FOLLOWUP_DELAY_MS },
     first_pass: summary,
     off, on,
@@ -528,7 +529,7 @@ export async function runFollowupSim(cfg: FollowupSimConfig): Promise<FollowupSi
  *   walk   : lowball every round, walk with consent, get the follow-up, COUNTER b, take whatever the seller offers.
  * Gain = control price − walk price. Walking away must not get the prober a better price than the same bid did.
  */
-export async function runProbers(o: { run_id: string; strategy?: Strategy; per_product?: number; hold_at_cap?: boolean }): Promise<ProbeReport> {
+export async function runProbers(o: { run_id: string; strategy?: Strategy; per_product?: number }): Promise<ProbeReport> {
   const K = o.per_product ?? 8;
   const rows: ProbeReport["rows"] = [];
   let belowFloor = 0;
@@ -541,8 +542,7 @@ export async function runProbers(o: { run_id: string; strategy?: Strategy; per_p
       const one = async (walk: boolean): Promise<{ price: number | null; prewalk: number }> => {
         const clock = { t: T0 };
         const out: OutboundMessage[] = [];
-        const ex = new ExchangeGateway(o.strategy ?? "negotiating", null, { now: () => clock.t, send: async (m) => { out.push(m); },
-          decide: o.hold_at_cap ? holdAtCap : undefined }).exchange;
+        const ex = new ExchangeGateway(o.strategy ?? "negotiating", null, { now: () => clock.t, send: async (m) => { out.push(m); } }).exchange;
         const ctx: BuyerContext = { run_id: o.run_id, buyer_id: `probe_${p.product_id}_${k}`, buyer_model: "scripted", channel: "harness", agent_operator: "harness" };
         let nid: string | undefined;
         let r: ExchangeResponse | null = null;

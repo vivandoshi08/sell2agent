@@ -63,12 +63,15 @@ test("STOP unsubscribes; questions get a clarifying reply, never a guessed move"
   const ask = await runFollowupSim({ run_id: "test_fu_ask", buyers: [task("q1", 15000)], brain_for: () => impatient, consent_rate: 1, repeat_share: 0,
     max_reply_turns: 2, replier: fixed(() => "Does it come with a warranty?") });
   assert.deepEqual(ask.safety.intents, { clarify: 2 });
+  assert.equal(ask.safety.questions_answered, 2); // the door answers from the catalog instead of only "reply ACCEPT…"
+  assert.match(ask.rows[0].thread[0].seller, /I don't know/); // no warranty data in the catalog: an honest answer, not a made-up one
+  assert.match(ask.rows[0].thread[0].seller, /ACCEPT off_/); // and the reply names the live offer to accept
   assert.equal(ask.winback.recovered, 0);
 });
 
 test("scripted population: one follow-up per buyer per week, same-day repeat walks blocked, nothing below floor or pre-walk price", async () => {
   const buyers = makeBuyers({ n: 60, models: ["scripted"], seed: 42 });
-  const r = await runFollowupSim({ run_id: "test_fu_pop", buyers, consent_rate: 1, repeat_share: 0.5, replier: new ScriptedReplier(), hold_at_cap: true });
+  const r = await runFollowupSim({ run_id: "test_fu_pop", buyers, consent_rate: 1, repeat_share: 0.5, replier: new ScriptedReplier() });
   const s = r.safety;
   assert.ok(r.winback.sent > 0);
   assert.ok(s.repeat_walkers > 0);
@@ -95,8 +98,8 @@ test("decline detector flags declines the parser read as moves, not plain counte
   assert.equal(declinesReadAsMoves([row("COUNTER $106", "counter"), row("No thanks.", "walk")]).length, 0);
 });
 
-test("probing: with hold-at-cap, walking away and countering never beats the same bid made before walking", async () => {
-  const p = await runProbers({ run_id: "test_probe", per_product: 4, hold_at_cap: true });
+test("probing: walking away and countering the follow-up never beats the same bid made before walking (exchange holds at the cap)", async () => {
+  const p = await runProbers({ run_id: "test_probe", per_product: 4 });
   assert.equal(p.probers, 16);
   assert.equal(p.walk_cheaper, 0);
   assert.equal(p.below_floor, 0);

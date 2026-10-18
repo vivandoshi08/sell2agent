@@ -7,7 +7,6 @@
  *   --seed <n>           personas + consent draws (default 42)
  *   --consent <share>    walk-aways who opt in to one follow-up (default 0.5)
  *   --repeat <share>     opted-in buyers who walk a 2nd product the same day (weekly-cap check, default 0.2)
- *   --hold-at-cap        proposed exchange fix: past the round cap the seller holds its last price
  *   --probers <k>        paired walk-away probers per keyboard (default 8; 0 = skip)
  *   --adversarial <s>    red-team share of buyers (default 0.1)
  *   --concurrency <n>    parallel buyers (default 4)
@@ -28,7 +27,7 @@ try { process.loadEnvFile(resolve(import.meta.dirname, "../../../.env")); } catc
 const { values: f } = parseArgs({ options: {
   n: { type: "string", default: "100" }, models: { type: "string", default: "scripted" }, model: { type: "string", default: "claude-haiku-5-5" },
   replier: { type: "string" }, seed: { type: "string", default: "42" }, consent: { type: "string", default: "0.5" }, repeat: { type: "string", default: "0.2" },
-  "hold-at-cap": { type: "boolean" }, probers: { type: "string", default: "8" }, adversarial: { type: "string", default: "0.1" },
+  probers: { type: "string", default: "8" }, adversarial: { type: "string", default: "0.1" },
   concurrency: { type: "string", default: "4" }, id: { type: "string" }, out: { type: "string" }, live: { type: "boolean" }, quiet: { type: "boolean" },
 } });
 
@@ -41,7 +40,7 @@ if (model === "claude" || replierKind === "claude") {
   process.env.BUYER_CLAUDE_MODEL = f.model;
 }
 const seed = Number(f.seed), n = Number(f.n);
-const id = f.id ?? `followups_${model}_${n}${f["hold-at-cap"] ? "_hold" : ""}`;
+const id = f.id ?? `followups_${model}_${n}`;
 const outDir = resolve(import.meta.dirname, "../../..", f.out ?? "docs/results/followups");
 
 // Anthropic list prices, $ per million tokens (claude-api skill table, cached 2026-10-06).
@@ -54,12 +53,12 @@ const cost = (t: { input: number; output: number }) => {
 const buyers = makeBuyers({ n, models: [model], seed, adversarial_share: Number(f.adversarial) });
 const replier = replierKind === "claude" ? new ClaudeReplier() : new ScriptedReplier({ seed });
 console.log(`\n${n} ${model === "claude" ? f.model : "scripted"} buyers · replier ${replier.model} · seed ${seed} · consent ${f.consent} · ` +
-  `seller negotiating${f["hold-at-cap"] ? " + hold-at-cap" : ""} · E1 exchange in-process · ${f.live ? "LIVE events" : "events local only"}\n`);
+  `seller negotiating · E1 exchange in-process · ${f.live ? "LIVE events" : "events local only"}\n`);
 
 const t0 = Date.now();
 const res = await runFollowupSim({ run_id: `run_${id}`, buyers, replier, consent_rate: Number(f.consent), repeat_share: Number(f.repeat), seed,
-  hold_at_cap: f["hold-at-cap"], concurrency: Number(f.concurrency), log: f.quiet ? undefined : (l) => console.log(l) });
-const probe = Number(f.probers) > 0 ? await runProbers({ run_id: `run_${id}_probe`, per_product: Number(f.probers), hold_at_cap: f["hold-at-cap"] }) : null;
+  concurrency: Number(f.concurrency), log: f.quiet ? undefined : (l) => console.log(l) });
+const probe = Number(f.probers) > 0 ? await runProbers({ run_id: `run_${id}_probe`, per_product: Number(f.probers) }) : null;
 const secs = Math.round((Date.now() - t0) / 1000);
 
 const pct = (r: Rate) => `${(100 * r.rate).toFixed(0)}% [${(100 * r.ci95[0]).toFixed(0)}–${(100 * r.ci95[1]).toFixed(0)}%]`;
@@ -82,6 +81,7 @@ console.log(`  resumed haggling (walked before the cap): ${s.resumed_offer_below
 console.log(`  re-packaged follow-ups (lever added at the same price) ${s.followups_with_added_lever} · won back with one ${s.recovered_with_added_lever} · seller lever cost ${usd(s.added_lever_cost_cents)}`);
 console.log(`Inbound never guesses ${s.decline_read_as_move ? "FAIL" : "PASS"}: replies that decline but parsed as ACCEPT/COUNTER ${s.decline_read_as_move}` +
   s.decline_read_as_move_examples.slice(0, 3).map((x) => `\n    ${x.buyer_id} (${x.intent}): "${x.text.slice(0, 140).replace(/\s+/g, " ")}"`).join(""));
+console.log(`  questions answered from the catalog ${s.questions_answered} (grounded ${s.questions_answered_grounded})`);
 console.log(`  inbound replies ${s.inbound_replies}: ${Object.entries(s.intents).map(([k, v]) => `${k} ${v}`).join(", ")}`);
 const tk = res.tokens;
 const c1 = cost(tk.first_pass), c2 = cost(tk.replies);
