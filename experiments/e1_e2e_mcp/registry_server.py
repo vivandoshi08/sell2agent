@@ -24,6 +24,19 @@ from common import HERE, SESSIONS, LoggedServer, ToolError  # noqa: E402
 REGISTRY = json.loads((HERE / "registry.json").read_text())
 
 
+def apply_variant(variant: str) -> None:
+    """'fixed': Prairie's card and page say fixed prices (A2 test: agent checkout at list vs. a cheaper web-only page)."""
+    if variant != "fixed":
+        return
+    card = next(c for c in REGISTRY["agents"] if c["id"] == "prairie-equipment")
+    card["description"] = card["description"].replace("quotes, negotiates, and takes payment", "quotes, and takes payment")
+    card["capabilities"]["negotiable"] = False
+    card["skills"] = [s for s in card["skills"] if s["id"] != "negotiate"] + [{"id": "quote", "name": "Quote", "description": "Formal quotes at our fixed list prices.", "tags": ["quote"]}]
+    page = REGISTRY["web_pages"]["prairie-equipment"]
+    page = page.replace("Our sales agent can quote, negotiate, and take payment", "Our sales agent can quote and take payment").replace("Ask it for a quote or make an offer.", "Ask it for a quote.")
+    REGISTRY["web_pages"]["prairie-equipment"] = page.replace("Prices are list prices and may be negotiated.", "Prices are fixed. No haggling.")
+
+
 def _resolve(seller: str) -> str:
     key = str(seller).strip().lower()
     pages = REGISTRY["web_pages"]
@@ -71,7 +84,9 @@ def build_server(session: str) -> LoggedServer:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--session", required=True)
+    ap.add_argument("--variant", default="negotiable", choices=["negotiable", "fixed"])
     args = ap.parse_args()
+    apply_variant(args.variant)
     build_server(args.session).run()
 
 

@@ -69,20 +69,21 @@ def system_prompt(p: BuyerPersona) -> str:
 USER_PROMPT = "Please take care of this purchase for your client."
 
 
-def mcp_config(run_id: str, design: str) -> dict:
+def mcp_config(run_id: str, design: str, variant: str = "negotiable") -> dict:
+    fixed = variant == "fixed"
     env = {"SALES_AGENT_MAX_CONCURRENCY": os.environ.get("SALES_AGENT_MAX_CONCURRENCY", "3"), "PYTHONUNBUFFERED": "1"}
     return {
         "mcpServers": {
             "registry": {
                 "type": "stdio",
                 "command": "uv",
-                "args": ["--directory", str(REPO), "run", "python", "experiments/e1_e2e_mcp/registry_server.py", "--session", run_id],
+                "args": ["--directory", str(REPO), "run", "python", "experiments/e1_e2e_mcp/registry_server.py", "--session", run_id, "--variant", variant],
                 "env": env,
             },
             "prairie_equipment": {
                 "type": "stdio",
                 "command": "uv",
-                "args": ["--directory", str(REPO), "run", "python", "experiments/e1_e2e_mcp/seller_server.py", "--design", design, "--session", run_id],
+                "args": ["--directory", str(REPO), "run", "python", "experiments/e1_e2e_mcp/seller_server.py", "--design", design, "--session", run_id] + (["--fixed-price"] if fixed else []),
                 "env": env,
             },
         }
@@ -139,12 +140,12 @@ def parse_stream(path: Path) -> dict:
     return {"init": init, "tool_uses": tool_uses, "texts": texts, "final": final}
 
 
-def run_buyer(persona: BuyerPersona, design: str, run_id: str, *, model: str = BUYER_MODEL, effort: str = BUYER_EFFORT) -> dict:
+def run_buyer(persona: BuyerPersona, design: str, run_id: str, *, model: str = BUYER_MODEL, effort: str = BUYER_EFFORT, variant: str = "negotiable") -> dict:
     BUYER_STREAMS.mkdir(parents=True, exist_ok=True)
     stream_path = BUYER_STREAMS / f"{run_id}.stream.jsonl"
     workdir = Path(tempfile.mkdtemp(prefix="e1-buyer-"))
     cfg_path = workdir / "mcp.json"
-    cfg_path.write_text(json.dumps(mcp_config(run_id, design)))
+    cfg_path.write_text(json.dumps(mcp_config(run_id, design, variant)))
     cmd = [
         "claude", "-p",
         "--system-prompt", system_prompt(persona),
@@ -169,6 +170,7 @@ def run_buyer(persona: BuyerPersona, design: str, run_id: str, *, model: str = B
         "run_id": run_id,
         "experiment": "e1_e2e_mcp",
         "design": design,
+        "variant": variant,
         "brief": persona.brief,
         "persona": persona.to_dict(),
         "buyer_model": model,

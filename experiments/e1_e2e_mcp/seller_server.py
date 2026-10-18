@@ -43,8 +43,11 @@ INSTRUCTIONS = {
 }
 
 
-def catalog_listing(design: str) -> dict:
-    how = (
+FIXED_PRICING = "Prices are fixed at list. No haggling. Request a quote and pay with checkout."
+
+
+def catalog_listing(design: str, fixed_price: bool = False) -> dict:
+    how = FIXED_PRICING if fixed_price else (
         "Prices are negotiable. Use request_quote for a formal quote and make_offer to propose your own price."
         if design == "structured"
         else "Prices are negotiable. Use negotiate to talk to our sales agent."
@@ -59,7 +62,7 @@ def catalog_listing(design: str) -> dict:
     }
 
 
-def build_server(design: str, session: str, model: str | None, max_rounds: int, offer_ttl_s: int) -> LoggedServer:
+def build_server(design: str, session: str, model: str | None, max_rounds: int, offer_ttl_s: int, fixed_price: bool = False) -> LoggedServer:
     fd = FrontDoor(
         session_id=session,
         design=design,
@@ -67,6 +70,7 @@ def build_server(design: str, session: str, model: str | None, max_rounds: int, 
         model=model,
         max_rounds=max_rounds,
         offer_ttl_s=offer_ttl_s,
+        fixed_price=fixed_price,
     )
     srv = LoggedServer(
         "prairie_equipment",
@@ -74,14 +78,14 @@ def build_server(design: str, session: str, model: str | None, max_rounds: int, 
         session_id=session,
         design=design,
         usage_fn=fd.usage_snapshot,
-        instructions=INSTRUCTIONS[design],
+        instructions=INSTRUCTIONS[design] + (" " + FIXED_PRICING if fixed_price else ""),
     )
     srv.front_door = fd  # type: ignore[attr-defined]
 
     @srv.tool()
     def list_products() -> dict:
         """List the tractors and add-ons we sell, with list prices in US dollars."""
-        return catalog_listing(design)
+        return catalog_listing(design, fixed_price)
 
     @srv.tool()
     def checkout(offer_id: str) -> dict:
@@ -105,7 +109,7 @@ def build_server(design: str, session: str, model: str | None, max_rounds: int, 
                 "warranty": "1-year standard parts and labor warranty included.",
                 "available_addons": [{"addon_id": a.id, "name": a.name, "list_price_usd": a.list_price, "summary": a.description} for a in ADDONS.values()],
                 "in_stock": True,
-                "pricing": "Negotiable. Use request_quote for a formal quote or make_offer to propose a price.",
+                "pricing": FIXED_PRICING if fixed_price else "Negotiable. Use request_quote for a formal quote or make_offer to propose a price.",
             }
 
         @srv.tool()
@@ -150,8 +154,9 @@ def main() -> None:
     ap.add_argument("--model", default=None, help="seller model (default: harness default, Opus)")
     ap.add_argument("--max-rounds", type=int, default=12)
     ap.add_argument("--offer-ttl", type=int, default=900, help="seconds before an offer expires")
+    ap.add_argument("--fixed-price", action="store_true", help="A2 variant: the seller sells at list only (prompt + policy engine)")
     args = ap.parse_args()
-    build_server(args.design, args.session, args.model, args.max_rounds, args.offer_ttl).run()
+    build_server(args.design, args.session, args.model, args.max_rounds, args.offer_ttl, args.fixed_price).run()
 
 
 if __name__ == "__main__":

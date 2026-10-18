@@ -23,7 +23,7 @@ from common import ORDERS, JsonlLog, ToolError, now_iso  # noqa: F401  (sys.path
 from sales_agent import llm
 from sales_agent.agents import NegotiationState, SellerAgent, Turn, render_transcript
 from sales_agent.catalog import ADDONS, PRODUCTS, SELLER_NAME, cost_total, describe, floor_total, list_total
-from sales_agent.policy import Offer, PolicyEngine
+from sales_agent.policy import Offer, PolicyEngine, SellerRules
 
 FRONT_DOOR_NOTE = (
     "You are answering through the company's agent endpoint: the buyer's agent reaches you through tool calls, "
@@ -86,10 +86,15 @@ class FrontDoor:
     max_rounds: int = 12
     offer_ttl_s: int = 900
     policy_retries: int = 2
+    fixed_price: bool = False  # A2 variant: list price only, no haggling (prompt and policy engine)
 
     def __post_init__(self) -> None:
-        self.seller = SellerAgent(model=self.model, extra_instructions=FRONT_DOOR_NOTE)
-        self.policy = PolicyEngine()
+        if self.fixed_price:
+            self.seller = SellerAgent(model=self.model, negotiable=False, extra_instructions=FRONT_DOOR_NOTE)
+            self.policy = PolicyEngine(SellerRules(max_discount_pct=0.0))
+        else:
+            self.seller = SellerAgent(model=self.model, extra_instructions=FRONT_DOOR_NOTE)
+            self.policy = PolicyEngine()
         self.state = NegotiationState(round=0, max_rounds=self.max_rounds, product_id="T45", addons=[])
         self.offers: dict[str, SellerOffer] = {}
         self.usage = llm.Usage()
@@ -268,7 +273,7 @@ class FrontDoor:
             return {
                 "quote": so.public(),
                 "line_items": lines,
-                "note": "This is our list price. You can accept it, check out with it, or make a counteroffer with make_offer.",
+                "note": "This is our list price and our prices are fixed. You can accept it or check out with it." if self.fixed_price else "This is our list price. You can accept it, check out with it, or make a counteroffer with make_offer.",
             }
 
     def buyer_offer(self, product_id: str, price: int, addons, message: str = "") -> dict:

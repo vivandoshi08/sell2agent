@@ -44,6 +44,7 @@ def main() -> None:
     ap.add_argument("--briefs", default="neutral")
     ap.add_argument("--concurrency", type=int, default=3)
     ap.add_argument("--tag", default="e1")
+    ap.add_argument("--variant", default="negotiable", choices=["negotiable", "fixed"], help="fixed: Prairie sells at list only (A2 test)")
     ap.add_argument("--out", default=str(RUNS / "buyer_runs.jsonl"))
     args = ap.parse_args()
 
@@ -71,7 +72,7 @@ def main() -> None:
 
     def one(job):
         p, design, run_id = job
-        return run_buyer(p, design, run_id)
+        return run_buyer(p, design, run_id, variant=args.variant)
 
     with ThreadPoolExecutor(max_workers=args.concurrency) as ex:
         futs = {ex.submit(one, j): j for j in jobs}

@@ -1,0 +1,1 @@
+{"ts": "2026-10-18T00:43:22+00:00", "session": "e1-struct-s101-b007-buy_fast", "round": 1, "role": "buyer", "message": "Ready to buy today, pay in full.", "action": "offer", "offer": {"product_id": "T75", "price": 68000, "addons": ["loader"], "terms": "pay_now"}, "note": ""}
