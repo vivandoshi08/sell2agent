@@ -5,6 +5,8 @@
  *  - probe breaker: a near-miss deadline bid (within 10% of the gap below the hard floor) or an abandoned deal
  *    closes the final-round accept zone (hard floor..soft floor) for everyone on that product for 24 h
  *  - start limiter: 4 negotiation starts per buyer per product per 24 h
+ * Anonymous buyers (gateway-minted `anon_` ids, one per chat) share one bucket per product for all three
+ * (see probeId in store.ts), so opening a fresh chat never buys a better opening, endpoint or start.
  */
 import { createHmac } from "node:crypto";
 

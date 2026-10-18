@@ -23,7 +23,14 @@ export interface BuyerMemory {
   sessions: number;
   updated_at: string;
 }
-export const memoryKey = (buyer_id: string, product_id: string) => `${buyer_id}::${product_id}`;
+/**
+ * Who a buyer is for anti-probing (start limit, buyer memory, jitter). Gateway-minted `anon_` ids are one per
+ * chat, so a new chat would reset everything; all anonymous buyers share one `anon` bucket per product instead.
+ * Named and simulated buyer_ids keep their own bucket.
+ */
+export const ANON_PREFIX = "anon_";
+export const probeId = (buyer_id: string) => (buyer_id.startsWith(ANON_PREFIX) ? "anon" : buyer_id);
+export const memoryKey = (buyer_id: string, product_id: string) => `${probeId(buyer_id)}::${product_id}`;
 
 const clone = <T>(x: T): T => structuredClone(x);
 
