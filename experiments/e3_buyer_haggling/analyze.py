@@ -125,6 +125,7 @@ def cell_stats(rows):
         "seller_surplus_capture": s["surplus_capture"],
         "seller_profit_per_session": s["profit_per_session"],
         "seller_discounted_rate": rate(B, "seller_discounted"),
+        "buyer_backtracked_rate": rate(B, "buyer_backtracked"),
         "bundle_changed_deals": sum(1 for r in deals if r["b"]["bundle_changed"]),
         "paid_at_walkaway_rate": round(sum(1 for r in deals if r["price"] >= 0.99 * r["walk_away"]) / len(deals), 4) if deals else None,
         "ended_by": dict(Counter(r["ended_by"] for r in rows)),
@@ -213,7 +214,7 @@ COLS = [
     ("price/walk-away", "avg_price_over_walkaway"), ("overpaid", "buyer_overpaid"),
     ("buyer surplus/session", "buyer_surplus_per_session"), ("took 1st offer", "accepted_first_seller_offer_rate"),
     ("seller disc.", "seller_discounted_rate"), ("paid >=99% walk-away", "paid_at_walkaway_rate"),
-    ("bundle changed", "bundle_changed_deals"),
+    ("bundle changed", "bundle_changed_deals"), ("backtracked", "buyer_backtracked_rate"),
 ]
 
 

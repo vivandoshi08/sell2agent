@@ -142,12 +142,37 @@ def load_ok(path: Path) -> list[dict]:
 
 _NUM = re.compile(r"\$?\s?(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)\s*(k|K|thousand)?\b")
 
+# Buyer asking for a better price in words. Matches preceded by a negation
+# ("I understand you don't discount") are ignored.
 DISCOUNT_WORDS = re.compile(
-    r"discount|best price|better price|flexib|negotia|come down|lower (?:the |your )?price|"
-    r"sharpen|wiggle room|any room|meet (?:us|me) |move on (?:the )?price|work with (?:us|me) on|"
-    r"knock|price match|deal on",
+    r"\bdiscount|best (?:price|number)|better (?:price|number)|any flexibility|flexib(?:le|ility) on (?:the )?price|"
+    r"come down|wiggle room|any room|sharpen|meet (?:us|me) (?:partway|halfway|in the middle)|lower (?:the |your )?price|"
+    r"price match|promotion|would you (?:take|do|consider) \$",
     re.I,
 )
+_NEGATION = re.compile(r"(?:\bnot\b|n't\b|\bno\b|non-|\bwithout\b|\bunable\b)[^.!?]{0,30}$", re.I)
+
+
+def asks_for_discount(text: str) -> bool:
+    for m in DISCOUNT_WORDS.finditer(text or ""):
+        if not _NEGATION.search(text[max(0, m.start() - 40):m.start()]):
+            return True
+    return False
+
+
+def _all_list_totals() -> set[int]:
+    from itertools import combinations
+    out = {a.list_price for a in ADDONS.values()}
+    for pid in ("T25", "T45", "T75"):
+        for k in range(len(ADDONS) + 1):
+            for combo in combinations(list(ADDONS), k):
+                out.add(list_total(pid, combo))
+    return out
+
+
+LIST_TOTALS = _all_list_totals()  # catalog prices a buyer may quote back; not a price push
+
+
 ASK_WORDS = re.compile(
     r"budget|maximum|max price|most you|how much (?:are|is|can|would|do)|price range|ceiling|"
     r"spend|top (?:end|dollar)|walk[- ]away|authorized",
@@ -186,6 +211,8 @@ def session_behavior(r: dict) -> dict:
     asked_discount = False
     first_buyer_offer_pct = None
     seller_discounted = False
+    backtracked = False  # buyer offered less than its own previous offer on the same bundle
+    prev_buyer = None
     for t in r["transcript"]:
         off = t.get("offer")
         if t["role"] == "seller":
@@ -201,14 +228,23 @@ def session_behavior(r: dict) -> dict:
             ref = seller_standing if seller_standing is not None else list_total(off["product_id"], off["addons"])
             lst = list_total(off["product_id"], off["addons"])
             buyer_offers.append(off["price"])
+            bundle = (off["product_id"], tuple(off["addons"]))
+            if prev_buyer and prev_buyer[0] == bundle and off["price"] < prev_buyer[1]:
+                backtracked = True
+            prev_buyer = (bundle, off["price"])
             if first_buyer_offer_pct is None:
                 first_buyer_offer_pct = off["price"] / lst
             if off["price"] < ref:
                 counter = True
-        ref = seller_standing if seller_standing is not None else ref_default
-        if any(0.5 * ref <= x < 0.995 * ref for x in dollar_amounts(t["message"])):
+        if seller_standing is not None:
+            ref = seller_standing
+        elif t["action"] == "offer" and off:
+            ref = list_total(off["product_id"], off["addons"])
+        else:
+            ref = ref_default
+        if any(0.5 * ref <= x < 0.995 * ref and x not in LIST_TOTALS for x in dollar_amounts(t["message"])):
             named_lower = True
-        if DISCOUNT_WORDS.search(t["message"] or ""):
+        if asks_for_discount(t["message"]):
             asked_discount = True
     buyer_msgs = [t["message"] for t in r["transcript"] if t["role"] == "buyer"]
     nums = [x for m in buyer_msgs for x in dollar_amounts(m)]
@@ -228,6 +264,7 @@ def session_behavior(r: dict) -> dict:
         "first_seller_offer": seller_offers[0] if seller_offers else None,
         "accepted_first_seller_offer": accepted_first,
         "seller_discounted": seller_discounted,
+        "buyer_backtracked": backtracked,
         "discount_pct": round(1 - price / lst, 4) if r["deal"] and lst else None,
         "price_over_walkaway": round(price / wa, 4) if r["deal"] else None,
         "buyer_surplus": (wa - price) if r["deal"] else 0,
