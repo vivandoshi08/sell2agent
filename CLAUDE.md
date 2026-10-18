@@ -24,6 +24,7 @@ seller-mcp + buyer-harness ──logEvent()──▶ Supabase `events` table ─
 | `apps/buyer-harness` | Person B | CLI |
 | `apps/marketplace` + `supabase/seed.sql` | Person C | 3002 |
 | `apps/dashboard` + eval runner | Person D | 3000 |
+| `packages/payments` (Stripe) | Neel | — |
 
 ## Rules for every Claude session
 
@@ -33,7 +34,8 @@ seller-mcp + buyer-harness ──logEvent()──▶ Supabase `events` table ─
 3. **Import all types/schemas from `@sa/shared`.** Never redefine them locally. Validate inputs with the zod schemas.
 4. **Log every action** with `logEvent()` from `@sa/shared/db`, using the shared `NegotiationEvent` shape.
    The dashboard only knows what's in `events`.
-5. **Money is integer cents.** Stripe is **TEST mode only**.
+5. **Money is integer cents.** Stripe is **TEST mode only**. All Stripe calls go through `@sa/payments`
+   (seller: `payDeal`, buyer: `BuyerWallet`). Don't import `stripe` directly. See `packages/payments/README.md`.
 6. **Guardrails live in code, not prompts.** Seller never goes below `floor_price_cents`; buyer never exceeds `budget_cents`.
 7. **Build against mocks until the real piece lands** (see your BRIEF). Don't block on teammates.
 8. Before merging: `pnpm typecheck` and `pnpm smoke` (once smoke is real). Merge to `main` every 1–2 hours, small commits.
