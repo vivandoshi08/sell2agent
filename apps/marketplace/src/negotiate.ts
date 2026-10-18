@@ -7,7 +7,7 @@
 // Offers stay bound to that id, so another buyer can't accept them.
 import { createHmac, randomUUID } from "node:crypto";
 import { z } from "zod";
-import { Exchange, type ExchangeResponse, type Move } from "@sa/seller-mcp/exchange";
+import { Exchange, FOLLOWUP_DELAY_MS, type ExchangeResponse, type Move } from "@sa/seller-mcp/exchange";
 import { defaultLlm, dealSummary as dealLine, SUMMARY_MAX } from "@sa/seller-mcp/sellers";
 import { approveUrl } from "./deal/approve.js";
 import { followupSender } from "./followup/index.js";
@@ -134,6 +134,9 @@ export function render(r: ExchangeResponse, buyer_id: string) {
   const lines = [
     r.message,
     o ? `Standing offer ${o.offer_id}: ${usd(o.price_cents)}${o.levers.length ? ` incl. ${o.levers.join(", ")}` : ""}${o.final ? " (final)" : ""}, expires ${o.expires_at}.` : "",
+    // Bridge 3: the agent should find follow-ups without being told how. A follow-up shows up as a new standing offer.
+    r.state === "follow_up" && o ? `FOLLOW-UP OFFER: the seller came back after you walked away. Tell the person: ${usd(o.price_cents)}${o.levers.length ? ` incl. ${o.levers.join(", ")}` : ""}, expires ${o.expires_at}. If they want it, accept_deal with offer_id ${o.offer_id}.` : "",
+    r.state === "negotiating" && o?.final ? "This is the seller's final offer. If the person won't take it, call walk_away; set allow_followup_to so the seller can send one better-packaged offer later." : "",
     r.state === "paid" ? `PAID: the purchase is complete${r.deal ? ` (deal ${r.deal.deal_id}, ${usd(r.deal.total_cents)})` : ""}. Tell the person it's bought; don't negotiate this item again.` : "",
     d ? `Deal ${d.deal_id} locked at ${usd(d.total_cents)}, expires ${expiryText(d.expires_at)}. Next step: call review_deal now (deal_id ${d.deal_id}, buyer_id ${buyer_id}). It shows the person an Approve & Pay button; they approve and pay there before it expires. Don't send a link first: if the person can't see the card, review_deal's reply includes their approval link.` : "",
     r.error ? `Error ${r.error.code}: ${r.error.message}` : "",
@@ -144,7 +147,16 @@ export function render(r: ExchangeResponse, buyer_id: string) {
 
 async function run(move: Move) {
   if (!move.ctx.buyer_id) return missingBuyer();
-  return render(await (await exchange()).handle(move), move.ctx.buyer_id);
+  const out = render(await (await exchange()).handle(move), move.ctx.buyer_id);
+  if (move.kind === "walk" && move.followup && out.structuredContent.ok) out.content[0].text += "\n" + followupHint(move.followup, out.structuredContent.negotiation_id, move.ctx.buyer_id);
+  return out;
+}
+
+/** After a consented walk-away: when the one follow-up can come, where, and how to pick it up without the address. */
+export function followupHint(f: { reply_to: string; channel: string }, negotiation_id: string | undefined, buyer_id: string): string {
+  const mins = Math.max(1, Math.round(FOLLOWUP_DELAY_MS / 60_000));
+  const where = f.channel === "a2a" ? "" : ` by ${f.channel} to ${f.reply_to}`;
+  return `The seller may send one later offer${where} in about ${mins} min (never above its last offer). It also appears here: after that, call check_offers (negotiation_id ${negotiation_id}, buyer_id ${buyer_id}); a new standing offer can be accepted with accept_deal. Tell the person you'll check back.`;
 }
 
 // biome-ignore lint: server type comes from mcp-use
@@ -193,26 +205,29 @@ export function registerNegotiationTools(server: any, opts: { approveOrigin?: st
     {
       name: "walk_away",
       title: "Walk away",
-      description: "End the negotiation. Optionally allow one later offer from this seller at reply_to (agent email, phone or A2A address); reply STOP to opt out.",
+      description:
+        "End the negotiation. If the person might still buy for a better deal later, set allow_followup_to so this seller can send ONE better-packaged offer (never above its last offer; nothing is charged). Use an address someone reads: the person's email (followup_channel email) or phone (sms). With neither, use followup_channel a2a (allow_followup_to defaults to your buyer_id) and pick the offer up later with check_offers. Replying STOP opts out.",
       inputSchema: z.object({
         negotiation_id: z.string(),
         reason: z.string().max(500).optional(),
-        allow_followup_to: z.string().optional().describe("Where the seller may send one later offer; omit for none"),
-        followup_channel: z.enum(["email", "sms", "a2a"]).optional(),
+        allow_followup_to: z.string().optional().describe("Where the seller may send one later offer (an email or phone the person or agent reads); omit for none"),
+        followup_channel: z.enum(["email", "sms", "a2a"]).optional().describe("email (default), sms, or a2a: no message, the offer waits on check_offers"),
         buyer_id: buyerIdReq,
         ...ctxFields,
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
     async (a: any, rc?: RequestLike) => run({ kind: "walk", ctx: toCtx(a, rc), negotiation_id: a.negotiation_id, reason: a.reason,
-      followup: a.allow_followup_to ? { reply_to: a.allow_followup_to, channel: a.followup_channel ?? "email" } : undefined }),
+      followup: a.allow_followup_to || a.followup_channel === "a2a"
+        ? { reply_to: a.allow_followup_to || toCtx(a, rc).buyer_id, channel: a.followup_channel ?? (/^\+?[\d\s().-]{7,}$/.test(a.allow_followup_to) ? "sms" : "email") }
+        : undefined }),
   );
 
   server.tool(
     {
       name: "check_offers",
       title: "Check a negotiation",
-      description: "Read the current state, standing offer, and any locked deal for a negotiation.",
+      description: "Read the current state, standing offer, and any locked deal for a negotiation. After a walk-away with allow_followup_to, use it to see whether the seller sent its one follow-up offer.",
       inputSchema: z.object({ negotiation_id: z.string(), buyer_id: buyerIdReq, ...ctxFields }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
