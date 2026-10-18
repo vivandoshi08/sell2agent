@@ -41,6 +41,20 @@ export function RunPicker({ runs, selected, onChange, isDefault }: { runs: RunIn
   );
 }
 
+/** Filter every panel to one buyer model (Claude vs GPT vs ChatGPT users). Hidden when there's only one. */
+export function ModelFilter({ models, model, onChange }: { models: string[]; model: string | null; onChange: (m: string | null) => void }) {
+  if (models.length <= 1) return null;
+  return (
+    <label className="badge" style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
+      <span>Buyer model</span>
+      <select value={model ?? ""} onChange={(e) => onChange(e.target.value || null)} style={{ font: "inherit", background: "transparent", color: "inherit", border: 0 }}>
+        <option value="">all</option>
+        {models.map((m) => <option key={m} value={m}>{m}</option>)}
+      </select>
+    </label>
+  );
+}
+
 /** Buyer fit per policy, with intervals: shows negotiation serves buyers, not just squeezes them. */
 export function BuyerFit({ kpis }: { kpis: PolicyKpis[] }) {
   const any = kpis.some((k) => k.avg_buyer_fit != null);

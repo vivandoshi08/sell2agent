@@ -41,3 +41,18 @@ test("policy KPIs compare eval runs only once any exist; live and test runs don'
   assert.ok(!names.includes("live") && !names.some((n) => n.startsWith("s1-test")), names.join());
   assert.deepEqual(kpis, policyKpis(evals, { resamples: 50 }));
 });
+
+test("buyer-model filter keeps whole buyers of that model, plus run-level rows", async () => {
+  const { filterByModel, listModels, defaultSelection, listRuns } = await import("../src/data/runs");
+  const evs = [
+    ev("r1", "run_started", { buyer_id: null, buyer_model: null, actor: "harness" } as any, { policy: "negotiating" }),
+    ev("r1", "offer_made", { buyer_id: "a", buyer_model: "claude-sonnet-5-5" }),
+    ev("r1", "offer_countered", { buyer_id: "a", buyer_model: null } as any),
+    ev("r1", "offer_made", { buyer_id: "b", buyer_model: "gpt-5" }),
+  ];
+  assert.deepEqual(listModels(evs).sort(), ["claude-sonnet-5-5", "gpt-5"]);
+  const only = filterByModel(evs, "claude-sonnet-5-5");
+  assert.deepEqual(only.map((e) => e.buyer_id), [null, "a", "a"]);
+  // Test runs never become the default selection.
+  assert.deepEqual(defaultSelection(listRuns([...evs, ...live])).sort(), ["live", "r1"]);
+});
