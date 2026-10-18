@@ -29,10 +29,10 @@ export interface SupabaseCatalogOptions {
   timeout_ms?: number;
 }
 
-/** The seller_policies columns build() reads (v2 adds lever_menu + policy). */
+/** The seller_policies columns build() reads (v2 adds lever_menu + policy + objective, all from 0002). */
 const POLICY_COLUMNS_V1 = "product_id,floor_price_cents,unit_cost_cents,allowed_concessions";
-const POLICY_COLUMNS = `${POLICY_COLUMNS_V1},lever_menu,policy`;
-const V2_MISSING = /lever_menu|\.policy\b|"policy"|column policy\b/;
+const POLICY_COLUMNS = `${POLICY_COLUMNS_V1},lever_menu,policy,objective`;
+const V2_MISSING = /lever_menu|objective|\.policy\b|"policy"|column policy\b/;
 
 const STRATEGIES =["static", "negotiating", "balanced", "learned"] as const;
 const DEFAULT_MAX_ROUNDS = 6;
