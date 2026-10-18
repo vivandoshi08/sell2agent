@@ -2,10 +2,10 @@
 //   node apps/marketplace/scripts/verify-prod.mjs [mcp_url] [--pay]
 // Checks: tools/list (9 tools), lever-ranked search (extras carry the shared map's values), and one haggle
 // make_offer → accept_deal → review_deal (→ pay_deal in Stripe test mode with --pay). Uses its own buyer_id and
-// run_id "verify_s1" so it never touches the shared anon bucket or the live run.
+// run_id "s1-test-verify" (hidden from the dashboard) so it never touches the anon bucket or the live run.
 const URL = process.argv.find((a) => a.startsWith("http")) ?? "https://dark-zero-mesv5.run.mcp-use.com/mcp";
 const PAY = process.argv.includes("--pay");
-const RUN = "verify_s1";
+const RUN = "s1-test-verify"; // dashboard isTestRun() hides s1-test* runs
 const BUYER = `verify_${Date.now().toString(36)}`;
 let id = 0;
 const fail = (m) => { console.error(`FAIL ${m}`); process.exit(1); };
