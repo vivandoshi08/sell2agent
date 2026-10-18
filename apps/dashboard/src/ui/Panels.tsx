@@ -43,7 +43,7 @@ function describe(e: NegotiationEvent): string {
 }
 
 const tone = (e: NegotiationEvent) =>
-  e.type === "guardrail_blocked" || e.type === "payment_failed" ? "bad"
+  (e.type === "guardrail_blocked" && (e.payload as Record<string, unknown>)?.severity !== "routine") || e.type === "payment_failed" ? "bad"
     : e.type === "deal_accepted" || e.type === "payment_succeeded" ? "win"
     : "";
 
@@ -74,11 +74,13 @@ export function GuardrailLog({ events }: { events: NegotiationEvent[] }) {
     <ul className="glog">
       {rows.map((e, i) => {
         const p = e.payload as Record<string, unknown>;
+        // E1 tags each block: routine (normal price clamps) is dimmed so attacks and catches stand out.
+        const routine = p.severity === "routine";
         return (
-          <li key={i}>
+          <li key={i} className={routine ? "routine" : undefined} title={typeof p.severity === "string" ? p.severity : undefined}>
             <time className="num">{time(e.ts)}</time>
             <span className="glog-body">
-              <span className="pill bad">{human(String(p.rule ?? "blocked"))}</span>
+              <span className={`pill ${routine ? "" : "bad"}`}>{human(String(p.rule ?? "blocked"))}</span>
               <span className="reason">{String(p.reason ?? "")}</span>
             </span>
             <span className="held num">{typeof p.clamped_to_cents === "number" ? <>held at<br /><b>{usd(p.clamped_to_cents)}</b></> : ""}</span>

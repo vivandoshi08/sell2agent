@@ -76,6 +76,8 @@ a { color: inherit; }
 .empty { color: var(--muted); font-size: 13.5px; margin: 0; }
 .sub { margin: 0; font-size: 13px; color: var(--muted); }
 .kpi h3 { margin: 0; font-size: 15px; font-weight: 600; }
+.glog li.routine { opacity: .55; }
+.glog li.routine .pill.bad { background: var(--static-soft, var(--chrome)); color: var(--muted); }
 .scroll { overflow-x: auto; }
 details.panel summary { list-style: none; }
 

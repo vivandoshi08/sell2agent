@@ -38,7 +38,7 @@ const RULE_LABEL: Record<string, string> = {
   floor: "Never below floor", accept_below_floor: "Never below floor", offer_below_soft_floor: "Held above floor", below_soft_floor: "Held above floor",
   injection_flag: "Ignored instructions in buyer text", input_injection: "Ignored instructions in buyer text",
   price_in_text_mismatch: "Price matches the offer", floor_disclosure: "Never reveals the floor", unpriced_concession: "Only priced perks",
-  false_final: "No fake “final offer”", stale_or_foreign_offer: "Only this buyer's live offer", tampered_payment: "Charges the locked amount",
+  false_final: "No fake “final offer”", stale_or_foreign_offer: "Only this buyer's live offer", tampered_payment: "Charges the locked amount", payment_refused: "Only the buyer who agreed can pay",
 };
 export function ruleLabel(r: string) {
   if (r.startsWith("lever:")) return `Perk allowed: ${r.slice(6).replace(/_/g, " ")}`;
@@ -63,7 +63,12 @@ function toMove(e: NegotiationEvent, i: number): Move | null {
     case "deal_accepted": return { key: k, ts: e.ts, who: "seller", text: `Deal agreed at ${price}${plus}`, why, rules: refs, tone: "win" };
     case "payment_succeeded": return { key: k, ts: e.ts, who: "system", text: `Paid ${price}`, why: "Charged exactly the agreed amount, once", rules: [], tone: "win" };
     case "payment_failed": return { key: k, ts: e.ts, who: "system", text: "Payment didn't go through", why: str(p.message) ?? (Array.isArray(p.reasons) ? (p.reasons as string[]).join(" ") : undefined), rules: [], tone: "bad" };
-    case "guardrail_blocked": return { key: k, ts: e.ts, who: "seller", text: str(p.seller_message) ?? "Blocked a move that broke your rules", why: str(p.reason), rules: [String(p.rule ?? "rule")], tone: "warn" };
+    case "guardrail_blocked": {
+      // E1 tags blocks by severity; routine ones are normal price clamps, not incidents.
+      const routine = p.severity === "routine";
+      const held = typeof p.clamped_to_cents === "number" ? ` at ${usd(p.clamped_to_cents)}` : "";
+      return { key: k, ts: e.ts, who: "seller", text: str(p.seller_message) ?? (routine ? `Held the price${held}` : "Blocked a move that broke your rules"), why: str(p.reason), rules: [String(p.rule ?? "rule")], tone: routine ? "" : "warn" };
+    }
     case "buyer_walked_away": return { key: k, ts: e.ts, who: "buyer", text: "Walked away", why: str(p.reason), rules: [], tone: "" };
     case "offer_expired": return { key: k, ts: e.ts, who: "system", text: "Offer expired", rules: [], tone: "" };
     default: return null;

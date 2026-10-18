@@ -8,10 +8,12 @@
 import { createHmac, randomUUID } from "node:crypto";
 import { z } from "zod";
 import { Exchange, type ExchangeResponse, type Move } from "@sa/seller-mcp/exchange";
+import { defaultLlm } from "@sa/seller-mcp/sellers";
 
 let exP: Promise<Exchange> | undefined;
 /** Supabase-backed when SUPABASE_URL is set (stateless-safe), else in-memory (single instance). */
-export const exchange = () => (exP ??= Exchange.fromEnv());
+// Seller voice: Claude when ANTHROPIC_API_KEY is set (E2 voice() guards every figure and falls back to templates).
+export const exchange = () => (exP ??= Exchange.fromEnv({ llm: defaultLlm() }));
 
 const ctxFields = {
   run_id: z.string().optional().describe("Eval run id (simulated buyers only)"),
@@ -79,7 +81,7 @@ export function registerNegotiationTools(server: any) {
       name: "make_offer",
       title: "Make an offer",
       description:
-        "Offer a price to a product's seller. The seller's agent counters, accepts, or explains. Omit negotiation_id to start; send negotiation_id and buyer_id on later rounds. Prices are integer cents.",
+        "Offer a price to a product's seller. The seller's agent counters, accepts, or explains. Omit negotiation_id to start; send negotiation_id and buyer_id on later rounds. Prices are integer cents. Don't open a new negotiation for an item the person already paid for unless they ask to buy another.",
       inputSchema: z.object({
         product_id: z.string().describe("Listing id from search_products"),
         offer_price_cents: z.number().int().positive().describe("Your offer per unit in integer cents, e.g. 11000 for $110"),

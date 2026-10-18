@@ -52,7 +52,7 @@ export function createPayHandler(deps: PayDeps) {
   const results = deps.results ?? new Map<string, PayResult>();
   const inFlight = new Map<string, Promise<PayResult>>();
 
-  async function log(type: "payment_succeeded" | "payment_failed", deal: StoredDeal | null, deal_id: string, r: PayResult, ctx: PayContext) {
+  async function log(type: "payment_succeeded" | "payment_failed" | "guardrail_blocked", deal: StoredDeal | null, deal_id: string, r: PayResult, ctx: PayContext) {
     try {
       await deps.logEvent({
         run_id: ctx.run_id ?? ctx.buyer?.run_id ?? "live",
@@ -65,7 +65,10 @@ export function createPayHandler(deps: PayDeps) {
         actor: "seller",
         type,
         price_cents: r.amount_cents || null,
-        payload: { deal_id, payment_intent_id: r.payment_intent_id ?? null, mode: r.mode, status: r.status, reasons: r.reasons ?? [], ...(r.code ? { code: r.code } : {}) },
+        payload: { deal_id, payment_intent_id: r.payment_intent_id ?? null, mode: r.mode, status: r.status, reasons: r.reasons ?? [], ...(r.code ? { code: r.code } : {}),
+          // A refusal is a blocked attempt, not a failed charge: keep it out of payment-failure rates.
+          ...(type === "guardrail_blocked" ? { rule: "payment_refused", reason: r.reasons?.[0] ?? r.code ?? "refused",
+            severity: ["wrong_buyer", "tampered", "amount_mismatch"].includes(r.code ?? "") ? "attack" : "catch" } : {}) },
       });
     } catch (e) {
       // Logging must never break a payment response.
@@ -94,7 +97,7 @@ export function createPayHandler(deps: PayDeps) {
         code: check.code, reasons: [check.reason], fix: check.fix ?? FIXES[check.code] };
       // Read-only lookup so the refusal row still names its negotiation and product (nothing is charged).
       const known = await deps.deals.getDeal(deal_id).catch(() => null);
-      await log("payment_failed", known, deal_id, r, ctx);
+      await log("guardrail_blocked", known, deal_id, r, ctx);
       return r;
     }
 

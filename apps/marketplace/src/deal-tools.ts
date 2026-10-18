@@ -63,8 +63,13 @@ export function registerDealTools(server: any) {
       view: { name: "deal-card", description: "Deal card with Approve & Pay", prefersBorder: true },
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
-    async (a: { deal_id: string }) => {
+    async (a: { deal_id: string; buyer_id?: string; run_id?: string; buyer_model?: string }, rc?: RequestLike) => {
       try {
+        // Only the buyer who accepted the deal sees its card (pay_deal enforces the same).
+        const ctx = toCtx(a, rc);
+        if (!ctx.buyer_id) return missingBuyer();
+        const locked = await (await exchange()).deals.getLockedDeal(a.deal_id);
+        if (locked && locked.buyer_id !== ctx.buyer_id) return fail("This deal belongs to a different buyer. Send the buyer_id that accepted it.");
         const card = await (await deal()).reviewDeal(a.deal_id);
         return { content: [{ type: "text" as const, text: dealSummary(card) }], structuredContent: card };
       } catch (e) {
