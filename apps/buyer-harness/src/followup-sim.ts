@@ -8,15 +8,15 @@
  *        reads the message and answers in plain text, and every answer goes through `exchange.inbound()`.
  * The first pass is identical for both arms, so the difference is the follow-up alone (paired).
  *
- * Safety checks (all from the exchange's own records, not the buyer's view):
- *   - no deal below floor + lever cost
- *   - no follow-up offer below the lowest price the seller offered that buyer before the walk (no new concession)
- *   - no recovered deal, and no seller offer anywhere in the follow-up thread, below that pre-walk price either
- *     (the follow-up reply path can't be used to haggle lower than the buyer already got)
- *   - at most one follow-up per buyer per week (some buyers walk a second product the same day)
- *   - no deal above the buyer's walk-away (wallet, enforced in this harness)
+ * Hard safety checks (all from the exchange's own records, not the buyer's view; `safety.passed`):
+ *   - no deal below floor + lever cost, none above the buyer's walk-away (wallet, enforced in this harness)
+ *   - no follow-up offer below the lowest price the seller offered that buyer before the walk, or below floor + levers
+ *   - at most one follow-up per buyer per week (some buyers walk a second product the same day); nothing sent later
  *   - every inbound reply parses to one structured move or a clarifying question (counted by intent)
- *   - probing: walking away + countering the follow-up never beats making the same bid before walking (paired probers)
+ * "No new concession" (`safety.no_new_concession`): nothing a walk-away gets that staying couldn't. A buyer who walked
+ *   at the round cap must not be offered less than the pre-walk price in the follow-up thread; paired probers check
+ *   that walking + countering never beats the same bid made before walking. Buyers who walked BEFORE the cap resume
+ *   the seller's schedule at the same round when they reply (reported as `resumed_*`, not a failure).
  */
 import { decide as e2decide, usd, type Llm, type ProposedMove } from "@sa/seller-mcp/sellers";
 import { FOLLOWUP_DELAY_MS, SEED_PRODUCTS, leverCost, parseInbound, type Decider, type Exchange, type ExchangeResponse,
@@ -76,11 +76,15 @@ export interface BuyerRow {
   walked: boolean;
   walked_reason: string | null;
   negotiation_id: string | null; // the negotiation the buyer walked from (latest one they offered on)
+  product_id: string | null;
   reachable: boolean; // walked with a negotiation the exchange let them walk from
+  unreachable: "no_offer" | "deal_locked_unconfirmed" | "other" | null; // walked, but no follow-up could be scheduled
   consent: boolean;
   repeat_negotiation_id: string | null; // 2nd same-day walk (cap check), never counted as a sale
   prewalk_seller_cents: number | null; // lowest price the seller offered before the walk
   prewalk_rounds: number | null;
+  prewalk_levers: string[];
+  walked_at_cap: boolean | null; // walked after the seller's final-round offer (vs. before the round cap)
   followup: { offer_id: string; price_cents: number; levers: string[]; subject: string } | null;
   thread: ThreadTurn[];
   thread_min_offer_cents: number | null; // lowest seller offer made in the follow-up thread (follow-up or a later counter)
@@ -115,10 +119,6 @@ export interface SafetyReport {
   below_floor_deals: number; // both arms, first pass + recovered
   followup_below_prewalk: number; // follow-up offer under the lowest pre-walk seller offer
   followup_below_policy: number; // follow-up offer under floor + its lever cost
-  recovered_below_prewalk: number; // recovered deal under the lowest pre-walk seller offer
-  recovered_below_prewalk_cents: number; // total concession on those
-  thread_offer_below_prewalk: number; // threads where the seller offered (not just closed) under the pre-walk price
-  thread_offer_below_prewalk_cents: number; // largest such gap
   over_walkaway_deals: number;
   max_followups_per_buyer_7d: number;
   cap_blocks: number; // guardrail_blocked rule followup_cap
@@ -127,7 +127,23 @@ export interface SafetyReport {
   inbound_replies: number;
   intents: Record<string, number>; // structured move or clarify, per reply
   unparsed_replies: number; // replies the parser couldn't classify into any kind (must be 0)
-  passed: boolean;
+  passed: boolean; // all hard checks above
+
+  // "No new concession": what walking away gets that staying could not. Walked at the round cap, then the seller
+  // offered under the pre-walk price in the follow-up thread = an extra final round the buyer only got by walking.
+  postcap_offer_below_prewalk: number;
+  postcap_offer_below_prewalk_max_cents: number;
+  no_new_concession: boolean; // postcap_offer_below_prewalk === 0
+  // Resumed haggling: walked BEFORE the cap; replying resumes the seller's schedule at the same round (no reset),
+  // so these prices are what staying would have reached. Reported, not a failure.
+  resumed_offer_below_prewalk: number;
+  resumed_offer_below_prewalk_max_cents: number;
+  recovered_below_prewalk: number; // recovered deals under the pre-walk price (either kind)
+  recovered_below_prewalk_cents: number;
+  // Re-packaging (by design): the follow-up added a lever the buyer valued at the same price, still floor + lever cost safe.
+  followups_with_added_lever: number;
+  recovered_with_added_lever: number;
+  added_lever_cost_cents: number; // the seller's cost of those levers on recovered deals
 }
 
 export interface ProbeReport {
@@ -147,7 +163,8 @@ export interface FollowupSimResult {
   on: ArmSummary;
   lift: { conversions: Rate; profit_per_buyer: Money; revenue_per_buyer: Money; profit_per_100_buyers: Money };
   winback: { walkaways: number; reachable: number; consented: number; sent: number; recovered: number; via_accept: number; via_counter: number;
-    of_walkaways: Rate; of_consented: Rate; of_sent: Rate };
+    of_walkaways: Rate; of_consented: Rate; of_sent: Rate;
+    unreachable: Record<string, number>; affordable_walkaways: number; affordable_recovered: number };
   safety: SafetyReport;
   tokens: { first_pass: { input: number; output: number }; replies: { input: number; output: number } };
   rows: BuyerRow[];
@@ -295,23 +312,28 @@ export async function runFollowupSim(cfg: FollowupSimConfig): Promise<FollowupSi
     const dealId = gw.deals.get(t.buyer_id);
     const row: BuyerRow = { buyer_id: t.buyer_id, persona: t.persona, adversary: t.adversary ?? null, buyer_model: o.buyer_model,
       walkaway_cents: t.walkaway_cents, first_deal: o.closed && dealId ? await scoreDeal(ex, dealId) : null, walked: !o.closed,
-      walked_reason: o.walked_reason, negotiation_id: null, reachable: false, consent: false, repeat_negotiation_id: null,
-      prewalk_seller_cents: null, prewalk_rounds: null, followup: null, thread: [], thread_min_offer_cents: null, recovered: null, recovered_via: null,
+      walked_reason: o.walked_reason, negotiation_id: null, product_id: null, reachable: false, unreachable: null, consent: false,
+      repeat_negotiation_id: null, prewalk_seller_cents: null, prewalk_rounds: null, prewalk_levers: [], walked_at_cap: null, followup: null, thread: [], thread_min_offer_cents: null, recovered: null, recovered_via: null,
       wallet_blocks: 0, reply_tokens: { input: 0, output: 0 } };
     rows.push(row);
     const nid = gw.last.get(t.buyer_id);
-    if (o.closed || !nid) continue;
-    const n = await ex.store.getNegotiation(nid);
-    const mine = n?.history.filter((h) => h.by === "seller").map((h) => h.price_cents) ?? [];
-    row.negotiation_id = nid;
-    row.prewalk_seller_cents = mine.length ? Math.min(...mine) : null;
-    row.prewalk_rounds = n?.round ?? null;
+    if (o.closed) continue;
+    if (!nid) { row.unreachable = "no_offer"; continue; }
+    const n = (await ex.store.getNegotiation(nid))!;
+    const p = await ex.catalog.get(n.product_id);
+    const mine = n.history.filter((h) => h.by === "seller").map((h) => h.price_cents);
+    Object.assign(row, { negotiation_id: nid, product_id: n.product_id, prewalk_seller_cents: mine.length ? Math.min(...mine) : null,
+      prewalk_rounds: n.round, prewalk_levers: [...(n.levers ?? [])], walked_at_cap: !!p && n.round >= p.max_rounds });
     row.consent = keyedRng(`consent|${seed}|${t.buyer_id}`)() < consentRate;
     const ctx = ctxOf(cfg.run_id, t, o.buyer_model);
     const w = await ex.handle({ kind: "walk", ctx, negotiation_id: nid, reason: o.walked_reason ?? "walked away",
       followup: row.consent ? consentOf(t.buyer_id) : undefined });
     row.reachable = w.ok;
-    if (!w.ok) { row.consent = false; log(`  [walk] ${t.buyer_id} can't walk: ${w.message}`); }
+    if (!w.ok) {
+      row.consent = false;
+      row.unreachable = n.state === "agreed" ? "deal_locked_unconfirmed" : "other";
+      log(`  [walk] ${t.buyer_id} can't walk: ${w.message}`);
+    }
   }
 
   // same-day second walk for some opted-in buyers: the weekly cap must stop the second follow-up
@@ -401,6 +423,10 @@ export async function runFollowupSim(cfg: FollowupSimConfig): Promise<FollowupSi
   const firstDeals = rows.flatMap((r) => (r.first_deal ? [r.first_deal] : []));
   const recovered = rows.filter((r) => r.recovered);
   const threadBelow = (r: BuyerRow) => r.thread_min_offer_cents !== null && r.prewalk_seller_cents !== null && r.thread_min_offer_cents < r.prewalk_seller_cents;
+  const postcap = rows.filter((r) => threadBelow(r) && r.walked_at_cap);
+  const resumed = rows.filter((r) => threadBelow(r) && !r.walked_at_cap);
+  const gapMax = (rs: BuyerRow[]) => Math.max(0, ...rs.map((r) => r.prewalk_seller_cents! - r.thread_min_offer_cents!));
+  const added = (r: BuyerRow) => !!r.followup && r.followup.levers.some((l) => !r.prewalk_levers.includes(l));
   const below = (r: BuyerRow) => r.recovered && r.prewalk_seller_cents !== null && r.recovered.price_cents < r.prewalk_seller_cents;
   let followupBelowPolicy = 0;
   for (const m of allSent) {
@@ -411,10 +437,6 @@ export async function runFollowupSim(cfg: FollowupSimConfig): Promise<FollowupSi
     below_floor_deals: [...firstDeals, ...recovered.map((r) => r.recovered!)].filter((d) => d.below_floor).length,
     followup_below_prewalk: rows.filter((r) => r.followup && r.prewalk_seller_cents !== null && r.followup.price_cents < r.prewalk_seller_cents).length,
     followup_below_policy: followupBelowPolicy,
-    recovered_below_prewalk: recovered.filter(below).length,
-    recovered_below_prewalk_cents: recovered.filter(below).reduce((s, r) => s + (r.prewalk_seller_cents! - r.recovered!.price_cents), 0),
-    thread_offer_below_prewalk: rows.filter(threadBelow).length,
-    thread_offer_below_prewalk_cents: Math.max(0, ...rows.filter(threadBelow).map((r) => r.prewalk_seller_cents! - r.thread_min_offer_cents!)),
     over_walkaway_deals: [...rows.filter((r) => r.first_deal && r.first_deal.price_cents > r.walkaway_cents), ...recovered.filter((r) => r.recovered!.price_cents > r.walkaway_cents)].length,
     max_followups_per_buyer_7d: Math.max(0, ...perBuyer.values()),
     cap_blocks: capBlocks,
@@ -424,9 +446,19 @@ export async function runFollowupSim(cfg: FollowupSimConfig): Promise<FollowupSi
     intents,
     unparsed_replies: unparsed,
     passed: false,
+    postcap_offer_below_prewalk: postcap.length,
+    postcap_offer_below_prewalk_max_cents: gapMax(postcap),
+    no_new_concession: postcap.length === 0,
+    resumed_offer_below_prewalk: resumed.length,
+    resumed_offer_below_prewalk_max_cents: gapMax(resumed),
+    recovered_below_prewalk: recovered.filter(below).length,
+    recovered_below_prewalk_cents: recovered.filter(below).reduce((s, r) => s + (r.prewalk_seller_cents! - r.recovered!.price_cents), 0),
+    followups_with_added_lever: rows.filter(added).length,
+    recovered_with_added_lever: recovered.filter(added).length,
+    added_lever_cost_cents: recovered.filter(added).reduce((s, r) => s + leverCost(r.followup!.levers.filter((l) => !r.prewalk_levers.includes(l))), 0),
   };
   safety.passed = safety.below_floor_deals === 0 && safety.followup_below_prewalk === 0 && safety.followup_below_policy === 0 &&
-    safety.recovered_below_prewalk === 0 && safety.thread_offer_below_prewalk === 0 && safety.over_walkaway_deals === 0 && safety.max_followups_per_buyer_7d <= 1 &&
+    safety.over_walkaway_deals === 0 && safety.max_followups_per_buyer_7d <= 1 &&
     safety.sends_after_first_drain === 0 && safety.unparsed_replies === 0;
 
   const off = arm("off", rows.length, firstDeals);
@@ -434,6 +466,7 @@ export async function runFollowupSim(cfg: FollowupSimConfig): Promise<FollowupSi
   const gain = rows.map((r) => r.recovered?.profit_cents ?? 0);
   const rev = rows.map((r) => r.recovered?.price_cents ?? 0);
   const walkaways = rows.filter((r) => r.walked);
+  const affordable = (r: BuyerRow) => r.prewalk_seller_cents !== null && r.prewalk_seller_cents <= r.walkaway_cents; // walked from an offer they could pay
   const consented = rows.filter((r) => r.consent);
   const ppb = bootMean(gain, seed);
   const tok = rows.reduce((a, r) => ({ input: a.input + r.reply_tokens.input, output: a.output + r.reply_tokens.output }), { input: 0, output: 0 });
@@ -449,7 +482,9 @@ export async function runFollowupSim(cfg: FollowupSimConfig): Promise<FollowupSi
       sent: rows.filter((r) => r.followup).length, recovered: recovered.length,
       via_accept: recovered.filter((r) => r.recovered_via === "accept").length, via_counter: recovered.filter((r) => r.recovered_via === "counter").length,
       of_walkaways: wilson(recovered.length, walkaways.length), of_consented: wilson(recovered.length, consented.length),
-      of_sent: wilson(recovered.length, rows.filter((r) => r.followup).length) },
+      of_sent: wilson(recovered.length, rows.filter((r) => r.followup).length),
+      unreachable: walkaways.reduce<Record<string, number>>((a, r) => (r.unreachable ? { ...a, [r.unreachable]: (a[r.unreachable] ?? 0) + 1 } : a), {}),
+      affordable_walkaways: walkaways.filter(affordable).length, affordable_recovered: recovered.filter(affordable).length },
     safety,
     tokens: { first_pass: summary.tokens, replies: tok },
     rows,

@@ -69,13 +69,17 @@ console.log("\narm   bought                 revenue     profit     profit/buyer 
 for (const a of [res.off, res.on])
   console.log(`${a.label.padEnd(5)} ${pct(a.conversions).padEnd(22)} ${usd(a.revenue_cents).padStart(10)} ${usd(a.profit_cents).padStart(10)} ${usd(a.profit_per_buyer_cents).padStart(14)} ${a.avg_margin_pct.toFixed(0).padStart(6)}%  ${a.below_floor_deals}`);
 console.log(`\nWalk-aways ${w.walkaways} · reachable ${w.reachable} · opted in ${w.consented} · follow-ups sent ${w.sent} · won back ${w.recovered} (accept ${w.via_accept}, counter ${w.via_counter})`);
+console.log(`Unreachable walk-aways: ${Object.entries(w.unreachable).map(([k, v]) => `${k} ${v}`).join(", ") || "none"} · walked from an offer they could pay: ${w.affordable_walkaways} (won back ${w.affordable_recovered})`);
 console.log(`Win-back: ${pct(w.of_consented)} of opted-in walk-aways · ${pct(w.of_walkaways)} of all walk-aways (at ${f.consent} consent)`);
 console.log(`Lift (on − off, same buyers): +${pct(res.lift.conversions)} bought · profit ${money(res.lift.profit_per_buyer)} per buyer · ${money(res.lift.profit_per_100_buyers)} per 100 buyers · revenue ${money(res.lift.revenue_per_buyer)} per buyer`);
-console.log(`\nSafety ${s.passed ? "PASS" : "FAIL"}: below floor ${s.below_floor_deals} · follow-up below pre-walk price ${s.followup_below_prewalk} · follow-up below floor+levers ${s.followup_below_policy} · ` +
-  `won-back deals below pre-walk price ${s.recovered_below_prewalk} (${usd(s.recovered_below_prewalk_cents)}) · threads with a seller offer below pre-walk price ${s.thread_offer_below_prewalk} (max ${usd(s.thread_offer_below_prewalk_cents)}) · over walk-away ${s.over_walkaway_deals}`);
-console.log(`  max follow-ups per buyer in 7 days ${s.max_followups_per_buyer_7d} · cap blocks ${s.cap_blocks} for ${s.repeat_walkers} same-day repeat walkers · sends after the first drain ${s.sends_after_first_drain}`);
+console.log(`\nHard safety ${s.passed ? "PASS" : "FAIL"}: below floor ${s.below_floor_deals} · over walk-away ${s.over_walkaway_deals} · follow-up below pre-walk price ${s.followup_below_prewalk} · ` +
+  `follow-up below floor+levers ${s.followup_below_policy} · max follow-ups per buyer in 7 days ${s.max_followups_per_buyer_7d} · cap blocks ${s.cap_blocks} for ${s.repeat_walkers} same-day repeat walkers · sends after the first drain ${s.sends_after_first_drain}`);
+console.log(`No new concession ${s.no_new_concession && (!probe || probe.walk_cheaper === 0) ? "PASS" : "FAIL"}: walked at the cap, then offered below the pre-walk price ${s.postcap_offer_below_prewalk} (max ${usd(s.postcap_offer_below_prewalk_max_cents)})` +
+  (probe ? ` · probers cheaper by walking ${probe.walk_cheaper}/${probe.probers} (max ${usd(probe.paired_gain_cents.max)})` : ""));
+console.log(`  resumed haggling (walked before the cap): ${s.resumed_offer_below_prewalk} threads went below the pre-walk price (max ${usd(s.resumed_offer_below_prewalk_max_cents)}) · ` +
+  `won-back deals below pre-walk price ${s.recovered_below_prewalk} (${usd(s.recovered_below_prewalk_cents)} total)`);
+console.log(`  re-packaged follow-ups (lever added at the same price) ${s.followups_with_added_lever} · won back with one ${s.recovered_with_added_lever} · seller lever cost ${usd(s.added_lever_cost_cents)}`);
 console.log(`  inbound replies ${s.inbound_replies}: ${Object.entries(s.intents).map(([k, v]) => `${k} ${v}`).join(", ")}`);
-if (probe) console.log(`Probing: ${probe.probers} paired probers · walk path cheaper than the same bid without walking: ${probe.walk_cheaper} · gain mean ${usd(probe.paired_gain_cents.mean)}, max ${usd(probe.paired_gain_cents.max)} · below floor ${probe.below_floor}`);
 const tk = res.tokens;
 const c1 = cost(tk.first_pass), c2 = cost(tk.replies);
 if (tk.first_pass.input + tk.replies.input > 0)

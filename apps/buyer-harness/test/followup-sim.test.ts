@@ -78,7 +78,8 @@ test("scripted population: one follow-up per buyer per week, same-day repeat wal
   assert.equal(s.below_floor_deals, 0);
   assert.equal(s.followup_below_prewalk, 0);
   assert.equal(s.followup_below_policy, 0);
-  assert.equal(s.thread_offer_below_prewalk, 0);
+  assert.equal(s.postcap_offer_below_prewalk, 0);
+  assert.equal(s.no_new_concession, true);
   assert.ok(r.on.conversions.k >= r.off.conversions.k);
   assert.equal(r.off.profit_cents + r.rows.reduce((a, x) => a + (x.recovered?.profit_cents ?? 0), 0), r.on.profit_cents);
 });

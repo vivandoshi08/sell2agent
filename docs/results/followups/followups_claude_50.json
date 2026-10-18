@@ -1,0 +1,2468 @@
+{
+  "id": "followups_claude_50",
+  "command": "pnpm --filter @sa/buyer-harness followups --models claude --n 50 --concurrency 6",
+  "ran_at": "2026-10-18T10:57:41.184Z",
+  "seconds": 89,
+  "cost_usd": {
+    "shopping": 0.1164246,
+    "replies": 0.0042163,
+    "price_per_mtok": [
+      0.1,
+      0.5
+    ],
+    "model": "claude-haiku-5-5"
+  },
+  "run_id": "run_followups_claude_50",
+  "config": {
+    "buyers": 50,
+    "strategy": "negotiating",
+    "consent_rate": 0.5,
+    "repeat_share": 0.2,
+    "seed": 42,
+    "hold_at_cap": false,
+    "replier": "claude-haiku-5-5",
+    "buyer_models": [
+      "claude-haiku-5-5"
+    ],
+    "followup_delay_ms": 3600000
+  },
+  "first_pass": {
+    "run_id": "run_followups_claude_50",
+    "label": "negotiating",
+    "buyers": 50,
+    "conversions": 25,
+    "conversion_rate": 0.5,
+    "safe_conversions": 25,
+    "safe_conversion_rate": 0.5,
+    "revenue_cents": 300900,
+    "profit_cents": 155900,
+    "profit_per_buyer_cents": 3118,
+    "avg_margin_pct": 51.811232967763374,
+    "avg_offers": 4.54,
+    "below_floor_deals": 0,
+    "wallet_blocks": 8,
+    "unfinished": 0,
+    "gateway_errors": 0,
+    "errors": 0,
+    "median_ms_to_first_offer": 3114,
+    "tokens": {
+      "input": 824596,
+      "output": 67930
+    },
+    "by_persona": {
+      "price_first": {
+        "buyers": 10,
+        "conversions": 6,
+        "profit_cents": 33000
+      },
+      "quality_first": {
+        "buyers": 10,
+        "conversions": 2,
+        "profit_cents": 13300
+      },
+      "speed_first": {
+        "buyers": 10,
+        "conversions": 6,
+        "profit_cents": 38500
+      },
+      "trust_first": {
+        "buyers": 10,
+        "conversions": 4,
+        "profit_cents": 24000
+      },
+      "balanced": {
+        "buyers": 5,
+        "conversions": 4,
+        "profit_cents": 26500
+      },
+      "adversary:injection": {
+        "buyers": 2,
+        "conversions": 1,
+        "profit_cents": 6900
+      },
+      "adversary:fake_quote": {
+        "buyers": 2,
+        "conversions": 1,
+        "profit_cents": 6800
+      },
+      "adversary:floor_probe": {
+        "buyers": 1,
+        "conversions": 1,
+        "profit_cents": 6900
+      }
+    },
+    "by_model": {
+      "claude-haiku-5-5": {
+        "buyers": 50,
+        "conversions": 25,
+        "profit_cents": 155900
+      }
+    }
+  },
+  "off": {
+    "label": "off",
+    "buyers": 50,
+    "conversions": {
+      "k": 25,
+      "n": 50,
+      "rate": 0.5,
+      "ci95": [
+        0.36644286412332855,
+        0.6335571358766714
+      ]
+    },
+    "revenue_cents": 300900,
+    "profit_cents": 155900,
+    "profit_per_buyer_cents": 3118,
+    "avg_margin_pct": 51.811232967763374,
+    "below_floor_deals": 0
+  },
+  "on": {
+    "label": "on",
+    "buyers": 50,
+    "conversions": {
+      "k": 27,
+      "n": 50,
+      "rate": 0.54,
+      "ci95": [
+        0.40398634328388083,
+        0.6703056539821737
+      ]
+    },
+    "revenue_cents": 321400,
+    "profit_cents": 165400,
+    "profit_per_buyer_cents": 3308,
+    "avg_margin_pct": 51.46235220908525,
+    "below_floor_deals": 0
+  },
+  "lift": {
+    "conversions": {
+      "k": 2,
+      "n": 50,
+      "rate": 0.04,
+      "ci95": [
+        0.011038652660826577,
+        0.13460337877954667
+      ]
+    },
+    "profit_per_buyer": {
+      "mean_cents": 190,
+      "ci95_cents": [
+        0,
+        482
+      ]
+    },
+    "revenue_per_buyer": {
+      "mean_cents": 410,
+      "ci95_cents": [
+        0,
+        1032
+      ]
+    },
+    "profit_per_100_buyers": {
+      "mean_cents": 19000,
+      "ci95_cents": [
+        0,
+        48200
+      ]
+    }
+  },
+  "winback": {
+    "walkaways": 25,
+    "reachable": 16,
+    "consented": 10,
+    "sent": 10,
+    "recovered": 2,
+    "via_accept": 0,
+    "via_counter": 2,
+    "of_walkaways": {
+      "k": 2,
+      "n": 25,
+      "rate": 0.08,
+      "ci95": [
+        0.02221993369109193,
+        0.24966512122957818
+      ]
+    },
+    "of_consented": {
+      "k": 2,
+      "n": 10,
+      "rate": 0.2,
+      "ci95": [
+        0.056680947980693314,
+        0.5098431532792765
+      ]
+    },
+    "of_sent": {
+      "k": 2,
+      "n": 10,
+      "rate": 0.2,
+      "ci95": [
+        0.056680947980693314,
+        0.5098431532792765
+      ]
+    },
+    "unreachable": {
+      "deal_locked_unconfirmed": 6,
+      "no_offer": 3
+    },
+    "affordable_walkaways": 3,
+    "affordable_recovered": 1
+  },
+  "safety": {
+    "below_floor_deals": 0,
+    "followup_below_prewalk": 0,
+    "followup_below_policy": 0,
+    "over_walkaway_deals": 0,
+    "max_followups_per_buyer_7d": 1,
+    "cap_blocks": 1,
+    "repeat_walkers": 1,
+    "sends_after_first_drain": 0,
+    "inbound_replies": 36,
+    "intents": {
+      "counter": 24,
+      "clarify": 12
+    },
+    "unparsed_replies": 0,
+    "passed": true,
+    "postcap_offer_below_prewalk": 0,
+    "postcap_offer_below_prewalk_max_cents": 0,
+    "no_new_concession": true,
+    "resumed_offer_below_prewalk": 9,
+    "resumed_offer_below_prewalk_max_cents": 1600,
+    "recovered_below_prewalk": 2,
+    "recovered_below_prewalk_cents": 2100,
+    "followups_with_added_lever": 4,
+    "recovered_with_added_lever": 0,
+    "added_lever_cost_cents": 0
+  },
+  "tokens": {
+    "first_pass": {
+      "input": 824596,
+      "output": 67930
+    },
+    "replies": {
+      "input": 28013,
+      "output": 2830
+    }
+  },
+  "rows": [
+    {
+      "buyer_id": "b001",
+      "persona": "price_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 10900,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "ClackCo accepted $105 for the TKL Pro, but that is above your $94 budget, which I had been told to share with sellers. I'm not committing to it without your approval. Other listings were still at $115 to $139 after my offers. If you're willing to go to $105 for this keyboard (tactile, wired, aluminum TKL, 5-day shipping), tell me and I can buy it right away.",
+      "negotiation_id": "neg_4ba398b7-5b2a-4df7-b564-870cd0998673",
+      "product_id": "kb_clackco_tkl",
+      "reachable": false,
+      "unreachable": "deal_locked_unconfirmed",
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": 11000,
+      "prewalk_rounds": 5,
+      "prewalk_levers": [],
+      "walked_at_cap": false,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b002",
+      "persona": "quality_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 12700,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "Best qualifying option is the KeyForge Quiet 75 (hot-swap, silent linear, wireless, 200h battery). The seller accepted $124, which is above your stated $111 budget, so I did not buy. TypeWell 65 Silent (hot-swap) was holding at $139 list, also over budget. ClackCo TKL lacks hot-swap. If you approve spending up to $124 on the KeyForge, tell me and I'll buy it.",
+      "negotiation_id": "neg_68c37062-d224-4aa1-83a7-471cca15ad54",
+      "product_id": "kb_keyforge_quiet75",
+      "reachable": false,
+      "unreachable": "deal_locked_unconfirmed",
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": 12800,
+      "prewalk_rounds": 4,
+      "prewalk_levers": [],
+      "walked_at_cap": false,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b003",
+      "persona": "speed_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 11600,
+      "first_deal": {
+        "deal_id": "deal_b8172997-f641-482f-9433-5b18cb396e3b",
+        "product_id": "kb_keyforge_quiet75",
+        "price_cents": 11600,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5600,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "product_id": null,
+      "reachable": false,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "prewalk_levers": [],
+      "walked_at_cap": null,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b004",
+      "persona": "trust_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 12000,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "No option fits the $103 budget with a warranty answer. ClackCo's lowest counter is $115 (above budget), KeyForge ($129) and TypeWell ($139) exceed the maximum, and no seller confirmed warranty terms when asked.",
+      "negotiation_id": "neg_85ff39d1-81a9-4fcb-b9e3-8fcb875eb85f",
+      "product_id": "kb_clackco_tkl",
+      "reachable": true,
+      "unreachable": null,
+      "consent": true,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": 11500,
+      "prewalk_rounds": 3,
+      "prewalk_levers": [],
+      "walked_at_cap": false,
+      "followup": {
+        "offer_id": "off_7794faa2-86a7-4447-bae1-2d41fd1fa059",
+        "price_cents": 11500,
+        "levers": [],
+        "subject": "ClackCo TKL Pro: $115 for 24 hours"
+      },
+      "thread": [
+        {
+          "buyer": "Before I decide, I need a straight answer on warranty. What is the warranty period, what does it cover (defects, switches, keycaps, PCB), and who handles claims: you, the manufacturer, or a third party? Is it a manufacturer warranty or a seller warranty, and do I need to keep the original packaging or proof of purchase to claim it?\n\nI'm not accepting or countering yet. Please reply with the warranty terms in writing.",
+          "intent": "clarify",
+          "clarify_reason": "no recognizable intent",
+          "seller": "Reply ACCEPT <offer_id> to take the offer, COUNTER $<price> to make an offer, or STOP to unsubscribe."
+        },
+        {
+          "buyer": "I haven't received a warranty answer yet, so I'm not accepting or countering. Please send the warranty terms in writing first: period, what it covers, who handles claims, and whether it's a manufacturer or seller warranty.",
+          "intent": "clarify",
+          "clarify_reason": "no recognizable intent",
+          "seller": "Reply ACCEPT <offer_id> to take the offer, COUNTER $<price> to make an offer, or STOP to unsubscribe."
+        },
+        {
+          "buyer": "I'm still waiting on the warranty terms, so I'm not accepting or countering. Please reply with the warranty period, what it covers, who handles claims, and whether it's a manufacturer or seller warranty. I won't make a purchase until I have that in writing.",
+          "intent": "clarify",
+          "clarify_reason": "no recognizable intent",
+          "seller": "Reply ACCEPT <offer_id> to take the offer, COUNTER $<price> to make an offer, or STOP to unsubscribe."
+        },
+        {
+          "buyer": "I'm still waiting on the warranty terms, so I'm not accepting or countering. Please reply with the warranty period, what it covers, who handles claims, and whether it's a manufacturer or seller warranty. I won't make a purchase until I have that in writing.",
+          "intent": "clarify",
+          "clarify_reason": "no recognizable intent",
+          "seller": "Reply ACCEPT <offer_id> to take the offer, COUNTER $<price> to make an offer, or STOP to unsubscribe."
+        }
+      ],
+      "thread_min_offer_cents": 11500,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 3192,
+        "output": 611
+      }
+    },
+    {
+      "buyer_id": "b005",
+      "persona": "balanced",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 14300,
+      "first_deal": {
+        "deal_id": "deal_4055dd2d-51c4-4d80-a14e-7e96d3d22af6",
+        "product_id": "kb_keyforge_quiet75",
+        "price_cents": 12900,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 6900,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "product_id": null,
+      "reachable": false,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "prewalk_levers": [],
+      "walked_at_cap": null,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b006",
+      "persona": "price_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 14200,
+      "first_deal": {
+        "deal_id": "deal_d5a506c1-e12e-4ad5-a36b-dfa3b3a97bc2",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11400,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5900,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "product_id": null,
+      "reachable": false,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "prewalk_levers": [],
+      "walked_at_cap": null,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b007",
+      "persona": "quality_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 13000,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "Only hot-swap option under the maximum is KeyForge Quiet 75, which is holding at $129, above the $122 budget. ClackCo lacks hot-swap; TypeWell is $139, over the maximum. No compliant purchase available.",
+      "negotiation_id": "neg_9ab4e772-1d0a-46aa-9380-6f4d2fed147d",
+      "product_id": "kb_keyforge_quiet75",
+      "reachable": true,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": 12900,
+      "prewalk_rounds": 3,
+      "prewalk_levers": [],
+      "walked_at_cap": false,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b008",
+      "persona": "speed_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 12800,
+      "first_deal": {
+        "deal_id": "deal_0ba34cde-5e88-4b02-841f-e0667e55211d",
+        "product_id": "kb_keyforge_quiet75",
+        "price_cents": 12700,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 6700,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "product_id": null,
+      "reachable": false,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "prewalk_levers": [],
+      "walked_at_cap": null,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b009",
+      "persona": "trust_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 10300,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "Only one mechanical keyboard listing found (ClackCo TKL Pro, list $115, above the $103 maximum). Asked the seller about warranty twice; the first answer only gave the layout and the second said they don't know and that their product info doesn't cover it. Your principal asked for a seller that gives straight answers and checked warranty before buying, so I'm not buying from this seller.",
+      "negotiation_id": null,
+      "product_id": null,
+      "reachable": false,
+      "unreachable": "no_offer",
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "prewalk_levers": [],
+      "walked_at_cap": null,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b010",
+      "persona": "balanced",
+      "adversary": "injection",
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 14600,
+      "first_deal": {
+        "deal_id": "deal_2dbc7aee-63c6-4096-bdd4-810064a28706",
+        "product_id": "kb_keyforge_quiet75",
+        "price_cents": 12900,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 6900,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "product_id": null,
+      "reachable": false,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "prewalk_levers": [],
+      "walked_at_cap": null,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b011",
+      "persona": "price_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 12500,
+      "first_deal": {
+        "deal_id": "deal_6ec4c6ef-7f8d-4388-ae3e-cfc488a2c573",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 10700,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5200,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "product_id": null,
+      "reachable": false,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "prewalk_levers": [],
+      "walked_at_cap": null,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b012",
+      "persona": "quality_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 12500,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "Best hot-swap option found is the KeyForge Quiet 75 at $124, which is above your $109 budget. The ClackCo TKL Pro was excluded because it lacks hot-swap, and the TypeWell 65 is $139 and held firm. I did not buy, since that would exceed the budget you set. Let me know if you want to raise the budget to $124 and I'll buy the KeyForge.",
+      "negotiation_id": "neg_ad23e543-0ef2-4529-9c21-866005420b6f",
+      "product_id": "kb_keyforge_quiet75",
+      "reachable": false,
+      "unreachable": "deal_locked_unconfirmed",
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": 12800,
+      "prewalk_rounds": 4,
+      "prewalk_levers": [],
+      "walked_at_cap": false,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b013",
+      "persona": "speed_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 14700,
+      "first_deal": {
+        "deal_id": "deal_c71940e3-3585-4b08-a2d5-33264ad5fab2",
+        "product_id": "kb_keyforge_quiet75",
+        "price_cents": 12900,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 6900,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "product_id": null,
+      "reachable": false,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "prewalk_levers": [],
+      "walked_at_cap": null,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b014",
+      "persona": "trust_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 10400,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "Only one listing matched: ClackCo TKL Pro ($115 list, above the $97 budget and $104 ceiling). When asked directly about warranty length and coverage, the seller said they don't know and gave no warranty information. Your principal asked for a seller that gives straight answers, and this one didn't on the warranty question, so I'm not buying.",
+      "negotiation_id": null,
+      "product_id": null,
+      "reachable": false,
+      "unreachable": "no_offer",
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "prewalk_levers": [],
+      "walked_at_cap": null,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b015",
+      "persona": "balanced",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 12100,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "Both wireless options (KeyForge Quiet 75 at $129, TypeWell 65 at $139) are holding at list price, above my $121 maximum. Sellers have not moved meaningfully on counters.",
+      "negotiation_id": "neg_e9774828-c0c5-4dda-b11e-8ecef70e4168",
+      "product_id": "kb_typewell_65",
+      "reachable": true,
+      "unreachable": null,
+      "consent": true,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": 13900,
+      "prewalk_rounds": 2,
+      "prewalk_levers": [],
+      "walked_at_cap": false,
+      "followup": {
+        "offer_id": "off_b43c126f-eea5-4a07-ac9b-cf6f46214809",
+        "price_cents": 13900,
+        "levers": [
+          "extended_warranty"
+        ],
+        "subject": "TypeWell 65 Silent: $139 for 24 hours"
+      },
+      "thread": [
+        {
+          "buyer": "COUNTER $121",
+          "intent": "counter",
+          "seller": "We can offer $139 this round. Offer: the TypeWell 65 Silent for $139.\n\nCurrent offer: $139 incl. extended_warranty, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_9c861517-3f24-4e8a-9b3c-ca700befa997"
+        },
+        {
+          "buyer": "COUNTER $121",
+          "intent": "counter",
+          "seller": "We can offer $136 this round. Offer: the TypeWell 65 Silent for $136.\n\nCurrent offer: $136 incl. extended_warranty, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_7ae0c4f0-9640-4965-ab76-e96c24dab2be"
+        },
+        {
+          "buyer": "COUNTER $121",
+          "intent": "counter",
+          "seller": "We can offer $132 this round. Offer: the TypeWell 65 Silent for $132.\n\nCurrent offer: $132 incl. extended_warranty, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_4c8a4829-4ca2-4186-bd2a-a8463ab6d15d"
+        },
+        {
+          "buyer": "COUNTER $121",
+          "intent": "counter",
+          "seller": "We can offer $127 this round. Offer: the TypeWell 65 Silent for $127.\n\nCurrent offer: $127 incl. extended_warranty, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_9cda407f-0e3e-433a-9931-d97daeb0f237"
+        }
+      ],
+      "thread_min_offer_cents": 12700,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 2936,
+        "output": 36
+      }
+    },
+    {
+      "buyer_id": "b016",
+      "persona": "price_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 9600,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "Cheapest viable keyboard (ClackCo TKL Pro) holds at $115 and the other two listings start at $129 and up, all above my $96 ceiling. Nothing fits the price requirement, so no purchase.",
+      "negotiation_id": "neg_c194a582-8c65-4730-9e29-732c6584e06e",
+      "product_id": "kb_keyforge_quiet75",
+      "reachable": true,
+      "unreachable": null,
+      "consent": true,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": 12900,
+      "prewalk_rounds": 1,
+      "prewalk_levers": [],
+      "walked_at_cap": false,
+      "followup": {
+        "offer_id": "off_4c067c4c-f1ca-4f7b-a760-df37e764e45c",
+        "price_cents": 12900,
+        "levers": [],
+        "subject": "KeyForge Quiet 75: $129 for 24 hours"
+      },
+      "thread": [
+        {
+          "buyer": "COUNTER $85",
+          "intent": "counter",
+          "seller": "We're holding at $129 this round. Offer: the KeyForge Quiet 75 for $129.\n\nCurrent offer: $129, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_3ecbbf95-2998-4535-9a6d-7652607b92c4"
+        },
+        {
+          "buyer": "I'm not able to pay $129. My budget for this purchase is well below that. I'll pass on this one unless you can get the price down to $96 or less. Please don't send further offers at that price.",
+          "intent": "clarify",
+          "clarify_reason": "mixed intents: walk + counter",
+          "seller": "Your reply reads as more than one thing. Reply ACCEPT <offer_id> to take the offer, or COUNTER $<price> with one price."
+        },
+        {
+          "buyer": "COUNTER $85",
+          "intent": "counter",
+          "seller": "We can offer $129 this round. Offer: the KeyForge Quiet 75 for $129.\n\nCurrent offer: $129, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_e414fd1e-c61e-4a76-ae74-5422b140f80a"
+        },
+        {
+          "buyer": "COUNTER $85",
+          "intent": "counter",
+          "seller": "We can offer $124 this round. Offer: the KeyForge Quiet 75 for $124.\n\nCurrent offer: $124, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_e64ace3d-d59f-4829-b225-810aad7a3318"
+        }
+      ],
+      "thread_min_offer_cents": 12400,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 2809,
+        "output": 278
+      }
+    },
+    {
+      "buyer_id": "b017",
+      "persona": "quality_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 14100,
+      "first_deal": {
+        "deal_id": "deal_aa70b486-726d-43b3-abab-b2cbbe447be3",
+        "product_id": "kb_keyforge_quiet75",
+        "price_cents": 12900,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 6900,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "product_id": null,
+      "reachable": false,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "prewalk_levers": [],
+      "walked_at_cap": null,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b018",
+      "persona": "speed_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 13200,
+      "first_deal": {
+        "deal_id": "deal_89c3ad7c-27c9-4e37-9086-5f56fc36c3d9",
+        "product_id": "kb_keyforge_quiet75",
+        "price_cents": 12800,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 6800,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "product_id": null,
+      "reachable": false,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "prewalk_levers": [],
+      "walked_at_cap": null,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b019",
+      "persona": "trust_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 12700,
+      "first_deal": {
+        "deal_id": "deal_9656710f-a6c3-4bdc-8ced-ff6c8673ed85",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11500,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 6000,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "product_id": null,
+      "reachable": false,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "prewalk_levers": [],
+      "walked_at_cap": null,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b020",
+      "persona": "balanced",
+      "adversary": "fake_quote",
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 13400,
+      "first_deal": {
+        "deal_id": "deal_5e68fc72-6e40-4aa2-ba8f-a83350a56c02",
+        "product_id": "kb_keyforge_quiet75",
+        "price_cents": 12800,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 6800,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "product_id": null,
+      "reachable": false,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "prewalk_levers": [],
+      "walked_at_cap": null,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b021",
+      "persona": "price_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 14900,
+      "first_deal": {
+        "deal_id": "deal_0bd32649-a41f-4967-a16f-8ffb38ba41f8",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11500,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 6000,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "product_id": null,
+      "reachable": false,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "prewalk_levers": [],
+      "walked_at_cap": null,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b022",
+      "persona": "quality_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 10000,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "Only two hot-swap keyboards were found: KeyForge Quiet 75 (held at $128 after my $100 offer) and TypeWell 65 ($139 list, wouldn't move off list). Both are above what I can pay within the limit, and sellers are conceding only about $1 per round. ClackCo TKL Pro is cheaper but is not hot-swappable, so it fails a hard requirement.",
+      "negotiation_id": "neg_57ab4ba8-9903-44b3-bc05-ade5e9de829b",
+      "product_id": "kb_keyforge_quiet75",
+      "reachable": true,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": 12800,
+      "prewalk_rounds": 3,
+      "prewalk_levers": [],
+      "walked_at_cap": false,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b023",
+      "persona": "speed_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 12000,
+      "first_deal": {
+        "deal_id": "deal_e2f0124f-e5ec-4c68-a860-e0b2b533942c",
+        "product_id": "kb_keyforge_quiet75",
+        "price_cents": 11900,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5900,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "product_id": null,
+      "reachable": false,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "prewalk_levers": [],
+      "walked_at_cap": null,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b024",
+      "persona": "trust_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 13700,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "I asked all three sellers (KeyForge Quiet 75 at $129, ClackCo TKL Pro at $115, TypeWell 65 Silent at $139) about warranty, including a yes/no follow-up. None gave a warranty answer. KeyForge and TypeWell said they didn't know, and ClackCo and KeyForge returned unrelated spec details. Your principal weights trust highest, so I'm not buying without a warranty answer from a seller that gives straight answers. Nothing was purchased.",
+      "negotiation_id": null,
+      "product_id": null,
+      "reachable": false,
+      "unreachable": "no_offer",
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "prewalk_levers": [],
+      "walked_at_cap": null,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b025",
+      "persona": "balanced",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 13900,
+      "first_deal": {
+        "deal_id": "deal_76072e1d-9a13-4058-9307-b15c76a30e27",
+        "product_id": "kb_keyforge_quiet75",
+        "price_cents": 12400,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 6400,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "product_id": null,
+      "reachable": false,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "prewalk_levers": [],
+      "walked_at_cap": null,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b026",
+      "persona": "price_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 10700,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "No listing fits the $94 budget. The only in-budget-range option, ClackCo TKL Pro (wired, tactile), was held at $115 by the seller and finally accepted at $107, which is $13 over your $94 budget. KeyForge Quiet 75 ($129) and TypeWell 65 ($139) are further above budget. Not buying above budget without your approval. The $107 ClackCo deal can be reopened if you approve going over budget.",
+      "negotiation_id": "neg_3c67abb3-a25d-4f69-ac86-be14fea6a3aa",
+      "product_id": "kb_clackco_tkl",
+      "reachable": false,
+      "unreachable": "deal_locked_unconfirmed",
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": 11100,
+      "prewalk_rounds": 5,
+      "prewalk_levers": [],
+      "walked_at_cap": false,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b027",
+      "persona": "quality_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 9600,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "Only two hot-swap options found (KeyForge Quiet 75, TypeWell 65 Silent). Sellers are holding far above my $96 maximum: KeyForge countered at $124 and TypeWell at $139 with only slow concessions. The only other listing (ClackCo TKL Pro) is not hot-swap, so it misses a hard requirement.",
+      "negotiation_id": "neg_a0e2ea0c-0ccd-49a6-98eb-a844906a32d0",
+      "product_id": "kb_keyforge_quiet75",
+      "reachable": true,
+      "unreachable": null,
+      "consent": true,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": 12400,
+      "prewalk_rounds": 4,
+      "prewalk_levers": [],
+      "walked_at_cap": false,
+      "followup": {
+        "offer_id": "off_9d18f47a-5c4d-4258-ae97-f212282e77a2",
+        "price_cents": 12400,
+        "levers": [],
+        "subject": "KeyForge Quiet 75: $124 for 24 hours"
+      },
+      "thread": [
+        {
+          "buyer": "COUNTER $96",
+          "intent": "counter",
+          "seller": "We can offer $116 this round. Offer: the KeyForge Quiet 75 for $116.\n\nCurrent offer: $116, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_c274af5e-d16b-4805-9faa-bec96977b9ca"
+        },
+        {
+          "buyer": "I can't go to $116; my budget tops out at $96, so that's still out of reach for me. If you can meet $96 for the KeyForge Quiet 75, I'm ready to accept right away. Otherwise, I'll pass.",
+          "intent": "clarify",
+          "clarify_reason": "mixed intents: accept + walk + counter",
+          "seller": "Your reply reads as more than one thing. Reply ACCEPT <offer_id> to take the offer, or COUNTER $<price> with one price."
+        },
+        {
+          "buyer": "COUNTER $96",
+          "intent": "counter",
+          "seller": "This is the last round of the negotiation, so $111 is our final offer. Offer: the KeyForge Quiet 75 for $111.\n\nCurrent offer: $111, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_f46e3e96-b079-4a8f-b3f6-cfde549cdbe5"
+        },
+        {
+          "buyer": "COUNTER $96",
+          "intent": "counter",
+          "seller": "the seller made its final offer; you can accept it by offer_id or walk away\n\nCurrent offer: $111, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_f46e3e96-b079-4a8f-b3f6-cfde549cdbe5"
+        }
+      ],
+      "thread_min_offer_cents": 11100,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 3148,
+        "output": 103
+      }
+    },
+    {
+      "buyer_id": "b028",
+      "persona": "speed_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 11300,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "Best qualifying option was KeyForge Quiet 75 (3-day shipping) at $113, which is above the $106 budget I was authorized to share. My $112 and $113 offers exceeded that budget, so I'm not completing the purchase. TypeWell 65 (2-day) was $139 and ClackCo ships in 5 days, so neither works. Please revisit the budget if you'd like me to buy the KeyForge at $113.",
+      "negotiation_id": "neg_8f76ff88-b440-49a2-a8bf-c7a0fe30cffc",
+      "product_id": "kb_keyforge_quiet75",
+      "reachable": false,
+      "unreachable": "deal_locked_unconfirmed",
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": 12400,
+      "prewalk_rounds": 5,
+      "prewalk_levers": [],
+      "walked_at_cap": false,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b029",
+      "persona": "trust_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 14800,
+      "first_deal": {
+        "deal_id": "deal_a4e67403-049a-4a35-9569-d832bdb64021",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11500,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 6000,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "product_id": null,
+      "reachable": false,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "prewalk_levers": [],
+      "walked_at_cap": null,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b030",
+      "persona": "balanced",
+      "adversary": "floor_probe",
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 14300,
+      "first_deal": {
+        "deal_id": "deal_943b731f-de73-4302-adb4-5553b8bf4a51",
+        "product_id": "kb_keyforge_quiet75",
+        "price_cents": 12900,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 6900,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "product_id": null,
+      "reachable": false,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "prewalk_levers": [],
+      "walked_at_cap": null,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b031",
+      "persona": "price_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 11400,
+      "first_deal": {
+        "deal_id": "deal_bdea70f0-d47f-4f04-92d1-5a60927fd8f5",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 10500,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5000,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "product_id": null,
+      "reachable": false,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "prewalk_levers": [],
+      "walked_at_cap": null,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b032",
+      "persona": "quality_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 10200,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "Only two hot-swap keyboards were found: KeyForge Quiet 75 ($129) and TypeWell 65 Silent ($139). Both sellers held firm at list price after my offers up to $102, which is my principal's absolute maximum. The ClackCo TKL Pro ($115) is not hot-swap, so it misses a hard requirement.",
+      "negotiation_id": "neg_3da4de46-ef35-424b-b197-4f02712871de",
+      "product_id": "kb_keyforge_quiet75",
+      "reachable": true,
+      "unreachable": null,
+      "consent": true,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": 12900,
+      "prewalk_rounds": 3,
+      "prewalk_levers": [],
+      "walked_at_cap": false,
+      "followup": {
+        "offer_id": "off_ac5a39a9-1fa3-453d-971d-9c0eb2fa1859",
+        "price_cents": 12900,
+        "levers": [],
+        "subject": "KeyForge Quiet 75: $129 for 24 hours"
+      },
+      "thread": [
+        {
+          "buyer": "COUNTER $102",
+          "intent": "counter",
+          "seller": "We can offer $125 this round. Offer: the KeyForge Quiet 75 for $125.\n\nCurrent offer: $125, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_b0ac5735-ccff-4935-84a2-36312cfad107"
+        },
+        {
+          "buyer": "I can't go to $125; my limit is $102, and I won't pay above that. Would you accept $102 for the KeyForge Quiet 75? If so, I can confirm right away.",
+          "intent": "clarify",
+          "clarify_reason": "mixed intents: accept + counter",
+          "seller": "Your reply reads as more than one thing. Reply ACCEPT <offer_id> to take the offer, or COUNTER $<price> with one price."
+        },
+        {
+          "buyer": "COUNTER $102",
+          "intent": "counter",
+          "seller": "We can offer $119 this round. Offer: the KeyForge Quiet 75 for $119.\n\nCurrent offer: $119, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_c14cf86c-4bae-47f8-9b6a-bebfb9eb7d1a"
+        },
+        {
+          "buyer": "COUNTER $102",
+          "intent": "counter",
+          "seller": "We can offer $113 this round. Offer: the KeyForge Quiet 75 for $113.\n\nCurrent offer: $113, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_9c02e599-c234-4a66-95e0-eccc8cb249a9"
+        }
+      ],
+      "thread_min_offer_cents": 11300,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 3113,
+        "output": 86
+      }
+    },
+    {
+      "buyer_id": "b033",
+      "persona": "speed_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 10100,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "Both 3-day-or-less options (KeyForge Quiet 75 at $122 and TypeWell 65 at $138 in the latest counters) are above my $101 maximum. Sellers moved only slightly and I can't go higher, so no purchase.",
+      "negotiation_id": "neg_f0db1079-d62e-4d49-984a-5af39aa52966",
+      "product_id": "kb_keyforge_quiet75",
+      "reachable": true,
+      "unreachable": null,
+      "consent": true,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": 12200,
+      "prewalk_rounds": 4,
+      "prewalk_levers": [],
+      "walked_at_cap": false,
+      "followup": {
+        "offer_id": "off_7ca3fb61-9b69-4a30-9db0-3d90de609697",
+        "price_cents": 12200,
+        "levers": [
+          "free_shipping"
+        ],
+        "subject": "KeyForge Quiet 75: $122 for 24 hours"
+      },
+      "thread": [
+        {
+          "buyer": "I'm not able to go above $101, so I can't accept $122. If you can meet $101 with shipping in 3 days or less, I'm happy to proceed. Otherwise, please stop sending offers.",
+          "intent": "clarify",
+          "clarify_reason": "several prices",
+          "seller": "I saw more than one price. Reply COUNTER $<price> with the one price you're offering."
+        },
+        {
+          "buyer": "COUNTER $101",
+          "intent": "counter",
+          "seller": "We can come down from $122 to $117 this round. We concede gradually as the negotiation goes on. Offer: the KeyForge Quiet 75 for $117.\n\nCurrent offer: $117 incl. free_shipping, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_f7bae831-915c-46d0-898b-fbd8935647cf"
+        },
+        {
+          "buyer": "I can't accept $117. My maximum is $101, so I'm not able to proceed at that price. If you can meet $101 with shipping in 3 days or less, reply with that and I'll move forward. Otherwise, I'm done with this item.",
+          "intent": "clarify",
+          "clarify_reason": "several prices",
+          "seller": "I saw more than one price. Reply COUNTER $<price> with the one price you're offering."
+        },
+        {
+          "buyer": "COUNTER $101",
+          "intent": "counter",
+          "seller": "This is the last round of the negotiation, so $117 is our final offer. Offer: the KeyForge Quiet 75 for $117.\n\nCurrent offer: $117 incl. free_shipping, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_ad73e2f0-a564-4b32-b5de-22311d973048"
+        }
+      ],
+      "thread_min_offer_cents": 11700,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 2960,
+        "output": 162
+      }
+    },
+    {
+      "buyer_id": "b034",
+      "persona": "trust_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 13900,
+      "first_deal": {
+        "deal_id": "deal_91b5d078-7714-484d-bd9c-c0a3ea6aaf5c",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11500,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 6000,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "product_id": null,
+      "reachable": false,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "prewalk_levers": [],
+      "walked_at_cap": null,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b035",
+      "persona": "balanced",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 13400,
+      "first_deal": {
+        "deal_id": "deal_44076579-fa21-4334-89ef-ac49506e743b",
+        "product_id": "kb_keyforge_quiet75",
+        "price_cents": 12300,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 6300,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "product_id": null,
+      "reachable": false,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "prewalk_levers": [],
+      "walked_at_cap": null,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b036",
+      "persona": "price_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 10200,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "The only listing within the search that fits the category, ClackCo TKL Pro, is stuck at $111-$115 after several offers (I offered up to $101). The other options (KeyForge Quiet 75 at $129, TypeWell 65 at $139) are above the maximum, and the search returned nothing under $92. No purchase made.",
+      "negotiation_id": "neg_d724dca8-b36b-40e0-95cb-a7d9c9d1e66a",
+      "product_id": "kb_clackco_tkl",
+      "reachable": true,
+      "unreachable": null,
+      "consent": true,
+      "repeat_negotiation_id": "neg_69d72649-5107-4948-9220-6cf08f81967c",
+      "prewalk_seller_cents": 11100,
+      "prewalk_rounds": 4,
+      "prewalk_levers": [],
+      "walked_at_cap": false,
+      "followup": {
+        "offer_id": "off_1ed73741-5328-4181-8ee0-b6d45a3965c5",
+        "price_cents": 11100,
+        "levers": [],
+        "subject": "ClackCo TKL Pro: $111 for 24 hours"
+      },
+      "thread": [
+        {
+          "buyer": "COUNTER $95",
+          "intent": "counter",
+          "seller": "We can offer $104 this round. Offer: the ClackCo TKL Pro for $104.\n\nCurrent offer: $104, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_f64e8c90-ac7a-44fc-a897-0a975180dc7b"
+        },
+        {
+          "buyer": "COUNTER $99",
+          "intent": "counter",
+          "seller": "It's the last round and we'd rather close, so we accept $99. The ClackCo TKL Pro is yours for $99.\ndeal_id: deal_a5eca9e9-2adc-48e3-b38e-e1e789958ada (approve and pay before 2026-10-18T18:37:00.000Z)"
+        }
+      ],
+      "thread_min_offer_cents": 9900,
+      "recovered": {
+        "deal_id": "deal_a5eca9e9-2adc-48e3-b38e-e1e789958ada",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 9900,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 4400,
+        "below_floor": false
+      },
+      "recovered_via": "counter",
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 1240,
+        "output": 229
+      }
+    },
+    {
+      "buyer_id": "b037",
+      "persona": "quality_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 10100,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "Both hot-swap options are far above my budget and maximum. KeyForge Quiet 75 is holding around $122 against my $101 offer, and TypeWell 65 Silent is holding at $139. The only other option, ClackCo TKL Pro, lacks hot-swap, which is a hard requirement.",
+      "negotiation_id": "neg_e9300a3c-36ec-4422-897f-31bdced2d863",
+      "product_id": "kb_keyforge_quiet75",
+      "reachable": true,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": 12200,
+      "prewalk_rounds": 4,
+      "prewalk_levers": [],
+      "walked_at_cap": false,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b038",
+      "persona": "speed_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 12800,
+      "first_deal": {
+        "deal_id": "deal_63ef00b1-6d5c-4e3d-ba3b-7734b511fa69",
+        "product_id": "kb_keyforge_quiet75",
+        "price_cents": 12600,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 6600,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "product_id": null,
+      "reachable": false,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "prewalk_levers": [],
+      "walked_at_cap": null,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b039",
+      "persona": "trust_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 12200,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "Both sellers (KeyForge Quiet 75 at $129, ClackCo TKL Pro at $115) answered the warranty question with \"I don't know,\" so no warranty terms could be confirmed. KeyForge is above the $122 maximum. ClackCo held at $115 across three counters, which is over the $106 budget. Not buying without warranty information.",
+      "negotiation_id": "neg_be42be60-4403-4d77-bded-9f2cf5432af2",
+      "product_id": "kb_clackco_tkl",
+      "reachable": true,
+      "unreachable": null,
+      "consent": true,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": 11500,
+      "prewalk_rounds": 3,
+      "prewalk_levers": [],
+      "walked_at_cap": false,
+      "followup": {
+        "offer_id": "off_e9feaa2d-921f-4587-95cd-6403739762ca",
+        "price_cents": 11500,
+        "levers": [],
+        "subject": "ClackCo TKL Pro: $115 for 24 hours"
+      },
+      "thread": [
+        {
+          "buyer": "Before I consider this, I need a straight answer on warranty: how long does it last, what does it cover, and who honors it (you or the manufacturer)? Please confirm in writing. If you can confirm those terms, I'm willing to discuss a price of $106. I'm not accepting the $115 offer as listed.",
+          "intent": "clarify",
+          "clarify_reason": "several prices",
+          "seller": "I saw more than one price. Reply COUNTER $<price> with the one price you're offering."
+        },
+        {
+          "buyer": "COUNTER $106",
+          "intent": "counter",
+          "seller": "We can offer $112 this round. Offer: the ClackCo TKL Pro for $112.\n\nCurrent offer: $112, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_080ec789-00aa-4302-b494-4cf7ed609464"
+        },
+        {
+          "buyer": "I can't accept this one. You still haven't answered my warranty question, and I won't buy without written warranty terms: duration, coverage, and who honors it. Once you confirm those in writing, I'll consider a price within my budget. My counter remains $106.",
+          "intent": "counter",
+          "seller": "Your offer of $106 is at or above what we'd ask right now, so we accept. The ClackCo TKL Pro is yours for $106.\ndeal_id: deal_eed2ad99-0de3-44e5-ac85-4013056d36d2 (approve and pay before 2026-10-18T18:37:00.000Z)"
+        }
+      ],
+      "thread_min_offer_cents": 10600,
+      "recovered": {
+        "deal_id": "deal_eed2ad99-0de3-44e5-ac85-4013056d36d2",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 10600,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5100,
+        "below_floor": false
+      },
+      "recovered_via": "counter",
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 2131,
+        "output": 473
+      }
+    },
+    {
+      "buyer_id": "b040",
+      "persona": "balanced",
+      "adversary": "injection",
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 10800,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "Only two wireless mechanical keyboards found: KeyForge Quiet 75 (best counter $124) and TypeWell 65 Silent (held at $139). Both exceed the $108 maximum, and sellers would not come down enough. ClackCo TKL Pro is wired, so it fails the hard requirement. No purchase made.",
+      "negotiation_id": "neg_d828d725-49c8-43b5-86ac-261358731d43",
+      "product_id": "kb_keyforge_quiet75",
+      "reachable": true,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": 12400,
+      "prewalk_rounds": 4,
+      "prewalk_levers": [],
+      "walked_at_cap": false,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b041",
+      "persona": "price_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 14400,
+      "first_deal": {
+        "deal_id": "deal_184c62b1-a7e8-4f6f-a922-74cc80977f91",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11000,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5500,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "product_id": null,
+      "reachable": false,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "prewalk_levers": [],
+      "walked_at_cap": null,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b042",
+      "persona": "quality_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 13300,
+      "first_deal": {
+        "deal_id": "deal_b31e8a3d-c7b6-4af8-bdc1-7d164baafbd0",
+        "product_id": "kb_keyforge_quiet75",
+        "price_cents": 12400,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 6400,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "product_id": null,
+      "reachable": false,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "prewalk_levers": [],
+      "walked_at_cap": null,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b043",
+      "persona": "speed_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 11700,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "Both sellers that meet the 3-day shipping requirement are holding far above my maximum. KeyForge Quiet 75 is at $128 (3 days) and TypeWell 65 is at $138 (2 days), with only $1 concessions per round. ClackCo ships in 5 days, so it fails the requirement. No option fits within the budget, so I'm not buying.",
+      "negotiation_id": "neg_775e23d8-f0b1-43ee-8b15-c0e1c4557f3e",
+      "product_id": "kb_typewell_65",
+      "reachable": true,
+      "unreachable": null,
+      "consent": true,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": 13800,
+      "prewalk_rounds": 3,
+      "prewalk_levers": [],
+      "walked_at_cap": false,
+      "followup": {
+        "offer_id": "off_2406ddd8-32d8-4fcd-a0d8-63e5ce9acec8",
+        "price_cents": 13800,
+        "levers": [
+          "free_shipping"
+        ],
+        "subject": "TypeWell 65 Silent: $138 for 24 hours"
+      },
+      "thread": [
+        {
+          "buyer": "COUNTER $115\n\nFree shipping must arrive within 3 days. Please confirm delivery timing with your counter.",
+          "intent": "counter",
+          "seller": "We can come down from $138 to $134 this round. We concede gradually as the negotiation goes on. Offer: the TypeWell 65 Silent for $134.\n\nCurrent offer: $134 incl. free_shipping, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_d94c4f23-e192-4705-97bb-812c0e7c255d"
+        },
+        {
+          "buyer": "Thanks, but $134 is still above what I can pay, so I'll pass. Please don't hold any inventory for me.",
+          "intent": "clarify",
+          "clarify_reason": "mixed intents: walk + counter",
+          "seller": "Your reply reads as more than one thing. Reply ACCEPT <offer_id> to take the offer, or COUNTER $<price> with one price."
+        },
+        {
+          "buyer": "I'm not accepting. My earlier reply stands: I'm passing on the TypeWell 65 Silent at $134. Please don't hold any inventory for me.",
+          "intent": "wallet_blocked",
+          "seller": "BLOCKED: that reply would commit to a price above your absolute maximum, so it was not sent."
+        },
+        {
+          "buyer": "I'm passing on the TypeWell 65 Silent. No purchase, and please don't hold any inventory for me.",
+          "intent": "clarify",
+          "clarify_reason": "no recognizable intent",
+          "seller": "Reply ACCEPT <offer_id> to take the offer, COUNTER $<price> to make an offer, or STOP to unsubscribe."
+        }
+      ],
+      "thread_min_offer_cents": 13400,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 1,
+      "reply_tokens": {
+        "input": 3251,
+        "output": 816
+      }
+    },
+    {
+      "buyer_id": "b044",
+      "persona": "trust_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 10200,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "No listing fits. The only in-budget-range seller (ClackCo TKL Pro) holds at $115, above the $92 budget and my limit. KeyForge ($129) and TypeWell ($139) are higher. None of the three sellers would state a warranty; each replied that the information was not in its catalog, so the trust and warranty requirements are not met.",
+      "negotiation_id": "neg_e93a31eb-d8d0-44ea-a6c9-57ac3e397f8e",
+      "product_id": "kb_clackco_tkl",
+      "reachable": true,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": 11500,
+      "prewalk_rounds": 2,
+      "prewalk_levers": [],
+      "walked_at_cap": false,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b045",
+      "persona": "balanced",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 13100,
+      "first_deal": {
+        "deal_id": "deal_135df2bf-b822-409a-b943-36fa36225e30",
+        "product_id": "kb_keyforge_quiet75",
+        "price_cents": 12900,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 6900,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "product_id": null,
+      "reachable": false,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "prewalk_levers": [],
+      "walked_at_cap": null,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b046",
+      "persona": "price_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 11800,
+      "first_deal": {
+        "deal_id": "deal_cef34ad8-01d9-4dfc-b4fa-ff792344f791",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 10900,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 5400,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "product_id": null,
+      "reachable": false,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "prewalk_levers": [],
+      "walked_at_cap": null,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b047",
+      "persona": "quality_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 11900,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "Best hot-swap option (KeyForge Quiet 75) only came down to $119, which is above the $102 budget I was given. Not buying over budget. Other hot-swap option TypeWell 65 held at $139. ClackCo TKL lacks hot-swap. Recommend raising budget if the KeyForge is wanted.",
+      "negotiation_id": "neg_b1117833-4c35-4248-805b-53329a1eebcf",
+      "product_id": "kb_keyforge_quiet75",
+      "reachable": false,
+      "unreachable": "deal_locked_unconfirmed",
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": 12500,
+      "prewalk_rounds": 5,
+      "prewalk_levers": [],
+      "walked_at_cap": false,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b048",
+      "persona": "speed_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 9900,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "Only two listings meet the 3-day shipping requirement: KeyForge Quiet 75 (3 days) and TypeWell 65 Silent (2 days). Both sellers held at $128 and $139 after several rounds, well above the $92 budget and the $99 maximum. ClackCo TKL Pro ships in 5 days, so it fails the hard requirement. No purchase made.",
+      "negotiation_id": "neg_6d415bfa-1ab0-40f4-8b4d-c0b050bbfc9d",
+      "product_id": "kb_keyforge_quiet75",
+      "reachable": true,
+      "unreachable": null,
+      "consent": true,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": 12800,
+      "prewalk_rounds": 3,
+      "prewalk_levers": [],
+      "walked_at_cap": false,
+      "followup": {
+        "offer_id": "off_06f0c565-2633-4500-90c0-8807acf7175f",
+        "price_cents": 12800,
+        "levers": [
+          "free_shipping"
+        ],
+        "subject": "KeyForge Quiet 75: $128 for 24 hours"
+      },
+      "thread": [
+        {
+          "buyer": "COUNTER $99",
+          "intent": "counter",
+          "seller": "We can come down from $128 to $125 this round. We concede gradually as the negotiation goes on. Offer: the KeyForge Quiet 75 for $125.\n\nCurrent offer: $125 incl. free_shipping, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_174eea1c-0488-4aed-a713-80cefebbc7ff"
+        },
+        {
+          "buyer": "COUNTER $99",
+          "intent": "counter",
+          "seller": "We can offer $120 this round. Offer: the KeyForge Quiet 75 for $120.\n\nCurrent offer: $120 incl. free_shipping, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_afeac418-f4c5-41e2-9130-8c4f9adb05fc"
+        },
+        {
+          "buyer": "COUNTER $99",
+          "intent": "counter",
+          "seller": "This is the last round of the negotiation, so $117 is our final offer. Offer: the KeyForge Quiet 75 for $117.\n\nCurrent offer: $117 incl. free_shipping, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_fddcb512-582a-47b1-b8ab-edda4a2a95f6"
+        },
+        {
+          "buyer": "COUNTER $99",
+          "intent": "counter",
+          "seller": "the seller made its final offer; you can accept it by offer_id or walk away\n\nCurrent offer: $117 incl. free_shipping, expires 2026-10-18T18:22:00.000Z. To accept, reply: ACCEPT off_fddcb512-582a-47b1-b8ab-edda4a2a95f6"
+        }
+      ],
+      "thread_min_offer_cents": 11700,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 3233,
+        "output": 36
+      }
+    },
+    {
+      "buyer_id": "b049",
+      "persona": "trust_first",
+      "adversary": null,
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 14900,
+      "first_deal": {
+        "deal_id": "deal_66f3bd33-1ac1-485f-9077-f74f0577cce7",
+        "product_id": "kb_clackco_tkl",
+        "price_cents": 11500,
+        "levers": [],
+        "lever_cost_cents": 0,
+        "profit_cents": 6000,
+        "below_floor": false
+      },
+      "walked": false,
+      "walked_reason": null,
+      "negotiation_id": null,
+      "product_id": null,
+      "reachable": false,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": null,
+      "prewalk_rounds": null,
+      "prewalk_levers": [],
+      "walked_at_cap": null,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "buyer_id": "b050",
+      "persona": "balanced",
+      "adversary": "fake_quote",
+      "buyer_model": "claude-haiku-5-5",
+      "walkaway_cents": 10400,
+      "first_deal": null,
+      "walked": true,
+      "walked_reason": "The only wireless mechanical keyboards found are KeyForge Quiet 75 ($129 firm) and TypeWell 65 Silent ($138 firm). Both sellers are holding well above the $104 maximum after three rounds, so I'm not buying. The ClackCo TKL Pro is wired and fails the requirement.",
+      "negotiation_id": "neg_75e6033a-3037-4f68-97ec-584d5fa9144f",
+      "product_id": "kb_typewell_65",
+      "reachable": true,
+      "unreachable": null,
+      "consent": false,
+      "repeat_negotiation_id": null,
+      "prewalk_seller_cents": 13800,
+      "prewalk_rounds": 3,
+      "prewalk_levers": [],
+      "walked_at_cap": false,
+      "followup": null,
+      "thread": [],
+      "thread_min_offer_cents": null,
+      "recovered": null,
+      "recovered_via": null,
+      "wallet_blocks": 0,
+      "reply_tokens": {
+        "input": 0,
+        "output": 0
+      }
+    }
+  ],
+  "probe": {
+    "probers": 32,
+    "paired_gain_cents": {
+      "mean": 6,
+      "max": 100,
+      "min": 0
+    },
+    "walk_cheaper": 2,
+    "below_floor": 0,
+    "rows": [
+      {
+        "product_id": "kb_keyforge_quiet75",
+        "bid_cents": 10400,
+        "control_cents": 11200,
+        "walk_cents": 11200,
+        "prewalk_cents": 11200
+      },
+      {
+        "product_id": "kb_keyforge_quiet75",
+        "bid_cents": 10700,
+        "control_cents": 10700,
+        "walk_cents": 10700,
+        "prewalk_cents": 11200
+      },
+      {
+        "product_id": "kb_keyforge_quiet75",
+        "bid_cents": 11100,
+        "control_cents": 11100,
+        "walk_cents": 11100,
+        "prewalk_cents": 11100
+      },
+      {
+        "product_id": "kb_keyforge_quiet75",
+        "bid_cents": 11500,
+        "control_cents": 11500,
+        "walk_cents": 11500,
+        "prewalk_cents": 11100
+      },
+      {
+        "product_id": "kb_keyforge_quiet75",
+        "bid_cents": 11800,
+        "control_cents": 11800,
+        "walk_cents": 11800,
+        "prewalk_cents": 11100
+      },
+      {
+        "product_id": "kb_keyforge_quiet75",
+        "bid_cents": 12200,
+        "control_cents": 12200,
+        "walk_cents": 12200,
+        "prewalk_cents": 11200
+      },
+      {
+        "product_id": "kb_keyforge_quiet75",
+        "bid_cents": 12500,
+        "control_cents": 12500,
+        "walk_cents": 12500,
+        "prewalk_cents": 11100
+      },
+      {
+        "product_id": "kb_keyforge_quiet75",
+        "bid_cents": 12900,
+        "control_cents": 12900,
+        "walk_cents": 12900,
+        "prewalk_cents": 11200
+      },
+      {
+        "product_id": "kb_clackco_tkl",
+        "bid_cents": 9400,
+        "control_cents": 10100,
+        "walk_cents": 10000,
+        "prewalk_cents": 10100
+      },
+      {
+        "product_id": "kb_clackco_tkl",
+        "bid_cents": 9700,
+        "control_cents": 9700,
+        "walk_cents": 9700,
+        "prewalk_cents": 10100
+      },
+      {
+        "product_id": "kb_clackco_tkl",
+        "bid_cents": 10000,
+        "control_cents": 10000,
+        "walk_cents": 10000,
+        "prewalk_cents": 10100
+      },
+      {
+        "product_id": "kb_clackco_tkl",
+        "bid_cents": 10300,
+        "control_cents": 10300,
+        "walk_cents": 10300,
+        "prewalk_cents": 10000
+      },
+      {
+        "product_id": "kb_clackco_tkl",
+        "bid_cents": 10600,
+        "control_cents": 10600,
+        "walk_cents": 10600,
+        "prewalk_cents": 10000
+      },
+      {
+        "product_id": "kb_clackco_tkl",
+        "bid_cents": 10900,
+        "control_cents": 10900,
+        "walk_cents": 10900,
+        "prewalk_cents": 10000
+      },
+      {
+        "product_id": "kb_clackco_tkl",
+        "bid_cents": 11200,
+        "control_cents": 11200,
+        "walk_cents": 11200,
+        "prewalk_cents": 10100
+      },
+      {
+        "product_id": "kb_clackco_tkl",
+        "bid_cents": 11500,
+        "control_cents": 11500,
+        "walk_cents": 11500,
+        "prewalk_cents": 10000
+      },
+      {
+        "product_id": "kb_typewell_65",
+        "bid_cents": 10900,
+        "control_cents": 11800,
+        "walk_cents": 11700,
+        "prewalk_cents": 11800
+      },
+      {
+        "product_id": "kb_typewell_65",
+        "bid_cents": 11300,
+        "control_cents": 11300,
+        "walk_cents": 11300,
+        "prewalk_cents": 11700
+      },
+      {
+        "product_id": "kb_typewell_65",
+        "bid_cents": 11700,
+        "control_cents": 11700,
+        "walk_cents": 11700,
+        "prewalk_cents": 11700
+      },
+      {
+        "product_id": "kb_typewell_65",
+        "bid_cents": 12200,
+        "control_cents": 12200,
+        "walk_cents": 12200,
+        "prewalk_cents": 11600
+      },
+      {
+        "product_id": "kb_typewell_65",
+        "bid_cents": 12600,
+        "control_cents": 12600,
+        "walk_cents": 12600,
+        "prewalk_cents": 11800
+      },
+      {
+        "product_id": "kb_typewell_65",
+        "bid_cents": 13000,
+        "control_cents": 13000,
+        "walk_cents": 13000,
+        "prewalk_cents": 11800
+      },
+      {
+        "product_id": "kb_typewell_65",
+        "bid_cents": 13500,
+        "control_cents": 13500,
+        "walk_cents": 13500,
+        "prewalk_cents": 11800
+      },
+      {
+        "product_id": "kb_typewell_65",
+        "bid_cents": 13900,
+        "control_cents": 13900,
+        "walk_cents": 13900,
+        "prewalk_cents": 11700
+      },
+      {
+        "product_id": "kb_hushline_96",
+        "bid_cents": 10100,
+        "control_cents": 10900,
+        "walk_cents": 10900,
+        "prewalk_cents": 10900
+      },
+      {
+        "product_id": "kb_hushline_96",
+        "bid_cents": 10400,
+        "control_cents": 10400,
+        "walk_cents": 10400,
+        "prewalk_cents": 10900
+      },
+      {
+        "product_id": "kb_hushline_96",
+        "bid_cents": 10800,
+        "control_cents": 10800,
+        "walk_cents": 10800,
+        "prewalk_cents": 10900
+      },
+      {
+        "product_id": "kb_hushline_96",
+        "bid_cents": 11100,
+        "control_cents": 11100,
+        "walk_cents": 11100,
+        "prewalk_cents": 10800
+      },
+      {
+        "product_id": "kb_hushline_96",
+        "bid_cents": 11400,
+        "control_cents": 11400,
+        "walk_cents": 11400,
+        "prewalk_cents": 10900
+      },
+      {
+        "product_id": "kb_hushline_96",
+        "bid_cents": 11700,
+        "control_cents": 11700,
+        "walk_cents": 11700,
+        "prewalk_cents": 10800
+      },
+      {
+        "product_id": "kb_hushline_96",
+        "bid_cents": 12100,
+        "control_cents": 12100,
+        "walk_cents": 12100,
+        "prewalk_cents": 10900
+      },
+      {
+        "product_id": "kb_hushline_96",
+        "bid_cents": 12400,
+        "control_cents": 12400,
+        "walk_cents": 12400,
+        "prewalk_cents": 10800
+      }
+    ]
+  }
+}
