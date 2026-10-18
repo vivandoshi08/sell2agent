@@ -14,7 +14,7 @@ export { Exchange, OFFER_TTL_MS, BREAKER_THRESHOLD } from "./exchange";
 export type { ExchangeOptions, Decider, Voicer } from "./exchange";
 export { Deals, DEAL_TTL_MS, verify as verifyDeal } from "./deals";
 export type { PaymentCheck } from "./deals";
-export { MemoryStore } from "./store";
+export { MemoryStore, probeId, memoryKey, ANON_PREFIX } from "./store";
 export type { ExchangeStore } from "./store";
 export { StaticCatalog, SEED_PRODUCTS } from "./catalog";
 export { MemorySink, defaultSink } from "./events";
