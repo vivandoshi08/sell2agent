@@ -11,8 +11,8 @@
 export * from "./types";
 export { decide, askPrice, concessionFraction, softFloor, TACTICS, DEFAULT_SOFT_FLOOR_BUFFER, usd } from "./decide";
 export { decideLever, pickLever, DEFAULT_LEVER_THRESHOLD } from "./levers";
-export { Bandit, ARMS, DEFAULT_ARM, contextOf, chooseArm } from "./bandit";
-export type { Arm, ArmStats, LearnedPolicy, LearnedGate } from "./bandit";
+export { Bandit, ARMS, BASE_ARMS, PACKAGE_ARMS, PACKAGE_EXTRAS, DEFAULT_ARM, contextOf, chooseArm, isArm, armExtra, armsFor, objectiveReward, objectiveFormula } from "./bandit";
+export type { Arm, BaseArm, PackageArm, ArmStats, LearnedPolicy, LearnedGate } from "./bandit";
 export { voice, checkMessage, templateMessage, dollarsInText } from "./voice";
 export type { VoiceContext, VoiceResult } from "./voice";
 export { answerQuestion, lookupAnswer } from "./answers";

@@ -353,6 +353,13 @@ details.panel summary::-webkit-details-marker { display: none; }
 /* ---------- Bridge 3: what the seller learned ---------- */
 .lp h3 { margin: 0; font-size: 14px; font-weight: 600; }
 .lp code { font-family: var(--mono); font-size: .92em; }
+.lp > * { min-width: 0; }
+.lp-train-src { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 4px 0 18px; }
+.lp-src { display: grid; gap: 3px; align-content: start; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--canvas); min-width: 0; }
+.lp-src > b { font-size: 20px; }
+.lp-src small { color: var(--muted); font-size: 12.5px; line-height: 1.35; }
+.lp-perks { margin: 18px 0; }
+@media (max-width: 760px) { .lp-train-src { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .lp-picks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 .lp-pick { display: grid; gap: 4px; align-content: start; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: linear-gradient(170deg, var(--brand-tint), var(--canvas) 62%); min-width: 0; }
 .lp-ctx { font-size: 18px; font-weight: 600; letter-spacing: -.01em; }
@@ -391,3 +398,37 @@ details.panel summary::-webkit-details-marker { display: none; }
   .lp-arm small { display: none; }
   .lp-ctx { font-size: 16px; }
 }
+
+/* What it learned (#learned) */
+.lpage .lfind { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0 0 18px; }
+.lcard { display: grid; gap: 8px; align-content: start; padding: 16px 18px; border: 1px solid var(--line); border-radius: 14px; background: linear-gradient(170deg, var(--brand-tint), var(--canvas) 62%); min-width: 0; }
+.lcard h2 { margin: 0; font-size: 19px; }
+.lcard p { margin: 0; color: var(--ink-2); font-size: 14px; line-height: 1.45; }
+.lcard small { color: var(--muted); font-size: 12.5px; }
+.lrows { list-style: none; margin: 2px 0 0; padding: 0; display: grid; gap: 4px; }
+.lrows li { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; border-bottom: 1px dashed var(--line); padding: 3px 0; }
+.lrows .up { color: var(--pos); } .lrows .down { color: var(--danger); }
+.lflow { list-style: none; margin: 4px 0 8px; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.lflow li { display: flex; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--canvas); min-width: 0; }
+.lflow li.llm { border-color: var(--brand); background: var(--brand-tint); }
+.lflow .lstep { flex: none; width: 24px; height: 24px; border-radius: 12px; display: grid; place-items: center; background: var(--line); font-size: 12.5px; font-weight: 600; }
+.lflow li.llm .lstep { background: var(--brand); color: var(--canvas); }
+.lflow b { display: block; font-size: 14px; margin: 2px 0 4px; }
+.lflow p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.4; }
+.lflow .lwho { font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.lex-head { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
+.lex-head > div { display: grid; gap: 2px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; min-width: 0; }
+.lex-head small { color: var(--muted); font-size: 12.5px; }
+.lex { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.lex li { display: grid; grid-template-columns: 82px 64px 1fr; gap: 4px 12px; align-items: baseline; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); }
+.lex li.buyer { background: var(--canvas); } .lex li.seller { background: var(--brand-tint); }
+.lex li p { margin: 0; font-size: 14px; } .lex li small { grid-column: 3; color: var(--muted); font-size: 12px; }
+.lex-who { font-size: 12px; color: var(--muted); }
+.lp-link { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.lp-link h2 { margin: 2px 0 4px; }
+.lcaveat ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; color: var(--ink-2); font-size: 14px; }
+@media (max-width: 900px) { .lpage .lfind, .lex-head { grid-template-columns: 1fr; } .lflow { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .lflow { grid-template-columns: 1fr; } .lex li { grid-template-columns: 1fr; } .lex li small { grid-column: 1; } }
+.lp-link > a { flex: none; padding: 9px 16px; border-radius: 10px; background: var(--brand); color: var(--canvas); font-weight: 600; text-decoration: none; }
+.topbar .tabs { min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.topbar .tabs a { white-space: nowrap; }

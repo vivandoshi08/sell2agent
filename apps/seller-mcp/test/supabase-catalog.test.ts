@@ -21,12 +21,15 @@ function fakeDb(rows = v1Rows()) {
   const s = { ...rows, mode: "ok" as "ok" | "error" | "throw" | "hang", loads: 0 };
   const db = {
     from: (t: "products" | "seller_policies") => ({
-      select: (_cols: string) => {
+      select: (cols: string) => {
         if (t === "products") s.loads++;
         if (s.mode === "error") return Promise.resolve({ data: null, error: { message: "boom" } });
         if (s.mode === "throw") return Promise.reject(new Error("network down"));
         if (s.mode === "hang") return new Promise(() => {});
-        return new Promise((res) => setTimeout(() => res({ data: structuredClone(s[t]), error: null }), 1));
+        // Like PostgREST: only the selected policy columns come back, so a column missing from the select list shows up here.
+        const keep = t === "seller_policies" && cols !== "*" ? cols.split(",") : null;
+        const data = structuredClone(s[t]).map((r: any) => (keep ? Object.fromEntries(Object.entries(r).filter(([k]) => keep.includes(k))) : r));
+        return new Promise((res) => setTimeout(() => res({ data, error: null }), 1));
       },
     }),
   };
@@ -62,6 +65,7 @@ test("v2 row: lever_menu ids + costs and policy → strategy; empty menu falls b
   assert.deepEqual(p!.allowed_levers, ["extended_warranty"]);
   assert.deepEqual(p!.lever_costs, { extended_warranty: 900 });
   assert.equal(p!.strategy, "balanced");
+  assert.deepEqual(p!.objective, { margin: 0.7 }, "the console's goal reaches the reward on the live path");
   const q = await cat.get("kb_clackco_tkl");
   assert.deepEqual(q!.allowed_levers, [], "merchant switched every lever off");
   assert.equal(q!.strategy, "negotiating", "unknown policy name: seed strategy");
@@ -195,7 +199,7 @@ test("seller_policies is read with an explicit column list; a v1 schema (no leve
   const p = (await cat.get(KB))!;
   assert.equal(p.floor_price_cents, 11000);
   assert.deepEqual(p.allowed_levers, ["free_shipping"]);
-  assert.deepEqual(asked, ["product_id,floor_price_cents,unit_cost_cents,allowed_concessions,lever_menu,policy", "product_id,floor_price_cents,unit_cost_cents,allowed_concessions"]);
+  assert.deepEqual(asked, ["product_id,floor_price_cents,unit_cost_cents,allowed_concessions,lever_menu,policy,objective", "product_id,floor_price_cents,unit_cost_cents,allowed_concessions"]);
   clk.advance(5000);
   await cat.get(KB);
   assert.equal(asked.length, 3, "remembers v1: no second failed query");

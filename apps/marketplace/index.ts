@@ -10,8 +10,11 @@ import { log } from "./src/log.js";
 import { exchange, registerNegotiationTools, subjectBuyerId, type RequestLike } from "./src/negotiate.js";
 import { deal, registerDealTools } from "./src/deal-tools.js";
 import { registerApprovePage } from "./src/deal/index.js";
+import { registerBuyPage } from "./src/buy-page.js";
 import { registerListingTools } from "./src/listing-tools.js";
 import { registerDiscovery } from "./src/discovery.js";
+import { leverNames, preferencesSchema, rememberPreferences } from "./src/preferences.js";
+import { instrumentGateway } from "./src/armature.js";
 import { followupCourier, registerFollowups, startOutreachTimer } from "./src/followup/index.js";
 
 // mcp-use and Manufact set MCP_URL to the public origin (no path); the endpoint is served at /mcp.
@@ -25,6 +28,9 @@ const server = new MCPServer({
   instructions:
     "This is a marketplace of competing sellers whose agents negotiate. Use search_products to find products that fit the buyer's needs and present those listings. Listings show public facts only; prices are negotiable through the seller's agent. Flow: search_products → (get_listing / ask_question) → make_offer rounds → accept_deal → review_deal (the card; the person approves and pays in it). A deal paid in the card is a finished purchase: if asked whether it was bought, call check_offers and report its state. Never start a new negotiation for the same item after a purchase unless the person asks to buy another.",
 });
+
+// Armature MCP Analytics: wraps server.tool, so it must run before any tool is registered.
+instrumentGateway(server);
 
 // Optional session context: simulated buyers send it so events can be grouped by run.
 const buyerContext = {
@@ -46,22 +52,6 @@ const listingSchema = z.object({
   in_stock: z.boolean(),
   mcp_url: z.string(),
 });
-
-const leverNames = ["price", "quality", "delivery", "warranty", "trust", "convenience"] as const;
-const weight = z.number().min(0).max(1);
-const preferencesSchema = z
-  .object({
-    price: weight.optional(),
-    quality: weight.optional(),
-    delivery: weight.optional(),
-    warranty: weight.optional(),
-    trust: weight.optional(),
-    convenience: weight.optional(),
-  })
-  .describe(
-    "What the buyer values, each 0..1 (1 = matters most): price, quality, delivery (speed), warranty, trust, convenience. " +
-      "E.g. a quality-first buyer: { quality: 1, warranty: 0.8, price: 0.2 }. Results are ranked by fit to these.",
-  );
 
 const offeredLeverSchema = z.object({ id: z.string(), lever: z.enum(leverNames), label: z.string() });
 
@@ -116,6 +106,8 @@ export const searchProductsTool = server.tool(
       max_price_cents: a.max_price_cents,
       preferences,
     });
+    // make_offer reads these back as the seller's buyer_profile (the learned seller's context)
+    rememberPreferences(buyer_id, contract.preferences);
     const legacy = SearchQuery.parse({ q: query, category: a.category, max_price_cents: a.max_price_cents });
     const cat = await catalog();
     const out = searchProducts({ ...legacy, must_have: contract.hard_needs, preferences: contract.preferences }, MCP_URL, cat);
@@ -154,6 +146,8 @@ export const searchProductsTool = server.tool(
 registerNegotiationTools(server, { approveOrigin: new URL(MCP_URL).origin });
 registerDealTools(server);
 registerApprovePage(server, deal);
+// Web door for buyers who can browse but can't add an MCP connector: /buy/:product_id (+ short aliases like /k2).
+registerBuyPage(server, MCP_URL);
 registerListingTools(server, MCP_URL);
 registerDiscovery(server, MCP_URL);
 // Bridge 3: follow-ups after a consented walk-away, and the inbound door for replies.

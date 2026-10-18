@@ -2,8 +2,12 @@
  * E2 · Contextual bandit over seller policies (FINAL_ARCHITECTURE §10 "Learning", core version).
  *
  * Context = the buyer's strongest lever (price, quality, delivery, warranty, trust, … or "unknown").
- * Arms    = vetted policies (every one already guardrail-checked in code): negotiating, balanced, lever_policy.
- * Reward  = seller profit for the session in cents (0 when the buyer walks).
+ * Arms    = vetted policies (every one already guardrail-checked in code): negotiating, balanced, lever_policy, plus
+ *           lever packages `pkg:<extra id>`: balanced pricing that offers that one extra (free shipping, extended
+ *           warranty, bundle discount) instead of a price cut. A package arm is only drawn on a listing that offers that
+ *           extra, so the bandit learns which extra wins for which buyer type, not just which concession curve.
+ * Reward  = the seller's goal for the session in cents (objectiveReward: the console's margin vs conversion weights
+ *           blend profit and revenue; 0 when the buyer walks).
  * Choice  = highest mean reward per context (UCB1 while learning); in deployment a small ε of random
  *           choices, with the probability of the chosen arm logged (so outcomes stay unbiased to evaluate).
  * Output  = learned_policy.json (versioned), loaded by the exchange as the `learned` strategy (exchange/learned.ts).
@@ -14,11 +18,45 @@
  * Files without `w` are unweighted. `min_sessions`: an arm needs that many logged sessions in a context before the
  * greedy choice trusts it (a lucky 3-session arm doesn't take over a context).
  */
+import type { SellerObjective } from "@sa/shared";
 import type { BuyerLeverProfile, PolicyName } from "./types";
 
-export type Arm = Exclude<PolicyName, "static">;
-export const ARMS: Arm[] = ["negotiating", "balanced", "lever_policy"];
+export type BaseArm = Exclude<PolicyName, "static" | "learned">;
+/** A lever package: balanced pricing plus this one extra in place of a price cut. */
+export type PackageArm = `pkg:${string}`;
+export type Arm = BaseArm | PackageArm;
+export const BASE_ARMS: BaseArm[] = ["negotiating", "balanced", "lever_policy"];
+/** Extras the bandit can learn to lead with (volume_discount needs quantity > 1, so it isn't an arm). */
+export const PACKAGE_EXTRAS = ["free_shipping", "extended_warranty", "bundle_discount"] as const;
+export const PACKAGE_ARMS: PackageArm[] = PACKAGE_EXTRAS.map((x) => `pkg:${x}` as const);
+export const ARMS: Arm[] = [...BASE_ARMS, ...PACKAGE_ARMS];
 export const DEFAULT_ARM: Arm = "negotiating";
+
+export const isArm = (a: unknown): a is Arm => typeof a === "string" && (ARMS as string[]).includes(a);
+/** The extra a package arm leads with; null for a base arm. */
+export const armExtra = (a: Arm): string | null => (a.startsWith("pkg:") ? a.slice(4) : null);
+/** Arms this listing can play: every base arm, and a package arm only when the listing offers its extra. */
+export function armsFor(allowed_levers: readonly string[], arms: readonly Arm[] = ARMS): Arm[] {
+  return arms.filter((a) => { const x = armExtra(a); return !x || allowed_levers.includes(x); });
+}
+
+/**
+ * The seller's goal for one negotiation, in cents: a blend of profit and revenue set by the console's objective weights.
+ * margin → profit (price − cost − extras); conversion + clear_stock → revenue (any closed sale counts, even a thinner one).
+ * Default weights (0.5 / 0.5) = half profit, half revenue. No weights at all → profit. 0 when nothing sold.
+ */
+export function objectiveReward(profitCents: number, revenueCents: number, objective?: Partial<SellerObjective> | null): number {
+  const m = objective?.margin ?? 0.5, c = (objective?.conversion ?? 0.5) + (objective?.clear_stock ?? 0);
+  if (m + c <= 0) return profitCents;
+  return Math.round((m * profitCents + c * revenueCents) / (m + c));
+}
+/** Human-readable reward formula for the dashboard: "70% profit + 30% revenue". */
+export function objectiveFormula(objective?: Partial<SellerObjective> | null): string {
+  const m = objective?.margin ?? 0.5, c = (objective?.conversion ?? 0.5) + (objective?.clear_stock ?? 0);
+  if (m + c <= 0) return "100% profit";
+  const pm = Math.round((100 * m) / (m + c));
+  return `${pm}% profit + ${100 - pm}% revenue`;
+}
 
 export interface ArmStats { n: number; sum: number; sumSq: number; w?: number; wsum?: number }
 /** Held-out verdict. `passed` = beats `negotiating` (the fallback) with a paired 95% CI above 0 and 0 deals below floor. */
@@ -49,7 +87,15 @@ export interface LearnedPolicy {
   curve?: { epoch: number; bandit: number; negotiating: number; balanced?: number }[];
   gate?: LearnedGate;
   /** Where the training sessions came from ("scripted" | "logged:<run ids>"), and how many. */
-  trained_on?: { source: string; sessions: number; runs?: string[]; previous_version?: number };
+  trained_on?: { source: string; sessions: number; runs?: string[]; previous_version?: number;
+    /** real = live marketplace traffic (run_id "live": ChatGPT, Claude, Armature testers); sim = simulated LLM buyers. */
+    by_source?: { real: number; sim: number };
+    /** The reward each session was scored with, e.g. "50% profit + 50% revenue" (from the sellers' console goals). */
+    reward?: string;
+    /** Sessions per context per source, for the dashboard. */
+    contexts?: Record<string, { real: number; sim: number }>;
+    /** "listing": stats are goal value minus the listing's average (arms compared like for like); else raw goal value. */
+    baseline?: "listing" | "none" };
 }
 
 /** The buyer's strongest non-trivial lever; ties broken by a fixed order. */
@@ -63,7 +109,7 @@ export function contextOf(profile?: BuyerLeverProfile): string {
 
 export class Bandit {
   stats: LearnedPolicy["stats"] = {};
-  constructor(public arms: Arm[] = ARMS, public epsilon = 0.1, public minSessions = 0) {}
+  constructor(public arms: Arm[] = BASE_ARMS, public epsilon = 0.1, public minSessions = 0) {}
 
   private s(ctx: string, arm: Arm): ArmStats {
     this.stats[ctx] ??= {};
@@ -123,12 +169,20 @@ export class Bandit {
  * (payload.arm_probs: lets retraining compute mixture propensities across logging policies).
  * `rand` is injectable for tests; contexts never seen fall back to the default arm.
  */
-export function chooseArm(lp: LearnedPolicy | null, profile?: BuyerLeverProfile, rand = Math.random): { arm: Arm; propensity: number; context: string; probs: Partial<Record<Arm, number>> } {
+export function chooseArm(lp: LearnedPolicy | null, profile?: BuyerLeverProfile, rand = Math.random, available?: readonly Arm[]): { arm: Arm; propensity: number; context: string; probs: Partial<Record<Arm, number>> } {
   const context = contextOf(profile);
-  const greedy = lp?.choice[context] ?? DEFAULT_ARM;
-  if (!lp) return { arm: greedy, propensity: 1, context, probs: { [greedy]: 1 } };
-  const k = lp.arms.length, eps = lp.epsilon;
-  const probs = Object.fromEntries(lp.arms.map((a) => [a, eps / k + (a === greedy ? 1 - eps : 0)])) as Partial<Record<Arm, number>>;
-  const arm = rand() < eps ? lp.arms[Math.floor(rand() * k)] ?? greedy : greedy;
+  if (!lp) return { arm: DEFAULT_ARM, propensity: 1, context, probs: { [DEFAULT_ARM]: 1 } };
+  const arms = lp.arms.filter((a) => !available || available.includes(a));
+  if (!arms.length) return { arm: DEFAULT_ARM, propensity: 1, context, probs: { [DEFAULT_ARM]: 1 } };
+  // the learned choice if this listing can play it, else the best-scoring arm it can play (by the policy's own stats)
+  let greedy = lp.choice[context] ?? lp.choice.unknown ?? DEFAULT_ARM;
+  if (!arms.includes(greedy)) {
+    const st = lp.stats[context] ?? lp.stats.unknown ?? {};
+    const m = (a: Arm) => { const x = st[a]; return x?.n ? (x.w ? (x.wsum ?? 0) / x.w : x.sum / x.n) : -Infinity; };
+    greedy = arms.reduce((b, a) => (m(a) > m(b) ? a : b), arms.includes(DEFAULT_ARM) ? DEFAULT_ARM : arms[0]);
+  }
+  const k = arms.length, eps = lp.epsilon;
+  const probs = Object.fromEntries(arms.map((a) => [a, eps / k + (a === greedy ? 1 - eps : 0)])) as Partial<Record<Arm, number>>;
+  const arm = rand() < eps ? arms[Math.floor(rand() * k)] ?? greedy : greedy;
   return { arm, propensity: probs[arm] ?? 1, context, probs };
 }
