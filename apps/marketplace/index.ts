@@ -7,6 +7,7 @@ import { SearchQuery } from "@sa/shared";
 import { CATEGORIES, searchProducts } from "./src/search.js";
 import { log } from "./src/log.js";
 import { registerNegotiationTools } from "./src/negotiate.js";
+import { registerDealTools } from "./src/deal-tools.js";
 
 // mcp-use and Manufact set MCP_URL to the public origin (no path); the endpoint is served at /mcp.
 const MCP_URL = new URL("/mcp", process.env.MCP_URL ?? "http://localhost:3002").toString();
@@ -94,5 +95,6 @@ export const searchProductsTool = server.tool(
 );
 
 registerNegotiationTools(server);
+registerDealTools(server);
 
 export default server;

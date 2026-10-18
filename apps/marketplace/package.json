@@ -14,7 +14,7 @@
     "test": "node --import tsx --test \"test/**/*.test.ts\" \"src/**/*.test.ts\""
   },
   "dependencies": {
-    "@mcp-use/client": "^2.0.0-alpha.0",
+    "@mcp-use/client": "2.4.4",
     "@sa/payments": "workspace:*",
     "@sa/seller-mcp": "workspace:*",
     "@sa/shared": "workspace:*",
