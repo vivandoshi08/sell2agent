@@ -82,8 +82,58 @@ export function fakeRun(policy: "static" | "negotiating", opts: { buyers?: numbe
   return ev;
 }
 
+/**
+ * Walk-away recovery, as the Live view shows it. An Instinct shopper offers $80 for TypeWell 65 Silent (list $139), the
+ * seller holds above its floor, and the shopper walks over price. The gateway suggests two cheaper silent boards (logged
+ * as a `search` with payload.recovery, like the real gateway), and the shopper buys TypeWell 60 Silent for $82.
+ * Its own run with no policy, so it never joins the static/negotiating comparison.
+ */
+export function fakeRecovery(start = Date.parse("2026-10-17T21:10:00Z")): NegotiationEvent[] {
+  const run_id = `${FAKE_PREFIX}live-instinct`;
+  let t = start;
+  const ev: NegotiationEvent[] = [];
+  const who = { buyer_id: "inst_k7", buyer_model: "instinct", seller_id: "s_typewell" };
+  const walked = { ...who, product_id: "kb_typewell_65", negotiation_id: `${run_id}-n1` };
+  const saved = { ...who, product_id: "kb_typewell_60", negotiation_id: `${run_id}-n2` };
+  const seller = { agent_operator: "instinct", channel: "messaging" };
+  const push = (after: number, e: Omit<NegotiationEvent, "run_id" | "ts" | "buyer_id" | "buyer_model" | "seller_id">) =>
+    ev.push({ run_id, ts: new Date((t += after)).toISOString(), ...who, ...e } as NegotiationEvent);
+
+  push(0, { ...walked, actor: "buyer", type: "listing_viewed", price_cents: 13_900, payload: {} });
+  push(4_200, { ...walked, actor: "buyer", type: "offer_made", price_cents: 8_000, payload: { round: 1, message: "Can you do $80? It's for a second desk." } });
+  push(2_300, { ...walked, actor: "seller", type: "offer_countered", price_cents: 11_900,
+    payload: { ...seller, round: 1, product_title: "TypeWell 65 Silent", lever_package: [{ id: "free_shipping", label: "free shipping" }],
+      reason: "Held well above your floor and added free shipping instead of a deeper cut.", rule_refs: ["offer_below_soft_floor", "lever:free_shipping"] } });
+  push(9_500, { ...walked, actor: "buyer", type: "buyer_walked_away", price_cents: null, payload: { reason: "price: it's for a second desk, just needs to be quiet" } });
+  push(450, { ...walked, actor: "marketplace", type: "search", price_cents: null, payload: {
+    recovery: true, trigger: "walk_away", blocker: "price", need: "it's for a second desk, just needs to be quiet", still_need: ["silent"],
+    from_product_id: "kb_typewell_65", from_title: "TypeWell 65 Silent",
+    result_ids: ["kb_typewell_60", "kb_hushline_96"], result_titles: ["TypeWell 60 Silent", "Hushline 96 Silent"], honest_no: false,
+    summary: "Since price was the problem: TypeWell 60 Silent by TypeWell ($99 list) or Hushline 96 Silent by Hushline ($124 list) may fit better." } });
+  push(7_000, { ...saved, actor: "buyer", type: "listing_viewed", price_cents: 9_900, payload: {} });
+  push(3_400, { ...saved, actor: "buyer", type: "offer_made", price_cents: 7_500, payload: { round: 1, message: "Would you take $75?" } });
+  push(2_100, { ...saved, actor: "seller", type: "offer_countered", price_cents: 8_600,
+    payload: { ...seller, round: 1, product_title: "TypeWell 60 Silent", lever_package: [], reason: "Came down $13 from list, inside your rules for this board.", rule_refs: ["floor"] } });
+  push(5_200, { ...saved, actor: "buyer", type: "offer_made", price_cents: 8_200, payload: { round: 2, message: "Meet me at $82 and I'll take it." } });
+  push(1_900, { ...saved, actor: "seller", type: "deal_accepted", price_cents: 8_200,
+    payload: { ...seller, deal_id: `deal_${run_id}-n2`, quantity: 1, list_price_cents: 9_900, unit_cost_cents: 4_200, lever_package: [],
+      product_title: "TypeWell 60 Silent", reason: "Accepted $82, above your floor for this board.", rule_refs: ["floor"] } });
+  push(4_400, { ...saved, actor: "seller", type: "payment_succeeded", price_cents: 8_200,
+    payload: { deal_id: `deal_${run_id}-n2`, payment_intent_id: "pi_fake_instinct_k7", mode: "test_card", status: "succeeded", reasons: [] } });
+  return ev;
+}
+
 /** Baseline and negotiating, same buyer mix, interleaved by time like two concurrent runs. */
 export function fakeComparison(buyers = 60, seed = 7): NegotiationEvent[] {
   return [...fakeRun("static", { buyers, seed }), ...fakeRun("negotiating", { buyers, seed })]
     .sort((a, b) => Date.parse(a.ts!) - Date.parse(b.ts!));
+}
+
+/** What `?sample` replays: the comparison plus the recovery scenario, timed so it plays out on screen (see source.ts). */
+export function fakeSample(buyers = 60, seed = 7, at = 0.55): NegotiationEvent[] {
+  const runs = fakeComparison(buyers, seed);
+  // The Instinct shopper starts just before the feed's first frame (`at` of the events), so its negotiation is on
+  // screen when the page opens, and the walk-away, the suggestion and the save land during the replay.
+  const start = Date.parse(runs[Math.max(0, Math.floor(runs.length * at) - 4)].ts!);
+  return [...runs, ...fakeRecovery(start)].sort((a, b) => Date.parse(a.ts!) - Date.parse(b.ts!));
 }
