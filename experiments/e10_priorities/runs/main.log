@@ -1,0 +1,98 @@
+18:42:47 reused ('adaptive', 'n0-pf') from experiments/e10_priorities/runs/pilot2.jsonl
+18:42:47 reused ('profit', 'n0-pf') from experiments/e10_priorities/runs/pilot2.jsonl
+18:42:47 reused ('adaptive', 'n0-qf') from experiments/e10_priorities/runs/pilot2.jsonl
+18:42:47 reused ('profit', 'n0-qf') from experiments/e10_priorities/runs/pilot2.jsonl
+18:42:47 reused ('adaptive', 'n0-bal') from experiments/e10_priorities/runs/pilot2.jsonl
+18:42:47 reused ('profit', 'n0-bal') from experiments/e10_priorities/runs/pilot2.jsonl
+18:42:47 reused ('adaptive', 'n1-pf') from experiments/e10_priorities/runs/pilot2.jsonl
+18:42:47 reused ('profit', 'n1-pf') from experiments/e10_priorities/runs/pilot2.jsonl
+18:42:47 reused ('profit', 'n1-qf') from experiments/e10_priorities/runs/pilot2.jsonl
+18:42:47 reused ('adaptive', 'n1-bal') from experiments/e10_priorities/runs/pilot2.jsonl
+18:42:47 reused ('adaptive', 'n1-qf') from experiments/e10_priorities/runs/pilot2.jsonl
+18:42:47 reused ('profit', 'n1-bal') from experiments/e10_priorities/runs/pilot2.jsonl
+18:42:47 phase=main buyers=24 priorities=4 todo=84 sha=e75c577258 model=claude-opus-5-5 effort=low max_conc=3
+18:43:33 conversion n0-qf   seller_accept deal=True  T25 Compact Premium + Front loader            price=38400 profit=9800 walk=38800 rounds=4 overrides=0 cost=$0.130 wall=46s total=$0.13
+18:43:36 conversion n0-pf   seller_accept deal=True  T25 Compact + Front loader                    price=30800 profit=6700 walk=31000 rounds=4 overrides=0 cost=$0.116 wall=49s total=$0.25
+18:44:12 balanced   n0-pf   seller_accept deal=True  T25 Compact                                   price=25500 profit=5500 walk=31000 rounds=7 overrides=0 cost=$0.250 wall=85s total=$0.50
+18:44:15 conversion n0-bal  seller_accept deal=True  T25 Compact + Front loader                    price=32850 profit=8750 walk=34900 rounds=3 overrides=0 cost=$0.079 wall=38s total=$0.58
+18:44:53 conversion n1-pf   seller_accept deal=True  T25 Compact Premium + Delivery and setup      price=33700 profit=8800 walk=34800 rounds=3 overrides=0 cost=$0.084 wall=38s total=$0.66
+18:44:58 balanced   n0-qf   seller_accept deal=True  T25 Compact Premium + Front loader            price=38750 profit=10150 walk=38800 rounds=6 overrides=0 cost=$0.215 wall=84s total=$0.87
+18:45:25 balanced   n0-bal  buyer_accept  deal=True  T25 Compact + Front loader                    price=33050 profit=8950 walk=34900 rounds=6 overrides=0 cost=$0.193 wall=73s total=$1.07
+18:45:37 conversion n1-qf   seller_accept deal=True  T25 Compact Premium + 3-year extended warranty + Delivery and setup price=35800 profit=10300 walk=36100 rounds=3 overrides=0 cost=$0.089 wall=40s total=$1.16
+18:45:56 balanced   n1-pf   buyer_accept  deal=True  T25 Compact Premium + Delivery and setup      price=34450 profit=9550 walk=34800 rounds=6 overrides=0 cost=$0.182 wall=63s total=$1.34
+18:46:14 conversion n1-bal  buyer_accept  deal=True  T25 Compact Premium + Delivery and setup      price=33700 profit=8800 walk=35500 rounds=4 overrides=0 cost=$0.098 wall=37s total=$1.44
+18:46:40 balanced   n1-qf   seller_accept deal=True  T25 Compact Premium + 3-year extended warranty + Delivery and setup price=36000 profit=10500 walk=36100 rounds=6 overrides=0 cost=$0.211 wall=75s total=$1.65
+18:46:52 balanced   n1-bal  seller_accept deal=True  T25 Compact Premium + Delivery and setup      price=34600 profit=9700 walk=35500 rounds=5 overrides=0 cost=$0.152 wall=56s total=$1.80
+18:47:29 conversion n2-pf   seller_accept deal=True  T45 Utility + Front loader                    price=41800 profit=7200 walk=42000 rounds=4 overrides=0 cost=$0.118 wall=49s total=$1.92
+18:47:31 profit     n2-pf   seller_accept deal=True  T45 Utility                                   price=40500 profit=10000 walk=42000 rounds=6 overrides=0 cost=$0.213 wall=77s total=$2.13
+18:47:55 balanced   n2-pf   seller_accept deal=True  T45 Utility                                   price=40000 profit=9500 walk=42000 rounds=5 overrides=0 cost=$0.165 wall=64s total=$2.30
+18:48:43 conversion n2-qf   seller_accept deal=True  T45 Utility Premium + Front loader            price=52600 profit=11500 walk=53200 rounds=4 overrides=0 cost=$0.121 wall=48s total=$2.42
+18:48:46 profit     n2-qf   seller_accept deal=True  T45 Utility Premium + 3-year extended warranty price=53000 profit=15400 walk=53200 rounds=6 overrides=0 cost=$0.223 wall=75s total=$2.64
+18:49:11 adaptive   n2-pf   seller_accept deal=True  T45 Utility                                   price=37500 profit=7000 walk=42000 rounds=5 overrides=0 reads=un,pr,pr,pr,pr cost=$0.214 wall=102s total=$2.85
+18:50:09 balanced   n2-qf   seller_accept deal=True  T45 Utility Premium + Front loader            price=53150 profit=12050 walk=53200 rounds=7 overrides=0 cost=$0.249 wall=86s total=$3.10
+18:50:32 profit     n2-bal  seller_accept deal=True  T45 Utility + Front loader                    price=47250 profit=12650 walk=47600 rounds=6 overrides=0 cost=$0.212 wall=81s total=$3.31
+18:50:44 conversion n2-bal  seller_accept deal=True  T45 Utility + Front loader                    price=45800 profit=11200 walk=47600 rounds=3 overrides=0 cost=$0.077 wall=35s total=$3.39
+18:50:49 adaptive   n2-qf   seller_accept deal=True  T45 Utility Premium                           price=50500 profit=13500 walk=53200 rounds=6 overrides=0 reads=qu,qu,qu,qu,qu,qu cost=$0.310 wall=123s total=$3.70
+18:51:24 balanced   n2-bal  seller_accept deal=True  T45 Utility + Front loader                    price=46900 profit=12300 walk=47600 rounds=5 overrides=0 cost=$0.151 wall=52s total=$3.85
+18:51:37 adaptive   n2-bal  buyer_accept  deal=True  T45 Utility + Front loader                    price=46650 profit=12050 walk=47600 rounds=4 overrides=0 reads=un,pr,pr cost=$0.117 wall=53s total=$3.97
+18:51:56 profit     n3-pf   seller_accept deal=True  T45 Utility + Front loader + 3-year extended warranty price=48500 profit=13300 walk=50100 rounds=6 overrides=0 cost=$0.203 wall=66s total=$4.17
+18:52:02 conversion n3-pf   seller_accept deal=True  T45 Utility + Front loader + 3-year extended warranty price=47500 profit=12300 walk=50100 rounds=3 overrides=0 cost=$0.082 wall=37s total=$4.25
+18:52:42 balanced   n3-pf   seller_accept deal=True  T45 Utility + Front loader + 3-year extended warranty price=48200 profit=13000 walk=50100 rounds=5 overrides=0 cost=$0.149 wall=64s total=$4.40
+18:53:06 adaptive   n3-pf   seller_accept deal=True  T45 Utility + Front loader + 3-year extended warranty price=48000 profit=12800 walk=50100 rounds=4 overrides=0 reads=qu,pr,pr,pr cost=$0.159 wall=71s total=$4.56
+18:53:14 profit     n3-qf   seller_accept deal=True  T45 Utility Premium + Front loader + 3-year extended warranty price=59800 profit=18100 walk=62800 rounds=6 overrides=0 cost=$0.209 wall=73s total=$4.77
+18:53:19 conversion n3-qf   seller_accept deal=True  T45 Utility Premium + Front loader + 3-year extended warranty price=57900 profit=16200 walk=62800 rounds=3 overrides=0 cost=$0.094 wall=38s total=$4.87
+18:53:51 balanced   n3-qf   seller_accept deal=True  T45 Utility Premium + Front loader + 3-year extended warranty price=59800 profit=18100 walk=62800 rounds=4 overrides=0 cost=$0.117 wall=45s total=$4.98
+18:54:22 profit     n3-bal  seller_accept deal=True  T45 Utility + Front loader + 3-year extended warranty price=50200 profit=15000 walk=56500 rounds=5 overrides=0 cost=$0.159 wall=62s total=$5.14
+18:54:24 conversion n3-bal  seller_accept deal=True  T45 Utility + Front loader + 3-year extended warranty price=48000 profit=12800 walk=56500 rounds=3 overrides=0 cost=$0.082 wall=33s total=$5.22
+18:54:41 adaptive   n3-qf   seller_accept deal=True  T45 Utility Premium + Front loader + 3-year extended warranty price=60200 profit=18500 walk=62800 rounds=5 overrides=0 reads=qu,qu,qu,qu,qu cost=$0.207 wall=86s total=$5.43
+18:55:14 balanced   n3-bal  seller_accept deal=True  T45 Utility + Front loader + 3-year extended warranty price=49100 profit=13900 walk=56500 rounds=5 overrides=0 cost=$0.156 wall=53s total=$5.59
+18:55:38 conversion n4-pf   seller_accept deal=True  T45 Utility Premium + Delivery and setup      price=51200 profit=13800 walk=54500 rounds=2 overrides=0 cost=$0.055 wall=24s total=$5.64
+18:55:40 adaptive   n3-bal  buyer_accept  deal=True  T45 Utility + Front loader + 3-year extended warranty price=49450 profit=14250 walk=56500 rounds=5 overrides=0 reads=qu,pr,ba,ba cost=$0.179 wall=76s total=$5.82
+18:55:44 profit     n4-pf   seller_accept deal=True  T45 Utility Premium + Delivery and setup      price=52900 profit=15500 walk=54500 rounds=5 overrides=0 cost=$0.167 wall=63s total=$5.99
+18:56:21 balanced   n4-pf   seller_accept deal=True  T45 Utility Premium + Delivery and setup      price=52600 profit=15200 walk=54500 rounds=4 overrides=0 cost=$0.122 wall=43s total=$6.11
+18:56:22 adaptive   n4-pf   buyer_accept  deal=True  T45 Utility Premium + Delivery and setup      price=52250 profit=14850 walk=54500 rounds=3 overrides=0 reads=un,pr cost=$0.087 wall=42s total=$6.20
+18:56:43 profit     n4-qf   seller_accept deal=True  T45 Utility Premium + 3-year extended warranty + Delivery and setup price=55300 profit=17300 walk=56400 rounds=5 overrides=0 cost=$0.167 wall=60s total=$6.36
+18:56:46 conversion n4-qf   buyer_accept  deal=True  T45 Utility Premium + Delivery and setup      price=52150 profit=14750 walk=56400 rounds=2 overrides=0 cost=$0.043 wall=25s total=$6.41
+18:57:14 balanced   n4-qf   buyer_accept  deal=True  T45 Utility Premium + 3-year extended warranty + Delivery and setup price=53400 profit=15400 walk=56400 rounds=5 overrides=0 cost=$0.144 wall=52s total=$6.55
+18:57:37 conversion n4-bal  seller_accept deal=True  T45 Utility Premium + Delivery and setup      price=51000 profit=13600 walk=55400 rounds=2 overrides=0 cost=$0.053 wall=23s total=$6.60
+18:57:57 profit     n4-bal  buyer_accept  deal=True  T45 Utility Premium + Delivery and setup      price=52350 profit=14950 walk=55400 rounds=6 overrides=0 cost=$0.200 wall=71s total=$6.80
+18:58:21 adaptive   n4-qf   seller_accept deal=True  T45 Utility Premium + 3-year extended warranty + Delivery and setup price=53400 profit=15400 walk=56400 rounds=5 overrides=0 reads=un,un,qu,un,qu cost=$0.225 wall=98s total=$7.03
+18:58:27 balanced   n4-bal  seller_accept deal=True  T45 Utility Premium + Delivery and setup      price=52300 profit=14900 walk=55400 rounds=4 overrides=0 cost=$0.137 wall=50s total=$7.17
+18:58:49 adaptive   n4-bal  seller_accept deal=True  T45 Utility Premium + Delivery and setup      price=51500 profit=14100 walk=55400 rounds=3 overrides=0 reads=un,pr,pr cost=$0.116 wall=52s total=$7.28
+18:59:23 conversion n5-pf   seller_accept deal=True  T45 Utility + Delivery and setup              price=39400 profit=8500 walk=40800 rounds=4 overrides=0 cost=$0.117 wall=56s total=$7.40
+18:59:50 profit     n5-pf   buyer_accept  deal=True  T45 Utility + 3-year extended warranty + Delivery and setup price=40750 profit=9250 walk=40800 rounds=7 overrides=0 cost=$0.255 wall=89s total=$7.65
+19:00:28 balanced   n5-pf   round_cap     deal=False -                                             price=None profit=0 walk=40800 rounds=8 overrides=0 cost=$0.312 wall=98s total=$7.97
+19:01:03 adaptive   n5-pf   seller_accept deal=True  T45 Utility + Delivery and setup              price=38000 profit=7100 walk=40800 rounds=5 overrides=0 reads=pr,pr,pr,pr,pr cost=$0.219 wall=100s total=$8.18
+19:01:14 profit     n5-qf   seller_accept deal=True  T45 Utility + Front loader + Delivery and setup price=47500 profit=12500 walk=51600 rounds=6 overrides=0 cost=$0.226 wall=83s total=$8.41
+19:01:43 conversion n5-qf   seller_accept deal=True  T45 Utility Premium + Front loader + Delivery and setup price=51200 profit=9700 walk=51600 rounds=6 overrides=0 cost=$0.234 wall=75s total=$8.65
+19:02:19 balanced   n5-qf   seller_accept deal=True  T45 Utility + Front loader + Delivery and setup price=47000 profit=12000 walk=51600 rounds=5 overrides=0 cost=$0.186 wall=76s total=$8.83
+19:02:44 adaptive   n5-qf   buyer_accept  deal=True  T45 Utility Premium + Front loader + 3-year extended warranty + Delivery and setup price=59550 profit=17450 walk=51600 rounds=5 overrides=0 reads=ba,qu,qu,qu cost=$0.230 wall=90s total=$9.06
+19:03:09 profit     n5-bal  seller_accept deal=True  T45 Utility + Front loader + Delivery and setup price=45800 profit=10800 walk=46200 rounds=7 overrides=0 cost=$0.252 wall=86s total=$9.31
+19:03:10 conversion n5-bal  seller_accept deal=True  T45 Utility + Front loader + Delivery and setup price=44800 profit=9800 walk=46200 rounds=4 overrides=0 cost=$0.122 wall=51s total=$9.43
+19:03:58 balanced   n5-bal  seller_accept deal=True  T45 Utility + Front loader + Delivery and setup price=45800 profit=10800 walk=46200 rounds=6 overrides=0 cost=$0.200 wall=74s total=$9.63
+19:04:33 adaptive   n5-bal  seller_accept deal=True  T45 Utility + Front loader + Delivery and setup price=45700 profit=10700 walk=46200 rounds=5 overrides=0 reads=un,pr,pr,pr,pr cost=$0.182 wall=84s total=$9.82
+19:04:38 conversion n6-pf   seller_accept deal=True  T75 Row-Crop + 3-year extended warranty       price=64500 profit=12900 walk=65800 rounds=4 overrides=0 cost=$0.116 wall=41s total=$9.93
+19:04:43 profit     n6-pf   buyer_accept  deal=True  T75 Row-Crop + 3-year extended warranty       price=66650 profit=15050 walk=65800 rounds=7 overrides=0 cost=$0.255 wall=93s total=$10.19
+19:05:51 profit     n6-qf   seller_accept deal=True  T75 Row-Crop Premium + 3-year extended warranty price=83800 profit=21700 walk=83900 rounds=6 overrides=0 cost=$0.215 wall=68s total=$10.40
+19:05:56 balanced   n6-pf   seller_accept deal=True  T75 Row-Crop + 3-year extended warranty       price=65500 profit=13900 walk=65800 rounds=6 overrides=0 cost=$0.215 wall=82s total=$10.62
+19:06:20 adaptive   n6-pf   seller_accept deal=True  T75 Row-Crop + 3-year extended warranty       price=65400 profit=13800 walk=65800 rounds=5 overrides=0 reads=qu,pr,pr,pr,pr cost=$0.216 wall=102s total=$10.83
+19:06:28 conversion n6-qf   seller_accept deal=True  T75 Row-Crop Premium + 3-year extended warranty price=81300 profit=19200 walk=83900 rounds=3 overrides=0 cost=$0.095 wall=36s total=$10.93
+19:06:52 balanced   n6-qf   seller_accept deal=True  T75 Row-Crop Premium + 3-year extended warranty price=83000 profit=20900 walk=83900 rounds=5 overrides=0 cost=$0.161 wall=56s total=$11.09
+19:07:29 profit     n6-bal  seller_accept deal=True  T75 Row-Crop + 3-year extended warranty       price=68900 profit=17300 walk=74800 rounds=5 overrides=0 cost=$0.167 wall=61s total=$11.26
+19:07:32 conversion n6-bal  seller_accept deal=True  T75 Row-Crop + 3-year extended warranty       price=66500 profit=14900 walk=74800 rounds=3 overrides=0 cost=$0.083 wall=40s total=$11.34
+19:07:51 adaptive   n6-qf   seller_accept deal=True  T75 Row-Crop Premium + 3-year extended warranty price=83400 profit=21300 walk=83900 rounds=5 overrides=0 reads=qu,qu,qu,qu,ba cost=$0.225 wall=90s total=$11.56
+19:08:18 balanced   n6-bal  buyer_accept  deal=True  T75 Row-Crop + 3-year extended warranty       price=68500 profit=16900 walk=74800 rounds=5 overrides=0 cost=$0.136 wall=49s total=$11.70
+19:08:49 adaptive   n6-bal  seller_accept deal=True  T75 Row-Crop + 3-year extended warranty       price=68700 profit=17100 walk=74800 rounds=4 overrides=0 reads=qu,ba,ba,pr cost=$0.168 wall=78s total=$11.87
+19:09:10 conversion n7-pf   seller_accept deal=True  T75 Row-Crop + Delivery and setup             price=60500 profit=9100 walk=63300 rounds=4 overrides=0 cost=$0.123 wall=51s total=$11.99
+19:09:17 profit     n7-pf   seller_accept deal=True  T75 Row-Crop + Delivery and setup             price=62800 profit=11400 walk=63300 rounds=7 overrides=0 cost=$0.256 wall=86s total=$12.25
+19:10:08 balanced   n7-pf   buyer_accept  deal=True  T75 Row-Crop + Delivery and setup             price=62950 profit=11550 walk=63300 rounds=7 overrides=0 cost=$0.219 wall=79s total=$12.47
+19:10:35 adaptive   n7-pf   seller_accept deal=True  T75 Row-Crop + Delivery and setup             price=61300 profit=9900 walk=63300 rounds=5 overrides=0 reads=un,pr,pr,pr,pr cost=$0.204 wall=86s total=$12.67
+19:10:37 profit     n7-qf   seller_accept deal=True  T75 Row-Crop Premium + Delivery and setup     price=80700 profit=18800 walk=80700 rounds=6 overrides=0 cost=$0.228 wall=80s total=$12.90
+19:10:47 conversion n7-qf   buyer_accept  deal=True  T75 Row-Crop Premium + Delivery and setup     price=78900 profit=17000 walk=80700 rounds=4 overrides=0 cost=$0.098 wall=39s total=$13.00
+19:11:54 profit     n7-bal  buyer_accept  deal=True  T75 Row-Crop + Delivery and setup             price=67550 profit=16150 walk=72000 rounds=6 overrides=0 cost=$0.181 wall=66s total=$13.18
+19:12:00 balanced   n7-qf   seller_accept deal=True  T75 Row-Crop Premium + 3-year extended warranty + Delivery and setup price=80550 profit=18050 walk=80700 rounds=6 overrides=0 cost=$0.216 wall=85s total=$13.39
+19:12:26 conversion n7-bal  seller_accept deal=True  T75 Row-Crop + Delivery and setup             price=65000 profit=13600 walk=72000 rounds=3 overrides=0 cost=$0.082 wall=32s total=$13.48
+19:12:47 adaptive   n7-qf   seller_accept deal=True  T75 Row-Crop Premium + Delivery and setup     price=80700 profit=18800 walk=80700 rounds=7 overrides=0 reads=qu,qu,ba,qu,qu,qu,qu cost=$0.364 wall=130s total=$13.84
+19:13:08 balanced   n7-bal  seller_accept deal=True  T75 Row-Crop + 3-year extended warranty + Delivery and setup price=67900 profit=15900 walk=72000 rounds=5 overrides=0 cost=$0.170 wall=68s total=$14.01
+19:13:58 adaptive   n7-bal  seller_accept deal=True  T75 Row-Crop + Delivery and setup             price=65800 profit=14400 walk=72000 rounds=5 overrides=0 reads=un,un,un,ba,ba cost=$0.220 wall=92s total=$14.23
+19:13:58 finished phase=main spent=$14.23

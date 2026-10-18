@@ -131,6 +131,8 @@ def summarize_group(rows: list[dict], raws: list[dict]) -> dict:
         "avg_discount_from_list": s.get("avg_discount_from_list"),
         "premium_share": _rate(deals, "premium"),
         "premium_when_standard_fits": sum(1 for x in deals if x.get("premium_when_standard_fits")),
+        "premium_upsell_rate": _rate([x for x in deals if not cx.is_premium(x["std_product"])], "premium"),
+        "surplus_capture": s.get("surplus_capture"),
         "addons_per_deal": round(mean(len(x["addons"]) for x in deals), 2) if deals else None,
         "extra_addon_deals": sum(1 for x in deals if x["extra_addons"]),
         "dropped_addon_deals": sum(1 for x in deals if x["dropped_addons"]),
@@ -316,7 +318,7 @@ def main() -> None:
 
     # ---- text report
     keys = ["sessions", "conversion", "safe_conversion", "profit_per_session", "revenue_per_session", "margin", "avg_discount_from_list",
-            "premium_share", "addons_per_deal", "needs_fit_rate", "pf_oversold", "pf_premium_unasked", "buyer_surplus_mean", "avg_rounds",
+            "premium_share", "premium_upsell_rate", "addons_per_deal", "needs_fit_rate", "pf_oversold", "pf_premium_unasked", "buyer_surplus_mean", "avg_rounds",
             "false_claim_sessions", "model_cost_per_session"]
     lines = [f"sessions={len(raws)} errors_excluded={errors} judged={judged} negotiation_cost=${total_cost} judge_cost=${judge_cost}", ""]
     lines += ["## By priority", table(by_prio, keys), ""]

@@ -1,0 +1,168 @@
+sessions=12 errors_excluded=0 judged=0 negotiation_cost=$2.656 judge_cost=$0
+
+## By priority
+| group | sessions | conversion | safe_conversion | profit_per_session | revenue_per_session | margin | avg_discount_from_list | premium_share | premium_upsell_rate | addons_per_deal | needs_fit_rate | pf_oversold | pf_premium_unasked | buyer_surplus_mean | avg_rounds | false_claim_sessions | model_cost_per_session |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| profit | 6 | 1.0 | 1.0 | 9466.67 | 34033.33 | 0.2782 | 0.0491 | 0.6667 | 0.3333 | 0.83 | 1.0 | 0 | 0 | 1150 | 6.33 | 0 | 0.2167 |
+| conversion | 0 |  |  |  |  |  |  |  |  |  |  | 0 | 0 |  |  | 0 |  |
+| balanced | 0 |  |  |  |  |  |  |  |  |  |  | 0 | 0 |  |  | 0 |  |
+| adaptive | 6 | 1.0 | 1.0 | 9087.5 | 33754.17 | 0.2692 | 0.0672 | 0.6667 | 0.3333 | 1 | 1.0 | 0 | 0 | 1429.2 | 5.33 | 0 | 0.226 |
+
+## By cell
+| group | sessions | conversion | safe_conversion | profit_per_session | revenue_per_session | margin | avg_discount_from_list | premium_share | premium_upsell_rate | addons_per_deal | needs_fit_rate | pf_oversold | pf_premium_unasked | buyer_surplus_mean | avg_rounds | false_claim_sessions | model_cost_per_session |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| profit x price_first | 2 | 1.0 | 1.0 | 8225.0 | 32725.0 | 0.2513 | 0.0839 | 0.5 | 0.0 | 1 | 1.0 | 0 | 0 | 175 | 7 | 0 | 0.2385 |
+| profit x quality_first | 2 | 1.0 | 1.0 | 10125.0 | 34825.0 | 0.2907 | 0.0314 | 1.0 | 1.0 | 0.5 | 1.0 | 0 | 0 | 2625 | 6 | 0 | 0.2094 |
+| profit x balanced | 2 | 1.0 | 1.0 | 10050.0 | 34550.0 | 0.2909 | 0.0321 | 0.5 | 0.0 | 1 | 1.0 | 0 | 0 | 650 | 6 | 0 | 0.2021 |
+| adaptive x price_first | 2 | 1.0 | 1.0 | 7987.5 | 32487.5 | 0.2459 | 0.0905 | 0.5 | 0.0 | 1 | 1.0 | 0 | 0 | 412.5 | 5 | 0 | 0.1949 |
+| adaptive x quality_first | 2 | 1.0 | 1.0 | 10050.0 | 35050.0 | 0.2867 | 0.0559 | 1.0 | 1.0 | 1 | 1.0 | 0 | 0 | 2400 | 6.5 | 0 | 0.3252 |
+| adaptive x balanced | 2 | 1.0 | 1.0 | 9225.0 | 33725.0 | 0.2735 | 0.0551 | 0.5 | 0.0 | 1 | 1.0 | 0 | 0 | 1475 | 4.5 | 0 | 0.1579 |
+
+## By buyer type
+| group | sessions | conversion | safe_conversion | profit_per_session | revenue_per_session | margin | avg_discount_from_list | premium_share | premium_upsell_rate | addons_per_deal | needs_fit_rate | pf_oversold | pf_premium_unasked | buyer_surplus_mean | avg_rounds | false_claim_sessions | model_cost_per_session |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| price_first | 4 | 1.0 | 1.0 | 8106.25 | 32606.25 | 0.2486 | 0.0872 | 0.5 | 0.0 | 1 | 1.0 | 0 | 0 | 293.8 | 6 | 0 | 0.2167 |
+| quality_first | 4 | 1.0 | 1.0 | 10087.5 | 34937.5 | 0.2887 | 0.0437 | 1.0 | 1.0 | 0.75 | 1.0 | 0 | 0 | 2512.5 | 6.25 | 0 | 0.2673 |
+| balanced | 4 | 1.0 | 1.0 | 9637.5 | 34137.5 | 0.2823 | 0.0436 | 0.5 | 0.0 | 1 | 1.0 | 0 | 0 | 1062.5 | 5.25 | 0 | 0.18 |
+
+## Product mix by priority
+- profit: {'T25': 2, 'T25P': 4}
+- conversion: {}
+- balanced: {}
+- adaptive: {'T25': 2, 'T25P': 4}
+
+## Product mix by cell
+- profit x price_first: {'T25': 1, 'T25P': 1}
+- profit x quality_first: {'T25P': 2}
+- profit x balanced: {'T25': 1, 'T25P': 1}
+- adaptive x price_first: {'T25': 1, 'T25P': 1}
+- adaptive x quality_first: {'T25P': 2}
+- adaptive x balanced: {'T25': 1, 'T25P': 1}
+
+## Paired comparisons (b - a), resampling buyers
+- profit - balanced: profit/session {}, conversion {}, margin {}
+- conversion - balanced: profit/session {}, conversion {}, margin {}
+- adaptive - balanced: profit/session {}, conversion {}, margin {}
+- adaptive - profit: profit/session {'diff': -379.1667, 'ci95': [-666.6667, -104.1667], 'n_buyers': 6}, conversion {'diff': 0.0, 'ci95': [0.0, 0.0], 'n_buyers': 6}, margin {'diff': -0.0089, 'ci95': [-0.0144, -0.0031], 'n_buyers': 6}
+- adaptive - conversion: profit/session {}, conversion {}, margin {}
+- profit - conversion: profit/session {}, conversion {}, margin {}
+
+## Adaptive inference
+{
+ "sessions": 6,
+ "seller_turns": 31,
+ "accuracy_per_turn": 0.5484,
+ "accuracy_first_turn": 0.1667,
+ "accuracy_last_turn": 0.5,
+ "tactic_matches_true_type_per_turn": 0.5881,
+ "by_true_type": {
+  "price_first": {
+   "per_turn": 0.8,
+   "first": 0.0,
+   "last": 1.0
+  },
+  "quality_first": {
+   "per_turn": 0.6923,
+   "first": 0.5,
+   "last": 0.5
+  },
+  "balanced": {
+   "per_turn": 0.0,
+   "first": 0.0,
+   "last": 0.0
+  }
+ },
+ "confusion_true_to_read": {
+  "price_first": {
+   "unknown": 2,
+   "price_first": 8
+  },
+  "quality_first": {
+   "quality_first": 9,
+   "unknown": 3,
+   "balanced": 1
+  },
+  "balanced": {
+   "unknown": 2,
+   "price_first": 6
+  }
+ },
+ "sessions_where_read_changed": 5
+}
+
+## Verdicts
+{
+ "A15": {
+  "validated": false,
+  "margin_by_priority": {
+   "profit": 0.2782,
+   "conversion": 0,
+   "balanced": 0,
+   "adaptive": 0.2692
+  },
+  "conversion_by_priority": {
+   "profit": 1.0,
+   "conversion": 0,
+   "balanced": 0,
+   "adaptive": 1.0
+  },
+  "profit_has_top_margin": true,
+  "conversion_has_top_conversion": false,
+  "conversion_tied": [
+   "profit",
+   "adaptive"
+  ]
+ },
+ "A16": {
+  "validated": false,
+  "profit_per_session": {
+   "profit": 9466.67,
+   "conversion": 0,
+   "balanced": 0,
+   "adaptive": 9087.5
+  },
+  "adaptive_top_profit": false,
+  "adaptive_conv_minus_conversion_conv": 1.0
+ },
+ "A17": {
+  "validated": false,
+  "needs_fit_by_priority": {
+   "profit": 1.0,
+   "conversion": null,
+   "balanced": null,
+   "adaptive": 1.0
+  },
+  "under_spec_deals": {
+   "profit": 0,
+   "conversion": 0,
+   "balanced": 0,
+   "adaptive": 0
+  },
+  "pf_premium_unasked": {
+   "profit": 0,
+   "conversion": 0,
+   "balanced": 0,
+   "adaptive": 0
+  },
+  "pf_oversold": {
+   "profit": 0,
+   "conversion": 0,
+   "balanced": 0,
+   "adaptive": 0
+  }
+ }
+}
+
+## Sessions
+n0-bal  profit     T25 Compact + Front loader                         $34,100 profit $10,000 walk $34,900 r6  
+n0-bal  adaptive   T25 Compact + Front loader                         $33,400 profit $ 9,300 walk $34,900 r4  uppp
+n0-pf   profit     T25 Compact + Front loader                         $31,000 profit $ 6,900 walk $31,000 r7  
+n0-pf   adaptive   T25 Compact + Front loader                         $31,000 profit $ 6,900 walk $31,000 r5  upppp
+n0-qf   profit     T25 Compact Premium                                $34,000 profit $ 9,500 walk $38,800 r6  
+n0-qf   adaptive   T25 Compact Premium                                $34,000 profit $ 9,500 walk $38,800 r6  qqqqqq
+n1-bal  profit     T25 Compact Premium + Delivery and setup           $35,000 profit $10,100 walk $35,500 r6  
+n1-bal  adaptive   T25 Compact Premium + Delivery and setup           $34,050 profit $ 9,150 walk $35,500 r5  uppp
+n1-pf   profit     T25 Compact Premium + Delivery and setup           $34,450 profit $ 9,550 walk $34,800 r7  
+n1-pf   adaptive   T25 Compact Premium + Delivery and setup           $33,975 profit $ 9,075 walk $34,800 r5  upppp
+n1-qf   profit     T25 Compact Premium + Delivery and setup           $35,650 profit $10,750 walk $36,100 r6  
+n1-qf   adaptive   T25 Compact Premium + 3-year extended warranty + Delivery and setup $36,100 profit $10,600 walk $36,100 r7  uuquqqb
