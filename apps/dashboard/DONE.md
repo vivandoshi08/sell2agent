@@ -1,19 +1,33 @@
 # S2 · UI & proof: definition of done
 
-> Owner: A (S2 lead). Sources: [FINAL_ARCHITECTURE.md](../../docs/FINAL_ARCHITECTURE.md) §3, §8, §9, §11 and [BUILD_PLAN.md](../../docs/BUILD_PLAN.md) (S2 lane). This sharpens the plan's "done when" gates into checks anyone can run. Where it disagrees with this app's older `BRIEF.md` (Person D), this file wins; the BUILD_PLAN wins over both.
+> Owner: Ananya (S2 lead). Pair partner: Esha (S1). Sources: [FINAL_ARCHITECTURE.md](../../docs/FINAL_ARCHITECTURE.md) §3, §8, §9, §11 and [BUILD_PLAN.md](../../docs/BUILD_PLAN.md) (S2 lane). This sharpens the plan's "done when" gates into checks anyone can run. Where it disagrees with this app's older `BRIEF.md` (Person D), this file wins; the BUILD_PLAN wins over both.
 
 ## What S2 owns
 
 | Piece | Where | Demo moment |
 |---|---|---|
-| Deal card (MCP App) with **Approve & Pay** | widget folder inside the gateway (path set by S1's mcp-use layout); S2 owns only that folder | "Here's the deal, approve it" inside ChatGPT / Claude |
-| `pay_deal` handler: stored deal → `payDeal` → events | thin module, mounted as a tool by S1 | Stripe test PaymentIntent for exactly the deal amount |
+| Deal card (MCP App) with **Approve & Pay** | `apps/marketplace/views/deal-card/` (the view) and `apps/marketplace/src/deal/` (card data + `pay_deal` handler); paths to confirm with Esha. S2 owns only those two folders; Esha registers the tools | "Here's the deal, approve it" inside ChatGPT / Claude |
+| `pay_deal` handler: stored deal → `payDeal` → events | `apps/marketplace/src/deal/pay.ts`, mounted as a tool by Esha | Stripe test PaymentIntent for exactly the deal amount |
 | Dashboard (Vite + React, port 3000) | `apps/dashboard` | The numbers slide: static vs. negotiating |
 | Metrics + safety judge (`computeRunResult(run_id)`) | `apps/dashboard/src/metrics` | Safe conversion, profit per buyer, buyer fit |
 | Armature eval cases | `apps/dashboard/evals/armature` | Outside cross-model score on the deployed URL |
 | Merchant console (after core) | `apps/dashboard` `/console` | Edit a lever menu, next negotiation uses it |
 
-**Not S2:** the gateway server and tools (S1), the exchange, guardrails and deal locking (E1), seller policy, simulated buyers and `runAll()` (E2), the contract (Neel). S2 never edits `packages/shared`, `supabase/migrations`, or another lane's directory.
+**Not S2:** the gateway server and tools (Esha, S1), the exchange, guardrails and deal locking (Vivan, E1), seller policy, simulated buyers and `runAll()` (Neel, E2), the contract and `@sa/payments` internals (Neel). S2 never edits `packages/shared`, `supabase/migrations`, or another lane's directory.
+
+## Stack
+
+| Layer | Choice | Notes |
+|---|---|---|
+| Language / repo | TypeScript 5.9, Node 22, pnpm workspace | Same as every app; `@sa/dashboard` package |
+| Contract | `@sa/shared` (zod) | Import types and schemas; never redefine them |
+| Dashboard | Vite + React, port 3000 | Browser gets only `SUPABASE_URL` + `SUPABASE_ANON_KEY`, passed in through Vite `define`; never `envPrefix` on the root `.env` |
+| Live data | `@supabase/supabase-js` realtime on `events` | Reads only; S2 never writes negotiation events |
+| Charts | Hand-built SVG bars with CI whiskers | No chart library to keep the bundle and lockfile small |
+| Metrics + judge | Node script run with `tsx` (`computeRunResult`), Claude via the Anthropic SDK as the safety judge | Runs server-side with the service-role key; floors and costs never reach the browser |
+| Deal card | mcp-use TS MCP App view (React, auto-bundled), served by Esha's gateway on Manufact Cloud | Talks to the host through `ui/*` messages; Approve & Pay calls `pay_deal` |
+| Payments | `@sa/payments` `payDeal` (Stripe test mode, SDK pinned by Neel) | `STRIPE_PAYMENT_MODE=test_card` until `pnpm stripe:smoke` says SPTs work |
+| Outside evals | Armature evals (Claude Code + Codex testers) against the deployed gateway URL | Case files in `apps/dashboard/evals/armature` |
 
 ## Done, stage by stage
 
@@ -67,10 +81,10 @@ Cut order if time runs short: merchant console → learning curve → Armature i
 
 | From | What | By | Until then S2 uses |
 |---|---|---|---|
-| Neel (contract) | Lever profile on buyer context; lever package on offers and deals; `final` + `expires_at` on offers; guardrail rule names. Also a home for per-negotiation judge results (a `judged` event type or extra `RunResult` fields) | H1 | the `payload` keys below |
-| S1 | The gateway registers `review_deal` (renders the card) and `pay_deal` (calls S2's handler, `visibility: ["model","app"]`); widget folder path; deployed URL | H3 (path), H5 (URL) | mcp-use Inspector locally |
-| E1 | Read a **locked, re-checked** deal by `deal_id` (amount, levers, expiry, buyer binding) and mark it paid; `guardrail_blocked` events with `payload.rule` | H4 | a fixture deal |
-| E2 | `runAll(config)` callable from the runner; buyer persona type in events; bandit outcomes logged | H7 | fake runs |
+| Neel (contract owner) | Lever profile on buyer context; lever package on offers and deals; `final` + `expires_at` on offers; guardrail rule names. Also a home for per-negotiation judge results (a `judged` event type or extra `RunResult` fields) | H1 | the `payload` keys below |
+| Esha (S1) | The gateway registers `review_deal` (renders the card) and `pay_deal` (calls S2's handler, `visibility: ["model","app"]`); widget folder path; deployed URL | H3 (path), H5 (URL) | mcp-use Inspector locally |
+| Vivan (E1) | Read a **locked, re-checked** deal by `deal_id` (amount, levers, expiry, buyer binding) and mark it paid; `guardrail_blocked` events with `payload.rule` | H4 | a fixture deal |
+| Neel (E2) | `runAll(config)` callable from the runner; buyer persona type in events; bandit outcomes logged | H7 | fake runs |
 | Everyone | Log every step with `logEvent`, using the payload keys below | now | fake events |
 
 ### Event payload keys S2 reads (until the contract has typed fields)
@@ -97,3 +111,13 @@ Cut order if time runs short: merchant console → learning curve → Armature i
 1. Where the widget code lives inside S1's gateway, and who mounts `pay_deal` (proposal above: S1 mounts, S2 writes the handler).
 2. Who calls `payDeal` when a deal is paid from a simulated buyer instead of the card (proposal: same handler, so every payment goes one way).
 3. Dashboard hosting for the demo: local on 3000 vs. a deployed URL.
+
+## Integration rules (so S2 merges cleanly)
+
+- **Branches:** `s2/<topic>`, one worktree per branch, PR into `main`, reviewed by Esha (pair partner). Merge `origin/main` into the branch before opening or updating a PR; never force-push `main`.
+- **Before every PR:** `pnpm install`, `pnpm typecheck`, and `pnpm smoke` once it's real. PRs stay small and within S2's folders.
+- **Lockfile conflicts:** never hand-merge `pnpm-lock.yaml`. Take `main`'s version, rerun `pnpm install`, commit the result.
+- **Root files:** S2 adds at most a `dev:dashboard`-style script line to the root `package.json` and new keys at the end of `.env.example`, each called out in the PR description. Nothing else at the root.
+- **Shared Supabase:** S2's test rows use `run_id` prefix `s2-fake-`; cleanup deletes only that prefix. No schema changes, no truncates.
+- **Stripe:** test keys only; every charge goes through `payDeal` with the `deal_id` as the idempotency key.
+
