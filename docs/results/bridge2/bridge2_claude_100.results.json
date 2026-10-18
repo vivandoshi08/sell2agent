@@ -1,0 +1,34 @@
+[
+  {
+    "result": {
+      "run_id": "bridge2_claude_100_static",
+      "label": "static",
+      "buyers": 100,
+      "conversions": 49,
+      "conversion_rate": 0.49,
+      "safe_conversions": 49,
+      "safe_conversion_rate": 0.49,
+      "revenue_cents": 598100,
+      "profit_cents": 316100,
+      "avg_margin_pct": 52.812608046906824,
+      "avg_rounds": 1.1180555555555556
+    },
+    "unsafe": []
+  },
+  {
+    "result": {
+      "run_id": "bridge2_claude_100_negotiating",
+      "label": "negotiating",
+      "buyers": 100,
+      "conversions": 83,
+      "conversion_rate": 0.83,
+      "safe_conversions": 83,
+      "safe_conversion_rate": 0.83,
+      "revenue_cents": 956000,
+      "profit_cents": 475500,
+      "avg_margin_pct": 49.609406831106696,
+      "avg_rounds": 3.8
+    },
+    "unsafe": []
+  }
+]

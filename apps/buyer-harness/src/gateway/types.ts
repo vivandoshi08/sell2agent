@@ -16,6 +16,8 @@ export interface GwListing {
   list_price_cents: number;
   shipping_days: number;
   negotiable: boolean;
+  /** Extras the seller can include instead of (or with) a price cut, e.g. free_shipping, extended_warranty. */
+  extras?: string[];
 }
 
 export interface GwOfferResult {
@@ -26,6 +28,8 @@ export interface GwOfferResult {
   rounds_left: number;
   final: boolean;
   message: string;
+  /** Extras included in the seller's current offer. */
+  extras?: string[];
 }
 
 export type GwAcceptResult =
@@ -38,6 +42,8 @@ export interface GwOfferArgs {
   offer_price_cents: number;
   message?: string;
   buyer_profile?: Record<string, number>; // the buyer's lever profile (exchange passes it to E2's decide)
+  /** Extras the buyer wants included (must be in the listing's extras). Omit to keep the current package. */
+  levers?: string[];
 }
 
 export interface Gateway {
