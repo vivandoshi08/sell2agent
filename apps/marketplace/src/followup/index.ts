@@ -12,7 +12,7 @@ import { createFollowupDoor, type DoorDeps, type HttpIn, type HttpOut } from "./
 
 export { LogCourier, InkboxCourier, FallbackCourier, courierFromEnv, asSender } from "./couriers";
 export type { Courier, Outgoing, OutboxEntry, FollowupChannel, InkboxConfig } from "./couriers";
-export { createFollowupDoor, replyText, REPLY_BUDGET } from "./door";
+export { createFollowupDoor, replyText, REPLY_BUDGET, UNROUTED_DAILY_CAP } from "./door";
 export type { DoorDeps, HttpIn, HttpOut } from "./door";
 export { parseInboundRequest, verifyInkboxSignature, authorize } from "./inbound";
 

@@ -30,5 +30,5 @@ export { EXTRAS, EXTRAS_BY_ID, EXTRA_IDS, isExtra, extraLever, extraLabel, extra
 export { SupabaseStore, LEGACY_STATUS, SNAPSHOT_RUN, SNAPSHOT_TYPE } from "./supabase-store";
 export { Outreach, FOLLOWUP_DELAY_MS, FOLLOWUP_TTL_MS, BUYER_FOLLOWUP_CAP_MS, maskAddress } from "./outreach";
 export type { Sender, SendReceipt, InboundMeta } from "./outreach";
-export { parseInbound } from "./inbound";
+export { parseInbound, stripQuoted } from "./inbound";
 export type { InboundIntent } from "./inbound";

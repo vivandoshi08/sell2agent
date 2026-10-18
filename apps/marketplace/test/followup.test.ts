@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
 import { Exchange, MemorySink, FOLLOWUP_DELAY_MS } from "@sa/seller-mcp/exchange";
 import type { NegotiationEvent as Ev } from "@sa/shared";
-import { asSender, createFollowupDoor, FallbackCourier, InkboxCourier, LogCourier, REPLY_BUDGET, startOutreachTimer, type HttpIn } from "../src/followup/index.js";
+import { asSender, createFollowupDoor, FallbackCourier, InkboxCourier, LogCourier, REPLY_BUDGET, UNROUTED_DAILY_CAP, startOutreachTimer, type HttpIn } from "../src/followup/index.js";
 import { verifyApproveToken } from "../src/deal/approve.js";
 
 const SECRET = "test-outreach-secret";
@@ -145,7 +145,8 @@ test("auth: cron and plain JSON need OUTREACH_SECRET; without one configured the
   assert.equal((await door.cron(req({ auth: null }))).status, 401);
   assert.equal((await door.inbound(req({ params: { channel: "email" }, auth: null, body: { text: "ACCEPT off_12345678" } }))).status, 401);
   assert.equal((await door.inbound(req({ params: { channel: "fax" }, body: { text: "x" } }))).status, 404);
-  assert.equal((await door.outbox(req({ auth: null, query: new URLSearchParams({ key: SECRET }) }))).status, 200, "?key= works for /outbox");
+  assert.equal((await door.outbox(req({ auth: null, query: new URLSearchParams({ key: SECRET }) }))).status, 401, "secret by header only, never ?key=");
+  assert.equal((await door.outbox(req({ auth: null, headers: { "x-outreach-secret": SECRET } }))).status, 200);
   const bare = createFollowupDoor({ exchange: async () => new Exchange({ sink: new MemorySink().sink }), courier: new FallbackCourier(null, new LogCourier()), env: {} });
   assert.equal((await bare.cron(req())).status, 503);
   assert.equal((await bare.inbound(req({ params: { channel: "email" }, body: { text: "hi" } }))).status, 401);
@@ -229,4 +230,30 @@ test("security: a signed Inkbox email from a stranger quoting someone's offer_id
   // the consented sender still can
   const ok = out(await door.inbound(signedFrom("victimB@agents.example.test", `ACCEPT ${bOffer}`, "evt_b")));
   assert.equal(ok.state, "agreed");
+});
+
+test("a question reply gets a grounded answer from the catalog, then how to reply; logged as question_answered", async () => {
+  const { clock, ex, door, logged } = rig();
+  await walkAway(ex, "q1");
+  clock.t += FOLLOWUP_DELAY_MS + 1;
+  await door.cron(req());
+  const r = out(await door.inbound(req({ params: { channel: "email" }, body: { from: "q1@agents.example.test", text: "What warranty does it come with?\n\nOn Sat, Seller wrote:\n> price: $139" } })));
+  assert.equal(r.intent, "clarify");
+  assert.match(r.reply, /warranty: 1 year/i, "answered from the catalog (TypeWell 65: 1 year)");
+  assert.match(r.reply, /ACCEPT off_/, "still says how to accept");
+  assert.doesNotMatch(r.reply, /list price/i, "quoted history isn't part of the question");
+  const a = logged.find((e) => e.type === "question_answered" && e.payload.inbound === true)!;
+  assert.equal(a.payload.grounded, true);
+  const unknown = out(await door.inbound(req({ params: { channel: "email" }, body: { from: "q1@agents.example.test", text: "Is it dishwasher safe?" } })));
+  assert.match(unknown.reply, /I don't know/, "honest unknown, never a guess");
+});
+
+test("unmatched-reply pointers have a global daily cap", async () => {
+  const { door } = rig();
+  let sent = 0;
+  for (let i = 0; i < UNROUTED_DAILY_CAP + 3; i++) {
+    const r = out(await door.inbound(req({ params: { channel: "email" }, body: { from: `stranger${i}@example.test`, text: "hello?" } })));
+    if (r.delivery.via === "log") sent++;
+  }
+  assert.equal(sent, UNROUTED_DAILY_CAP);
 });

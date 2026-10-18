@@ -32,14 +32,19 @@ const LEVER_WORDS: Record<string, RegExp> = {
   volume_discount: /\bvolume discount\b/i,
 };
 
+/** The new part of an email reply: quoted history ("> ..." lines, "On ... wrote:", "Original Message") dropped. */
+export function stripQuoted(t: string): string {
+  return t.split(/\n(?:On .{0,200}wrote:|-{2,}\s*Original Message)/i)[0].split("\n").filter((l) => !l.trim().startsWith(">")).join("\n").trim();
+}
+
 export function parseInbound(raw: string, ctx: InboundContext): InboundIntent {
   const { sanitized, flagged } = inspectInput(raw ?? "");
   // drop quoted history from email replies ("> ..." lines, "On ... wrote:")
-  const text = sanitized.split(/\n(?:On .{0,200}wrote:|-{2,}\s*Original Message)/i)[0]
-    .split("\n").filter((l) => !l.trim().startsWith(">")).join("\n").trim();
+  const text = stripQuoted(sanitized);
+  const take = `ACCEPT ${ctx.standing_offer_id ?? "<offer_id>"}`; // name the live offer, so the agent can act on the reply
 
   if (!text) return clarify(flagged ? "message contained only removed instructions" : "empty reply",
-    "I didn't get a reply I can act on. Reply ACCEPT <offer_id> to take the offer, COUNTER $<price> to make an offer, or STOP to unsubscribe.");
+    `I didn't get a reply I can act on. Reply ${take} to take the offer, COUNTER $<price> to make an offer, or STOP to unsubscribe.`);
 
   if (/^\s*(stop|unsubscribe|opt[- ]?out|remove me)\b/i.test(text)) return { kind: "unsubscribe" };
 
@@ -53,7 +58,7 @@ export function parseInbound(raw: string, ctx: InboundContext): InboundIntent {
   const intents = [wantsAccept && "accept", wantsWalk && "walk", prices.length > 0 && "counter"].filter(Boolean);
   if (intents.length > 1)
     return clarify("mixed intents: " + intents.join(" + "),
-      "Your reply reads as more than one thing. Reply ACCEPT <offer_id> to take the offer, or COUNTER $<price> with one price.");
+      `Your reply reads as more than one thing. Reply ${take} to take the offer, or COUNTER $<price> with one price.`);
 
   if (wantsAccept) {
     if (ids.length === 1) {
@@ -72,7 +77,7 @@ export function parseInbound(raw: string, ctx: InboundContext): InboundIntent {
   }
   if (prices.length > 1) return clarify("several prices", "I saw more than one price. Reply COUNTER $<price> with the one price you're offering.");
   if (wantsCounter) return clarify("counter without a price", "What price would you like to offer? Reply COUNTER $<price>.");
-  return clarify("no recognizable intent", "Reply ACCEPT <offer_id> to take the offer, COUNTER $<price> to make an offer, or STOP to unsubscribe.");
+  return clarify("no recognizable intent", `Reply ${take} to take the offer, COUNTER $<price> to make an offer, or STOP to unsubscribe.`);
 }
 
 function clarify(reason: string, question: string): InboundIntent {
