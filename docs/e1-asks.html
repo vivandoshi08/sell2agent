@@ -75,7 +75,8 @@ th { font-family: var(--font-data); font-size: .7rem; letter-spacing: .06em; tex
     <span id="sync">Status sync loading…</span>
   </header>
   <section class="box">
-    <h2>Shipped: use it now <small>branch e1/exchange</small></h2>
+    <h2>Shipped: use it now <small>branch e1/exchange · PR #11</small></h2>
+    <p class="why" style="color:var(--bad)"><b>Blocker (Neel):</b> the exchange only runs in memory until the contract has an offers table and the wider <code>negotiations.status</code> (asks n2–n4). In-memory state won't survive a stateless deploy at Bridge 1.</p>
     <p class="why">The exchange runs end to end against Neel's real <code>decide()</code> and <code>voice()</code>. Memory store and seed catalog by default; events go to Supabase when <code>SUPABASE_URL</code> is set. Gate: <code>pnpm --filter @sa/seller-mcp gate</code> runs 30 negotiations (10 normal, 11 recorded E4/E9 attacks, 9 protocol abuses and adversarial sellers): 0 deals below floor, 0 floor or cost figures in seller text, every tamper rejected.</p>
     <div class="table-wrap"><table>
       <thead><tr><th>Who</th><th>Call</th><th>Returns</th></tr></thead>
