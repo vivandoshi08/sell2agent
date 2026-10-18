@@ -8,7 +8,8 @@
 import { createHmac, randomUUID } from "node:crypto";
 import { z } from "zod";
 import { Exchange, type ExchangeResponse, type Move } from "@sa/seller-mcp/exchange";
-import { defaultLlm } from "@sa/seller-mcp/sellers";
+import { defaultLlm, dealSummary as dealLine } from "@sa/seller-mcp/sellers";
+import { approveUrl } from "./deal/approve.js";
 
 let exP: Promise<Exchange> | undefined;
 /** Supabase-backed when SUPABASE_URL is set (stateless-safe), else in-memory (single instance). */
@@ -56,14 +57,31 @@ export function missingBuyer() {
 
 const usd = (c?: number) => (c === undefined ? "" : `$${(c / 100).toFixed(c % 100 ? 2 : 0)}`);
 
+// Public origin for hosted approve links (S2's approve page, #81), set by registerNegotiationTools.
+let approveOrigin: string | undefined;
+
+/** Approve link for one locked deal and its buyer; none without an origin or EXCHANGE_HMAC_SECRET. */
+function approveLink(deal_id: string, buyer_id: string): string | undefined {
+  if (!approveOrigin) return undefined;
+  try {
+    return approveUrl(approveOrigin, deal_id, buyer_id);
+  } catch {
+    return undefined;
+  }
+}
+
 export function render(r: ExchangeResponse, buyer_id: string) {
-  const out = { ...r, buyer_id };
+  // A locked, unpaid deal gets a hosted approve link, so text-only agents (no deal card) can send it to the person.
+  const d = r.deal && r.state !== "paid" ? r.deal : undefined;
+  const approve_url = d ? approveLink(d.deal_id, buyer_id) : undefined;
+  const out = { ...r, buyer_id, ...(d && approve_url ? { approve_url, summary: dealLine({ title: d.title, total_cents: d.total_cents, quantity: d.quantity,
+    unit_price_cents: d.unit_price_cents, levers: d.levers, approve_url }) } : {}) };
   const o = r.standing_offer;
   const lines = [
     r.message,
     o ? `Standing offer ${o.offer_id}: ${usd(o.price_cents)}${o.levers.length ? ` incl. ${o.levers.join(", ")}` : ""}${o.final ? " (final)" : ""}, expires ${o.expires_at}.` : "",
     r.state === "paid" ? `PAID: the purchase is complete${r.deal ? ` (deal ${r.deal.deal_id}, ${usd(r.deal.total_cents)})` : ""}. Tell the person it's bought; don't negotiate this item again.` : "",
-    r.deal && r.state !== "paid" ? `Deal ${r.deal.deal_id} locked at ${usd(r.deal.total_cents)}. Ask the person to approve and pay.` : "",
+    d ? `Deal ${d.deal_id} locked at ${usd(d.total_cents)}. Ask the person to approve and pay${approve_url ? `: show the deal card (review_deal), or if you can't show cards, send them this approval link: ${approve_url}` : "."}` : "",
     r.error ? `Error ${r.error.code}: ${r.error.message}` : "",
     r.negotiation_id ? `negotiation_id ${r.negotiation_id} · buyer_id ${buyer_id} (send both on every later call) · next: ${r.allowed_actions.join(", ") || "none"}` : "",
   ].filter(Boolean);
@@ -76,7 +94,8 @@ async function run(move: Move) {
 }
 
 // biome-ignore lint: server type comes from mcp-use
-export function registerNegotiationTools(server: any) {
+export function registerNegotiationTools(server: any, opts: { approveOrigin?: string } = {}) {
+  approveOrigin = opts.approveOrigin;
   server.tool(
     {
       name: "make_offer",

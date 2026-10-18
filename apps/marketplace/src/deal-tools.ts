@@ -21,7 +21,7 @@ let dealP: ReturnType<typeof makeDeal> | undefined;
 async function makeDeal() {
   return createDealModule({ deals: fromExchange(await exchange()), catalog });
 }
-const deal = () => (dealP ??= makeDeal());
+export const deal = () => (dealP ??= makeDeal());
 
 const ctxFields = {
   run_id: z.string().optional().describe("Eval run id (simulated buyers only)"),
