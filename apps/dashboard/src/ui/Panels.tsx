@@ -6,17 +6,23 @@ import { personaGrid } from "../metrics/kpis";
 export const usd = (cents: number) => (cents / 100).toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: cents >= 100_000 ? 0 : 2 });
 export const pct = (x: number) => `${Math.round(x * 100)}%`;
 const time = (iso?: string) => (iso ? new Date(iso).toLocaleTimeString("en-US", { hour12: false }) : "");
+const human = (s: string) => s.replace(/_/g, " ");
 
 export function SafetyTile({ kpis }: { kpis: PolicyKpis[] }) {
   const unsafe = kpis.reduce((s, k) => s + k.unsafe_deals, 0);
   const deals = kpis.reduce((s, k) => s + k.outcomes.filter((o) => o.converted).length, 0);
   const blocks = kpis.reduce((s, k) => s + k.guardrail_blocks, 0);
   return (
-    <div className={`panel safety ${unsafe ? "bad" : "ok"}`} role="status">
-      <span className="eyebrow" style={{ color: "inherit" }}>Rule-breaking deals</span>
-      <b className="num">{unsafe}</b>
-      <p>{unsafe ? `${unsafe} of ${deals} deals were below floor or judged unsafe. Open the guardrail log.` : `0 of ${deals} deals broke a seller rule. ${blocks} unsafe moves were blocked in code before reaching a buyer.`}</p>
-    </div>
+    <section className={`panel safety ${unsafe ? "bad" : "ok"}`} role="status" aria-label="Rule-breaking deals">
+      <span className="eyebrow">Rule-breaking deals</span>
+      <b className="safety-num num">{unsafe}</b>
+      <p className="safety-of num">of {deals} deals</p>
+      <p className="safety-note">
+        {unsafe
+          ? `${unsafe} deal${unsafe === 1 ? " was" : "s were"} below floor or judged unsafe. Open its transcript below.`
+          : <>No deal went below a seller's floor or broke a rule. <b className="num">{blocks}</b> unsafe moves were stopped in code before reaching a buyer.</>}
+      </p>
+    </section>
   );
 }
 
@@ -29,12 +35,17 @@ function describe(e: NegotiationEvent): string {
     case "payment_succeeded": return `paid ${price}`;
     case "payment_failed": return `payment failed`;
     case "buyer_walked_away": return `buyer walked away`;
-    case "guardrail_blocked": return `blocked: ${String((e.payload as Record<string, unknown>).rule ?? "rule")}`;
+    case "guardrail_blocked": return `blocked: ${human(String((e.payload as Record<string, unknown>).rule ?? "rule"))}`;
     case "listing_viewed": return `viewed listing`;
     case "run_started": return e.buyer_id ? `buyer joined` : `run started`;
-    default: return e.type.replace(/_/g, " ");
+    default: return human(e.type);
   }
 }
+
+const tone = (e: NegotiationEvent) =>
+  (e.type === "guardrail_blocked" && (e.payload as Record<string, unknown>)?.severity !== "routine") || e.type === "payment_failed" ? "bad"
+    : e.type === "deal_accepted" || e.type === "payment_succeeded" ? "win"
+    : "";
 
 export function LiveFeed({ events, policyOf, freshFrom }: { events: NegotiationEvent[]; policyOf: (run: string) => string; freshFrom: number }) {
   const rows = events.slice(-40).reverse();
@@ -45,10 +56,10 @@ export function LiveFeed({ events, policyOf, freshFrom }: { events: NegotiationE
         const pol = policyOf(e.run_id);
         const idx = events.length - 1 - i;
         return (
-          <li key={`${e.run_id}-${idx}`} className={idx >= freshFrom ? "new" : ""}>
-            <time>{time(e.ts)}</time>
-            <span className={`pill ${e.type === "guardrail_blocked" && (e.payload as Record<string, unknown>)?.severity !== "routine" ? "bad" : pol === "static" ? "" : "neg"}`}>{pol}</span>
-            <span className="what"><b>{e.buyer_id ?? "harness"}</b> {describe(e)}{e.product_id ? <span style={{ color: "var(--muted)" }}> · {e.product_id}</span> : null}</span>
+          <li key={`${e.run_id}-${idx}`} className={`${idx >= freshFrom ? "new " : ""}${tone(e)}`}>
+            <time className="num">{time(e.ts)}</time>
+            <span className={`pill ${pol === "static" ? "" : "neg"}`}>{human(pol)}</span>
+            <span className="what"><b>{e.buyer_id ?? "harness"}</b> {describe(e)}{e.product_id ? <span className="prod"> · {e.product_id}</span> : null}</span>
           </li>
         );
       })}
@@ -67,9 +78,12 @@ export function GuardrailLog({ events }: { events: NegotiationEvent[] }) {
         const routine = p.severity === "routine";
         return (
           <li key={i} className={routine ? "routine" : undefined} title={typeof p.severity === "string" ? p.severity : undefined}>
-            <time>{time(e.ts)}</time>
-            <span className={`pill ${routine ? "" : "bad"}`}>{String(p.rule ?? "blocked")}</span>
-            <span>{String(p.reason ?? "")}{typeof p.clamped_to_cents === "number" ? ` → held at ${usd(p.clamped_to_cents)}` : ""}</span>
+            <time className="num">{time(e.ts)}</time>
+            <span className="glog-body">
+              <span className={`pill ${routine ? "" : "bad"}`}>{human(String(p.rule ?? "blocked"))}</span>
+              <span className="reason">{String(p.reason ?? "")}</span>
+            </span>
+            <span className="held num">{typeof p.clamped_to_cents === "number" ? <>held at<br /><b>{usd(p.clamped_to_cents)}</b></> : ""}</span>
           </li>
         );
       })}
@@ -77,21 +91,24 @@ export function GuardrailLog({ events }: { events: NegotiationEvent[] }) {
   );
 }
 
+const SMALL_N = 5;
+
 export function PersonaGrid({ kpis }: { kpis: PolicyKpis[] }) {
   const rows = personaGrid(kpis);
   return (
     <div className="scroll">
       <table className="pgrid">
-        <thead><tr><th>Buyer type</th>{kpis.map((k) => <th key={k.policy}>{k.policy} · bought</th>)}</tr></thead>
+        <thead><tr><th>Buyer type</th>{kpis.map((k) => <th key={k.policy}>{human(k.policy)} · bought</th>)}</tr></thead>
         <tbody>
           {rows.map((r) => (
             <tr key={r.persona}>
-              <td>{r.persona.replace(/_/g, " ")}</td>
+              <td className="persona">{human(r.persona)}</td>
               {r.cells.map((c) => (
                 <td key={c.policy}>
-                  <span className="cell num">
-                    <span className={`bar ${c.policy === "static" ? "" : "neg"}`} style={{ width: `${Math.round(c.conversion_rate * 90)}px` }} />
-                    {pct(c.conversion_rate)} <span style={{ color: "var(--muted)" }}>of {c.n}</span>
+                  <span className={`cell num${c.n < SMALL_N ? " few" : ""}`} title={c.n < SMALL_N ? `Only ${c.n} buyers: treat as a hint, not a result` : undefined}>
+                    {/* track = 100%, fill = conversion; same scale in every row */}
+                    <span className="track"><span className={`bar ${c.policy === "static" ? "" : "neg"}`} style={{ width: `${Math.round(c.conversion_rate * 100)}%` }} /></span>
+                    <b>{pct(c.conversion_rate)}</b> <span className="n">of {c.n}</span>
                   </span>
                 </td>
               ))}
