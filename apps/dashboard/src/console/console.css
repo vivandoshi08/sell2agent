@@ -1,0 +1,49 @@
+/* Merchant console. Uses the shared tokens from ui/styles.css; everything here is scoped under .console. */
+.console button, .console input { font: inherit; color: inherit; }
+.console button { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; cursor: pointer; }
+.console button:disabled { opacity: .45; cursor: default; }
+.console button:focus-visible, .console input:focus-visible { outline: 2px solid var(--neg); outline-offset: 2px; }
+.console input[type="number"] { width: 6.5em; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); font-family: var(--font-data); }
+.console input[aria-invalid="true"] { border-color: var(--bad); }
+
+.cx-layout { display: grid; grid-template-columns: 260px 1fr; gap: 20px; align-items: start; }
+@media (max-width: 820px) { .cx-layout { grid-template-columns: 1fr; } }
+.cx-products ul { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 4px; }
+.cx-products button { width: 100%; text-align: left; display: grid; gap: 2px; border-color: transparent; background: transparent; }
+.cx-products button[aria-current="true"] { background: var(--neg-soft); border-color: transparent; }
+.cx-products button span { font: .78rem var(--font-data); color: var(--muted); }
+.cx-editor { display: grid; gap: 20px; min-width: 0; }
+.cx-layout > * { min-width: 0; }
+.cx-facts input { max-width: 100%; }
+
+.cx-facts { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-end; margin-top: 10px; }
+.cx-facts > * { display: grid; gap: 4px; }
+.cx-facts span { font-size: .8rem; color: var(--muted); }
+.cx-facts b { font: 600 1.3rem var(--font-data); }
+.cx-floorbar { position: relative; height: 14px; margin: 26px 0 22px; border-radius: 7px; background: var(--neg-soft); }
+.cx-floorbar .cost { position: absolute; inset: 0 auto 0 0; background: var(--static-soft); border-radius: 7px 0 0 7px; }
+.cx-floorbar .room { position: absolute; top: 0; bottom: 0; background: var(--neg); border-radius: 0 7px 7px 0; opacity: .85; }
+.cx-floorbar span { position: absolute; top: -18px; transform: translateX(-50%); font-size: .72rem; color: var(--muted); }
+.cx-floorbar small { position: absolute; top: 18px; left: 0; font-size: .74rem; color: var(--muted); }
+
+.cx-levers tr.off td:not(:first-child) { opacity: .5; }
+.cx-money { display: inline-flex; align-items: center; gap: 4px; }
+.cx-bad { color: var(--bad); font-size: .8rem; margin-top: 4px; white-space: normal; }
+.cx-note { color: var(--muted); font-size: .85rem; margin: 10px 0 0; }
+
+.cx-two { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 820px) { .cx-two { grid-template-columns: 1fr; } }
+.cx-radios { display: grid; gap: 8px; margin-top: 10px; }
+.cx-radios label { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+.cx-radios span { display: grid; }
+.cx-radios small { color: var(--muted); }
+.cx-slider { display: grid; grid-template-columns: minmax(6em, 9em) minmax(0, 1fr) 3em; gap: 10px; align-items: center; margin-top: 8px; }
+.console input[type="range"], .console input[type="radio"], .console input[type="checkbox"] { accent-color: var(--neg); }
+.cx-slider input { min-width: 0; }
+
+.cx-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.console .cx-primary { background: var(--neg); color: var(--surface); border-color: transparent; font-weight: 600; }
+.cx-status { color: var(--muted); font-size: .9rem; }
+.cx-trial ul { list-style: none; padding: 0; margin: 10px 0; display: grid; gap: 6px; }
+.cx-trial li { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.cx-trial small { color: var(--muted); }
