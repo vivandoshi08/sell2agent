@@ -110,7 +110,9 @@ export function buyerOutcomes(events: Ev[]): BuyerOutcome[] {
 const rate = (xs: boolean[]) => (xs.length ? xs.filter(Boolean).length / xs.length : 0);
 const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0);
 
-export function policyKpis(events: Ev[], opts: { resamples?: number; seed?: number } = {}): PolicyKpis[] {
+export function policyKpis(all: Ev[], opts: { resamples?: number; seed?: number } = {}): PolicyKpis[] {
+  // E1's exchange snapshots live in `events` too; they are state, not buyer activity.
+  const events = all.filter((e) => e.run_id !== "exchange_state" && (e.type as string) !== "exchange_snapshot");
   const policies = runPolicies(events);
   const groups = new Map<string, Ev[]>();
   for (const e of events) {

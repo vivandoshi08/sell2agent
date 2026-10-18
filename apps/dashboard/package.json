@@ -8,11 +8,13 @@
     "build": "vite build",
     "typecheck": "tsc -p .",
     "test": "node --import tsx --test test/*.test.ts",
-    "seed:fake": "tsx scripts/seed-fake.ts",
-    "seed:fake:clean": "tsx scripts/seed-fake.ts --clean",
-    "preview:html": "node scripts/build-preview.mjs"
+    "seed:fake": "tsx --env-file-if-exists=../../.env scripts/seed-fake.ts",
+    "seed:fake:clean": "tsx --env-file-if-exists=../../.env scripts/seed-fake.ts --clean",
+    "preview:html": "node scripts/build-preview.mjs",
+    "run-result": "tsx --env-file-if-exists=../../.env scripts/run-result.ts"
   },
   "dependencies": {
+    "@sa/seller-mcp": "workspace:*",
     "@sa/shared": "workspace:*",
     "@supabase/supabase-js": "^2.45.0",
     "react": "19.2.8",
