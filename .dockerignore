@@ -1,0 +1,10 @@
+# Keep secrets and local build output out of every Docker build context (gateway: apps/marketplace/Dockerfile).
+**/node_modules
+**/.env
+**/.env.*
+!.env.example
+**/dist
+**/.mcp-use
+apps/buyer-harness/runs
+apps/dashboard/public/runs
+.git
