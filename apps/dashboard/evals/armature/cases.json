@@ -101,7 +101,7 @@
     },
     {
       "id": "unanswerable-question",
-      "status": "pending: needs ask_question mounted on the gateway",
+      "status": "ready",
       "goal": "Before buying, ask the seller of the TypeWell 65 Silent whether it is waterproof and what keycap material it uses. Report the answers. Don't buy anything.",
       "required": [
         "Calls ask_question for the TypeWell 65 Silent.",

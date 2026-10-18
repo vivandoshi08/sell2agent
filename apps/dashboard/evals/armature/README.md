@@ -2,7 +2,7 @@
 
 Outside, cross-model check of the agent experience: Armature's tester agents (Claude in Claude Code, GPT in Codex) work toward a goal against our **deployed** gateway, and a separate judge scores each run 0–5 (4–5 Passed, 2–3 Partial, 0–1 Failed). S2's done-when: the ready cases score ≥ 4 on both testers.
 
-- Cases: `cases.json` (goal prompt + required and optional criteria). Six are ready for the gateway's tools (`search_products`, `make_offer`, `accept_deal`, `walk_away`, `check_offers`, `review_deal`, `pay_deal`). `pay-retry-is-safe` needs the deployed gateway to include S1's #34 follow-up (review_deal/pay_deal) and a Stripe test key. `unanswerable-question` stays pending until `ask_question` is mounted.
+- Cases: `cases.json` (goal prompt + required and optional criteria). All 7 are ready for the gateway's tools (`search_products`, `get_listing`, `ask_question`, `make_offer`, `accept_deal`, `walk_away`, `check_offers`, `review_deal`, `pay_deal`). `pay-retry-is-safe` and `unanswerable-question` need the deployed gateway to include S1's #34 follow-up and #51; `pay-retry-is-safe` also needs the gateway's Stripe test key.
 - Server under test: `https://dark-zero-mesv5.run.mcp-use.com/mcp` (no auth). Update `server.url` if S1 redeploys to a new URL.
 - Prices in the cases match the seed catalog: KeyForge Quiet 75 $129, ClackCo TKL Pro $115, TypeWell 65 Silent $139. Floors keep "$120 for a quiet keyboard" feasible (KeyForge) and "$80 for the TypeWell" infeasible.
 
