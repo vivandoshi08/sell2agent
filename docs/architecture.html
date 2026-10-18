@@ -1,0 +1,243 @@
+<title>Seller Agent Architecture</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: living spec. Pipeline diagram first, then one card per layer (status, design, evidence, open), then the change log and what's still pending. Same tokens as the experiment board. */
+:root {
+  --bg: #f4f6f5;
+  --surface: #ffffff;
+  --ink: #18211d;
+  --muted: #5a6762;
+  --line: #dce2de;
+  --accent: #1f5f86;
+  --ours: #3d4fa8;    --ours-bg: #eceefb;
+  --sponsor: #1c7a62; --sponsor-bg: #e2f3ed;
+  --buyer: #66726d;   --buyer-bg: #eef0ef;
+  --ok: #2b7a4b;   --ok-bg: #e3f2e8;
+  --warn: #85660a; --warn-bg: #f7efd3;
+  --run: #2457a6;  --run-bg: #e3ecfa;
+  --font-display: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111513; --surface: #182019; --ink: #e4eae6; --muted: #98a59f; --line: #2a332e; --accent: #79b4da;
+    --ours: #a9b3f2; --ours-bg: #1e2340; --sponsor: #7fd3b6; --sponsor-bg: #143229; --buyer: #a3aeaa; --buyer-bg: #222a26;
+    --ok: #7fd3a0; --ok-bg: #173323; --warn: #e5c76a; --warn-bg: #352c11; --run: #93b8f2; --run-bg: #18294a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111513; --surface: #182019; --ink: #e4eae6; --muted: #98a59f; --line: #2a332e; --accent: #79b4da;
+  --ours: #a9b3f2; --ours-bg: #1e2340; --sponsor: #7fd3b6; --sponsor-bg: #143229; --buyer: #a3aeaa; --buyer-bg: #222a26;
+  --ok: #7fd3a0; --ok-bg: #173323; --warn: #e5c76a; --warn-bg: #352c11; --run: #93b8f2; --run-bg: #18294a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 40px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(2rem, 4vw, 2.75rem); font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 1.5rem; font-weight: 600; }
+h3 { font-size: 1.2rem; font-weight: 600; }
+p, ul { margin: 0; }
+a { color: var(--accent); }
+.eyebrow { font-family: var(--font-data); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.lede { color: var(--muted); max-width: 70ch; font-size: 1.05rem; }
+header, section { display: grid; gap: 14px; }
+.section-head { display: grid; gap: 4px; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 20px; color: var(--muted); font-size: 0.9rem; }
+.num { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+
+.diagram { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; overflow-x: auto; }
+.diagram svg { display: block; width: 100%; min-width: 600px; max-width: 900px; margin: 0 auto; height: auto; }
+.diagram .n rect { stroke-width: 1; }
+.diagram .n-ours rect { fill: var(--ours-bg); stroke: var(--ours); }
+.diagram .n-sponsor rect { fill: var(--sponsor-bg); stroke: var(--sponsor); }
+.diagram .n-buyer rect { fill: var(--buyer-bg); stroke: var(--buyer); }
+.diagram .t1 { font-family: var(--font-display); font-weight: 600; font-size: 16px; fill: var(--ink); }
+.diagram .t2 { font-family: var(--font-body); font-size: 12.5px; fill: var(--muted); }
+.diagram .ar { stroke: var(--muted); stroke-width: 1.2; fill: none; }
+.diagram .tag { font-family: var(--font-data); font-size: 11px; fill: var(--sponsor); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.85rem; color: var(--muted); margin-top: 10px; justify-content: center; }
+.sw { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; border: 1px solid; }
+
+.pill { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-data); font-size: 0.72rem; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; white-space: nowrap; justify-self: start; }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.decided { color: var(--ok); background: var(--ok-bg); }
+.leaning { color: var(--warn); background: var(--warn-bg); }
+.open { color: var(--run); background: var(--run-bg); }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 14px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.card-head .who { font-family: var(--font-data); font-size: 0.72rem; color: var(--muted); }
+.card ul { padding-left: 18px; display: grid; gap: 4px; font-size: 0.93rem; }
+.block { display: grid; gap: 4px; }
+.label { font-family: var(--font-data); font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.evidence { font-size: 0.9rem; border-left: 3px solid var(--ok); padding-left: 10px; }
+.openq { font-size: 0.9rem; border-left: 3px solid var(--run); padding-left: 10px; color: var(--muted); }
+code { font-family: var(--font-data); font-size: 0.85em; background: var(--buyer-bg); padding: 1px 5px; border-radius: 4px; }
+
+.table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+table { width: 100%; border-collapse: collapse; min-width: 640px; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; font-size: 0.92rem; }
+th { font-family: var(--font-data); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+tr:last-child td { border-bottom: 0; }
+td.when { font-family: var(--font-data); white-space: nowrap; color: var(--muted); }
+td.layer { font-weight: 600; white-space: nowrap; }
+footer { color: var(--muted); font-size: 0.85rem; }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">sales-agent · living spec</span>
+    <h1>Seller Agent Architecture</h1>
+    <p class="lede">How the seller side fits together, what's decided, and the evidence behind each decision. Updated as experiments and sponsor research land; the change log at the bottom says what moved and why.</p>
+    <div class="meta" id="meta"></div>
+  </header>
+
+  <section>
+    <div class="section-head"><span class="eyebrow">The pipeline</span><h2>From a buyer's need to a paid order</h2></div>
+    <div class="diagram">
+      <svg viewBox="0 0 700 420" role="img" aria-labelledby="dgt dgd">
+        <title id="dgt">Seller agent pipeline</title>
+        <desc id="dgd">Buyer agent, discovery, MCP front door, selling agent, policy engine, person approves, Stripe checkout, and a learning loop back into the selling agent.</desc>
+        <defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+        <g style="color: var(--muted)">
+          <g class="n n-buyer"><rect x="30" y="30" width="190" height="62" rx="8"/><text class="t1" x="125" y="56" text-anchor="middle">Buyer agent</text><text class="t2" x="125" y="76" text-anchor="middle">Claude + capped wallet</text></g>
+          <g class="n n-ours"><rect x="255" y="30" width="190" height="62" rx="8"/><text class="t1" x="350" y="56" text-anchor="middle">Discovery</text><text class="t2" x="350" y="76" text-anchor="middle">/.well-known/ucp, agent card</text></g>
+          <g class="n n-sponsor"><rect x="480" y="30" width="190" height="62" rx="8"/><text class="t1" x="575" y="56" text-anchor="middle">MCP front door</text><text class="t2" x="575" y="76" text-anchor="middle">Python MCP on Manufact</text></g>
+          <line class="ar" x1="222" y1="61" x2="251" y2="61" marker-end="url(#ah)"/>
+          <line class="ar" x1="447" y1="61" x2="476" y2="61" marker-end="url(#ah)"/>
+          <g class="n n-ours"><rect x="480" y="160" width="190" height="62" rx="8"/><text class="t1" x="575" y="186" text-anchor="middle">Selling agent</text><text class="t2" x="575" y="206" text-anchor="middle">Code prices, LLM talks</text></g>
+          <g class="n n-ours"><rect x="255" y="160" width="190" height="62" rx="8"/><text class="t1" x="350" y="186" text-anchor="middle">Policy engine</text><text class="t2" x="350" y="206" text-anchor="middle">Checks every offer</text></g>
+          <g class="n n-sponsor"><rect x="30" y="160" width="190" height="62" rx="8"/><text class="t1" x="125" y="186" text-anchor="middle">Stripe checkout</text><text class="t2" x="125" y="206" text-anchor="middle">Token → PaymentIntent</text></g>
+          <line class="ar" x1="575" y1="94" x2="575" y2="156" marker-end="url(#ah)"/>
+          <line class="ar" x1="478" y1="191" x2="449" y2="191" marker-end="url(#ah)"/>
+          <line class="ar" x1="253" y1="191" x2="224" y2="191" marker-end="url(#ah)"/>
+          <line class="ar" x1="125" y1="94" x2="125" y2="156" marker-end="url(#ah)"/>
+          <g class="n n-buyer"><rect x="30" y="290" width="190" height="62" rx="8"/><text class="t1" x="125" y="316" text-anchor="middle">Person approves</text><text class="t2" x="125" y="336" text-anchor="middle">Deal-card widget</text></g>
+          <g class="n n-ours"><rect x="255" y="290" width="415" height="62" rx="8"/><text class="t1" x="462" y="316" text-anchor="middle">Learning loop</text><text class="t2" x="462" y="336" text-anchor="middle">Haggle logs + session replays train the pricing policy</text></g>
+          <line class="ar" x1="125" y1="288" x2="125" y2="226" marker-end="url(#ah)"/>
+          <line class="ar" x1="575" y1="288" x2="575" y2="226" marker-end="url(#ah)"/>
+          <text class="tag" x="575" y="112" text-anchor="middle">Manufact · Armature</text>
+          <text class="tag" x="125" y="244" text-anchor="middle">Stripe</text>
+          <text class="tag" x="350" y="112" text-anchor="middle">Armature</text>
+          <text class="tag" x="350" y="244" text-anchor="middle">Stripe: merchant control</text>
+          <text class="tag" x="462" y="374" text-anchor="middle">Manufact replay · Armature judged sessions</text>
+        </g>
+      </svg>
+      <div class="legend">
+        <span><span class="sw" style="background:var(--ours-bg);border-color:var(--ours)"></span>Our code</span>
+        <span><span class="sw" style="background:var(--sponsor-bg);border-color:var(--sponsor)"></span>Sponsor stack</span>
+        <span><span class="sw" style="background:var(--buyer-bg);border-color:var(--buyer)"></span>Buyer side</span>
+        <span style="color:var(--sponsor);font-family:var(--font-data);font-size:.8rem">green labels = which prize track judges that layer</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="eyebrow">Layer by layer</span><h2>What's decided, and why</h2></div>
+    <div class="cards" id="layers"></div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="eyebrow">Change log</span><h2>What moved, and what moved it</h2></div>
+    <div class="table-wrap"><table id="log"></table></div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="eyebrow">Still running</span><h2>Results that can still change this page</h2></div>
+    <div class="table-wrap"><table id="pending"></table></div>
+  </section>
+
+  <footer>Source: <a href="https://github.com/vivandoshi08/sales-agent/blob/experiments/docs/ARCHITECTURE.md">docs/ARCHITECTURE.md</a> · Sponsor guides: <a href="https://github.com/vivandoshi08/sales-agent/tree/experiments/docs/tracks">docs/tracks</a> · Experiment board and track page are linked from the repo README.</footer>
+</div>
+
+<script>
+const DATA = {
+  updated: "2026-10-17",
+  commit: "46fa616",
+  layers: [
+    { name: "Buyer agent", status: "decided", who: "Demo buyer",
+      design: ["Claude with a persona: need, budget, private walk-away price.", "Its wallet enforces the person's spend cap and asks for approval, then mints a Stripe token capped at the deal total (simulated in test mode)."],
+      evidence: "E1: real Claude buyers completed 24/24 feasible purchases with 0 tool errors. E3: buyers counter 100% of the time when they can negotiate.",
+      open: "Buyers leak their budget often (E1: 11 of 20 in one group)." },
+    { name: "Discovery", status: "leaning", who: "Armature",
+      design: ["<code>/.well-known/ucp</code> listing our MCP endpoint, plus an agent card and <code>llms.txt</code>.", "We propose a \"negotiable\" field, since no standard has one."],
+      evidence: "E8: UCP is the one live standard pointer from a seller's domain to its MCP server. No shopping agent reads A2A agent cards today.",
+      open: "Real-world routing to seller endpoints is a distribution problem the harness can't test." },
+    { name: "Agent-to-agent haggle", status: "decided", who: "All three tracks",
+      design: ["Runs over MCP tool calls with structured offers. No Google A2A protocol in v1.", "State travels in a server-minted <code>negotiation_id</code> passed back on every call.", "Round cap, with a final buyer turn to accept."],
+      evidence: "E1: structured tools had 0 errors vs. 1 for free text, and closed in 58 s vs. 79 s. E2: deals were lost when the cap ended on the seller's turn.",
+      open: "E3's model comparison: do Sonnet and Haiku buyers haggle the same way?" },
+    { name: "MCP front door", status: "decided", who: "Manufact · Armature",
+      design: ["Official Python MCP SDK 2.3, stateless HTTP, hosted on Manufact Cloud.", "Tools: <code>list_products</code>, <code>get_product</code>, <code>request_quote</code>, <code>make_offer</code>, <code>accept_offer</code>, <code>review_deal</code> (widget), <code>pay_deal</code>.", "Titles, safety annotations, typed outputs, short results. No login tonight; payment is gated by the token cap and human approval.", "Armature's analytics SDK wraps the server."],
+      evidence: "Manufact guide: mcp-use's Python package needs an older MCP library and can't do widgets; Manufact's CTO documents this exact Python setup. Armature guide: annotations, safe retries, short receipts.",
+      open: "Do the Manufact judges want mcp-use itself? Gateway timeout vs. 10–30 s seller turns." },
+    { name: "Selling agent", status: "leaning", who: "Our core",
+      design: ["Code picks the price move each turn; the LLM writes the message.", "Hold list when the buyer can clearly pay it.", "Guard add-on margin when bundling; no \"best price\" bluffs."],
+      evidence: "E2: +54% profit per session over a static page, but 0 of 42 deals at list and margin down from 28.8% to 20.1%. E6 phase 1: split-the-difference is the best fixed strategy on scripted buyers.",
+      open: "E5 picks the strategy." },
+    { name: "Policy engine", status: "decided", who: "Stripe: merchant control",
+      design: ["Plain code. Checks every seller offer before it goes out, and again at <code>pay_deal</code>.", "Floors, allowed add-ons, payment terms."],
+      evidence: "E2: blocked 8 below-floor attempts; 0 closed deals broke a rule. Early probe: a Haiku seller with prompt-only rules went below its floor.",
+      open: "E4: do sellers promise financing or freebies in words, which a price check can't catch?" },
+    { name: "Checkout", status: "decided", who: "Stripe",
+      design: ["Deal stored when approved → buyer sends a Shared Payment Token capped at the exact total → <code>pay_deal</code> re-checks the deal and the token → PaymentIntent with an idempotency key.", "The amount always comes from our stored deal.", "Fallback: PaymentIntent with a test card."],
+      evidence: "Stripe guide: this is Stripe's documented seller flow, and their Aug 2026 marketplace post describes the same policy-before-payment design.",
+      open: "The token API is a preview: 10-minute go/no-go test first. The buyer-side token is simulated in test mode." },
+    { name: "Learning loop", status: "open", who: "Roadmap unless E6 lands",
+      design: ["Policy picks discrete moves: hold, concede 5/15/35% of the gap, add warranty, final offer, accept, walk.", "Reward: profit on a deal, 0 on a walk-away, a penalty below that for engine-rejected proposals.", "Train offline on scripted buyers, test on LLM buyers. Data: our logs, Manufact replays, Armature's judged sessions."],
+      evidence: "E6 phase 1: learned $6,353 vs. best fixed $6,405 profit per buyer on scripted buyers. A seller that knew each walk-away would make $8,141.",
+      open: "E6 phase 2: does learning beat fixed strategies against LLM buyers?" },
+    { name: "Evals and agent experience", status: "decided", who: "Armature",
+      design: ["Our harness: completion, tool errors, rounds, agent vs. page, buyer models.", "Armature evals in Claude Code and Codex add a second model family."],
+      evidence: "E1, E2, E3 numbers above.",
+      open: "Armature's team has to switch evals on for our workspace." }
+  ],
+  log: [
+    ["2026-10-17", "Haggle", "Haggle runs over MCP tool calls; no Google A2A protocol in v1; agent card kept for discovery only.", "E8 research"],
+    ["2026-10-17", "Haggle", "Structured offer tools chosen over a free-text negotiate tool.", "E1"],
+    ["2026-10-17", "Selling agent", "Added: hold list for buyers who can pay it, add-on margin guard, ban \"best price\" bluffs.", "E2"],
+    ["2026-10-17", "Haggle", "Buyer gets a final turn to accept at the round cap.", "E2"],
+    ["2026-10-17", "Front door", "Keep the official Python MCP SDK and host on Manufact Cloud instead of porting to mcp-use.", "Manufact guide"],
+    ["2026-10-17", "Front door", "negotiation_id handle, tool annotations, safe payment retries, short receipts, discovery files.", "Armature guide"],
+    ["2026-10-17", "Checkout", "Mock checkout replaced by Stripe token → PaymentIntent through pay_deal, with a deal-card widget for approval.", "Stripe guide"],
+    ["2026-10-17", "Learning loop", "Reward scores rule-breaking below walking away; scripted buyers must walk from stubborn sellers.", "E8 research"]
+  ],
+  pending: [
+    ["E1 · MCP end to end", "Final write-up", "Front door, haggle"],
+    ["E3 · Buyer behavior", "Budget-leak probe; write-up", "Buyer agent, haggle"],
+    ["E4 · Red team", "Attacks on prompt-only vs. code rules", "Policy engine"],
+    ["E5 · Strategies", "Which haggling strategy wins", "Selling agent"],
+    ["E6 · RL", "Learned policy vs. LLM buyers", "Learning loop"],
+    ["E7 · Marketplace", "Competing sellers, broker vs. direct", "Discovery, selling agent"]
+  ]
+};
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const label = { decided: "Decided", leaning: "Leaning", open: "Open" };
+$("meta").innerHTML = `<span>Updated <span class="num">${DATA.updated}</span></span><span>Commit <span class="num">${DATA.commit}</span></span><span>${DATA.layers.filter(l => l.status === "decided").length} of ${DATA.layers.length} layers decided</span>`;
+$("layers").innerHTML = DATA.layers.map((l) => `
+  <article class="card">
+    <div class="card-head"><div style="display:grid;gap:2px;min-width:0"><span class="who">${esc(l.who)}</span><h3>${esc(l.name)}</h3></div><span class="pill ${l.status}">${label[l.status]}</span></div>
+    <div class="block"><span class="label">Design</span><ul>${l.design.map((d) => `<li>${d}</li>`).join("")}</ul></div>
+    <div class="block"><span class="label">Evidence</span><p class="evidence">${esc(l.evidence)}</p></div>
+    <div class="block"><span class="label">Open</span><p class="openq">${esc(l.open)}</p></div>
+  </article>`).join("");
+$("log").innerHTML = `<thead><tr><th>When</th><th>Layer</th><th>Change</th><th>Driven by</th></tr></thead><tbody>` +
+  DATA.log.slice().reverse().map(([w, l, c, d]) => `<tr><td class="when">${esc(w)}</td><td class="layer">${esc(l)}</td><td>${esc(c)}</td><td>${esc(d)}</td></tr>`).join("") + `</tbody>`;
+$("pending").innerHTML = `<thead><tr><th>Experiment</th><th>What's left</th><th>Layers it can change</th></tr></thead><tbody>` +
+  DATA.pending.map(([e, w, l]) => `<tr><td class="layer">${esc(e)}</td><td>${esc(w)}</td><td>${esc(l)}</td></tr>`).join("") + `</tbody>`;
+</script>

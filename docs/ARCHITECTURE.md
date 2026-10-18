@@ -1,57 +1,63 @@
 # Architecture
 
-> From the whiteboard session on 2026-10-17. This is the setup our experiments assume. It will change as results come in.
+> Started from the whiteboard session on 2026-10-17 and updated as experiments and sponsor research land. Each layer is marked **Decided**, **Leaning**, or **Open**, with the evidence behind it. The [change log](#change-log) records what changed and why. The same content is on the architecture page (`docs/architecture.html`).
 
 ## Components
 
 ```mermaid
 flowchart LR
-  N["Principal's need<br/>(e.g. a compact tractor, ~$40k)"] --> B["Buyer agent<br/>(Claude)"]
-  B --> D["Discovery<br/>agent cards, feeds, registries"]
-  D --> F["MCP front door<br/>tools the seller exposes"]
-  F --> S["Selling agent<br/>proposes deals"]
-  S --> P["Policy engine<br/>authorizes deals"]
-  P --> X["Checkout<br/>Stripe (mocked)"]
-  X --> L[("Transaction data")]
-  L --> R["Learning<br/>seller policy from haggles"]
+  N["Person's need"] --> B["Buyer agent<br/>Claude + capped wallet"]
+  B --> D["Discovery<br/>/.well-known/ucp, agent card"]
+  D --> F["MCP front door<br/>Python MCP on Manufact Cloud"]
+  F --> S["Selling agent<br/>code prices, LLM talks"]
+  S --> P["Policy engine<br/>checks every offer"]
+  P --> H["Person approves<br/>deal-card widget"]
+  H --> X["Stripe checkout<br/>payment token → PaymentIntent"]
+  X --> L[("Haggle logs<br/>+ Manufact session replay")]
+  L --> R["Learning loop<br/>pricing policy"]
   R -.-> S
 ```
 
-| Component | What it does | In our experiments |
-|---|---|---|
-| **Buyer agent** | Acts for a person who needs something. Gets a prompt with the need, a budget, and constraints. | Claude through headless `claude -p`. Each persona has a stated budget and a private walk-away price. |
-| **Discovery** | How the buyer finds sellers: agent cards, product feeds, registries. | A local registry file that lists seller agent cards. |
-| **MCP front door** | The seller's endpoint. Exposes tools to the buyer: catalog, quote, offer, accept, checkout. | A FastMCP server in Python. |
-| **Selling agent** | Negotiates for the seller and proposes deals. | An LLM, optionally driven by a fixed strategy or a learned policy that picks the price. |
-| **Policy engine** | Checks every proposed deal against the seller's rules and rejects anything outside them. | Plain code: price floor, max discount, allowed add-ons, payment terms. |
-| **Checkout** | Turns an agreed deal into a payment. | Mocked Stripe checkout. We assume the payment succeeds. |
-| **Learning** | Uses haggling transcripts to improve the seller's policy, with a reward built from conversion, profit, and revenue. | Bandits and Q-learning against simulated buyers, plus prompt-level learning from transcripts. |
+| Layer | Status | Current design | Evidence | Still open |
+|---|---|---|---|---|
+| **Buyer agent** | Decided for the demo | Claude with a persona (need, budget, private walk-away). Its wallet enforces the person's spend cap and asks for approval, then mints a Stripe token capped at the deal total (simulated in test mode). | E1: real Claude buyers completed 24/24 feasible purchases, 0 tool errors. E3: buyers counter 100% of the time when they can. | Buyers leak their budget often (E1: 11 of 20 in one group). |
+| **Discovery** | Leaning | `/.well-known/ucp` listing our MCP endpoint, plus an A2A agent card and `llms.txt`. We propose a "negotiable" field, since no standard has one. | E8: UCP is the one live standard pointer from a seller's domain to its MCP server; no shopping agent reads A2A cards today. | Real routing to seller endpoints is a distribution problem the harness can't test. |
+| **Agent-to-agent haggle** | Decided | Runs over MCP tool calls with structured offers. State travels in a server-minted `negotiation_id` passed back on every call. Round cap with a final buyer turn to accept. Not using Google's A2A protocol in v1. | E1: structured tools 0 errors vs. 1 for free text, 58 s vs. 79 s. E2: deals lost when the cap ended on the seller's turn. MCP spec 2026-07-28 has no sessions. | E3 model comparison (do Sonnet and Haiku buyers behave the same?). |
+| **MCP front door** | Decided | Official Python MCP SDK 2.3, stateless Streamable HTTP, hosted on Manufact Cloud (`--runtime python`). Tools: `list_products`, `get_product`, `request_quote`, `make_offer`, `accept_offer`, `review_deal` (deal-card widget), `pay_deal`. Titles, safety annotations, typed outputs, short results. No login tonight; payment is gated by the token cap and human approval. Armature analytics SDK wraps it. | Manufact guide: mcp-use's Python package needs MCP < 2.0 and has no widgets; Manufact's CTO documents this exact Python setup. Armature guide: annotations, idempotent payment, short receipts. | Do Manufact judges want mcp-use itself? Gateway timeout vs. 10–30 s seller turns. |
+| **Selling agent** | Leaning | Code picks the price move each turn; the LLM writes the message. Hold list when the buyer can clearly pay it; guard add-on margin; no "best price" bluffs. | E2: negotiating seller +54% profit per session over a static page, but 0 of 42 deals at list and margin down from 28.8% to 20.1%. E6 phase 1: split-the-difference is the best fixed strategy on scripted buyers. | E5 picks the strategy. |
+| **Policy engine** | Decided (prices), Open (words) | Plain code. Checks every seller offer before it goes out, and again at `pay_deal`. Floors, allowed add-ons, payment terms. | E2: blocked 8 below-floor attempts; 0 closed deals broke a rule. Early probe: a Haiku seller with prompt-only rules went below its floor. | E4: do sellers promise financing or freebies in words, which a price check can't catch? |
+| **Checkout** | Decided | Deal stored when approved → buyer sends a Shared Payment Token capped at the exact total → `pay_deal` re-checks the policy and the token's cap, currency, and expiry → PaymentIntent with an idempotency key. The amount always comes from our stored deal. Fallback: PaymentIntent with a test card. | Stripe guide: this is Stripe's documented seller flow; their Aug 2026 marketplace post describes the same policy-engine-before-payment design. | Payment token is a preview API: 10-minute go/no-go test first. Buyer-side token is simulated in test mode. |
+| **Learning loop** | Open | Policy picks discrete moves (hold, concede 5/15/35% of the gap, add warranty, final offer, accept, walk). Reward: profit on a deal, 0 on a walk-away, a penalty below that for engine-rejected proposals. Train offline on scripted buyers, test on LLM buyers. Data: our logs, Manufact session replays, Armature's judged sessions. | E6 phase 1: learned $6,353 vs. best fixed $6,405 profit per buyer (scripted); a seller that knew each walk-away would make $8,141. | E6 phase 2: does learning beat fixed strategies against LLM buyers? |
+| **Evals and agent experience** | Decided | Our harness (completion, tool errors, rounds, agent vs. page, buyer models) plus Armature evals in Claude Code and Codex for a second model family. | E1, E2, E3. | Armature evals need their team to switch them on for our workspace. |
 
 ## End-to-end case: buying a tractor
 
-1. **Need.** The principal tells their buyer agent something like: "I need a compact tractor for a 20-acre property. Budget around $40k."
-2. **Discovery.** The buyer agent looks up sellers in a registry, reads their agent cards, and finds each seller's MCP endpoint.
-3. **Front door.** It connects to a seller's MCP endpoint, browses the catalog, and asks for a quote.
-4. **Haggle (one-to-one).** The buyer and the selling agent go back and forth over several rounds (the board says >10; we set a turn cap).
+1. **Need.** The person tells their buyer agent something like: "I need a compact tractor for a 20-acre property. Budget around $40k."
+2. **Discovery.** The buyer agent finds the seller's MCP endpoint through `/.well-known/ucp` or the agent card.
+3. **Front door.** It browses the catalog and asks for a quote. The server returns a `negotiation_id`.
+4. **Haggle (one-to-one).** The buyer and the selling agent trade structured offers over several rounds, up to the round cap.
    - Buyer **B($$, ?)**: a budget it may reveal, and a walk-away price it keeps private.
    - Seller **S(H, L, $$)**: a list price H it anchors on, a floor L it can't go below, and its cost.
-5. **Authorize.** The selling agent proposes a deal and the policy engine approves or rejects it.
-6. **Match and pay.** When both sides agree, the deal goes to checkout through Stripe. In experiments we assume this step works.
-7. **Learn.** The transcript and the outcome go into the transaction log, and the seller's policy learns from it.
-
-The marketplace version is the same, except the buyer talks to a set of sellers (for example through Inkbox) instead of just one.
+5. **Authorize.** Every seller offer passes the policy engine before the buyer sees it.
+6. **Approve.** The agreed deal shows up in the deal-card widget, and the person approves it.
+7. **Pay.** The buyer's wallet sends a Stripe payment token capped at the deal total; `pay_deal` charges it.
+8. **Learn.** The transcript and outcome go into the logs, and the pricing policy learns from them.
 
 ## What the seller optimizes
 
-From the board: the seller's policy is judged on **{conversion rate, profit, revenue}**. The working reward is defined in [OPEN_QUESTIONS.md](experiments/OPEN_QUESTIONS.md) (R1).
+From the board: **{conversion rate, profit, revenue}**. The working reward is profit per buyer session, with rule-breaking proposals scored below walking away (see [OPEN_QUESTIONS.md](experiments/OPEN_QUESTIONS.md), R1).
 
-## Experiment tracks
+## Change log
 
-The board splits experiments into three tracks. We added learning as a fourth.
+| When | Layer | Change | Driven by |
+|---|---|---|---|
+| 2026-10-17 | Agent-to-agent haggle | Haggle runs over MCP tool calls; no Google A2A protocol in v1; agent card kept for discovery only. | E8 research |
+| 2026-10-17 | Agent-to-agent haggle | Structured offer tools over a free-text `negotiate` tool. | E1 |
+| 2026-10-17 | Selling agent | Added: hold list for buyers who can pay it, add-on margin guard, ban "best price" bluffs. | E2 |
+| 2026-10-17 | Agent-to-agent haggle | Buyer gets a final turn to accept at the round cap. | E2 |
+| 2026-10-17 | MCP front door | Keep the official Python MCP SDK and host it on Manufact Cloud instead of porting to mcp-use. | Manufact guide |
+| 2026-10-17 | MCP front door | `negotiation_id` handle, tool annotations, idempotent payment, short receipts, discovery files. | Armature guide |
+| 2026-10-17 | Checkout | Mock checkout replaced by Stripe payment token → PaymentIntent via `pay_deal`; deal-card widget for approval. | Stripe guide |
+| 2026-10-17 | Learning loop | Reward scores rule-breaking below walking away; scripted buyers must walk away from stubborn sellers. | E8 research |
 
-1. **General:** does the basic setup work at all? End to end, the front door, safety.
-2. **Buy–sell:** one buyer, one seller, haggling.
-3. **Marketplace:** one buyer, many sellers. Endpoints and dynamic pricing.
-4. **Learning:** can the seller get better at haggling from its own transaction data?
-
-The full experiment list is in [EXPERIMENTS.md](experiments/EXPERIMENTS.md).
+The experiment list is in [EXPERIMENTS.md](experiments/EXPERIMENTS.md) and the track plan in [TRACKS.md](TRACKS.md).
