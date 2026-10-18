@@ -3,15 +3,16 @@
 // The amount always comes from the exchange's stored deal; nothing here takes a price from the caller.
 import { z } from "zod";
 import { createDealModule, dealSummary, fromExchange, type CatalogSource } from "./deal/index.js";
-import { PRODUCTS, SELLERS } from "./catalog.js";
+import { catalog as currentCatalog } from "./catalog-source.js";
 import { exchange, missingBuyer, toCtx, type RequestLike } from "./negotiate.js";
 
 // Public catalog facts for the card (seller name). Never seller policy.
 const catalog: CatalogSource = {
   async getProduct(product_id) {
-    const p = PRODUCTS.find((x) => x.id === product_id);
+    const cat = await currentCatalog();
+    const p = cat.products.find((x) => x.id === product_id);
     if (!p) return null;
-    const seller = SELLERS.find((s) => s.id === p.seller_id);
+    const seller = cat.sellers.find((s) => s.id === p.seller_id);
     return { product_id: p.id, title: p.title, list_price_cents: p.list_price_cents, seller_name: seller?.name ?? p.seller_id };
   },
 };

@@ -3,13 +3,16 @@
 // each product's public facts and the extras its seller can offer. No profile: rank by query matches, then price.
 // Buyer agents phrase things loosely ("keyboard", "quiet typing"), so matching is word-based
 // with synonyms, and an empty result falls back to the closest options with the misses stated.
-import { Listing, type LeverName, type LeverProfile } from "@sa/shared";
-import { LEVERS_OFFERED, PRODUCTS, SELLERS } from "./catalog.js";
+import { Listing, type LeverName, type LeverProfile, type Product } from "@sa/shared";
+import { PRODUCTS } from "./catalog.js";
+import { STATIC_SNAPSHOT, type CatalogSnapshot } from "./catalog-source.js";
 import { leverLabel } from "./deal/card.js";
 
 export const MAX_RESULTS = 5; // Magentic: buyer agents do worse with long lists
 
+/** Categories in the code seed (tool descriptions); a live catalog may add more, see categoriesOf. */
 export const CATEGORIES = [...new Set(PRODUCTS.map((p) => p.category))];
+export const categoriesOf = (cat: CatalogSnapshot) => [...new Set(cat.products.map((p) => p.category))];
 
 export type SearchInput = {
   q?: string;
@@ -37,7 +40,7 @@ export type SearchOutput = {
   note?: string;
 };
 
-type CatalogProduct = (typeof PRODUCTS)[number];
+type CatalogProduct = Product;
 
 const SYNONYMS: Record<string, string[]> = {
   quiet: ["quiet", "silent"],
@@ -87,16 +90,16 @@ function termMatches(t: string, text: string): boolean {
 }
 
 /** "keyboard" → mechanical_keyboard, "headphone" → headphones; unknown → undefined (no filter). */
-export function resolveCategory(category: string | undefined): string | undefined {
+export function resolveCategory(category: string | undefined, categories: string[] = CATEGORIES): string | undefined {
   if (!category) return undefined;
   const words = category.toLowerCase().split(/[^a-z]+/).filter(Boolean).map(singular);
-  return CATEGORIES.find((c) => {
+  return categories.find((c) => {
     const catWords = c.split("_").map(singular);
     return c === category || words.some((w) => catWords.includes(w));
   });
 }
 
-// Which buyer value each extra serves.
+// Which buyer value each extra serves, when the catalog's lever_menu doesn't say (v1 schema).
 const LEVER_OF: Record<string, LeverName> = {
   free_shipping: "convenience",
   extended_warranty: "warranty",
@@ -104,8 +107,10 @@ const LEVER_OF: Record<string, LeverName> = {
   volume_discount: "price",
 };
 
-export function leversOffered(product_id: string): OfferedLever[] {
-  return (LEVERS_OFFERED[product_id] ?? []).map((id) => ({ id, lever: LEVER_OF[id] ?? "convenience", label: leverLabel({ name: id }) }));
+const valueOf = (id: string, cat: CatalogSnapshot): LeverName => cat.leverValue[id] ?? LEVER_OF[id] ?? "convenience";
+
+export function leversOffered(product_id: string, cat: CatalogSnapshot = STATIC_SNAPSHOT): OfferedLever[] {
+  return (cat.levers[product_id] ?? []).map((id) => ({ id, lever: valueOf(id, cat), label: leverLabel({ name: id }) }));
 }
 
 const QUALITY_FLAGS = ["hot_swap", "wireless", "anc"];
@@ -122,19 +127,19 @@ const span = (v: number, lo: number, hi: number) => (hi === lo ? 1 : (v - lo) / 
  * Per-lever scores 0..1 for each product, relative to the others in the pool (so "cheap" means cheap among these).
  * trust: no seller ratings yet, so every seller scores the same and trust never changes the order.
  */
-function leverScores(pool: CatalogProduct[]): Map<string, Record<LeverName, number>> {
+function leverScores(pool: CatalogProduct[], cat: CatalogSnapshot): Map<string, Record<LeverName, number>> {
   const prices = pool.map((p) => p.list_price_cents), days = pool.map((p) => p.shipping_days), q = pool.map(qualityPoints);
   const [pLo, pHi, dLo, dHi, qLo, qHi] = [Math.min(...prices), Math.max(...prices), Math.min(...days), Math.max(...days), Math.min(...q), Math.max(...q)];
   return new Map(pool.map((p) => {
-    const offered = LEVERS_OFFERED[p.id] ?? [];
-    const priceExtra = offered.some((l) => LEVER_OF[l] === "price") ? 0.1 : 0;
+    const offers = new Set((cat.levers[p.id] ?? []).map((l) => valueOf(l, cat)));
+    const priceExtra = offers.has("price") ? 0.1 : 0;
     return [p.id, {
       price: Math.min(1, 1 - span(p.list_price_cents, pLo, pHi) + priceExtra),
       quality: span(qualityPoints(p), qLo, qHi),
       delivery: 1 - span(p.shipping_days, dLo, dHi),
-      warranty: offered.includes("extended_warranty") ? 1 : 0.2,
+      warranty: offers.has("warranty") ? 1 : 0.2,
       trust: 0.5,
-      convenience: offered.includes("free_shipping") ? 1 : 0.3,
+      convenience: offers.has("convenience") ? 1 : 0.3,
     }];
   }));
 }
@@ -149,29 +154,30 @@ function fitFor(scores: Record<LeverName, number>, prefs: LeverProfile): { score
   return { score: Math.round(score * 100) / 100, strong };
 }
 
-function toResult(p: CatalogProduct, fit_note: string, mcpUrl: string, fit_score?: number): SearchResult {
-  const seller = SELLERS.find((s) => s.id === p.seller_id)!;
+function toResult(p: CatalogProduct, fit_note: string, mcpUrl: string, cat: CatalogSnapshot, fit_score?: number): SearchResult {
+  const seller = cat.sellers.find((s) => s.id === p.seller_id) ?? { name: p.seller_id };
   // Listing.parse strips anything not in the public contract (e.g. inventory).
   const listing = Listing.parse({ ...p, seller_name: seller.name, mcp_url: mcpUrl, in_stock: p.inventory > 0 });
-  return { listing, fit_note, ...(fit_score === undefined ? {} : { fit_score }), levers_offered: leversOffered(p.id) };
+  return { listing, fit_note, ...(fit_score === undefined ? {} : { fit_score }), levers_offered: leversOffered(p.id, cat) };
 }
 
 /** One product's public listing (get_listing), or null if unknown. Same public fields as search results. */
-export function getListing(product_id: string, mcpUrl: string): Listing | null {
-  const p = PRODUCTS.find((x) => x.id === product_id);
-  return p ? toResult(p, "", mcpUrl).listing : null;
+export function getListing(product_id: string, mcpUrl: string, cat: CatalogSnapshot = STATIC_SNAPSHOT): Listing | null {
+  const p = cat.products.find((x) => x.id === product_id);
+  return p ? toResult(p, "", mcpUrl, cat).listing : null;
 }
 
-export function searchProducts(input: SearchInput, mcpUrl: string): SearchOutput {
-  const category = resolveCategory(input.category);
+export function searchProducts(input: SearchInput, mcpUrl: string, cat: CatalogSnapshot = STATIC_SNAPSHOT): SearchOutput {
+  const categories = categoriesOf(cat);
+  const category = resolveCategory(input.category, categories);
   const needs = (input.must_have ?? []).map((m) => ({ phrase: m, words: terms(m) })).filter((n) => n.words.length);
   const queryTerms = terms(input.q);
 
   const prefs = input.preferences && Object.values(input.preferences).some((w) => (w ?? 0) > 0) ? input.preferences : undefined;
-  const inScope = PRODUCTS.filter((p) => p.inventory > 0)
+  const inScope = cat.products.filter((p) => p.inventory > 0)
     .filter((p) => !category || p.category === category)
     .filter((p) => input.max_price_cents === undefined || p.list_price_cents <= input.max_price_cents);
-  const scores = leverScores(inScope);
+  const scores = leverScores(inScope, cat);
 
   const pool = inScope.map((p) => {
     const text = haystack(p);
@@ -192,13 +198,13 @@ export function searchProducts(input: SearchInput, mcpUrl: string): SearchOutput
     .slice(0, MAX_RESULTS);
 
   const categoryNote =
-    input.category && !category ? `Unknown category "${input.category}"; available: ${CATEGORIES.join(", ")}.` : undefined;
+    input.category && !category ? `Unknown category "${input.category}"; available: ${categories.join(", ")}.` : undefined;
 
   if (exact.length) {
     const results = exact.map(({ p, matched, fit }) => {
       const fits = [...needs.map((n) => n.phrase), ...matched];
       const base = fits.length ? `Matches: ${[...new Set(fits)].join(", ")}.` : "In the requested category.";
-      return toResult(p, base + strongNote(fit), mcpUrl, fit?.score);
+      return toResult(p, base + strongNote(fit), mcpUrl, cat, fit?.score);
     });
     return { results, relaxed: false, note: categoryNote };
   }
@@ -212,6 +218,7 @@ export function searchProducts(input: SearchInput, mcpUrl: string): SearchOutput
         .filter(Boolean)
         .join(" ") || "Closest option in this category and budget.") + strongNote(fit),
       mcpUrl,
+      cat,
       fit?.score,
     ),
   );
