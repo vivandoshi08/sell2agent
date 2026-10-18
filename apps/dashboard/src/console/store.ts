@@ -55,17 +55,23 @@ export function supabaseStore(db: SupabaseClient, products: ProductConfig[] = SE
   const bases = new Map(seedPolicies(products).map((p) => [p.product_id, p]));
   const overlay = new Map<string, ConsolePolicy>(); // v1 mode only: fields the v1 table can't hold
   let schemaP: Promise<"v1" | "v2"> | null = null;
-  const schema = () => (schemaP ??= (async () => {
-    const { error } = await db.from("seller_policies").select("lever_menu").limit(1);
-    if (!error) return "v2" as const;
-    if (/lever_menu|column/i.test(error.message)) return "v1" as const;
-    schemaP = null; // transient error: try again next time
-    throw new Error(`seller_policies: ${error.message}`);
-  })());
+  let v1At = 0;
+  const schema = () => {
+    // v2 is final. A v1 answer is re-checked after a minute, so a running server picks up 0002 without a restart
+    // (a v1-mode save on a v2 table would only write allowed_concessions, which a non-empty lever_menu overrides).
+    if (schemaP && v1At && Date.now() - v1At > 60_000) schemaP = null;
+    return (schemaP ??= (async () => {
+      const { error } = await db.from("seller_policies").select("lever_menu").limit(1);
+      if (!error) { v1At = 0; return "v2" as const; }
+      if (/lever_menu|column/i.test(error.message)) { v1At = Date.now(); return "v1" as const; }
+      schemaP = null; // transient error: try again next time
+      throw new Error(`seller_policies: ${error.message}`);
+    })());
+  };
 
   const read = async (ids?: string[]) => {
     const v = await schema();
-    let q = db.from("seller_policies").select(v === "v2" ? "product_id, floor_price_cents, policy, objective, lever_menu" : "product_id, floor_price_cents, allowed_concessions");
+    let q = db.from("seller_policies").select(v === "v2" ? "product_id, floor_price_cents, policy, objective, lever_menu, allowed_concessions" : "product_id, floor_price_cents, allowed_concessions");
     if (ids) q = q.in("product_id", ids);
     const { data, error } = await q;
     if (error) throw new Error(`seller_policies: ${error.message}`);
