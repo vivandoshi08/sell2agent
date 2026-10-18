@@ -1,9 +1,10 @@
 // Negotiation tools: thin MCP wrappers over E1's exchange (handle(move)). Responses pass through unchanged.
 //
-// Buyer identity (Esha's proposal): ChatGPT/Claude users send no buyer_id and the gateway is stateless, so the
-// first make_offer without one mints `anon_<uuid>` and returns it; the model must send it back on every later call.
-// Offers stay bound to that id, so another buyer can't accept them. Simulated buyers send their own ids.
-import { randomUUID } from "node:crypto";
+// Buyer identity, in order: a buyer_id the caller sends (simulated buyers, or the id echoed back by the model);
+// else ChatGPT's per-user `openai/subject`, hashed to `oai_<hex>` so one person keeps one id across chats;
+// else the first make_offer mints `anon_<uuid>` and returns it, and the model must send it back on later calls.
+// Offers stay bound to that id, so another buyer can't accept them.
+import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod";
 import { Exchange, type ExchangeResponse, type Move } from "@sa/seller-mcp/exchange";
 
@@ -16,10 +17,24 @@ const ctxFields = {
   buyer_model: z.string().optional().describe("Buyer model name, if known"),
 };
 const buyerIdNew = z.string().optional().describe("Your buyer_id from an earlier response. Omit on your very first offer and one is created for you.");
-const buyerIdReq = z.string().describe("The buyer_id returned by your first make_offer. Required.");
+const buyerIdReq = z.string().optional().describe("The buyer_id returned by your first make_offer. Send it on every later call.");
 
-export function toCtx(a: { run_id?: string; buyer_id?: string; buyer_model?: string }) {
-  return { run_id: a.run_id ?? "live", buyer_id: a.buyer_id ?? `anon_${randomUUID()}`, buyer_model: a.buyer_model ?? "unknown" };
+/** The slice of mcp-use's request context we read: client-reported OpenAI user hints (unverified, not auth). */
+export type RequestLike = { client?: { user?: () => { subject?: string } | undefined } };
+
+/** `oai_` + hash of ChatGPT's anonymized user id, or undefined when the client sent none. */
+export function subjectBuyerId(rc?: RequestLike): string | undefined {
+  const subject = rc?.client?.user?.()?.subject;
+  return subject ? `oai_${createHash("sha256").update(subject).digest("hex").slice(0, 32)}` : undefined;
+}
+
+export function toCtx(a: { run_id?: string; buyer_id?: string; buyer_model?: string }, rc?: RequestLike) {
+  const fromSubject = subjectBuyerId(rc);
+  return {
+    run_id: a.run_id ?? "live",
+    buyer_id: a.buyer_id ?? fromSubject ?? `anon_${randomUUID()}`,
+    buyer_model: a.buyer_model ?? (fromSubject ? "chatgpt" : "unknown"),
+  };
 }
 
 const usd = (c?: number) => (c === undefined ? "" : `$${(c / 100).toFixed(c % 100 ? 2 : 0)}`);
@@ -61,7 +76,7 @@ export function registerNegotiationTools(server: any) {
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
     },
-    async (a: any) => run({ kind: "offer", ctx: toCtx(a), product_id: a.product_id, negotiation_id: a.negotiation_id, offer_price_cents: a.offer_price_cents,
+    async (a: any, rc?: RequestLike) => run({ kind: "offer", ctx: toCtx(a, rc), product_id: a.product_id, negotiation_id: a.negotiation_id, offer_price_cents: a.offer_price_cents,
       quantity: a.quantity, message: a.message, levers: a.levers }),
   );
 
@@ -73,7 +88,7 @@ export function registerNegotiationTools(server: any) {
       inputSchema: z.object({ negotiation_id: z.string(), offer_id: z.string().describe("standing_offer.offer_id from the latest response"), buyer_id: buyerIdReq, ...ctxFields }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
-    async (a: any) => run({ kind: "accept", ctx: toCtx(a), negotiation_id: a.negotiation_id, offer_id: a.offer_id }),
+    async (a: any, rc?: RequestLike) => run({ kind: "accept", ctx: toCtx(a, rc), negotiation_id: a.negotiation_id, offer_id: a.offer_id }),
   );
 
   server.tool(
@@ -91,7 +106,7 @@ export function registerNegotiationTools(server: any) {
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
-    async (a: any) => run({ kind: "walk", ctx: toCtx(a), negotiation_id: a.negotiation_id, reason: a.reason,
+    async (a: any, rc?: RequestLike) => run({ kind: "walk", ctx: toCtx(a, rc), negotiation_id: a.negotiation_id, reason: a.reason,
       followup: a.allow_followup_to ? { reply_to: a.allow_followup_to, channel: a.followup_channel ?? "email" } : undefined }),
   );
 
@@ -103,6 +118,6 @@ export function registerNegotiationTools(server: any) {
       inputSchema: z.object({ negotiation_id: z.string(), buyer_id: buyerIdReq, ...ctxFields }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
-    async (a: any) => run({ kind: "status", ctx: toCtx(a), negotiation_id: a.negotiation_id }),
+    async (a: any, rc?: RequestLike) => run({ kind: "status", ctx: toCtx(a, rc), negotiation_id: a.negotiation_id }),
   );
 }

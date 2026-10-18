@@ -3,9 +3,11 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { registerNegotiationTools } from "../src/negotiate";
 
-const tools = new Map<string, (a: any) => Promise<any>>();
-registerNegotiationTools({ tool: (def: { name: string }, fn: (a: any) => Promise<any>) => tools.set(def.name, fn) });
-const call = (name: string, a: any) => tools.get(name)!(a);
+const tools = new Map<string, (a: any, rc?: any) => Promise<any>>();
+registerNegotiationTools({ tool: (def: { name: string }, fn: (a: any, rc?: any) => Promise<any>) => tools.set(def.name, fn) });
+const call = (name: string, a: any, rc?: any) => tools.get(name)!(a, rc);
+// What mcp-use hands a handler for a ChatGPT request carrying _meta["openai/subject"].
+const chatgpt = (subject: string) => ({ client: { user: () => ({ subject }) } });
 
 test("anonymous buyer: first offer mints anon_ id; later calls must echo it; accept locks a deal", async () => {
   const r1 = await call("make_offer", { product_id: "kb_keyforge_quiet75", offer_price_cents: 10000 });
@@ -29,4 +31,44 @@ test("walk_away with follow-up consent", async () => {
   const r = (await call("make_offer", { product_id: "kb_clackco_tkl", offer_price_cents: 9000, buyer_id: "sim-1", run_id: "e1-test-gw" })).structuredContent;
   const w = (await call("walk_away", { negotiation_id: r.negotiation_id, buyer_id: "sim-1", allow_followup_to: "agent@example.test" })).structuredContent;
   assert.equal(w.state, "walked_away");
+});
+
+test("ChatGPT user: openai/subject becomes a stable oai_ buyer_id, no echo needed", async () => {
+  const me = chatgpt("v1/user-alice-123");
+  const o = (await call("make_offer", { product_id: "kb_typewell_65", offer_price_cents: 11000 }, me)).structuredContent;
+  assert.match(o.buyer_id, /^oai_[0-9a-f]{32}$/);
+  assert.ok(!JSON.stringify(o).includes("user-alice-123"), "raw subject must not be returned");
+  // Model forgets buyer_id on the next calls: the subject still identifies the same person.
+  const o2 = (await call("make_offer", { product_id: "kb_typewell_65", negotiation_id: o.negotiation_id, offer_price_cents: 12000 }, me)).structuredContent;
+  assert.equal(o2.buyer_id, o.buyer_id);
+  const acc = (await call("accept_deal", { negotiation_id: o.negotiation_id, offer_id: o2.standing_offer.offer_id }, me)).structuredContent;
+  assert.equal(acc.state, "agreed");
+  // A new chat from the same person gets the same id.
+  const again = (await call("make_offer", { product_id: "hp_typewell_buds", offer_price_cents: 9000 }, me)).structuredContent;
+  assert.equal(again.buyer_id, o.buyer_id);
+});
+
+test("another ChatGPT user can't touch the first user's negotiation", async () => {
+  const a = (await call("make_offer", { product_id: "hp_keyforge_anc", offer_price_cents: 15000 }, chatgpt("user-a"))).structuredContent;
+  const b = (await call("check_offers", { negotiation_id: a.negotiation_id }, chatgpt("user-b"))).structuredContent;
+  assert.equal(b.error.code, "wrong_buyer");
+});
+
+test("an explicit buyer_id wins over openai/subject (simulated buyers)", async () => {
+  const o = (await call("make_offer", { product_id: "hp_clackco_studio", offer_price_cents: 12000, buyer_id: "sim-7" }, chatgpt("user-x"))).structuredContent;
+  assert.equal(o.buyer_id, "sim-7");
+});
+
+// Regression (real ChatGPT run, 2026-10-17): with shared anon_ memory every new user opened at the last user's final price.
+test("a second ChatGPT user doesn't inherit the first user's price", async () => {
+  const p = "kb_clackco_tkl";
+  const first = chatgpt("user-first");
+  let r = (await call("make_offer", { product_id: p, offer_price_cents: 9000 }, first)).structuredContent;
+  for (let i = 0; i < 4 && r.ok && r.allowed_actions.includes("offer"); i++)
+    r = (await call("make_offer", { product_id: p, negotiation_id: r.negotiation_id, offer_price_cents: 9000 }, first)).structuredContent;
+  const firstPrice = r.standing_offer.price_cents;
+  await call("accept_deal", { negotiation_id: r.negotiation_id, offer_id: r.standing_offer.offer_id }, first);
+  const second = (await call("make_offer", { product_id: p, offer_price_cents: 9000 }, chatgpt("user-second"))).structuredContent;
+  assert.ok(second.standing_offer.price_cents > firstPrice, `second user opened at ${second.standing_offer.price_cents}, first ended at ${firstPrice}`);
+  assert.equal(second.standing_offer.final, false);
 });
