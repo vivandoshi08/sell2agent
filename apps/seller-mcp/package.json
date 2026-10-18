@@ -1,0 +1,9 @@
+{
+  "name": "@sa/seller-mcp",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": { "dev": "tsx watch src/index.ts", "typecheck": "tsc -p ." },
+  "dependencies": { "@sa/shared": "workspace:*", "@modelcontextprotocol/sdk": "^1.0.0", "@anthropic-ai/sdk": "^0.30.0", "stripe": "^17.0.0", "express": "^4.21.0" },
+  "devDependencies": { "typescript": "^5.6.0", "tsx": "^4.19.0" }
+}

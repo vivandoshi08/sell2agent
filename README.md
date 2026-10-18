@@ -1,28 +1,15 @@
 # sales-agent
 
-A selling agent that represents a merchant to AI buying agents: it presents the product in a form agents can use, negotiates for the seller, and closes the deal.
+Seller-side negotiating agents for agentic commerce. Start with [CLAUDE.md](./CLAUDE.md), then your `apps/<yours>/BRIEF.md`.
+
+## Research and experiments
+
+Everything we tested before the build lives on this branch's `docs/` and `experiments/` folders:
 
 - [docs/NORTHSTAR.md](docs/NORTHSTAR.md): the problem and what we're building toward
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): the setup our experiments assume
-- [docs/experiments/EXPERIMENTS.md](docs/experiments/EXPERIMENTS.md): the assumptions we're testing and the experiments that test them
-- [docs/experiments/OPEN_QUESTIONS.md](docs/experiments/OPEN_QUESTIONS.md): everything we don't know yet
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): layer-by-layer decisions with the experiment evidence behind them
+- [docs/experiments/EXPERIMENTS.md](docs/experiments/EXPERIMENTS.md): the assumptions tested (E1–E11) and their verdicts
+- [docs/TRACKS.md](docs/TRACKS.md): prize tracks (Armature, Stripe, Manufact) and how each sponsor fits
+- [docs/research/](docs/research/): protocol, discovery, payments, and competitor research
 
-## Layout
-
-```
-sales_agent/      shared harness (E0): catalog, personas, policy engine, agents, negotiation loop, metrics
-experiments/      one folder per experiment, each with code, runs/, results.json, README.md
-docs/research/    online research (E8)
-scripts/          smoke test and the lock-safe commit helper
-```
-
-## Running
-
-Model calls go through headless `claude -p` on your Claude login, so no API key is needed. If `ANTHROPIC_API_KEY` is set, the harness uses the Anthropic SDK instead.
-
-```bash
-uv sync
-uv run python scripts/smoke.py
-```
-
-Settings: `SALES_AGENT_MODEL` (default `claude-opus-5-5`), `SALES_AGENT_EFFORT` (default `low`), `SALES_AGENT_MAX_CONCURRENCY` (default `4`).
+The experiment harness is Python (`sales_agent/`, run with `uv sync` then `uv run python scripts/smoke.py`). Model calls go through headless `claude -p` on your Claude login, or the Anthropic SDK if `ANTHROPIC_API_KEY` is set.
