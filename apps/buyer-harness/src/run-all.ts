@@ -38,6 +38,7 @@ export interface Summary {
   wallet_blocks: number;
   unfinished: number; // ran out of steps / errored
   errors: number;
+  gateway_errors: number; // failed tool calls (missing tool, outage); a buyer may still finish
   median_ms_to_first_offer: number | null;
   tokens: { input: number; output: number };
   by_persona: Record<string, { buyers: number; conversions: number; profit_cents: number }>;
@@ -86,6 +87,7 @@ export function summarize(run_id: string, label: string, os: BuyerOutcome[]): Su
     below_floor_deals: deals.filter((o) => o.below_floor === true).length,
     wallet_blocks: sum(os.map((o) => o.wallet_blocks)),
     unfinished: os.filter((o) => o.ran_out_of_steps || o.error).length,
+    gateway_errors: os.reduce((n, o) => n + (o.gateway_errors ?? 0), 0),
     errors: os.filter((o) => o.error).length,
     median_ms_to_first_offer: ttfo.length ? ttfo[Math.floor(ttfo.length / 2)] : null,
     tokens: { input: sum(os.map((o) => o.input_tokens)), output: sum(os.map((o) => o.output_tokens)) },
