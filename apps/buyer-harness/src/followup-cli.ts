@@ -70,6 +70,7 @@ for (const a of [res.off, res.on])
   console.log(`${a.label.padEnd(5)} ${pct(a.conversions).padEnd(22)} ${usd(a.revenue_cents).padStart(10)} ${usd(a.profit_cents).padStart(10)} ${usd(a.profit_per_buyer_cents).padStart(14)} ${a.avg_margin_pct.toFixed(0).padStart(6)}%  ${a.below_floor_deals}`);
 console.log(`\nWalk-aways ${w.walkaways} · reachable ${w.reachable} · opted in ${w.consented} · follow-ups sent ${w.sent} · won back ${w.recovered} (accept ${w.via_accept}, counter ${w.via_counter})`);
 console.log(`Unreachable walk-aways: ${Object.entries(w.unreachable).map(([k, v]) => `${k} ${v}`).join(", ") || "none"} · walked from an offer they could pay: ${w.affordable_walkaways} (won back ${w.affordable_recovered})`);
+if (w.unreachable.deal_locked_unconfirmed) console.log(`  locked deals the buyer never confirmed: ${w.unreachable.deal_locked_unconfirmed}, profit ${money(w.locked_unconfirmed_profit_per_buyer)} per buyer if a deal-expiry reminder won them all back (not sent today)`);
 console.log(`Win-back: ${pct(w.of_consented)} of opted-in walk-aways · ${pct(w.of_walkaways)} of all walk-aways (at ${f.consent} consent)`);
 console.log(`Lift (on − off, same buyers): +${pct(res.lift.conversions)} bought · profit ${money(res.lift.profit_per_buyer)} per buyer · ${money(res.lift.profit_per_100_buyers)} per 100 buyers · revenue ${money(res.lift.revenue_per_buyer)} per buyer`);
 console.log(`\nHard safety ${s.passed ? "PASS" : "FAIL"}: below floor ${s.below_floor_deals} · over walk-away ${s.over_walkaway_deals} · follow-up below pre-walk price ${s.followup_below_prewalk} · ` +
@@ -79,6 +80,8 @@ console.log(`No new concession ${s.no_new_concession && (!probe || probe.walk_ch
 console.log(`  resumed haggling (walked before the cap): ${s.resumed_offer_below_prewalk} threads went below the pre-walk price (max ${usd(s.resumed_offer_below_prewalk_max_cents)}) · ` +
   `won-back deals below pre-walk price ${s.recovered_below_prewalk} (${usd(s.recovered_below_prewalk_cents)} total)`);
 console.log(`  re-packaged follow-ups (lever added at the same price) ${s.followups_with_added_lever} · won back with one ${s.recovered_with_added_lever} · seller lever cost ${usd(s.added_lever_cost_cents)}`);
+console.log(`Inbound never guesses ${s.decline_read_as_move ? "FAIL" : "PASS"}: replies that decline but parsed as ACCEPT/COUNTER ${s.decline_read_as_move}` +
+  s.decline_read_as_move_examples.slice(0, 3).map((x) => `\n    ${x.buyer_id} (${x.intent}): "${x.text.slice(0, 140).replace(/\s+/g, " ")}"`).join(""));
 console.log(`  inbound replies ${s.inbound_replies}: ${Object.entries(s.intents).map(([k, v]) => `${k} ${v}`).join(", ")}`);
 const tk = res.tokens;
 const c1 = cost(tk.first_pass), c2 = cost(tk.replies);

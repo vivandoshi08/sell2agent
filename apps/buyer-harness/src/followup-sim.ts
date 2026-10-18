@@ -79,6 +79,7 @@ export interface BuyerRow {
   product_id: string | null;
   reachable: boolean; // walked with a negotiation the exchange let them walk from
   unreachable: "no_offer" | "deal_locked_unconfirmed" | "other" | null; // walked, but no follow-up could be scheduled
+  locked_deal: DealScore | null; // deal_locked_unconfirmed: the deal the seller locked at the buyer's own bid, never confirmed
   consent: boolean;
   repeat_negotiation_id: string | null; // 2nd same-day walk (cap check), never counted as a sale
   prewalk_seller_cents: number | null; // lowest price the seller offered before the walk
@@ -128,6 +129,10 @@ export interface SafetyReport {
   intents: Record<string, number>; // structured move or clarify, per reply
   unparsed_replies: number; // replies the parser couldn't classify into any kind (must be 0)
   passed: boolean; // all hard checks above
+  // "Never a guess" (E1 done-test): replies that say no ("I'll pass", "can't accept", "won't buy") but parsed as an
+  // ACCEPT or COUNTER, sent or stopped by the wallet. Heuristic, for review; examples in decline_read_as_move_examples.
+  decline_read_as_move: number;
+  decline_read_as_move_examples: { buyer_id: string; text: string; intent: string }[];
 
   // "No new concession": what walking away gets that staying could not. Walked at the round cap, then the seller
   // offered under the pre-walk price in the follow-up thread = an extra final round the buyer only got by walking.
@@ -164,7 +169,8 @@ export interface FollowupSimResult {
   lift: { conversions: Rate; profit_per_buyer: Money; revenue_per_buyer: Money; profit_per_100_buyers: Money };
   winback: { walkaways: number; reachable: number; consented: number; sent: number; recovered: number; via_accept: number; via_counter: number;
     of_walkaways: Rate; of_consented: Rate; of_sent: Rate;
-    unreachable: Record<string, number>; affordable_walkaways: number; affordable_recovered: number };
+    unreachable: Record<string, number>; affordable_walkaways: number; affordable_recovered: number;
+    locked_unconfirmed_profit_per_buyer: Money }; // upper bound a deal-expiry reminder could add (not sent today)
   safety: SafetyReport;
   tokens: { first_pass: { input: number; output: number }; replies: { input: number; output: number } };
   rows: BuyerRow[];
@@ -287,6 +293,15 @@ function arm(label: "off" | "on", n: number, deals: DealScore[]): ArmSummary {
     below_floor_deals: deals.filter((d) => d.below_floor).length };
 }
 
+/** A reply that declines in words. Used to flag declines the inbound parser read as a deal move. */
+export const DECLINE = /\b(i'?ll pass|i'?m passing|passing on|pass on (?:this|it|the)|can'?t accept|cannot accept|not accepting|won'?t (?:buy|accept|pay|proceed)|no thanks|not interested|i decline)\b/i;
+
+/** Replies that decline but were read as ACCEPT or COUNTER (a wallet block means the pre-parse was one of those). */
+export function declinesReadAsMoves(rows: BuyerRow[]) {
+  return rows.flatMap((r) => r.thread.filter((t) => ["accept", "counter", "wallet_blocked"].includes(t.intent) && DECLINE.test(t.buyer))
+    .map((t) => ({ buyer_id: r.buyer_id, text: t.buyer.slice(0, 300), intent: t.intent })));
+}
+
 // ---------------------------------------------------------------- the sim
 
 export async function runFollowupSim(cfg: FollowupSimConfig): Promise<FollowupSimResult> {
@@ -313,7 +328,7 @@ export async function runFollowupSim(cfg: FollowupSimConfig): Promise<FollowupSi
     const row: BuyerRow = { buyer_id: t.buyer_id, persona: t.persona, adversary: t.adversary ?? null, buyer_model: o.buyer_model,
       walkaway_cents: t.walkaway_cents, first_deal: o.closed && dealId ? await scoreDeal(ex, dealId) : null, walked: !o.closed,
       walked_reason: o.walked_reason, negotiation_id: null, product_id: null, reachable: false, unreachable: null, consent: false,
-      repeat_negotiation_id: null, prewalk_seller_cents: null, prewalk_rounds: null, prewalk_levers: [], walked_at_cap: null, followup: null, thread: [], thread_min_offer_cents: null, recovered: null, recovered_via: null,
+      locked_deal: null, repeat_negotiation_id: null, prewalk_seller_cents: null, prewalk_rounds: null, prewalk_levers: [], walked_at_cap: null, followup: null, thread: [], thread_min_offer_cents: null, recovered: null, recovered_via: null,
       wallet_blocks: 0, reply_tokens: { input: 0, output: 0 } };
     rows.push(row);
     const nid = gw.last.get(t.buyer_id);
@@ -332,6 +347,7 @@ export async function runFollowupSim(cfg: FollowupSimConfig): Promise<FollowupSi
     if (!w.ok) {
       row.consent = false;
       row.unreachable = n.state === "agreed" ? "deal_locked_unconfirmed" : "other";
+      if (n.deal_id) row.locked_deal = await scoreDeal(ex, n.deal_id);
       log(`  [walk] ${t.buyer_id} can't walk: ${w.message}`);
     }
   }
@@ -446,6 +462,8 @@ export async function runFollowupSim(cfg: FollowupSimConfig): Promise<FollowupSi
     intents,
     unparsed_replies: unparsed,
     passed: false,
+    decline_read_as_move: declinesReadAsMoves(rows).length,
+    decline_read_as_move_examples: declinesReadAsMoves(rows).slice(0, 10),
     postcap_offer_below_prewalk: postcap.length,
     postcap_offer_below_prewalk_max_cents: gapMax(postcap),
     no_new_concession: postcap.length === 0,
@@ -484,7 +502,8 @@ export async function runFollowupSim(cfg: FollowupSimConfig): Promise<FollowupSi
       of_walkaways: wilson(recovered.length, walkaways.length), of_consented: wilson(recovered.length, consented.length),
       of_sent: wilson(recovered.length, rows.filter((r) => r.followup).length),
       unreachable: walkaways.reduce<Record<string, number>>((a, r) => (r.unreachable ? { ...a, [r.unreachable]: (a[r.unreachable] ?? 0) + 1 } : a), {}),
-      affordable_walkaways: walkaways.filter(affordable).length, affordable_recovered: recovered.filter(affordable).length },
+      affordable_walkaways: walkaways.filter(affordable).length, affordable_recovered: recovered.filter(affordable).length,
+      locked_unconfirmed_profit_per_buyer: bootMean(rows.map((r) => r.locked_deal?.profit_cents ?? 0), seed) },
     safety,
     tokens: { first_pass: summary.tokens, replies: tok },
     rows,

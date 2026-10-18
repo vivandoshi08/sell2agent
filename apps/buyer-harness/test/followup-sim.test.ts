@@ -84,6 +84,14 @@ test("scripted population: one follow-up per buyer per week, same-day repeat wal
   assert.equal(r.off.profit_cents + r.rows.reduce((a, x) => a + (x.recovered?.profit_cents ?? 0), 0), r.on.profit_cents);
 });
 
+test("decline detector flags declines the parser read as moves, not plain counters", async () => {
+  const { declinesReadAsMoves } = await import("../src/followup-sim");
+  const row = (buyer: string, intent: string) => ({ buyer_id: "x", thread: [{ buyer, intent, seller: "" }] }) as any;
+  assert.equal(declinesReadAsMoves([row("I'm passing on the TypeWell at $134.", "counter")]).length, 1);
+  assert.equal(declinesReadAsMoves([row("I can't accept this one. My counter remains $106.", "counter")]).length, 1);
+  assert.equal(declinesReadAsMoves([row("COUNTER $106", "counter"), row("No thanks.", "walk")]).length, 0);
+});
+
 test("probing: with hold-at-cap, walking away and countering never beats the same bid made before walking", async () => {
   const p = await runProbers({ run_id: "test_probe", per_product: 4, hold_at_cap: true });
   assert.equal(p.probers, 16);
