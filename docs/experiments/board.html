@@ -197,7 +197,7 @@ footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 4px; }
 <script>
 const DATA = {
   updated: "2026-10-17",
-  commit: "68b9e6d",
+  commit: "ea63c3d",
   stages: [
     { name: "Buyer agent", desc: "Claude, acting for a person with a need and a budget.", exps: ["E1", "E3"], qs: "B1–B10" },
     { name: "Discovery", desc: "Agent cards, feeds, registries.", exps: ["E1", "E7", "E8"], qs: "D1–D4" },
@@ -222,7 +222,7 @@ const DATA = {
     { id: "A9", text: "Results from simulated buyers hold across buyer models, so the harness is worth trusting.", by: "E3, E6", status: "untested" },
     { id: "A10", text: "Negotiating pays for itself: the model cost per deal is small next to the margin it wins.", by: "E5", status: "untested" },
     { id: "A11", text: "Buying agents can use the front door's tools correctly, and the tool design changes outcomes.", by: "E1", status: "untested" },
-    { id: "A12", text: "Our setup fits the existing protocol landscape instead of fighting it.", by: "E8", status: "untested" }
+    { id: "A12", text: "Our setup fits the existing protocol landscape instead of fighting it.", by: "E8", status: "validated", result: "No major protocol (MCP, A2A, ACP, AP2, UCP, x402) covers price negotiation; we sit on top. Caveats: Pier39's Nash (May 2026) is a small direct competitor, and an ACP proposal names future bidding." }
   ],
   experiments: [
     { id: "E0", name: "Shared harness", track: "All", status: "done", tests: [], resultTone: "ok",
@@ -258,7 +258,8 @@ const DATA = {
       q: "With several sellers competing, does a negotiating or dynamic seller still win deals and keep margin?",
       setup: "Four sellers (fixed, fixed-low, negotiating, dynamic). Buyer talks to any of them, directly or through a broker like Inkbox.",
       bar: "<strong>Validates A8</strong> if the negotiating or dynamic seller wins >25% of deals with margin ≥ the fixed-price seller." },
-    { id: "E8", name: "Protocol and discovery landscape", track: "General", status: "running", tests: ["A12"],
+    { id: "E8", name: "Protocol and discovery landscape", track: "General", status: "validated", tests: ["A12"], resultTone: "ok",
+      result: "Validated with caveats. Every component maps to a standard except the selling agent and policy engine. Hand-off to checkout: Stripe Shared Payment Token, so the price must be final before checkout. Write-ups in docs/research/.",
       q: "What already exists (MCP, A2A, ACP, AP2, agent cards, Stripe agent payments), and does our setup fit?",
       setup: "Online research only. Write-ups in docs/research/, each ending with which assumptions it supports or contradicts.",
       bar: "<strong>Validates A12</strong> if our components map onto existing standards with a clear gap for the selling agent." }
@@ -266,6 +267,9 @@ const DATA = {
   signals: [
     "Prompt-only price floors leak on smaller models. Told its floor was $44,000, a Haiku seller countered a $40,000 offer at $43,000. Opus held at $49,500. One probe, not a result: E4 tests it properly.",
     "Headless claude -p works as the model backend at about 700 tokens of overhead per call, so we can run experiments on our existing login with no API key.",
+    "E8: no live consumer buying agent haggles today (ChatGPT, Perplexity, Google, Amazon, Copilot). Lowers the prior for A4: expect few counteroffers unless negotiation is advertised.",
+    "E8: buyers find sellers through platform catalogs and feeds, not seller endpoints; no evidence agents read A2A cards or llms.txt. A2 is also a distribution problem the harness can't test. The standard pointer to a seller's MCP server is /.well-known/ucp.",
+    "E8: prior RL work says score bad deals below walking away, and make simulated buyers walk from stubborn sellers, or the learned seller turns stubborn. Passed to E6's design review.",
     "First end-to-end negotiation closed inside the haggle zone with zero policy rejections. Model cost was about 1% of the deal's profit, an early hint for A10."
   ]
 };
