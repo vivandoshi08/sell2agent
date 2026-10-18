@@ -408,7 +408,7 @@ test("a paid deal clears that buyer's memory for that product: the next chat sta
   await ex.handle({ kind: "walk", ctx: ctx("anon_walk1"), negotiation_id: w.negotiation_id! });
   const back = await ex.handle({ kind: "offer", ctx: ctx("anon_walk1"), product_id: P, offer_price_cents: 9000 });
   assert.ok(back.standing_offer!.price_cents <= w.standing_offer!.price_cents && back.standing_offer!.price_cents >= w.standing_offer!.price_cents - 100);
-  assert.ok(back.round > 1, "walk-away resumes, not a fresh start");
+  assert.ok((back.round ?? 0) > 1, "walk-away resumes, not a fresh start");
 });
 
 test("clearBuyerMemory (anon:reset): the next anon chat starts from list", async () => {
