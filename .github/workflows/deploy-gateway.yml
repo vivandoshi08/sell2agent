@@ -1,0 +1,100 @@
+# Redeploys the marketplace MCP gateway to Manufact Cloud on every merge to main that can change it.
+# Same server and URL as the manual deploys (https://dark-zero-mesv5.run.mcp-use.com/mcp): managed upload,
+# repo-root build context, apps/marketplace/Dockerfile. Tests and typecheck must pass first.
+# Runtime env (Supabase, Stripe, HMAC) already lives on the Manufact server, so CI needs only MANUFACT_API_KEY.
+name: Deploy gateway
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/marketplace/**"
+      - "apps/seller-mcp/**"
+      - "packages/shared/**"
+      - "packages/payments/**"
+      - "pnpm-lock.yaml"
+      - "package.json"
+      - ".dockerignore"
+      - ".github/workflows/deploy-gateway.yml"
+  workflow_dispatch:
+
+# One deploy at a time; a newer merge waits for the running one instead of cancelling it mid-switch.
+concurrency:
+  group: deploy-gateway
+  cancel-in-progress: false
+
+env:
+  MANUFACT_ORG: org-d75cfa99-2fsyc # Esha's Personal org
+  MANUFACT_ORG_ID: 945e4b3e-1041-4c6d-b643-8aedcdfc4c90
+  MANUFACT_SERVER_ID: 4a6641ec-37c3-4372-83ca-379728c20ae7
+  MANUFACT_SERVER_SLUG: dark-zero-mesv5
+  GATEWAY_URL: https://dark-zero-mesv5.run.mcp-use.com/mcp
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Typecheck and test the gateway
+        run: |
+          pnpm --filter @sa/marketplace typecheck
+          pnpm --filter @sa/marketplace test
+
+      - name: Link the existing Manufact server (keeps the same URL)
+        run: |
+          mkdir -p .mcp-use/cloud
+          printf '{"organizationId":"%s","serverId":"%s","serverSlug":"%s","sourceType":"managed"}\n' \
+            "$MANUFACT_ORG_ID" "$MANUFACT_SERVER_ID" "$MANUFACT_SERVER_SLUG" > .mcp-use/cloud/link.json
+
+      - name: Log in to Manufact
+        env:
+          MANUFACT_API_KEY: ${{ secrets.MANUFACT_API_KEY }}
+        run: |
+          test -n "$MANUFACT_API_KEY" || { echo "::error::Add the MANUFACT_API_KEY repo secret"; exit 1; }
+          pnpm --filter @sa/marketplace exec mcp-use login --api-key "$MANUFACT_API_KEY" --org "$MANUFACT_ORG" --json > /dev/null
+
+      - name: Deploy
+        id: deploy
+        run: |
+          out=$(pnpm --filter @sa/marketplace exec mcp-use deploy "$GITHUB_WORKSPACE" --no-github \
+            --dockerfile apps/marketplace/Dockerfile --json --yes)
+          echo "$out"
+          id=$(node -e 'const r=JSON.parse(process.argv[1]); if(!r.deploymentId){console.error(r.error?.message??"no deploymentId");process.exit(1)} console.log(r.deploymentId)' "$out")
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for the newest deployment to run
+        run: |
+          # An upload also triggers a webhook build that supersedes the one we started, so follow the newest.
+          for i in $(seq 1 60); do
+            row=$(pnpm --filter @sa/marketplace exec mcp-use deployments list 2>/dev/null | sed -n 2p)
+            status=$(echo "$row" | awk '{print $3}')
+            echo "$row"
+            case "$status" in
+              running) exit 0 ;;
+              failed|error|cancelled) echo "::error::Deployment $status"; exit 1 ;;
+            esac
+            sleep 10
+          done
+          echo "::error::Deployment did not reach running in 10 minutes"; exit 1
+
+      - name: Smoke test the live gateway
+        run: |
+          sleep 20
+          tools=$(curl -sf -m 30 "$GATEWAY_URL" -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" \
+            -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | sed -n 's/^data: //p' \
+            | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).result.tools.map(t=>t.name).join(" ")))')
+          echo "Live tools: $tools"
+          for t in search_products make_offer accept_deal review_deal pay_deal; do
+            echo " $tools " | grep -q " $t " || { echo "::error::$t missing after deploy"; exit 1; }
+          done
