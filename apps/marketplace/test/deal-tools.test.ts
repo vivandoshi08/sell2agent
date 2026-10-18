@@ -48,3 +48,12 @@ test("pay_deal without any buyer_id (no subject) is a clear error, not a charge"
   assert.equal(r.structuredContent.error.code, "missing_buyer_id");
   assert.equal(r.isError, true);
 });
+
+test("review_deal: only the buyer who accepted sees the card; no buyer_id → missing_buyer_id", async () => {
+  const deal = await lockDeal("s1-test-buyer-owner");
+  const other = await call("review_deal", { deal_id: deal.deal_id, buyer_id: "s1-test-buyer-intruder" });
+  assert.equal(other.isError, true);
+  assert.ok(!JSON.stringify(other).includes(String(deal.total_cents / 100)), "no deal details to another buyer");
+  const none = await call("review_deal", { deal_id: deal.deal_id });
+  assert.equal(none.structuredContent.error.code, "missing_buyer_id");
+});

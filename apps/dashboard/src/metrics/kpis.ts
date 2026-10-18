@@ -123,9 +123,21 @@ export function buyerOutcomes(events: Ev[]): BuyerOutcome[] {
 const rate = (xs: boolean[]) => (xs.length ? xs.filter(Boolean).length / xs.length : 0);
 const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0);
 
+/** Teammates' test traffic (S1's gateway tests, S2's console check, …): never counted anywhere. */
+export const isTestRun = (run_id: string) => /^(s1|s2|e1|e2)-test/.test(run_id) || run_id.startsWith("s2-console");
+const isState = (e: Ev) => e.run_id === "exchange_state" || (e.type as string) === "exchange_snapshot";
+
+/** Runs started by the eval harness (they log run_started with a policy). Everything else is real traffic. */
+export function evalRunIds(events: Ev[]): Set<string> {
+  return new Set(events.filter((e) => e.type === "run_started" && typeof p(e).policy === "string").map((e) => e.run_id));
+}
+
 export function policyKpis(all: Ev[], opts: { resamples?: number; seed?: number } = {}): PolicyKpis[] {
-  // E1's exchange snapshots live in `events` too; they are state, not buyer activity.
-  const events = all.filter((e) => e.run_id !== "exchange_state" && (e.type as string) !== "exchange_snapshot");
+  // E1's exchange snapshots live in `events` too; they are state, not buyer activity. Test runs aren't buyers.
+  // When eval runs are present, only they are compared: live traffic (e.g. ChatGPT users) has no policy arm.
+  const activity = all.filter((e) => !isState(e) && !isTestRun(e.run_id));
+  const evals = evalRunIds(activity);
+  const events = evals.size ? activity.filter((e) => evals.has(e.run_id)) : activity;
   const policies = runPolicies(events);
   const groups = new Map<string, Ev[]>();
   for (const e of events) {
@@ -184,4 +196,48 @@ export function personaGrid(kpis: PolicyKpis[]) {
 /** "Which levers win, by buyer type": closed deals' lever packages per persona and policy. */
 export function leverWinsByPersona(kpis: PolicyKpis[]): LeverWin[] {
   return leverWins(kpis.flatMap((k) => k.outcomes.map((o) => ({ persona: o.persona, policy: k.policy, converted: o.converted, levers: o.levers }))));
+}
+
+/** Real buyers on the deployed gateway (runs with no eval run_started, minus tests): what actually happened. */
+export interface LiveTraffic {
+  run_ids: string[];
+  negotiations: number;
+  deals: number;
+  paid: number;
+  payment_failures: number;
+  revenue_cents: number;
+  /** Mean discount off list over deals, 0..1. */
+  avg_discount: number | null;
+  below_floor: number;
+  blocks: { rule: string; n: number }[];
+  models: string[];
+  last_ts: string | null;
+  recent_deals: { ts: string; product_id: string | null; price_cents: number; list_price_cents: number | null; paid: boolean }[];
+}
+
+export function liveTraffic(all: Ev[]): LiveTraffic {
+  const evals = evalRunIds(all);
+  const evs = all.filter((e) => !isState(e) && !isTestRun(e.run_id) && !evals.has(e.run_id) && !e.run_id.startsWith("s2-fake-"));
+  const deals = evs.filter((e) => e.type === "deal_accepted");
+  const paidIds = new Set(evs.filter((e) => e.type === "payment_succeeded").map((e) => p(e).deal_id as string));
+  const discounts = deals.map((e) => { const list = p(e).list_price_cents; return typeof list === "number" && e.price_cents != null && list > 0 ? 1 - e.price_cents / list : null; })
+    .filter((x): x is number => x != null);
+  const blocks = new Map<string, number>();
+  for (const e of evs) if (e.type === "guardrail_blocked") { const r = String(p(e).rule ?? "other"); blocks.set(r, (blocks.get(r) ?? 0) + 1); }
+  const paidDeals = deals.filter((d) => paidIds.has(p(d).deal_id as string));
+  return {
+    run_ids: [...new Set(evs.map((e) => e.run_id))],
+    negotiations: new Set(evs.map((e) => e.negotiation_id).filter(Boolean)).size,
+    deals: deals.length,
+    paid: paidDeals.length,
+    payment_failures: evs.filter((e) => e.type === "payment_failed").length,
+    revenue_cents: paidDeals.reduce((s, d) => s + Number(p(d).total_cents ?? d.price_cents ?? 0), 0),
+    avg_discount: discounts.length ? mean(discounts) : null,
+    below_floor: deals.filter((d) => p(d).below_floor === true).length,
+    blocks: [...blocks].map(([rule, n]) => ({ rule, n })).sort((a, b) => b.n - a.n),
+    models: [...new Set(evs.map((e) => e.buyer_model).filter((m): m is string => !!m))],
+    last_ts: evs.length ? evs.map((e) => e.ts ?? "").sort().at(-1) || null : null,
+    recent_deals: deals.slice(-8).reverse().map((d) => ({ ts: d.ts ?? "", product_id: d.product_id, price_cents: d.price_cents ?? 0,
+      list_price_cents: typeof p(d).list_price_cents === "number" ? (p(d).list_price_cents as number) : null, paid: paidIds.has(p(d).deal_id as string) })),
+  };
 }

@@ -83,8 +83,10 @@ test("accept goes by the exchange's live offer_id", async () => {
   assert.ok(d.ok && d.final_price_cents === 11500);
 });
 
-test("buyers can ask for extras; the exchange includes and prices them, rejects ones not offered", async () => {
+test("buyers can ask for extras (opt-in); the exchange includes and prices them, rejects ones not offered", async () => {
+  process.env.E2_BUYER_EXTRAS = "on";
   const gw = new ExchangeGateway("negotiating");
+  delete process.env.E2_BUYER_EXTRAS;
   const ctx = { run_id: "t", buyer_id: "b_ex", buyer_model: "scripted" };
   const [l] = (await gw.search(ctx, "TypeWell")).filter((x) => x.product_id === "kb_typewell_65");
   assert.ok(l.extras?.includes("free_shipping"));
@@ -93,4 +95,13 @@ test("buyers can ask for extras; the exchange includes and prices them, rejects 
   const bad = await gw.offer({ ...ctx, buyer_id: "b_ex2" }, { product_id: "kb_clackco_tkl", offer_price_cents: 10000, levers: ["extended_warranty"] });
   assert.equal(bad.status, "reject");
   assert.match(bad.message, /bad_lever/);
+});
+
+test("extras are off by default: listings show none and requested levers are dropped", async () => {
+  const gw = new ExchangeGateway("negotiating");
+  const ctx = { run_id: "t", buyer_id: "b_off", buyer_model: "scripted" };
+  const ls = await gw.search(ctx, "keyboard");
+  assert.ok(ls.every((l) => (l.extras ?? []).length === 0));
+  const r = await gw.offer(ctx, { product_id: "kb_typewell_65", offer_price_cents: 12000, levers: ["free_shipping"] });
+  assert.deepEqual(r.extras, []);
 });
