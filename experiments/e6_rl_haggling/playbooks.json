@@ -1,0 +1,55 @@
+{
+ "v0": {
+  "playbook": "Negotiation playbook:\n- Open at or near list price and explain the value of the machine for the buyer's need.\n- Concede in small, shrinking steps, and make the buyer move before you move again.\n- Prefer adding value (delivery, the extended warranty) over cutting price when the buyer stalls.\n- Don't split the difference early; it signals there is more room.\n- If the buyer's offer clears your floor and the conversation is near its end, close rather than lose the sale.",
+  "rationale": "starting playbook"
+ },
+ "v1": {
+  "playbook": "Negotiation playbook:\n- Open about 2-4% under list and tie the machine's specs to the buyer's stated use.\n- Rounds are capped at 8. Plan to reach your target zone by round 5. Concede in clear steps (about $1,000-$2,000 on large gaps, then shrinking), and only after the buyer moves.\n- Don't push add-ons the buyer has declined. Offer delivery or the warranty only when the buyer asks for extras or stalls. Price add-ons as a trade, not a gift.\n- Reframe a stalled deal. If the buyer's number is below your floor for the package, offer a smaller package (drop an add-on) at or near their number, as long as it clears that package's floor. Ask which add-on matters least.\n- From round 6 on, accept any buyer offer that clears your floor. Don't hold out for the last few hundred dollars when the round cap is close.\n- Say \"final\" only when it is final. Moving after a \"final\" offer teaches the buyer to keep waiting.\n- If the buyer says they are not in a rush, concede more slowly but still close by round 7.",
+  "rationale": "Both lost deals (5 and 7) ran out of rounds: the agent made small early concessions and ended a few hundred dollars apart. Deal 7 also lost credibility by moving after a 'final' offer. The playbook now has round-based pacing, a rule to accept any floor-clearing offer late in the conversation, and the repackaging move that saved Deal 6, used when the buyer's ceiling sits below the full package's floor. It also stops the agent from pushing add-ons buyers have declined, which wasted rounds in Deals 3 and 8.",
+  "trained_on": [
+   "d48aa19f1cbc",
+   "51fa7cb27608",
+   "83a2a0dc91a0",
+   "c6ec44c7b404",
+   "251cc13fb583",
+   "d98a13e610ae",
+   "8fd372575a26",
+   "8d2cb45e7a59"
+  ]
+ },
+ "_rewrite_usage": {
+  "calls": 3,
+  "input_tokens": 46660,
+  "output_tokens": 4809,
+  "cost_usd": 0.28282,
+  "latency_s": 71.87
+ },
+ "v2": {
+  "playbook": "Negotiation playbook:\n- Open about 3% under list and tie the specs to the buyer's stated use.\n- Concede only after the buyer moves. Each step should be smaller than the buyer's last step: about 60-70% of it early and 40-50% later. Shrink the steps steadily so the buyer can see where your floor is.\n- When the buyer splits the difference and the number clears your floor, accept it. Don't counter a split.\n- If the buyer names a budget or ceiling, compare it with the floor of the package they asked for by round 3. If it is below that floor, restructure right away: ask which add-on matters least, then price the smaller package near their number, as long as it clears that package's floor. If the buyer says an item is essential, keep it and drop something else. If no package can clear its floor, say so plainly and make one clear best offer. Don't spend rounds trickling down.\n- Price add-ons as trades, never as gifts. Offer the warranty or delivery only when the buyer asks for extras or stalls.\n- Use \"final\" or \"best I can do\" only when it is true, and never move after saying it.\n- From round 6 on, accept any offer that clears your floor.\n- Low-urgency buyers: concede more slowly, but still close by round 7.",
+  "rationale": "Both losses came from buyers whose ceiling sat below the floor of the package they wanted. In each case the seller kept making small steps on that package and only tried restructuring in round 7-8, so the pivot is now required by round 3. The seller also called two different numbers 'best' or 'final' in Negotiation 5, which undermined its credibility. In the deals that closed, buyers always ended with a split-the-difference offer, so concessions now shrink relative to the buyer's moves and splits that clear the floor get accepted, keeping more margin without risking the close.",
+  "trained_on": [
+   "00bf9bcabbc4",
+   "315983493008",
+   "247f7efd86d2",
+   "128ff66a5b3b",
+   "4cfe70248b68",
+   "dd674118771e",
+   "bd78275ceb2d",
+   "b245e8ab4d7e"
+  ]
+ },
+ "v3": {
+  "playbook": "Negotiation playbook:\n- Open about 3% under list and tie the specs to the buyer's stated use.\n- Concede only after the buyer moves. Make each step 60-70% of the buyer's last step early and 40-50% later, shrinking steadily.\n- If the buyer splits the difference or calls a number final, and it clears your floor, accept it.\n- Stated budgets usually understate what a buyer will pay by 6-15%. If the floor is within about 12% of the stated budget, the deal is likely winnable. Move toward the floor in 2-3 firm steps.\n- Say \"final\" or \"best I can do\" only for a number within about 1-2% of the floor, and never move after saying it. A \"final\" set well above the floor loses sales to buyers who would have closed.\n- By round 3, compare any stated ceiling with the package floor. If the ceiling is below it, ask which add-on matters least, then price a smaller package that clears its floor. If no package can clear its floor, make one near-floor best offer and stop trading small steps.\n- Price add-ons as trades, never gifts. Offer them only when the buyer asks for extras or stalls.\n- From round 6 on, accept any offer that clears your floor.\n- Low-urgency buyers: concede more slowly, but close by round 7.",
+  "rationale": "Three walkaways came after the agent declared a \"final\" price early and then held while the buyer was still climbing. In each case the buyer ended 10-15% above their stated budget, so a final set well above the floor may have lost winnable deals. The new playbook ties \"final\" to a near-floor number and tells the agent to treat stated budgets as soft by about 6-15%. It also tells the agent to accept a split or final offer that clears the floor. Concession pacing, add-on trading, and restructuring are kept because they worked in the 5 deals.",
+  "trained_on": [
+   "59d550c2c1cb",
+   "b36be8c3fde8",
+   "083089089acb",
+   "aba39d9b2a20",
+   "87a8051c3f52",
+   "8449822b77e4",
+   "3771130ea365",
+   "e073b77c32a0"
+  ]
+ }
+}
