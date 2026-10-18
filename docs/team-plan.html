@@ -104,6 +104,46 @@ code { font-family: var(--font-data); font-size: .85em; background: var(--all-bg
     </div>
   </section>
 
+  <section class="panel">
+    <div style="display:grid;gap:4px"><span class="eyebrow">How it merges</span><h2>What each person delivers at each bridge, and what it adds up to</h2></div>
+    <div class="table-wrap"><table style="min-width:900px">
+      <thead><tr><th>Bridge</th><th>S1 · Gateway &amp; deploy</th><th>S2 · UI &amp; proof</th><th>E1 · Exchange &amp; safety</th><th>E2 · Policy &amp; buyers</th></tr></thead>
+      <tbody>
+        <tr><td><b>1 · ChatGPT can buy</b><br><span class="eyebrow">H5</span></td>
+          <td>MCP gateway on Manufact (search ranked by lever profile, listing, ask, offer, accept); keyboard catalog with lever menus; connector in ChatGPT and Claude</td>
+          <td>Deal card: product, included levers, price vs. list, Approve &amp; Pay → <code>payDeal</code> (Stripe test)</td>
+          <td>Exchange: state machine, sessions, offers, deals, rules; E9 guardrails ported; every step to <code>events</code></td>
+          <td>Seller policy (static + negotiating), Claude voice with the true reason, grounded answers</td></tr>
+        <tr><td colspan="5" style="background:var(--bridge-bg);color:var(--bridge);font-weight:600">= A person in ChatGPT says "quiet keyboard under $150", sellers negotiate safely, they approve, it's paid.</td></tr>
+        <tr><td><b>2 · We can prove it</b><br><span class="eyebrow">H8</span></td>
+          <td>Discovery files (<code>/.well-known/ucp</code>, agent card, server card); publish checklist green</td>
+          <td>Dashboard on real events: conversion, safe conversion, profit per buyer, margin after levers, buyer fit, time to first offer, live feed, guardrail log</td>
+          <td>Buyer memory, soft floor, noisy concession steps; payment validator</td>
+          <td>Simulated buyers: 5 lever profiles, walk-aways, adversarial, Claude + GPT, <code>runAll()</code> through the gateway</td></tr>
+        <tr><td colspan="5" style="background:var(--bridge-bg);color:var(--bridge);font-weight:600">= The dashboard shows static vs. negotiating on hundreds of simulated buyers, with zero rule-breaking deals.</td></tr>
+        <tr><td><b>3 · It learns and follows up</b><br><span class="eyebrow">H12</span></td>
+          <td>Inkbox door: verified seller identity, follow-ups by email / text / A2A, inbound replies</td>
+          <td>Armature evals (Claude Code + Codex) on the deployed URL; merchant console</td>
+          <td>Outreach scheduler + inbound parser</td>
+          <td>Lever policy (gated) + bandit over lever packages; <code>learned_policy.json</code></td></tr>
+        <tr><td colspan="5" style="background:var(--bridge-bg);color:var(--bridge);font-weight:600">= Sellers learn which levers win which buyers, follow up after a walk-away, and the merchant can tune it all.</td></tr>
+      </tbody>
+    </table></div>
+    <h2 style="margin-top:6px">The five seams</h2>
+    <p class="lede" style="font-size:.88rem">The pairs only touch through these, defined in the first hour. Everyone builds against a mock of the other side until the matching bridge.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Seam</th><th>Provided by</th><th>Used by</th><th>Shape</th><th>Mock until the bridge</th></tr></thead>
+      <tbody>
+        <tr><td><b>Exchange interface</b></td><td>E1</td><td>S1</td><td><code>handle(move) → response</code></td><td>fake exchange</td></tr>
+        <tr><td><b>Seller decision</b></td><td>E2</td><td>E1</td><td><code>decide(state, policy, buyerProfile) → move</code>, <code>voice(move, reason, prefs)</code></td><td>stub seller (counters at 95%)</td></tr>
+        <tr><td><b>Payment</b></td><td><code>@sa/payments</code> (S2 wires)</td><td>S2, E1</td><td><code>payDeal(deal) → result</code></td><td>already built</td></tr>
+        <tr><td><b>Events</b></td><td>everyone</td><td>S2, E2</td><td><code>logEvent(NegotiationEvent)</code> → Supabase</td><td>fake <code>events</code> rows</td></tr>
+        <tr><td><b>Learned policy</b></td><td>E2</td><td>E2's seller module</td><td><code>learned_policy.json</code></td><td><code>negotiating</code> until it passes the gate</td></tr>
+      </tbody>
+    </table></div>
+    <p class="lede" style="font-size:.86rem">Who carries which part of the vision: ask ChatGPT (S1) · sellers tailored to buyer and seller (E2) · never unsafe (E1) · approve and pay (S2 + payments) · proven with numbers (S2 + E2) · learns (E2) · follows up (S1 + E1).</p>
+  </section>
+
   <div class="cols">
     <section class="panel" id="detail" aria-live="polite"></section>
     <section class="panel">
