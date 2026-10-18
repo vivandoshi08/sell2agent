@@ -62,6 +62,9 @@ LEVERS: dict[str, Lever] = {
         Lever("implement", "Extra implement: 5-ft box blade", 450, 1_100,
               "A 5-foot box blade for grading and driveway work, included.",
               pattern=r"\bbox[- ]blade\b|\bextra implement\b|\bimplement included\b"),
+        # Known false positive (E11 Part 2): bare "delivery" also matches the expedited lever's description
+        # ("ready for pickup or delivery within 5 business days"). Match only "free/included delivery" or
+        # "delivery and setup" before adopting. Kept as run for reproducibility.
         Lever("delivery_setup", "Free delivery and setup", 400, 900,
               "Delivered within 150 miles, set up, and walked through on site, at no charge.", excludes_addon="delivery",
               pattern=r"\b(free|complimentary|included|no[- ]charge)\s+(delivery|setup|set[- ]up)|\bdelivery and set[- ]?up\b|\bdeliver(y|ed)\b"),

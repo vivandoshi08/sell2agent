@@ -2131,106 +2131,457 @@
  },
  "part2": {
   "conditions": {
-   "levers_first": {
-    "sessions": 2,
+   "price_only": {
+    "sessions": 10,
     "errors": 0,
-    "deals": 2,
-    "conversion": 1.0,
+    "deals": 9,
+    "conversion": 0.9,
     "conversion_ci95": [
-     1.0,
+     0.7,
      1.0
     ],
-    "profit_per_session": 9875.0,
+    "profit_per_session": 8435.0,
     "profit_per_session_ci95": [
-     7000.0,
-     12750.0
+     6140.0,
+     10405.0
     ],
-    "margin": 0.2558,
-    "avg_price": 38600.0,
-    "avg_rounds": 6,
-    "model_cost_per_session": 0.2074,
-    "lever_cost_per_deal": 925,
-    "levers_per_deal": 3,
-    "lever_value_per_deal": 2900,
-    "levers_in_deals": {
-     "warranty_3yr": 1,
-     "expedited": 2,
-     "training": 2,
-     "implement": 1
-    },
-    "levers_offered_sessions": {
-     "expedited": 2,
-     "training": 2,
-     "warranty_3yr": 1,
-     "implement": 1
-    },
-    "buyer_price_surplus_per_deal": 1750,
-    "buyer_surplus_with_levers_per_deal": 4650,
+    "margin": 0.2581,
+    "avg_price": 36305.56,
+    "avg_rounds": 6.6,
+    "model_cost_per_session": 0.1967,
+    "lever_cost_per_deal": 0,
+    "levers_per_deal": 0,
+    "lever_value_per_deal": 0,
+    "levers_in_deals": {},
+    "levers_offered_sessions": {},
+    "buyer_price_surplus_per_deal": 1016.7,
+    "buyer_surplus_with_levers_per_deal": 1016.7,
     "policy_blocks": 0,
     "text_blocks": 0,
     "fallbacks": 0,
     "by_type": {
      "price_first": {
-      "sessions": 1,
+      "sessions": 5,
+      "conversion": 0.8,
+      "profit_per_session": 7340.0,
+      "levers_per_deal": 0
+     },
+     "quality_first": {
+      "sessions": 5,
       "conversion": 1.0,
-      "profit_per_session": 7000.0,
+      "profit_per_session": 9530.0,
+      "levers_per_deal": 0
+     }
+    }
+   },
+   "levers_first": {
+    "sessions": 10,
+    "errors": 0,
+    "deals": 9,
+    "conversion": 0.9,
+    "conversion_ci95": [
+     0.7,
+     1.0
+    ],
+    "profit_per_session": 7705.0,
+    "profit_per_session_ci95": [
+     5615.0,
+     9590.0
+    ],
+    "margin": 0.2347,
+    "avg_price": 36477.78,
+    "avg_rounds": 6.7,
+    "model_cost_per_session": 0.2485,
+    "lever_cost_per_deal": 916.7,
+    "levers_per_deal": 3,
+    "lever_value_per_deal": 2827.8,
+    "levers_in_deals": {
+     "warranty_3yr": 4,
+     "expedited": 9,
+     "training": 9,
+     "implement": 5
+    },
+    "levers_offered_sessions": {
+     "expedited": 10,
+     "training": 10,
+     "warranty_3yr": 5,
+     "implement": 5
+    },
+    "buyer_price_surplus_per_deal": 844.4,
+    "buyer_surplus_with_levers_per_deal": 3672.2,
+    "policy_blocks": 0,
+    "text_blocks": 2,
+    "fallbacks": 0,
+    "by_type": {
+     "price_first": {
+      "sessions": 5,
+      "conversion": 0.8,
+      "profit_per_session": 6780.0,
       "levers_per_deal": 3
      },
      "quality_first": {
-      "sessions": 1,
+      "sessions": 5,
       "conversion": 1.0,
-      "profit_per_session": 12750.0,
+      "profit_per_session": 8630.0,
       "levers_per_deal": 3
      }
     }
    },
    "llm_levers": {
-    "sessions": 1,
+    "sessions": 10,
     "errors": 0,
-    "deals": 1,
-    "conversion": 1.0,
-    "conversion_ci95": null,
-    "profit_per_session": 12950.0,
-    "profit_per_session_ci95": null,
-    "margin": 0.2659,
-    "avg_price": 48700.0,
-    "avg_rounds": 6,
-    "model_cost_per_session": 0.2136,
-    "lever_cost_per_deal": 550,
-    "levers_per_deal": 2,
-    "lever_value_per_deal": 1300,
+    "deals": 9,
+    "conversion": 0.9,
+    "conversion_ci95": [
+     0.7,
+     1.0
+    ],
+    "profit_per_session": 8210.0,
+    "profit_per_session_ci95": [
+     6015.0,
+     10105.0
+    ],
+    "margin": 0.2497,
+    "avg_price": 36533.33,
+    "avg_rounds": 6.3,
+    "model_cost_per_session": 0.2386,
+    "lever_cost_per_deal": 455.6,
+    "levers_per_deal": 1.56,
+    "lever_value_per_deal": 1372.2,
     "levers_in_deals": {
-     "training": 1,
-     "delivery_setup": 1
+     "training": 6,
+     "delivery_setup": 2,
+     "implement": 1,
+     "expedited": 3,
+     "warranty_3yr": 2
     },
     "levers_offered_sessions": {
-     "delivery_setup": 1,
-     "training": 1
+     "delivery_setup": 2,
+     "training": 8,
+     "expedited": 6,
+     "implement": 1,
+     "warranty_3yr": 2
     },
-    "buyer_price_surplus_per_deal": 700,
-    "buyer_surplus_with_levers_per_deal": 2000,
+    "buyer_price_surplus_per_deal": 788.9,
+    "buyer_surplus_with_levers_per_deal": 2161.1,
     "policy_blocks": 0,
     "text_blocks": 0,
     "fallbacks": 0,
     "by_type": {
+     "price_first": {
+      "sessions": 5,
+      "conversion": 0.8,
+      "profit_per_session": 7380.0,
+      "levers_per_deal": 1.5
+     },
      "quality_first": {
-      "sessions": 1,
+      "sessions": 5,
       "conversion": 1.0,
-      "profit_per_session": 12950.0,
-      "levers_per_deal": 2
+      "profit_per_session": 9040.0,
+      "levers_per_deal": 1.6
      }
     }
    }
   },
-  "paired": {},
-  "cost_usd": 0.6284
+  "paired": {
+   "levers_first_vs_price_only": {
+    "profit_per_session": {
+     "n": 10,
+     "mean_diff": -730,
+     "ci95": [
+      -1010,
+      -440
+     ]
+    },
+    "conversion": {
+     "n": 10,
+     "mean_diff": 0,
+     "ci95": [
+      0,
+      0
+     ]
+    }
+   },
+   "llm_levers_vs_price_only": {
+    "profit_per_session": {
+     "n": 10,
+     "mean_diff": -225,
+     "ci95": [
+      -515,
+      235
+     ]
+    },
+    "conversion": {
+     "n": 10,
+     "mean_diff": 0,
+     "ci95": [
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "cost_usd": 6.838
  },
- "part4": {},
+ "part4": {
+  "conditions": {
+   "free_noguard": {
+    "sessions": 10,
+    "errors": 0,
+    "deals": 10,
+    "conversion": 1.0,
+    "conversion_ci95": [
+     1.0,
+     1.0
+    ],
+    "profit_per_session": 9315.0,
+    "profit_per_session_ci95": [
+     8005.0,
+     10600.0
+    ],
+    "margin": 0.2117,
+    "avg_price": 43995.0,
+    "avg_rounds": 7,
+    "safe_conversion": 1.0,
+    "model_cost_per_session": 0.2281,
+    "false_claim_rate": 0.0,
+    "false_claims_per_session": 0.0,
+    "false_claim_types": {},
+    "guard_blocks_by_rule": {},
+    "shadow_output_findings": {
+     "addon_not_in_offer": 30
+    },
+    "regenerations": 0,
+    "fallbacks": 0,
+    "by_buyer": {
+     "normal": {
+      "sessions": 5,
+      "false_claim_rate": 0.0,
+      "conversion": 1.0
+     },
+     "probing": {
+      "sessions": 5,
+      "false_claim_rate": 0.0,
+      "conversion": 1.0
+     }
+    },
+    "judge_cost_usd": 0.2349
+   },
+   "free_guard": {
+    "sessions": 10,
+    "errors": 0,
+    "deals": 9,
+    "conversion": 0.9,
+    "conversion_ci95": [
+     0.7,
+     1.0
+    ],
+    "profit_per_session": 8750.0,
+    "profit_per_session_ci95": [
+     6450.0,
+     10615.0
+    ],
+    "margin": 0.2167,
+    "avg_price": 44866.67,
+    "avg_rounds": 6.8,
+    "safe_conversion": 0.9,
+    "model_cost_per_session": 0.2547,
+    "false_claim_rate": 0.0,
+    "false_claims_per_session": 0.0,
+    "false_claim_types": {},
+    "guard_blocks_by_rule": {
+     "addon_not_in_offer": 17,
+     "final_not_final": 4,
+     "floor_disclosure": 1
+    },
+    "shadow_output_findings": {},
+    "regenerations": 22,
+    "fallbacks": 0,
+    "by_buyer": {
+     "normal": {
+      "sessions": 5,
+      "false_claim_rate": 0.0,
+      "conversion": 1.0
+     },
+     "probing": {
+      "sessions": 5,
+      "false_claim_rate": 0.0,
+      "conversion": 0.8
+     }
+    },
+    "judge_cost_usd": 0.2267
+   },
+   "claims": {
+    "sessions": 10,
+    "errors": 0,
+    "deals": 8,
+    "conversion": 0.8,
+    "conversion_ci95": [
+     0.5,
+     1.0
+    ],
+    "profit_per_session": 7560.0,
+    "profit_per_session_ci95": [
+     5060.0,
+     9910.0
+    ],
+    "margin": 0.2092,
+    "avg_price": 45175.0,
+    "avg_rounds": 7.1,
+    "safe_conversion": 0.8,
+    "model_cost_per_session": 0.2518,
+    "false_claim_rate": 0.0,
+    "false_claims_per_session": 0.0,
+    "false_claim_types": {},
+    "guard_blocks_by_rule": {
+     "fact_in_say": 9
+    },
+    "shadow_output_findings": {},
+    "regenerations": 9,
+    "fallbacks": 0,
+    "by_buyer": {
+     "normal": {
+      "sessions": 5,
+      "false_claim_rate": 0.0,
+      "conversion": 0.6
+     },
+     "probing": {
+      "sessions": 5,
+      "false_claim_rate": 0.0,
+      "conversion": 1.0
+     }
+    },
+    "judge_cost_usd": 0.1827
+   },
+   "templated": {
+    "sessions": 10,
+    "errors": 0,
+    "deals": 8,
+    "conversion": 0.8,
+    "conversion_ci95": [
+     0.5,
+     1.0
+    ],
+    "profit_per_session": 7870.0,
+    "profit_per_session_ci95": [
+     4940.0,
+     10400.0
+    ],
+    "margin": 0.2159,
+    "avg_price": 45562.5,
+    "avg_rounds": 7,
+    "safe_conversion": 0.8,
+    "model_cost_per_session": 0.0936,
+    "false_claim_rate": 0.0,
+    "false_claims_per_session": 0.0,
+    "false_claim_types": {},
+    "guard_blocks_by_rule": {},
+    "shadow_output_findings": {},
+    "regenerations": 0,
+    "fallbacks": 0,
+    "by_buyer": {
+     "normal": {
+      "sessions": 5,
+      "false_claim_rate": 0.0,
+      "conversion": 0.8
+     },
+     "probing": {
+      "sessions": 5,
+      "false_claim_rate": 0.0,
+      "conversion": 0.8
+     }
+    },
+    "judge_cost_usd": 0.1856
+   }
+  },
+  "paired": {
+   "claims_vs_free_guard": {
+    "false_claim_session": {
+     "n": 10,
+     "mean_diff": 0,
+     "ci95": [
+      0,
+      0
+     ]
+    },
+    "conversion": {
+     "n": 10,
+     "mean_diff": -0.1,
+     "ci95": [
+      -0.4,
+      0.2
+     ]
+    },
+    "profit_per_session": {
+     "n": 10,
+     "mean_diff": -1190,
+     "ci95": [
+      -3480,
+      940
+     ]
+    }
+   },
+   "templated_vs_free_guard": {
+    "false_claim_session": {
+     "n": 10,
+     "mean_diff": 0,
+     "ci95": [
+      0,
+      0
+     ]
+    },
+    "conversion": {
+     "n": 10,
+     "mean_diff": -0.1,
+     "ci95": [
+      -0.3,
+      0
+     ]
+    },
+    "profit_per_session": {
+     "n": 10,
+     "mean_diff": -880,
+     "ci95": [
+      -2660,
+      120
+     ]
+    }
+   },
+   "free_noguard_vs_free_guard": {
+    "false_claim_session": {
+     "n": 10,
+     "mean_diff": 0,
+     "ci95": [
+      0,
+      0
+     ]
+    },
+    "conversion": {
+     "n": 10,
+     "mean_diff": 0.1,
+     "ci95": [
+      0,
+      0.3
+     ]
+    },
+    "profit_per_session": {
+     "n": 10,
+     "mean_diff": 565,
+     "ci95": [
+      -95,
+      1800
+     ]
+    }
+   }
+  },
+  "cost_usd": 9.1121
+ },
  "cost_usd": {
   "part1_llm": 6.0889,
-  "part2": 0.6284,
-  "part4": 0,
-  "pilots": 0.8211,
-  "total": 7.54
+  "part2": 6.838,
+  "part4": 9.1121,
+  "pilots_outside_main_logs": 1.3793,
+  "unlogged_estimate": 0.35,
+  "total": 23.77
  }
 }

@@ -212,15 +212,16 @@ def main() -> None:
     ap.add_argument("--budget", type=float, default=8.5)
     ap.add_argument("--concurrency", type=int, default=3)
     ap.add_argument("--conditions", default=",".join(CONDITIONS))
+    ap.add_argument("--log-suffix", default="", help="write to runs/part4<suffix>.jsonl (for a second process running other conditions)")
     args = ap.parse_args()
-    name = "part4"  # the pilot's sessions count toward the main run unless the code changes after it
+    name = "part4" + args.log_suffix  # the pilot's sessions count toward the main run unless the code changes after it
     spend = Spend(args.budget, RUNS / f"{name}.log")
     log = RunLog(RUNS / f"{name}.jsonl")
     bs = buyers()
     if args.pilot:
         bs = [bs[1], bs[2]]  # one probing, one normal
     conds = args.conditions.split(",")
-    done = {r["session_id"] for r in load(RUNS / f"{name}.jsonl") if r.get("ended_by") != "error"}
+    done = {r["session_id"] for f in RUNS.glob("part4*.jsonl") for r in load(f) if r.get("ended_by") != "error"}
     jobs = [(c, p, k) for (p, k) in bs for c in conds if f"{c}-{p.id}-{k}" not in done]
     spend.log(f"{name}: {len(jobs)} sessions, budget ${args.budget}")
 

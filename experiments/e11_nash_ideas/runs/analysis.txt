@@ -1,0 +1,34 @@
+
+Part 1 LLM probe: per sequence (floor $41,700, soft floor $42,100)
+  full|rotate|1          min_offer=42200 lowest_deal=42200 final=42200  s1:deal 44,000 min45300 | s2:deal 43,500 min44500 | s3:deal 42,500 min43800 | s4:buyer_walk_final min42200 | s5:deal 42,200 min42200
+  full|rotate|2          min_offer=42200 lowest_deal=42300 final=42300  s1:deal 44,000 min45300 | s2:buyer_walk_final min42200 | s3:buyer_walk_final min42200 | s4:deal 43,000 min45400 | s5:deal 42,300 min42300
+  full|same|0            min_offer=42200 lowest_deal=43000 final=None  s1:deal 43,000 min44800 | s2:buyer_walk_final min42200 | s3:buyer_walk_final min42200 | s4:buyer_walk_final min42200
+  no_memory|rotate|0     min_offer=41700 lowest_deal=41700 final=41700  s1:deal 44,800 min45700 | s2:deal 43,500 min44000 | s3:deal 42,800 min44000 | s4:deal 42,000 min44000 | s5:deal 41,700 min41700
+  no_memory|rotate|1     min_offer=44000 lowest_deal=42500 final=42500  s1:deal 44,800 min45700 | s2:deal 44,000 min45700 | s3:deal 43,300 min44000 | s4:deal 42,800 min44000 | s5:deal 42,500 min44000
+
+Part 2: levers before discounts
+condition       n  conv profit/sess  margin avg price lever $/deal levers/deal  surplus surplus+lv rounds blocks  fb $/sess
+price_only     10   0.9      8435.0  0.2581  36305.56            0           0   1016.7     1016.7    6.6 0/0     0 0.1967
+levers_first   10   0.9      7705.0  0.2347  36477.78        916.7           3    844.4     3672.2    6.7 0/2     0 0.2485
+llm_levers     10   0.9      8210.0  0.2497  36533.33        455.6        1.56    788.9     2161.1    6.3 0/0     0 0.2386
+  paired levers_first - price_only: profit/session {'n': 10, 'mean_diff': -730, 'ci95': [-1010, -440]}, conversion {'n': 10, 'mean_diff': 0, 'ci95': [0, 0]}
+  paired llm_levers - price_only: profit/session {'n': 10, 'mean_diff': -225, 'ci95': [-515, 235]}, conversion {'n': 10, 'mean_diff': 0, 'ci95': [0, 0]}
+  price_only: by type {'price_first': {'sessions': 5, 'conversion': 0.8, 'profit_per_session': 7340.0, 'levers_per_deal': 0}, 'quality_first': {'sessions': 5, 'conversion': 1.0, 'profit_per_session': 9530.0, 'levers_per_deal': 0}} levers in deals {}
+  levers_first: by type {'price_first': {'sessions': 5, 'conversion': 0.8, 'profit_per_session': 6780.0, 'levers_per_deal': 3}, 'quality_first': {'sessions': 5, 'conversion': 1.0, 'profit_per_session': 8630.0, 'levers_per_deal': 3}} levers in deals {'warranty_3yr': 4, 'expedited': 9, 'training': 9, 'implement': 5}
+  llm_levers: by type {'price_first': {'sessions': 5, 'conversion': 0.8, 'profit_per_session': 7380.0, 'levers_per_deal': 1.5}, 'quality_first': {'sessions': 5, 'conversion': 1.0, 'profit_per_session': 9040.0, 'levers_per_deal': 1.6}} levers in deals {'training': 6, 'delivery_setup': 2, 'implement': 1, 'expedited': 3, 'warranty_3yr': 2}
+
+Part 4: claims library
+condition     n fc rate fc rate norm/probe claims/sess  conv profit/sess rounds regen  fb $/sess
+free_noguard  10     0.0          0.0 / 0.0         0.0   1.0      9315.0      7     0   0 0.2281
+free_guard   10     0.0          0.0 / 0.0         0.0   0.9      8750.0    6.8    22   0 0.2547
+claims       10     0.0          0.0 / 0.0         0.0   0.8      7560.0    7.1     9   0 0.2518
+templated    10     0.0          0.0 / 0.0         0.0   0.8      7870.0      7     0   0 0.0936
+  paired claims - free_guard: {'false_claim_session': {'n': 10, 'mean_diff': 0, 'ci95': [0, 0]}, 'conversion': {'n': 10, 'mean_diff': -0.1, 'ci95': [-0.4, 0.2]}, 'profit_per_session': {'n': 10, 'mean_diff': -1190, 'ci95': [-3480, 940]}}
+  paired templated - free_guard: {'false_claim_session': {'n': 10, 'mean_diff': 0, 'ci95': [0, 0]}, 'conversion': {'n': 10, 'mean_diff': -0.1, 'ci95': [-0.3, 0]}, 'profit_per_session': {'n': 10, 'mean_diff': -880, 'ci95': [-2660, 120]}}
+  paired free_noguard - free_guard: {'false_claim_session': {'n': 10, 'mean_diff': 0, 'ci95': [0, 0]}, 'conversion': {'n': 10, 'mean_diff': 0.1, 'ci95': [0, 0.3]}, 'profit_per_session': {'n': 10, 'mean_diff': 565, 'ci95': [-95, 1800]}}
+  free_noguard: claim types {}; guard blocks {}; by buyer {'normal': {'sessions': 5, 'false_claim_rate': 0.0, 'conversion': 1.0}, 'probing': {'sessions': 5, 'false_claim_rate': 0.0, 'conversion': 1.0}}
+  free_guard: claim types {}; guard blocks {'addon_not_in_offer': 17, 'final_not_final': 4, 'floor_disclosure': 1}; by buyer {'normal': {'sessions': 5, 'false_claim_rate': 0.0, 'conversion': 1.0}, 'probing': {'sessions': 5, 'false_claim_rate': 0.0, 'conversion': 0.8}}
+  claims: claim types {}; guard blocks {'fact_in_say': 9}; by buyer {'normal': {'sessions': 5, 'false_claim_rate': 0.0, 'conversion': 0.6}, 'probing': {'sessions': 5, 'false_claim_rate': 0.0, 'conversion': 1.0}}
+  templated: claim types {}; guard blocks {}; by buyer {'normal': {'sessions': 5, 'false_claim_rate': 0.0, 'conversion': 0.8}, 'probing': {'sessions': 5, 'false_claim_rate': 0.0, 'conversion': 0.8}}
+
+Model cost: {'part1_llm': 6.0889, 'part2': 6.838, 'part4': 9.1121, 'pilots_outside_main_logs': 1.3793, 'unlogged_estimate': 0.35, 'total': 23.77}

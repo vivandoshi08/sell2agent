@@ -137,7 +137,7 @@ def part2() -> dict:
 
 
 def part4() -> dict:
-    recs = [r for r in load(RUNS / "part4.jsonl") if r.get("ended_by") not in ("skipped",)]
+    recs = [r for f in sorted(RUNS.glob("part4*.jsonl")) if "pilot" not in f.name for r in load(f) if r.get("ended_by") not in ("skipped",)]
     if not recs:
         return {}
     by = defaultdict(list)
@@ -193,12 +193,17 @@ def part4() -> dict:
 
 def main() -> None:
     results = {"experiment": "E11", "part1": part1(), "part2": part2(), "part4": part4()}
-    pilots = sum(cost_of(load(RUNS / f)) + cost_of(load(RUNS / f), ("judge_usage",)) for f in ("part1_llm_pilot.jsonl", "part2_pilot.jsonl", "part4_pilot.jsonl"))
+    # Pilots that aren't part of the main logs: the Part 1 LLM pilot, and the three Part 2 pilot sessions discarded after
+    # the text-check fix. (The other pilot sessions count toward the main runs and are in their logs.)
+    pilots = sum(cost_of(load(RUNS / f)) + cost_of(load(RUNS / f), ("judge_usage",)) for f in ("part1_llm_pilot.jsonl", "part2_pilot_discarded.jsonl"))
     results["cost_usd"] = {
         "part1_llm": results["part1"].get("llm", {}).get("cost_usd", 0),
         "part2": results["part2"].get("cost_usd", 0),
         "part4": results["part4"].get("cost_usd", 0),
-        "pilots": round(pilots, 4),
+        "pilots_outside_main_logs": round(pilots, 4),
+        # Three Part 1 sessions were in flight when the first main run was stopped to add resume; their spend was never
+        # logged. Estimated at about half a session each (~$0.12).
+        "unlogged_estimate": 0.35,
     }
     results["cost_usd"]["total"] = round(sum(results["cost_usd"].values()), 2)
     print("\nModel cost:", results["cost_usd"])

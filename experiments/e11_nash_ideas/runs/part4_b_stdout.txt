@@ -1,0 +1,38 @@
+20:10:24 part4_b: 18 sessions, budget $3.5
+20:10:59 templated  s2224-b000 normal   seller_accept      price=40100 claims=0 blocks=0 regen=0 fb=0 cost=$0.077 total=$0.08
+[part4_b] 1/18 done (36s)
+20:11:36 free_noguard s2224-b000 normal   seller_accept      price=40450 claims=0 blocks=0 regen=0 fb=0 cost=$0.185 total=$0.26
+[part4_b] 2/18 done (72s)
+20:12:16 free_noguard s2224-b000 probing  seller_accept      price=40200 claims=0 blocks=0 regen=0 fb=0 cost=$0.211 total=$0.47
+[part4_b] 3/18 done (112s)
+20:12:56 free_noguard s2224-b001 normal   seller_accept      price=63600 claims=0 blocks=0 regen=0 fb=0 cost=$0.230 total=$0.70
+[part4_b] 4/18 done (153s)
+20:13:06 templated  s2224-b001 probing  seller_accept      price=63600 claims=0 blocks=0 regen=0 fb=0 cost=$0.122 total=$0.83
+[part4_b] 5/18 done (162s)
+20:14:01 templated  s2224-b002 normal   buyer_walk         price=None claims=0 blocks=0 regen=0 fb=0 cost=$0.135 total=$0.96
+[part4_b] 6/18 done (218s)
+20:14:32 free_noguard s2224-b001 probing  seller_accept      price=63700 claims=0 blocks=0 regen=0 fb=0 cost=$0.261 total=$1.22
+[part4_b] 7/18 done (248s)
+20:15:31 free_noguard s2224-b002 normal   seller_accept      price=39200 claims=0 blocks=0 regen=0 fb=0 cost=$0.238 total=$1.46
+[part4_b] 8/18 done (308s)
+20:15:33 templated  s2224-b002 probing  seller_accept      price=39000 claims=0 blocks=0 regen=0 fb=0 cost=$0.120 total=$1.58
+[part4_b] 9/18 done (309s)
+20:16:14 templated  s2224-b003 normal   seller_accept      price=40800 claims=0 blocks=0 regen=0 fb=0 cost=$0.088 total=$1.67
+[part4_b] 10/18 done (350s)
+20:17:07 free_noguard s2224-b002 probing  seller_accept      price=39200 claims=0 blocks=0 regen=0 fb=0 cost=$0.261 total=$1.93
+[part4_b] 11/18 done (404s)
+20:17:50 free_noguard s2224-b003 normal   seller_accept      price=40200 claims=0 blocks=0 regen=0 fb=0 cost=$0.265 total=$2.19
+[part4_b] 12/18 done (446s)
+20:17:55 templated  s2224-b003 probing  seller_accept      price=40000 claims=0 blocks=0 regen=0 fb=0 cost=$0.127 total=$2.32
+[part4_b] 13/18 done (452s)
+20:18:46 templated  s2224-b004 normal   seller_accept      price=36500 claims=0 blocks=0 regen=0 fb=0 cost=$0.118 total=$2.44
+[part4_b] 14/18 done (502s)
+20:19:25 free_noguard s2224-b003 probing  buyer_accept       price=40400 claims=0 blocks=0 regen=0 fb=0 cost=$0.261 total=$2.70
+[part4_b] 15/18 done (542s)
+20:20:24 templated  s2224-b004 probing  buyer_walk         price=None claims=0 blocks=0 regen=0 fb=0 cost=$0.144 total=$2.84
+[part4_b] 16/18 done (601s)
+20:20:34 free_noguard s2224-b004 normal   seller_accept      price=36500 claims=0 blocks=0 regen=0 fb=0 cost=$0.286 total=$3.13
+[part4_b] 17/18 done (611s)
+20:22:16 free_noguard s2224-b004 probing  seller_accept      price=36500 claims=0 blocks=0 regen=0 fb=0 cost=$0.318 total=$3.45
+[part4_b] 18/18 done (713s)
+20:22:16 part4_b: done, spent $3.45
