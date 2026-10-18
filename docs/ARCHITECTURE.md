@@ -63,6 +63,7 @@ From the board: **{conversion rate, profit, revenue}**. The working reward is pr
 | 2026-10-17 | Selling agent | Never call a price firm or final unless it's the final offer. | E7 |
 | 2026-10-17 | Selling agent | No quote-matching rules; buyers played quotes against each other until a seller hit its floor. | E7 |
 | 2026-10-17 | Discovery | Broker / marketplace mode stays out of the build; buyers shop sellers themselves and a broker only cut price about 1 point. | E7 |
+| 2026-10-17 | Guardrails | Candidates from Nash under test in E11: cross-session buyer memory against floor probing, levers in the structured offer, an approved claims library. | Nash review |
 | 2026-10-17 | Learning loop | Decided: ship the fixed strategy; learning is roadmap. Learned policies didn't reliably beat a tuned fixed strategy and flipped sign across buyer models. | E6 |
 | 2026-10-17 | Learning loop | Simulator must model bundle changes and non-walking buyers before RL training is worth it. | E6 |
 | 2026-10-17 | Policy engine | Engine checks accepts as well as offers; it blocked an injection-driven accept that prompt rules let through. | E4 |

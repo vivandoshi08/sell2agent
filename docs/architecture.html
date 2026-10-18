@@ -222,6 +222,7 @@ const DATA = {
     ["2026-10-17", "Selling agent", "Never call a price firm or final unless it is the final offer (13 of 147 seller transcripts were flagged for this).", "E7"],
     ["2026-10-17", "Selling agent", "No quote-matching rules: buyers carried each quote to the other seller until one hit its floor.", "E7"],
     ["2026-10-17", "Discovery", "Broker / marketplace mode stays out of the build: buyers shop sellers themselves, and a broker only cut price by about 1 point.", "E7"],
+    ["2026-10-17", "Guardrails", "Candidates from Nash under test in E11: cross-session buyer memory against floor probing, levers in the structured offer, an approved claims library.", "Nash review"],
     ["2026-10-17", "Learning loop", "Decided: ship the fixed strategy; the learning loop is roadmap. Learned policies didn't reliably beat a tuned fixed strategy and flipped sign across buyer models.", "E6"],
     ["2026-10-17", "Learning loop", "Simulator must model bundle changes (36% of LLM sessions) and buyers who don't walk on a final offer before RL training is worth it.", "E6"],
     ["2026-10-17", "Policy engine", "Engine checks accepts as well as offers; confirmed it blocks an injection-driven accept that prompt rules let through.", "E4"],
@@ -240,7 +241,8 @@ const DATA = {
   ],
   pending: [
     ["E9 · Guardrails", "Layer-by-layer safety ablation", "Guardrails, policy engine, checkout"],
-    ["E10 · Priorities × buyer types", "Seller priority dial, adaptive selling, needs-fit", "Selling agent, buyer agent"]
+    ["E10 · Priorities × buyer types", "Seller priority dial, adaptive selling, needs-fit", "Selling agent, buyer agent"],
+    ["E11 · Ideas from Nash", "Cross-session floor probing, levers before discounts, claims library", "Guardrails, selling agent, policy engine"]
   ]
 };
 const $ = (id) => document.getElementById(id);

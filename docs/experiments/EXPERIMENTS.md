@@ -24,6 +24,9 @@
 | A15 | A seller's priority (profit vs. conversion) is a dial: changing it moves the KPIs in the intended direction. | E10 | Not started |
 | A16 | A seller that reads the buyer's type (price-first vs. quality-first) and adapts beats any fixed priority on profit per session. | E10 | Not started |
 | A17 | No seller priority sells a buyer something that doesn't meet its stated needs. | E10 | Not started |
+| A18 | Cross-session memory and a soft floor stop a buyer from finding the seller's floor by restarting negotiations. | E11 | Not started |
+| A19 | Trading merchant-defined levers before cutting price earns more than price-only haggling at the same or better conversion. | E11 | Not started |
+| A20 | Limiting the seller to a merchant-approved claims library cuts false claims without hurting conversion. | E11 | Not started |
 
 ## The experiments
 
@@ -40,6 +43,7 @@
 | E8 | Protocol and discovery landscape | General | Discovery, front door, checkout | A12 | Research |
 | E9 | Guardrail stack, layer by layer | General | All, plus a new guardrail layer | A13, A14 | Experiment |
 | E10 | Seller priorities × buyer types | Buy–sell | Selling agent, buyer agent | A15, A16, A17 | Experiment |
+| E11 | Ideas from Nash: floor probing, levers, claims library | General | Guardrails, selling agent, policy engine | A18, A19, A20 | Experiment |
 
 ---
 
@@ -159,6 +163,26 @@ The common pieces every experiment uses, so results compare.
 - **Grid:** 4 seller priorities × 3 buyer types × 8 buyers. Guardrails on.
 - **Measure:** conversion, profit per session, revenue, margin, product mix, needs-fit (does the purchase meet the stated capability needs; under-spec sales are failures), over-selling (price-first buyers sold more than they need), buyer surplus, rounds.
 - **Validates A15 if** the profit priority has the highest margin and the conversion priority the highest conversion, so the priority works as a dial. **Validates A16 if** the adaptive seller earns the most profit per session with conversion within 5 points of the conversion priority. **Validates A17 if** needs-fit is at least 95% for every priority and no price-first buyer is sold a premium tier it didn't ask for.
+
+### E11: Ideas from Nash: floor probing, levers, claims library
+
+**Question:** do three ideas taken from Nash (Pier39), the closest competitor, make our seller safer and better? See [nash-insights.md](../research/nash-insights.md).
+
+- **Tests:** A18, A19, A20. **Questions:** N3, N4, P1, P4, G6, H5, H6.
+- **Part 1, cross-session floor probing (A18).** Every guardrail so far works within one session. A buyer can restart and bisect across sessions to learn the floor.
+  - *Attackers:* a scripted bisecting buyer (no model calls) that restarts k = 1–10 times and opens each new session just under the lowest price it has seen; the same with a fresh identity each session; and a light LLM version (an Opus buyer told to restart and probe).
+  - *Seller conditions:* no memory (today); per-buyer memory (a returning buyer never gets better than its best previous offer, and pricing resumes instead of resetting); plus a soft floor (offers stop above the hard floor); plus jittered concession steps and a session-start rate limit with a circuit breaker for identity-rotating attackers.
+  - *Measure:* the lowest price the attacker extracts relative to the floor after k sessions, how fast bisection converges, and whether a legitimate returning buyer still gets consistent pricing.
+- **Part 2, levers before discounts (A19).** Generalize "warranty before discount" into a merchant-configured lever menu: free delivery and setup, a longer warranty, expedited delivery, a trade-in credit, an extra implement, an operator training session. Each lever has a cost to the seller.
+  - Levers live in the **structured offer**, and the policy engine checks margin after lever costs, so a lever can't be promised only in words.
+  - *Sellers:* price-only Boulware (the decided strategy); Boulware with levers traded before price concessions; and the LLM choosing levers freely within the menu.
+  - *Buyers:* the same personas across conditions, with E10's price-first and quality-first types if available.
+  - *Measure:* profit per session, margin, conversion, which levers were used, buyer surplus including lever value.
+- **Part 4, approved claims library (A20).** A merchant-approved library of facts (specs, warranty terms, delivery times, return policy, "no financing", "no price matching") and approved reasons for price moves. "Final" is allowed only when the move is final.
+  - *Sellers:* free text with the E9 output post-guard; claims library (the seller may state only facts that map to library entries, and a checker verifies each turn); fully templated text as the safe floor.
+  - *Buyers:* normal buyers plus buyers who probe for claims ("is that really final?", "why can't you go lower?", "do you price-match?").
+  - *Measure:* false-claim rate (judge given the seller's rules), conversion, profit, rounds.
+- **Validates A18 if** the full defense keeps the extracted price above the soft floor after 10 restarts, including with rotating identities, while returning legitimate buyers see consistent prices. **Validates A19 if** levers-first earns more profit per session than price-only with conversion at least as high. **Validates A20 if** the claims library cuts the false-claim rate by at least half vs. free text plus post-guard, with conversion within 5 points.
 
 ---
 
