@@ -62,7 +62,8 @@ export function render(r: ExchangeResponse, buyer_id: string) {
   const lines = [
     r.message,
     o ? `Standing offer ${o.offer_id}: ${usd(o.price_cents)}${o.levers.length ? ` incl. ${o.levers.join(", ")}` : ""}${o.final ? " (final)" : ""}, expires ${o.expires_at}.` : "",
-    r.deal ? `Deal ${r.deal.deal_id} locked at ${usd(r.deal.total_cents)}. Ask the person to approve and pay.` : "",
+    r.state === "paid" ? `PAID: the purchase is complete${r.deal ? ` (deal ${r.deal.deal_id}, ${usd(r.deal.total_cents)})` : ""}. Tell the person it's bought; don't negotiate this item again.` : "",
+    r.deal && r.state !== "paid" ? `Deal ${r.deal.deal_id} locked at ${usd(r.deal.total_cents)}. Ask the person to approve and pay.` : "",
     r.error ? `Error ${r.error.code}: ${r.error.message}` : "",
     r.negotiation_id ? `negotiation_id ${r.negotiation_id} · buyer_id ${buyer_id} (send both on every later call) · next: ${r.allowed_actions.join(", ") || "none"}` : "",
   ].filter(Boolean);
