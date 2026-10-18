@@ -1,11 +1,12 @@
 // E1 exchange: protocol, decision guard, deal lock. Offline (memory store, template voice). Run: pnpm --filter @sa/seller-mcp test
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { Exchange, MemorySink, MemoryStore, StaticCatalog, guardMove, guardrailSeverity, canTransition, TRANSITIONS, type Decider } from "../src/exchange";
+import { Exchange, MemorySink, MemoryStore, StaticCatalog, guardMove, guardrailSeverity, canTransition, TRANSITIONS, SEED_PRODUCTS, type Decider } from "../src/exchange";
 import type { ProposedMove } from "../src/sellers";
 
 const ctx = (buyer_id = "b1") => ({ run_id: "e1-test-run", buyer_id, buyer_model: "scripted" });
-const P = "kb_keyforge_quiet75"; // list 12900, floor 10500, 4 rounds
+const P = "kb_keyforge_quiet75"; // list 12900, floor 10500
+const ROUNDS = SEED_PRODUCTS.find((p) => p.product_id === P)!.max_rounds;
 
 function setup(decide?: Decider, now = { t: Date.now() }) {
   const events = new MemorySink();
@@ -65,7 +66,7 @@ test("offers expire", async () => {
 test("round cap: after the seller's final offer the buyer can only accept or walk", async () => {
   const { ex } = setup();
   let r = await ex.handle({ kind: "offer", ctx: ctx(), product_id: P, offer_price_cents: 8000 });
-  for (let i = 0; i < 3; i++) r = await ex.handle({ kind: "offer", ctx: ctx(), product_id: P, negotiation_id: r.negotiation_id, offer_price_cents: 8000 + i });
+  for (let i = 0; i < ROUNDS - 1; i++) r = await ex.handle({ kind: "offer", ctx: ctx(), product_id: P, negotiation_id: r.negotiation_id, offer_price_cents: 8000 + i });
   assert.equal(r.standing_offer!.final, true);
   assert.deepEqual(r.allowed_actions.sort(), ["accept", "status", "walk"]);
   const over = await ex.handle({ kind: "offer", ctx: ctx(), product_id: P, negotiation_id: r.negotiation_id, offer_price_cents: 9000 });
