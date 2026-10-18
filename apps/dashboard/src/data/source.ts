@@ -5,7 +5,7 @@
  */
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { NegotiationEvent } from "@sa/shared";
-import { fakeComparison } from "./fake";
+import { fakeComparison, fakeFollowups } from "./fake";
 
 export type Mode = "live" | "local" | "sample";
 export interface Feed {
@@ -116,7 +116,7 @@ function sampleFeed(): Feed {
     mode: "sample",
     label: "Sample data",
     start(onEvents) {
-      const all = fakeComparison(60);
+      const all = [...fakeComparison(60), ...fakeFollowups()].sort((a, b) => a.ts!.localeCompare(b.ts!));
       let shown = Math.floor(all.length * 0.55);
       onEvents(all.slice(0, shown));
       const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
