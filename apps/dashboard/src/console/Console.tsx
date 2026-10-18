@@ -26,6 +26,7 @@ const POLICY_HELP: Record<string, string> = {
 export function Console() {
   const [policies, setPolicies] = useState<ConsolePolicy[] | null>(null);
   const [store, setStore] = useState("");
+  const [notice, setNotice] = useState<string | null>(null);
   const [sel, setSel] = useState<string>("");
   const [draft, setDraft] = useState<ConsolePolicy | null>(null);
   const [status, setStatus] = useState<{ kind: "idle" | "saving" | "saved" | "error"; msg?: string; problems?: Problem[] }>({ kind: "idle" });
@@ -34,7 +35,7 @@ export function Console() {
 
   useEffect(() => {
     fetch("/api/console/policies").then((r) => r.json()).then((d) => {
-      setPolicies(d.policies); setStore(d.store);
+      setPolicies(d.policies); setStore(d.store); setNotice(d.notice ?? null);
       const first = new URLSearchParams(location.search).get("product") ?? d.policies[0]?.product_id ?? "";
       setSel(first);
     }).catch((e) => setStatus({ kind: "error", msg: `Couldn't load policies: ${e.message}. The console needs the dashboard dev server (pnpm --filter @sa/dashboard dev).` }));
@@ -75,6 +76,7 @@ export function Console() {
         </div>
       </header>
 
+      {notice && <p className="cx-notice">{notice}</p>}
       {status.kind === "error" && <p className="err">{status.msg}</p>}
       {!policies ? <p className="empty">Loading products…</p> : (
         <div className="cx-layout">

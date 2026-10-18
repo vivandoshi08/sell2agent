@@ -70,3 +70,42 @@ test("maps to E1's catalog patch and to a contract-v2 seller_policies row", asyn
   assert.equal(parsed.lever_menu.length, 2);
   assert.ok(!("enabled" in parsed.lever_menu[0]));
 });
+
+// A tiny stand-in for the Supabase client over the v1 seller_policies table (what the shared DB has today).
+function fakeV1Db() {
+  const rows = new Map([[PID, { product_id: PID, floor_price_cents: 11_000, allowed_concessions: ["free_shipping", "extended_warranty"] }]]);
+  const q = (cols: string) => {
+    let ids: string[] | null = null;
+    const run = () => cols.includes("lever_menu")
+      ? { data: null, error: { message: "column seller_policies.lever_menu does not exist" } }
+      : { data: [...rows.values()].filter((r) => !ids || ids.includes(r.product_id)), error: null };
+    const b: any = { limit: () => b, in: (_c: string, v: string[]) => { ids = v; return b; }, then: (res: any) => Promise.resolve(run()).then(res) };
+    return b;
+  };
+  const db: any = { from: () => ({
+    select: q,
+    update: (patch: Record<string, unknown>) => ({ eq: async (_c: string, id: string) => {
+      const r = rows.get(id);
+      if (!r) return { error: null, count: 0 };
+      if (Object.keys(patch).some((k) => !(k in r))) return { error: { message: "column does not exist" }, count: null };
+      Object.assign(r, patch); return { error: null, count: 1 };
+    } }),
+  }) };
+  return { db, rows };
+}
+
+test("Supabase store on the v1 table: saves floor + enabled levers, keeps the rest in memory, says so", async () => {
+  const { supabaseStore } = await import("../src/console/store");
+  const { db, rows } = fakeV1Db();
+  const store = supabaseStore(db);
+  assert.equal(await store.schema(), "v1");
+  assert.match((await store.notice())!, /contract v2/);
+  const p = (await store.get(PID))!;
+  const r = await store.save({ ...p, floor_price_cents: 11_500, policy: "balanced", levers: p.levers.map((l) => (l.id === "extended_warranty" ? { ...l, enabled: false } : l)) });
+  assert.equal(r.ok, true, JSON.stringify(r));
+  assert.deepEqual(rows.get(PID)!.allowed_concessions, ["free_shipping"]);
+  assert.equal(rows.get(PID)!.floor_price_cents, 11_500);
+  const back = (await store.get(PID))!;
+  assert.equal(back.policy, "balanced");
+  assert.equal(back.levers.find((l) => l.id === "extended_warranty")!.enabled, false);
+});
