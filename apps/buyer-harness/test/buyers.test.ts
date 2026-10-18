@@ -82,3 +82,15 @@ test("accept goes by the exchange's live offer_id", async () => {
   const d = await gw.accept(ctx, r.negotiation_id);
   assert.ok(d.ok && d.final_price_cents === 11500);
 });
+
+test("buyers can ask for extras; the exchange includes and prices them, rejects ones not offered", async () => {
+  const gw = new ExchangeGateway("negotiating");
+  const ctx = { run_id: "t", buyer_id: "b_ex", buyer_model: "scripted" };
+  const [l] = (await gw.search(ctx, "TypeWell")).filter((x) => x.product_id === "kb_typewell_65");
+  assert.ok(l.extras?.includes("free_shipping"));
+  const r = await gw.offer(ctx, { product_id: "kb_typewell_65", offer_price_cents: 12000, levers: ["free_shipping"] });
+  assert.deepEqual(r.extras, ["free_shipping"]);
+  const bad = await gw.offer({ ...ctx, buyer_id: "b_ex2" }, { product_id: "kb_clackco_tkl", offer_price_cents: 10000, levers: ["extended_warranty"] });
+  assert.equal(bad.status, "reject");
+  assert.match(bad.message, /bad_lever/);
+});
