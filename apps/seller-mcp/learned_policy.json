@@ -1,126 +1,199 @@
 {
-  "version": 4,
-  "trained_at": "2026-10-18T11:19:41.730Z",
+  "version": 5,
+  "trained_at": "2026-10-18T13:38:00.373Z",
   "arms": [
     "negotiating",
     "balanced",
-    "lever_policy"
+    "lever_policy",
+    "pkg:free_shipping",
+    "pkg:extended_warranty",
+    "pkg:bundle_discount"
   ],
   "epsilon": 0.1,
   "stats": {
     "price": {
       "negotiating": {
-        "n": 365,
-        "sum": 873200,
-        "sumSq": 5209960000,
-        "w": 1023.645861974153,
-        "wsum": 2448897.442947464
+        "n": 750,
+        "sum": -193658,
+        "sumSq": 9895521852,
+        "w": 2495.0873118663408,
+        "wsum": -644258.1581885546
       },
       "balanced": {
-        "n": 593,
-        "sum": 1616000,
-        "sumSq": 8987440000,
-        "w": 1020.6884913938583,
-        "wsum": 2781505.2311846437
+        "n": 1371,
+        "sum": 529649,
+        "sumSq": 15812711647,
+        "w": 2500.5702602777365,
+        "wsum": 966028.1092529647
       },
       "lever_policy": {
-        "n": 62,
-        "sum": 147300,
-        "sumSq": 877690000,
-        "w": 992.7786499215124,
-        "wsum": 2358649.921507075
+        "n": 211,
+        "sum": 9699,
+        "sumSq": 2801483035,
+        "w": 2455.4585221059388,
+        "wsum": 112869.6313076086
+      },
+      "pkg:free_shipping": {
+        "n": 127,
+        "sum": -94590,
+        "sumSq": 1474043452,
+        "w": 2341.061618411281,
+        "wsum": -1743630.066815143
+      },
+      "pkg:extended_warranty": {
+        "n": 24,
+        "sum": 1086,
+        "sumSq": 70105704,
+        "w": 2190.8823529411825,
+        "wsum": 99137.42647058866
       }
     },
     "unknown": {
       "negotiating": {
-        "n": 782,
-        "sum": 1771300,
-        "sumSq": 10930830000,
-        "w": 2181.4098690836017,
-        "wsum": 4941088.620342416
+        "n": 1669,
+        "sum": -280313,
+        "sumSq": 24468370289,
+        "w": 5511.702377960072,
+        "wsum": -925705.1100497872
       },
       "balanced": {
-        "n": 1157,
-        "sum": 3196100,
-        "sumSq": 18575270000,
-        "w": 2240.2027086063886,
-        "wsum": 6188342.158147613
+        "n": 2887,
+        "sum": 1817596,
+        "sumSq": 39448885768,
+        "w": 5575.617741660573,
+        "wsum": 3510294.5981195187
       },
       "lever_policy": {
-        "n": 277,
-        "sum": 548000,
-        "sumSq": 3442720000,
-        "w": 2215.200288704445,
-        "wsum": 4382417.8996752
+        "n": 595,
+        "sum": -187329,
+        "sumSq": 9165147195,
+        "w": 5345.673879147388,
+        "wsum": -1683024.7766500867
+      },
+      "pkg:free_shipping": {
+        "n": 258,
+        "sum": -76121,
+        "sumSq": 3369954395,
+        "w": 4711.566305254424,
+        "wsum": -1390112.940783995
+      },
+      "pkg:extended_warranty": {
+        "n": 65,
+        "sum": 6435,
+        "sumSq": 227118065,
+        "w": 4874.109589041056,
+        "wsum": 482536.8493150652
       }
     },
     "delivery": {
       "negotiating": {
-        "n": 169,
-        "sum": 366400,
-        "sumSq": 2372360000,
-        "w": 486.1774679728712,
-        "wsum": 1054055.7648831925
+        "n": 356,
+        "sum": 318590,
+        "sumSq": 5255939450,
+        "w": 1216.519218180113,
+        "wsum": 1088682.1846067444
       },
       "balanced": {
-        "n": 305,
-        "sum": 858400,
-        "sumSq": 5277700000,
-        "w": 518.9826164475107,
-        "wsum": 1460638.2883886737
+        "n": 689,
+        "sum": 1180193,
+        "sumSq": 11279580557,
+        "w": 1252.4779861698432,
+        "wsum": 2145378.449828347
       },
       "lever_policy": {
-        "n": 35,
-        "sum": 58100,
-        "sumSq": 377010000,
-        "w": 540.9412955465579,
-        "wsum": 897962.5506072864
+        "n": 99,
+        "sum": 45967,
+        "sumSq": 1489940403,
+        "w": 1165.7943925233621,
+        "wsum": 541293.6448598137
+      },
+      "pkg:extended_warranty": {
+        "n": 22,
+        "sum": 11258,
+        "sumSq": 155174662,
+        "w": 1080.4838709677445,
+        "wsum": 552913.0645161306
+      },
+      "pkg:free_shipping": {
+        "n": 52,
+        "sum": 38412,
+        "sumSq": 767952378,
+        "w": 1000.5687203791439,
+        "wsum": 739112.4170616097
       }
     },
     "quality": {
       "negotiating": {
-        "n": 155,
-        "sum": 312100,
-        "sumSq": 2000330000,
-        "w": 433.93528183715904,
-        "wsum": 873749.6868475983
+        "n": 335,
+        "sum": 70320,
+        "sumSq": 4746134230,
+        "w": 1118.852582442399,
+        "wsum": 234858.8465592521
       },
       "balanced": {
-        "n": 179,
-        "sum": 495500,
-        "sumSq": 2992730000,
-        "w": 461.524706787157,
-        "wsum": 1277572.5821957309
+        "n": 531,
+        "sum": 547989,
+        "sumSq": 7192134721,
+        "w": 1133.4404773361578,
+        "wsum": 1169704.1689923978
       },
       "lever_policy": {
-        "n": 113,
-        "sum": 234500,
-        "sumSq": 1536390000,
-        "w": 443.20854050892046,
-        "wsum": 919755.7765428486
+        "n": 176,
+        "sum": 40323,
+        "sumSq": 2568848807,
+        "w": 1088.2854753275822,
+        "wsum": 249334.85921383067
+      },
+      "pkg:free_shipping": {
+        "n": 49,
+        "sum": 15395,
+        "sumSq": 712406215,
+        "w": 926.5302642796222,
+        "wsum": 291100.6820119348
+      },
+      "pkg:extended_warranty": {
+        "n": 18,
+        "sum": -5598,
+        "sumSq": 1740978,
+        "w": 1028.96907216495,
+        "wsum": -320009.3814432995
       }
     },
     "trust": {
       "negotiating": {
-        "n": 93,
-        "sum": 219600,
-        "sumSq": 1348180000,
-        "w": 237.19447396386855,
-        "wsum": 560085.0159404904
+        "n": 208,
+        "sum": -474374,
+        "sumSq": 4413548142,
+        "w": 660.7300230187449,
+        "wsum": -1506890.1150937236
       },
       "balanced": {
-        "n": 80,
-        "sum": 226200,
-        "sumSq": 1317400000,
-        "w": 241.8136020151137,
-        "wsum": 683727.9596977347
+        "n": 296,
+        "sum": -440235,
+        "sumSq": 5164458843,
+        "w": 672.5532165118178,
+        "wsum": -1000275.2205104063
       },
       "lever_policy": {
-        "n": 67,
-        "sum": 108100,
-        "sumSq": 651630000,
-        "w": 241.80451127819586,
-        "wsum": 390135.33834586525
+        "n": 109,
+        "sum": -283318,
+        "sumSq": 2304874950,
+        "w": 620.471420153213,
+        "wsum": -1612758.9157336527
+      },
+      "pkg:free_shipping": {
+        "n": 30,
+        "sum": -35338,
+        "sumSq": 415552350,
+        "w": 448.2598607888632,
+        "wsum": -528020.2320185613
+      },
+      "pkg:extended_warranty": {
+        "n": 1,
+        "sum": -311,
+        "sumSq": 96721,
+        "w": 402.50000000000006,
+        "wsum": -125177.50000000001
       }
     }
   },
@@ -129,161 +202,197 @@
     "unknown": "balanced",
     "delivery": "balanced",
     "quality": "balanced",
-    "trust": "balanced"
+    "trust": "pkg:free_shipping"
   },
   "min_sessions": 10,
   "curve": [
     {
       "epoch": 1,
-      "bandit": 2414,
-      "negotiating": 2261,
-      "balanced": 2765
+      "bandit": 411,
+      "negotiating": -144,
+      "balanced": 593
     },
     {
       "epoch": 2,
-      "bandit": 2566,
-      "negotiating": 2261,
-      "balanced": 2765
+      "bandit": 496,
+      "negotiating": -144,
+      "balanced": 593
     },
     {
       "epoch": 3,
-      "bandit": 2765,
-      "negotiating": 2261,
-      "balanced": 2765
+      "bandit": 496,
+      "negotiating": -144,
+      "balanced": 593
     },
     {
       "epoch": 4,
-      "bandit": 2715,
-      "negotiating": 2261,
-      "balanced": 2765
+      "bandit": 496,
+      "negotiating": -144,
+      "balanced": 593
     },
     {
       "epoch": 5,
-      "bandit": 2715,
-      "negotiating": 2261,
-      "balanced": 2765
+      "bandit": 499,
+      "negotiating": -144,
+      "balanced": 593
     },
     {
       "epoch": 6,
-      "bandit": 2715,
-      "negotiating": 2261,
-      "balanced": 2765
+      "bandit": 276,
+      "negotiating": -144,
+      "balanced": 593
     },
     {
       "epoch": 7,
-      "bandit": 2715,
-      "negotiating": 2261,
-      "balanced": 2765
+      "bandit": 593,
+      "negotiating": -144,
+      "balanced": 593
     },
     {
       "epoch": 8,
-      "bandit": 2715,
-      "negotiating": 2261,
-      "balanced": 2765
+      "bandit": 593,
+      "negotiating": -144,
+      "balanced": 593
     },
     {
       "epoch": 9,
-      "bandit": 2715,
-      "negotiating": 2261,
-      "balanced": 2765
+      "bandit": 593,
+      "negotiating": -144,
+      "balanced": 593
     },
     {
       "epoch": 10,
-      "bandit": 2765,
-      "negotiating": 2261,
-      "balanced": 2765
+      "bandit": 593,
+      "negotiating": -144,
+      "balanced": 593
     },
     {
       "epoch": 11,
-      "bandit": 2765,
-      "negotiating": 2261,
-      "balanced": 2765
+      "bandit": 593,
+      "negotiating": -144,
+      "balanced": 593
     },
     {
       "epoch": 12,
-      "bandit": 2765,
-      "negotiating": 2261,
-      "balanced": 2765
+      "bandit": 593,
+      "negotiating": -144,
+      "balanced": 593
     },
     {
       "epoch": 13,
-      "bandit": 2765,
-      "negotiating": 2261,
-      "balanced": 2765
+      "bandit": 593,
+      "negotiating": -144,
+      "balanced": 593
     },
     {
       "epoch": 14,
-      "bandit": 2465,
-      "negotiating": 2261,
-      "balanced": 2765
+      "bandit": 593,
+      "negotiating": -144,
+      "balanced": 593
     },
     {
       "epoch": 15,
-      "bandit": 2626,
-      "negotiating": 2261,
-      "balanced": 2765
+      "bandit": 593,
+      "negotiating": -144,
+      "balanced": 593
     },
     {
       "epoch": 16,
-      "bandit": 2626,
-      "negotiating": 2261,
-      "balanced": 2765
+      "bandit": 438,
+      "negotiating": -144,
+      "balanced": 593
     },
     {
       "epoch": 17,
-      "bandit": 2626,
-      "negotiating": 2261,
-      "balanced": 2765
+      "bandit": 593,
+      "negotiating": -144,
+      "balanced": 593
     },
     {
       "epoch": 18,
-      "bandit": 2626,
-      "negotiating": 2261,
-      "balanced": 2765
+      "bandit": 593,
+      "negotiating": -144,
+      "balanced": 593
     },
     {
       "epoch": 19,
-      "bandit": 2765,
-      "negotiating": 2261,
-      "balanced": 2765
+      "bandit": 593,
+      "negotiating": -144,
+      "balanced": 593
     },
     {
       "epoch": 20,
-      "bandit": 2765,
-      "negotiating": 2261,
-      "balanced": 2765
+      "bandit": 629,
+      "negotiating": -144,
+      "balanced": 593
     }
   ],
   "gate": {
     "passed": true,
     "best_fixed_policy": "balanced",
-    "learned_minus_best_fixed_cents": -103,
+    "learned_minus_best_fixed_cents": -22,
     "holdout_buyers": 300,
-    "diff_vs_negotiating_cents": 625,
+    "diff_vs_negotiating_cents": 531,
     "ci95_cents": [
-      358,
-      892
+      270,
+      792
     ],
     "below_floor": 0,
     "ci95_vs_best_fixed_cents": [
-      -310,
-      105
+      -242,
+      198
     ],
     "beats_best_fixed": false,
-    "source": "held-out claude-haiku-5-5 buyers, seed 777, runs b3C4_learned, b3C_negotiating, b3C_balanced"
+    "source": "held-out claude-haiku-5-5 buyers, seed 2121, runs b5G_learned, b5G_negotiating, b5G_balanced"
   },
   "trained_on": {
-    "source": "logged, mixture IPS",
-    "sessions": 2216,
+    "source": "logged (supabase), mixture IPS",
+    "sessions": 5474,
     "runs": [
-      "b3A_learned",
-      "run_202610181012_negotiating",
-      "run_202610181013_balanced",
-      "b3X_learned",
-      "b3B_learned",
-      "b3B_negotiating",
-      "b3B_balanced"
+      "../../docs/results/b3-learned/runs/b3A_learned.events.jsonl.gz",
+      "../../docs/results/b3-learned/runs/b3B_balanced.events.jsonl.gz",
+      "../../docs/results/b3-learned/runs/b3B_learned.events.jsonl.gz",
+      "../../docs/results/b3-learned/runs/b3B_negotiating.events.jsonl.gz",
+      "../../docs/results/b3-learned/runs/b3C4_learned.events.jsonl.gz",
+      "../../docs/results/b3-learned/runs/b3C_balanced.events.jsonl.gz",
+      "../../docs/results/b3-learned/runs/b3C_learned.events.jsonl.gz",
+      "../../docs/results/b3-learned/runs/b3C_negotiating.events.jsonl.gz",
+      "../../docs/results/b3-learned/runs/b3X_learned.events.jsonl.gz",
+      "../../docs/results/b3-learned/runs/run_202610181012_negotiating.events.jsonl.gz",
+      "../../docs/results/b3-learned/runs/run_202610181013_balanced.events.jsonl.gz",
+      "../../docs/results/b4-levers/runs/b4X_learned.events.jsonl.gz",
+      "b5P_learned",
+      "b5X_learned",
+      "live"
     ],
-    "previous_version": 3
+    "previous_version": 4,
+    "by_source": {
+      "real": 24,
+      "sim": 5450
+    },
+    "contexts": {
+      "price": {
+        "real": 3,
+        "sim": 2480
+      },
+      "unknown": {
+        "real": 20,
+        "sim": 0
+      },
+      "delivery": {
+        "real": 0,
+        "sim": 1218
+      },
+      "quality": {
+        "real": 1,
+        "sim": 1108
+      },
+      "trust": {
+        "real": 0,
+        "sim": 644
+      }
+    },
+    "reward": "50% profit + 50% revenue",
+    "baseline": "listing"
   }
 }

@@ -40,7 +40,7 @@ const HISTORY = [
   { v: "v2", data: "795 logged LLM sessions", chose: "Perks first for quality and trust buyers (20 and 10 tries)", result: "Held-out: −$5.11/buyer vs Balanced. The bet on perks lost: quality $30 vs $47, trust $13 vs $25" },
   { v: "v3", data: "2,216 logged LLM sessions", chose: "Balanced for every buyer type (reversed v2's bet)", result: "Held-out: +$6.21/buyer vs Negotiating [$3.55, $8.87]" },
   { v: "v4", data: "v3 + buyers with no stated preference", chose: "Balanced everywhere, including unknown buyers", result: "Gate passed: +$6.25/buyer vs Negotiating; live on production" },
-  { v: "v5", data: "4,446 simulated + 24 real negotiations, goal reward, same-listing baseline", chose: "Balanced everywhere; perks re-explored once deployed", result: "Candidate: held-out gate pending" },
+  { v: "v5", data: "5,450 simulated (incl. 620 new Haiku buyers trying every playbook and perk) + 24 real, goal reward, same-listing baseline", chose: "Balanced for price, quality, delivery; lead with free shipping for trust (30 tries)", result: "Gate passed on 300 fresh Haiku buyers: +$5.31/buyer vs Negotiating [$2.70, $7.92], ties Balanced. The trust pick didn't hold up on fresh buyers (−$4.97, CI ±$7.99), so exploration keeps testing it" },
 ];
 
 export function LearnedPage({ events }: { events?: NegotiationEvent[] }) {
@@ -48,6 +48,9 @@ export function LearnedPage({ events }: { events?: NegotiationEvent[] }) {
   const perks = perkFinding(S);
   const worst = perks.length ? perks.reduce((a, b) => (a.diff < b.diff ? a : b)) : null;
   const contexts = orderContexts(Object.keys(S.choice));
+  // the same comparison from the LLM-trained policy, for price-first buyers (most tries)
+  const pf = LP.stats.price ?? {};
+  const ai = pf["pkg:free_shipping"]?.n && pf.balanced?.n ? { diff: mean(pf["pkg:free_shipping"])! - mean(pf.balanced)!, n: pf["pkg:free_shipping"].n } : null;
   return (
     <main className="page lpage" id="learned">
       <section className="head">
@@ -70,6 +73,7 @@ export function LearnedPage({ events }: { events?: NegotiationEvent[] }) {
           <p>Free shipping or a warranty in place of a price cut cost more than it won back, even with buyers who value it: the perk raises your floor by its cost, and a buyer's budget doesn't stretch.</p>
           <ul className="lrows">{perks.map((p) => <li key={p.arm}><span>{armName(p.arm)}</span><b className={`num ${p.diff >= 0 ? "up" : "down"}`}>{signed(Math.round(p.diff))}</b></li>)}</ul>
           <small>vs Balanced on the same listing · {S.trained_on?.sessions.toLocaleString()} scripted buyers{worst ? ` · worst: ${armName(worst.arm).toLowerCase()}` : ""}</small>
+          {ai && <small>AI buyers agree for price-first shoppers: free shipping {signed(Math.round(ai.diff))} vs Balanced over {ai.n} tries.</small>}
         </article>
         <article className="lcard">
           <span className="eyebrow">Lesson 3 · it changes its mind</span>
@@ -104,7 +108,10 @@ export function LearnedPage({ events }: { events?: NegotiationEvent[] }) {
       <section className="panel lcaveat" aria-label="Limits">
         <div className="panel-head"><h2>What this doesn't show yet</h2></div>
         <ul>
-          <li>v{LP.version} hasn't passed its held-out test on fresh AI buyers yet (API credits ran out), so the live seller still runs v{LIVE.version}.</li>
+          {LP.gate?.passed
+            ? <li>v{LP.version} passed its held-out test but only ties Balanced (it doesn't beat the best fixed playbook), so Balanced stays the default and products opt into <code>learned</code>.</li>
+            : <li>v{LP.version} hasn't passed its held-out test on fresh AI buyers yet, so the live seller still runs v{LIVE.version}.</li>}
+          <li>All simulated buyers are Claude Haiku. GPT buyers haven't been run.</li>
           <li>Real traffic is small: {LP.trained_on?.by_source?.real ?? 0} live negotiations, most from before buyers' preferences reached the seller.</li>
           <li>The perk lesson comes from scripted buyers with values we set. Perks may still win where buyers compare sellers (a perk can win the sale from a rival), which these runs don't model.</li>
           <li>This is a contextual bandit: one choice per negotiation (which playbook), learned from outcomes. It is not fine-tuning a model.</li>

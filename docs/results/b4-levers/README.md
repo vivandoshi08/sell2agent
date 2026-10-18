@@ -41,6 +41,32 @@ a "which perk works for which buyer" grid, and the gate status. The console's Ob
    negotiations = **24 real + 4,446 simulated**, reward 50% profit + 50% revenue, listing baseline. Chooses **Balanced for
    every buyer type**. Balanced vs Negotiating (same listing): price +$5.77, quality +$7.21, delivery +$9.01, trust +$7.90.
 
+## Haiku retrain and gate (6:45 am) — v5 is live in the policy file
+
+All on Claude Haiku 5.5 buyers (`BUYER_CLAUDE_MODEL=claude-haiku-5-5`, $0.10 / $0.50 per M tokens), template seller voice,
+`SUPABASE_URL=` empty. **Total model spend: $3.63.**
+
+| Run | What | Buyers | Cost |
+| --- | --- | --- | --- |
+| `b5P` | pilot, ε = 1 over playable arms | 20 | $0.05 |
+| `b5X` | exploration, ε = 1, perk arms lead with their perk (arm_rev 2) | 600 | $1.43 |
+| `b5G_*` | held-out gate, seed 2121: learned v5 / negotiating / balanced | 300 × 3 | $2.15 |
+
+Perks actually offered in b5X: 211 of 254 free-shipping and 48 of 62 warranty negotiations (the rest closed before the
+first concession). Bundle discount was never playable on the listings these buyers chose.
+
+**v5** (`apps/seller-mcp/learned_policy.json`): 24 real + 5,450 simulated negotiations, reward 50% profit + 50% revenue,
+same-listing baseline. Chooses Balanced for price, quality, delivery and unknown; lead with free shipping for trust (30 tries).
+AI buyers now back the perk lesson for price-first shoppers: free shipping −$11.31 vs Balanced over 127 tries.
+
+**Gate (300 fresh Haiku buyers, paired):** learned 69% bought, $39.59/buyer; negotiating 56%, $34.28; balanced 69%, $39.81.
+learned − negotiating **+$5.31 [$2.70, $7.92]** → PASS. learned − balanced −$0.22 [−$2.42, $1.98] → not offered as default.
+0 deals below floor in all three runs.
+
+Per buyer type on the gate (learned − balanced): quality +$3.27 ±4.22, price +$3.12 ±3.24, delivery −$3.28 ±4.16,
+**trust −$4.97 ±7.99**. The trust-first free-shipping pick did not hold up on fresh buyers; it is within noise either way.
+v5's 10% exploration keeps testing it, and the next retrain (which can include the b5G runs) will decide.
+
 ## Where it shows
 
 Dashboard tab **What it learned** (`#learned`): the three lessons, training sources and goal, how one negotiation teaches the
@@ -49,8 +75,6 @@ v1→v5, the learning curve and the gate.
 
 ## What this does and doesn't show
 
-- **v5 has no held-out gate.** The live `learned_policy.json` stays v4 (gate passed). The gate needs ~900 more simulated buyers
-  (`BUYER_CLAUDE_MODEL=claude-haiku-5-5 pnpm e2:learned --id b4G --n 300 --seed 2121 --policy-file ../seller-mcp/learned_policy.candidate.json --gate`).
-  It was blocked at 6:05 am: the Anthropic API key is out of credits. A 600-buyer LLM exploration (`b4Y`) failed for the same reason.
-- **Perk evidence with LLM buyers is zero** after dropping the stale b4X sessions. v5 will explore perks at ε = 0.1 once deployed.
+- **v5 ties Balanced** on held-out buyers; Balanced stays the default. Products opt into `learned` in the console.
+- **Haiku buyers only.** GPT buyers not run. Earlier LLM runs in this folder (`b4X`) used Sonnet; `b4Y` failed (no credits) and isn't used.
 - **Real traffic is small:** 24 live negotiations, most with no stated preference (before the preferences fix, which isn't deployed yet).
