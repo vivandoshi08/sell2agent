@@ -19,6 +19,7 @@ import { createClient } from "@supabase/supabase-js";
 import type { NegotiationEvent } from "@sa/shared";
 import { ExchangeGateway, LocalGateway, McpGateway, makeBuyers, runAll, type BuyerModel, type Gateway } from "@sa/buyer-harness";
 import { defaultLlm } from "@sa/seller-mcp/sellers";
+import { signEvalRun } from "@sa/seller-mcp/exchange";
 import { policyKpis } from "../src/metrics/kpis";
 import { computeRunResult } from "../src/server/run-result";
 import { catalogCosts, supabaseCosts } from "../src/server/costs";
@@ -56,10 +57,11 @@ const saved = f.rescore && existsSync(resolve(outDir, `${evalId}.events.json`))
 const allEvents: NegotiationEvent[] = [];
 const results = [];
 for (const policy of policies) {
-  const run_id = `${evalId}_${policy}`;
+  // E1: through a deployed gateway, a signed run_id gets its own buyer memory/limits/breaker and lets `strategy` apply
+  const run_id = gatewayUrl ? signEvalRun(`${evalId}_${policy}`) : `${evalId}_${policy}`;
   if (!f.rescore) {
     // Default: E1's real exchange in-process (real guardrails, offer ids, deal locks). --stand-in: E2's simpler mock.
-    const gw: Gateway = gatewayUrl ? new McpGateway(gatewayUrl) : f["stand-in"] ? new LocalGateway(policy, sellerLlm) : new ExchangeGateway(policy, sellerLlm);
+    const gw: Gateway = gatewayUrl ? new McpGateway(gatewayUrl, policy as "static" | "negotiating" | "balanced") : f["stand-in"] ? new LocalGateway(policy, sellerLlm) : new ExchangeGateway(policy, sellerLlm);
     let done = 0;
     await runAll({ run_id, label: policy, buyers, gateway: gw, concurrency: Number(f.concurrency),
       on_outcome: () => { done++; if (done % 10 === 0 || done === buyers.length) process.stdout.write(`  ${policy}: ${done}/${buyers.length}\r`); } });

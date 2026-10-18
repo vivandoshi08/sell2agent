@@ -125,6 +125,10 @@ export interface Negotiation {
   run_id: string;
   /** Eval A/B override (signed eval runs only); absent = the product's catalog strategy. */
   strategy?: "static" | "negotiating" | "balanced";
+  /** Seller-facing event fields (Instinct demo): public listing title, and how the buyer reached us (from ctx). */
+  product_title?: string;
+  channel?: string; // "messaging" (Instinct) | "mcp_app" (ChatGPT/Claude) | "web" | "harness"
+  agent_operator?: string; // "instinct" | "chatgpt" | "claude" | "harness"
   buyer_id: string;
   buyer_model: string;
   seller_id: string;
@@ -178,6 +182,9 @@ export interface ExchangeResponse {
   allowed_actions: BuyerAction[];
   message: string; // seller's words (guarded) or an explanation
   reason?: string; // true reason code
+  /** Contract v3: one plain line a text-only agent (Instinct) can relay verbatim (E2 offerSummary / dealSummary). Never floor or cost. */
+  summary?: string;
+  list_price_cents?: number;
   error?: ExchangeError;
 }
 
