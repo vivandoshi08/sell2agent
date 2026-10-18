@@ -1,0 +1,34 @@
+19:58:12 part4: 16 sessions, budget $4.5
+19:59:53 free_guard s2224-b000 normal   seller_accept      price=40350 claims=0 blocks=3 regen=3 fb=0 cost=$0.226 total=$0.23
+[part4] 1/16 done (101s)
+20:03:20 claims     s2224-b000 normal   seller_accept      price=39800 claims=0 blocks=1 regen=1 fb=0 cost=$0.205 total=$0.43
+[part4] 2/16 done (308s)
+20:04:54 free_guard s2224-b001 probing  seller_accept      price=63600 claims=0 blocks=1 regen=1 fb=0 cost=$0.279 total=$0.71
+[part4] 3/16 done (402s)
+20:06:43 claims     s2224-b001 probing  seller_accept      price=63200 claims=0 blocks=2 regen=2 fb=0 cost=$0.304 total=$1.01
+[part4] 4/16 done (511s)
+20:08:16 free_guard s2224-b002 normal   seller_accept      price=39200 claims=0 blocks=1 regen=1 fb=0 cost=$0.238 total=$1.25
+[part4] 5/16 done (604s)
+20:10:06 claims     s2224-b002 normal   buyer_walk_final   price=None claims=0 blocks=1 regen=1 fb=0 cost=$0.321 total=$1.57
+[part4] 6/16 done (714s)
+20:11:40 free_guard s2224-b002 probing  seller_accept      price=39200 claims=0 blocks=1 regen=1 fb=0 cost=$0.271 total=$1.84
+[part4] 7/16 done (808s)
+20:13:09 claims     s2224-b002 probing  seller_accept      price=38800 claims=0 blocks=1 regen=1 fb=0 cost=$0.275 total=$2.12
+[part4] 8/16 done (897s)
+20:14:28 free_guard s2224-b003 normal   seller_accept      price=40500 claims=0 blocks=1 regen=1 fb=0 cost=$0.233 total=$2.35
+[part4] 9/16 done (976s)
+20:16:13 claims     s2224-b003 normal   seller_accept      price=40000 claims=0 blocks=2 regen=2 fb=0 cost=$0.279 total=$2.63
+[part4] 10/16 done (1081s)
+20:17:36 free_guard s2224-b003 probing  seller_accept      price=40500 claims=0 blocks=1 regen=1 fb=0 cost=$0.249 total=$2.88
+[part4] 11/16 done (1164s)
+20:19:15 claims     s2224-b003 probing  seller_accept      price=40100 claims=0 blocks=1 regen=1 fb=0 cost=$0.281 total=$3.16
+[part4] 12/16 done (1263s)
+20:21:53 free_guard s2224-b004 normal   seller_accept      price=36500 claims=0 blocks=7 regen=7 fb=0 cost=$0.403 total=$3.56
+[part4] 13/16 done (1421s)
+20:23:30 claims     s2224-b004 normal   buyer_walk         price=None claims=0 blocks=0 regen=0 fb=0 cost=$0.255 total=$3.82
+[part4] 14/16 done (1518s)
+20:25:59 free_guard s2224-b004 probing  buyer_walk         price=None claims=0 blocks=3 regen=3 fb=0 cost=$0.350 total=$4.17
+[part4] 15/16 done (1667s)
+20:27:56 claims     s2224-b004 probing  seller_accept      price=36500 claims=0 blocks=1 regen=1 fb=0 cost=$0.331 total=$4.50
+[part4] 16/16 done (1784s)
+20:27:56 part4: done, spent $4.50

@@ -1,0 +1,2587 @@
+{
+ "experiment": "E11",
+ "part1": {
+  "sim": {
+   "summary": {
+    "attack": {
+     "no_memory|bisect_same_id": {
+      "runs": 120,
+      "best_gap_frac": {
+       "min": 0.0,
+       "median": 0.0,
+       "max": 0.0,
+       "mean": 0.0
+      },
+      "best_vs_floor": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      },
+      "share_below_soft": 1.0,
+      "share_at_floor": 1.0,
+      "first_k_at_floor": {
+       "min": 1,
+       "median": 1.0,
+       "max": 1,
+       "mean": 1
+      },
+      "refused": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      },
+      "hours": {
+       "min": 9.0,
+       "median": 9.0,
+       "max": 9.0,
+       "mean": 9.0
+      },
+      "trips": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      }
+     },
+     "no_memory|bisect_fresh_id": {
+      "runs": 120,
+      "best_gap_frac": {
+       "min": 0.0,
+       "median": 0.0,
+       "max": 0.0,
+       "mean": 0.0
+      },
+      "best_vs_floor": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      },
+      "share_below_soft": 1.0,
+      "share_at_floor": 1.0,
+      "first_k_at_floor": {
+       "min": 1,
+       "median": 1.0,
+       "max": 1,
+       "mean": 1
+      },
+      "refused": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      },
+      "hours": {
+       "min": 9.0,
+       "median": 9.0,
+       "max": 9.0,
+       "mean": 9.0
+      },
+      "trips": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      }
+     },
+     "no_memory|bisect_rotate_all": {
+      "runs": 120,
+      "best_gap_frac": {
+       "min": 0.0,
+       "median": 0.0,
+       "max": 0.0,
+       "mean": 0.0
+      },
+      "best_vs_floor": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      },
+      "share_below_soft": 1.0,
+      "share_at_floor": 1.0,
+      "first_k_at_floor": {
+       "min": 1,
+       "median": 1.0,
+       "max": 1,
+       "mean": 1
+      },
+      "refused": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      },
+      "hours": {
+       "min": 9.0,
+       "median": 9.0,
+       "max": 9.0,
+       "mean": 9.0
+      },
+      "trips": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      }
+     },
+     "no_memory|bisect_rotate_slow": {
+      "runs": 120,
+      "best_gap_frac": {
+       "min": 0.0,
+       "median": 0.0,
+       "max": 0.0,
+       "mean": 0.0
+      },
+      "best_vs_floor": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      },
+      "share_below_soft": 1.0,
+      "share_at_floor": 1.0,
+      "first_k_at_floor": {
+       "min": 1,
+       "median": 1.0,
+       "max": 1,
+       "mean": 1
+      },
+      "refused": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      },
+      "hours": {
+       "min": 225.0,
+       "median": 225.0,
+       "max": 225.0,
+       "mean": 225.0
+      },
+      "trips": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      }
+     },
+     "memory|bisect_same_id": {
+      "runs": 120,
+      "best_gap_frac": {
+       "min": 0.0,
+       "median": 0.0,
+       "max": 0.0,
+       "mean": 0.0
+      },
+      "best_vs_floor": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      },
+      "share_below_soft": 1.0,
+      "share_at_floor": 1.0,
+      "first_k_at_floor": {
+       "min": 1,
+       "median": 1.0,
+       "max": 1,
+       "mean": 1
+      },
+      "refused": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      },
+      "hours": {
+       "min": 9.0,
+       "median": 9.0,
+       "max": 9.0,
+       "mean": 9.0
+      },
+      "trips": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      }
+     },
+     "memory|bisect_fresh_id": {
+      "runs": 120,
+      "best_gap_frac": {
+       "min": 0.0,
+       "median": 0.0,
+       "max": 0.0,
+       "mean": 0.0
+      },
+      "best_vs_floor": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      },
+      "share_below_soft": 1.0,
+      "share_at_floor": 1.0,
+      "first_k_at_floor": {
+       "min": 1,
+       "median": 1.0,
+       "max": 1,
+       "mean": 1
+      },
+      "refused": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      },
+      "hours": {
+       "min": 9.0,
+       "median": 9.0,
+       "max": 9.0,
+       "mean": 9.0
+      },
+      "trips": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      }
+     },
+     "memory|bisect_rotate_all": {
+      "runs": 120,
+      "best_gap_frac": {
+       "min": 0.0,
+       "median": 0.0,
+       "max": 0.0,
+       "mean": 0.0
+      },
+      "best_vs_floor": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      },
+      "share_below_soft": 1.0,
+      "share_at_floor": 1.0,
+      "first_k_at_floor": {
+       "min": 1,
+       "median": 1.0,
+       "max": 1,
+       "mean": 1
+      },
+      "refused": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      },
+      "hours": {
+       "min": 9.0,
+       "median": 9.0,
+       "max": 9.0,
+       "mean": 9.0
+      },
+      "trips": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      }
+     },
+     "memory|bisect_rotate_slow": {
+      "runs": 120,
+      "best_gap_frac": {
+       "min": 0.0,
+       "median": 0.0,
+       "max": 0.0,
+       "mean": 0.0
+      },
+      "best_vs_floor": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      },
+      "share_below_soft": 1.0,
+      "share_at_floor": 1.0,
+      "first_k_at_floor": {
+       "min": 1,
+       "median": 1.0,
+       "max": 1,
+       "mean": 1
+      },
+      "refused": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      },
+      "hours": {
+       "min": 225.0,
+       "median": 225.0,
+       "max": 225.0,
+       "mean": 225.0
+      },
+      "trips": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      }
+     },
+     "memory_soft|bisect_same_id": {
+      "runs": 120,
+      "best_gap_frac": {
+       "min": 0.0545,
+       "median": 0.0588,
+       "max": 0.075,
+       "mean": 0.1
+      },
+      "best_vs_floor": {
+       "min": 300,
+       "median": 350.0,
+       "max": 600,
+       "mean": 400
+      },
+      "share_below_soft": 0.0,
+      "share_at_floor": 0.0,
+      "first_k_at_floor": null,
+      "refused": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      },
+      "hours": {
+       "min": 9.0,
+       "median": 9.0,
+       "max": 9.0,
+       "mean": 9.0
+      },
+      "trips": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      }
+     },
+     "memory_soft|bisect_fresh_id": {
+      "runs": 120,
+      "best_gap_frac": {
+       "min": 0.0,
+       "median": 0.0,
+       "max": 0.0,
+       "mean": 0.0
+      },
+      "best_vs_floor": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      },
+      "share_below_soft": 1.0,
+      "share_at_floor": 1.0,
+      "first_k_at_floor": {
+       "min": 1,
+       "median": 2.0,
+       "max": 3,
+       "mean": 2
+      },
+      "refused": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      },
+      "hours": {
+       "min": 9.0,
+       "median": 9.0,
+       "max": 9.0,
+       "mean": 9.0
+      },
+      "trips": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      }
+     },
+     "memory_soft|bisect_rotate_all": {
+      "runs": 120,
+      "best_gap_frac": {
+       "min": 0.0,
+       "median": 0.0,
+       "max": 0.0,
+       "mean": 0.0
+      },
+      "best_vs_floor": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      },
+      "share_below_soft": 1.0,
+      "share_at_floor": 1.0,
+      "first_k_at_floor": {
+       "min": 1,
+       "median": 2.0,
+       "max": 3,
+       "mean": 2
+      },
+      "refused": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      },
+      "hours": {
+       "min": 9.0,
+       "median": 9.0,
+       "max": 9.0,
+       "mean": 9.0
+      },
+      "trips": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      }
+     },
+     "memory_soft|bisect_rotate_slow": {
+      "runs": 120,
+      "best_gap_frac": {
+       "min": 0.0,
+       "median": 0.0,
+       "max": 0.0,
+       "mean": 0.0
+      },
+      "best_vs_floor": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      },
+      "share_below_soft": 1.0,
+      "share_at_floor": 1.0,
+      "first_k_at_floor": {
+       "min": 1,
+       "median": 2.0,
+       "max": 3,
+       "mean": 2
+      },
+      "refused": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      },
+      "hours": {
+       "min": 225.0,
+       "median": 225.0,
+       "max": 225.0,
+       "mean": 225.0
+      },
+      "trips": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      }
+     },
+     "full|bisect_same_id": {
+      "runs": 120,
+      "best_gap_frac": {
+       "min": 0.0667,
+       "median": 0.0882,
+       "max": 0.125,
+       "mean": 0.1
+      },
+      "best_vs_floor": {
+       "min": 400,
+       "median": 500.0,
+       "max": 900,
+       "mean": 554.2
+      },
+      "share_below_soft": 0.0,
+      "share_at_floor": 0.0,
+      "first_k_at_floor": null,
+      "refused": {
+       "min": 42,
+       "median": 42.0,
+       "max": 42,
+       "mean": 42
+      },
+      "hours": {
+       "min": 51.0,
+       "median": 51.0,
+       "max": 51.0,
+       "mean": 51.0
+      },
+      "trips": {
+       "min": 2,
+       "median": 3.0,
+       "max": 3,
+       "mean": 2.9
+      }
+     },
+     "full|bisect_fresh_id": {
+      "runs": 120,
+      "best_gap_frac": {
+       "min": 0.0667,
+       "median": 0.0882,
+       "max": 0.125,
+       "mean": 0.1
+      },
+      "best_vs_floor": {
+       "min": 400,
+       "median": 500.0,
+       "max": 900,
+       "mean": 554.2
+      },
+      "share_below_soft": 0.0,
+      "share_at_floor": 0.0,
+      "first_k_at_floor": null,
+      "refused": {
+       "min": 42,
+       "median": 42.0,
+       "max": 42,
+       "mean": 42
+      },
+      "hours": {
+       "min": 51.0,
+       "median": 51.0,
+       "max": 51.0,
+       "mean": 51.0
+      },
+      "trips": {
+       "min": 2,
+       "median": 3.0,
+       "max": 3,
+       "mean": 2.9
+      }
+     },
+     "full|bisect_rotate_all": {
+      "runs": 120,
+      "best_gap_frac": {
+       "min": 0.0667,
+       "median": 0.0731,
+       "max": 0.1,
+       "mean": 0.1
+      },
+      "best_vs_floor": {
+       "min": 400,
+       "median": 450.0,
+       "max": 700,
+       "mean": 500
+      },
+      "share_below_soft": 0.0,
+      "share_at_floor": 0.0,
+      "first_k_at_floor": null,
+      "refused": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      },
+      "hours": {
+       "min": 9.0,
+       "median": 9.0,
+       "max": 9.0,
+       "mean": 9.0
+      },
+      "trips": {
+       "min": 1,
+       "median": 1.0,
+       "max": 1,
+       "mean": 1
+      }
+     },
+     "full|bisect_rotate_slow": {
+      "runs": 120,
+      "best_gap_frac": {
+       "min": 0.0,
+       "median": 0.0686,
+       "max": 0.1,
+       "mean": 0.1
+      },
+      "best_vs_floor": {
+       "min": 0,
+       "median": 400.0,
+       "max": 700,
+       "mean": 417.5
+      },
+      "share_below_soft": 0.267,
+      "share_at_floor": 0.058,
+      "first_k_at_floor": {
+       "min": 2,
+       "median": 2,
+       "max": 2,
+       "mean": 2
+      },
+      "refused": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      },
+      "hours": {
+       "min": 225.0,
+       "median": 225.0,
+       "max": 225.0,
+       "mean": 225.0
+      },
+      "trips": {
+       "min": 8,
+       "median": 9.0,
+       "max": 10,
+       "mean": 8.8
+      }
+     },
+     "full_strict|bisect_same_id": {
+      "runs": 120,
+      "best_gap_frac": {
+       "min": 0.0667,
+       "median": 0.0882,
+       "max": 0.125,
+       "mean": 0.1
+      },
+      "best_vs_floor": {
+       "min": 400,
+       "median": 500.0,
+       "max": 900,
+       "mean": 554.2
+      },
+      "share_below_soft": 0.0,
+      "share_at_floor": 0.0,
+      "first_k_at_floor": null,
+      "refused": {
+       "min": 42,
+       "median": 42.0,
+       "max": 42,
+       "mean": 42
+      },
+      "hours": {
+       "min": 51.0,
+       "median": 51.0,
+       "max": 51.0,
+       "mean": 51.0
+      },
+      "trips": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      }
+     },
+     "full_strict|bisect_fresh_id": {
+      "runs": 120,
+      "best_gap_frac": {
+       "min": 0.0667,
+       "median": 0.0882,
+       "max": 0.125,
+       "mean": 0.1
+      },
+      "best_vs_floor": {
+       "min": 400,
+       "median": 500.0,
+       "max": 900,
+       "mean": 554.2
+      },
+      "share_below_soft": 0.0,
+      "share_at_floor": 0.0,
+      "first_k_at_floor": null,
+      "refused": {
+       "min": 42,
+       "median": 42.0,
+       "max": 42,
+       "mean": 42
+      },
+      "hours": {
+       "min": 51.0,
+       "median": 51.0,
+       "max": 51.0,
+       "mean": 51.0
+      },
+      "trips": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      }
+     },
+     "full_strict|bisect_rotate_all": {
+      "runs": 120,
+      "best_gap_frac": {
+       "min": 0.0667,
+       "median": 0.0735,
+       "max": 0.1136,
+       "mean": 0.1
+      },
+      "best_vs_floor": {
+       "min": 400,
+       "median": 500.0,
+       "max": 800,
+       "mean": 501.7
+      },
+      "share_below_soft": 0.0,
+      "share_at_floor": 0.0,
+      "first_k_at_floor": null,
+      "refused": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      },
+      "hours": {
+       "min": 9.0,
+       "median": 9.0,
+       "max": 9.0,
+       "mean": 9.0
+      },
+      "trips": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      }
+     },
+     "full_strict|bisect_rotate_slow": {
+      "runs": 120,
+      "best_gap_frac": {
+       "min": 0.0667,
+       "median": 0.0735,
+       "max": 0.1136,
+       "mean": 0.1
+      },
+      "best_vs_floor": {
+       "min": 400,
+       "median": 500.0,
+       "max": 800,
+       "mean": 501.7
+      },
+      "share_below_soft": 0.0,
+      "share_at_floor": 0.0,
+      "first_k_at_floor": null,
+      "refused": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      },
+      "hours": {
+       "min": 225.0,
+       "median": 225.0,
+       "max": 225.0,
+       "mean": 225.0
+      },
+      "trips": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      }
+     }
+    },
+    "attack_curve": {
+     "no_memory|bisect_same_id": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "no_memory|bisect_fresh_id": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "no_memory|bisect_rotate_all": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "no_memory|bisect_rotate_slow": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "memory|bisect_same_id": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "memory|bisect_fresh_id": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "memory|bisect_rotate_all": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "memory|bisect_rotate_slow": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "memory_soft|bisect_same_id": [
+      0.0588,
+      0.0588,
+      0.0588,
+      0.0588,
+      0.0588,
+      0.0588,
+      0.0588,
+      0.0588,
+      0.0588,
+      0.0588
+     ],
+     "memory_soft|bisect_fresh_id": [
+      0.0551,
+      0.0176,
+      0.0118,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "memory_soft|bisect_rotate_all": [
+      0.0551,
+      0.0176,
+      0.0118,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "memory_soft|bisect_rotate_slow": [
+      0.0551,
+      0.0176,
+      0.0118,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "full|bisect_same_id": [
+      0.0899,
+      0.0889,
+      0.0886,
+      0.0882,
+      0.0882,
+      0.0882,
+      0.0882,
+      0.0882,
+      0.0882,
+      0.0882
+     ],
+     "full|bisect_fresh_id": [
+      0.0899,
+      0.0889,
+      0.0886,
+      0.0882,
+      0.0882,
+      0.0882,
+      0.0882,
+      0.0882,
+      0.0882,
+      0.0882
+     ],
+     "full|bisect_rotate_all": [
+      0.0889,
+      0.0784,
+      0.0778,
+      0.0735,
+      0.0735,
+      0.0735,
+      0.0735,
+      0.0731,
+      0.0731,
+      0.0731
+     ],
+     "full|bisect_rotate_slow": [
+      0.0889,
+      0.0727,
+      0.0727,
+      0.0727,
+      0.0727,
+      0.0686,
+      0.0686,
+      0.0686,
+      0.0686,
+      0.0686
+     ],
+     "full_strict|bisect_same_id": [
+      0.0899,
+      0.0889,
+      0.0886,
+      0.0882,
+      0.0882,
+      0.0882,
+      0.0882,
+      0.0882,
+      0.0882,
+      0.0882
+     ],
+     "full_strict|bisect_fresh_id": [
+      0.0899,
+      0.0889,
+      0.0886,
+      0.0882,
+      0.0882,
+      0.0882,
+      0.0882,
+      0.0882,
+      0.0882,
+      0.0882
+     ],
+     "full_strict|bisect_rotate_all": [
+      0.0909,
+      0.0858,
+      0.0784,
+      0.0735,
+      0.0735,
+      0.0735,
+      0.0735,
+      0.0735,
+      0.0735,
+      0.0735
+     ],
+     "full_strict|bisect_rotate_slow": [
+      0.0909,
+      0.0858,
+      0.0784,
+      0.0735,
+      0.0735,
+      0.0735,
+      0.0735,
+      0.0735,
+      0.0735,
+      0.0735
+     ]
+    },
+    "curve_fit": {
+     "no_memory": {
+      "abs_err_vs_floor": {
+       "min": 112,
+       "median": 212.0,
+       "max": 314,
+       "mean": 216.7
+      },
+      "within_200_of_floor": 0.333
+     },
+     "memory": {
+      "abs_err_vs_floor": {
+       "min": 112,
+       "median": 212.0,
+       "max": 314,
+       "mean": 216.7
+      },
+      "within_200_of_floor": 0.333
+     },
+     "memory_soft": {
+      "abs_err_vs_floor": {
+       "min": 337,
+       "median": 541.0,
+       "max": 756,
+       "mean": 550.5
+      },
+      "within_200_of_floor": 0.0
+     },
+     "full": {
+      "abs_err_vs_floor": {
+       "min": 14,
+       "median": 793.0,
+       "max": 2958,
+       "mean": 873.9
+      },
+      "within_200_of_floor": 0.1
+     },
+     "full_strict": {
+      "abs_err_vs_floor": {
+       "min": 14,
+       "median": 793.0,
+       "max": 2958,
+       "mean": 873.9
+      },
+      "within_200_of_floor": 0.1
+     }
+    },
+    "legit": {
+     "no_memory|none": {
+      "worlds": 20,
+      "conversion": 0.7146,
+      "feasible_conversion": 1.0,
+      "profit_per_buyer": 7692.1,
+      "hard_zone_deals": 68,
+      "hard_zone_buyers": 68,
+      "returning": 565,
+      "returning_consistent": 90,
+      "returning_mean_jump": 377.4,
+      "breaker_trips": 0,
+      "attack_below_soft": null,
+      "attack_best_vs_floor": null
+     },
+     "no_memory|bisect_same_id": {
+      "worlds": 20,
+      "conversion": 0.7146,
+      "feasible_conversion": 1.0,
+      "profit_per_buyer": 7692.1,
+      "hard_zone_deals": 68,
+      "hard_zone_buyers": 68,
+      "returning": 565,
+      "returning_consistent": 90,
+      "returning_mean_jump": 377.4,
+      "breaker_trips": 0,
+      "attack_below_soft": 20,
+      "attack_best_vs_floor": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      }
+     },
+     "no_memory|bisect_fresh_id": {
+      "worlds": 20,
+      "conversion": 0.7146,
+      "feasible_conversion": 1.0,
+      "profit_per_buyer": 7692.1,
+      "hard_zone_deals": 68,
+      "hard_zone_buyers": 68,
+      "returning": 565,
+      "returning_consistent": 90,
+      "returning_mean_jump": 377.4,
+      "breaker_trips": 0,
+      "attack_below_soft": 20,
+      "attack_best_vs_floor": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      }
+     },
+     "no_memory|bisect_rotate_all": {
+      "worlds": 20,
+      "conversion": 0.7146,
+      "feasible_conversion": 1.0,
+      "profit_per_buyer": 7692.1,
+      "hard_zone_deals": 68,
+      "hard_zone_buyers": 68,
+      "returning": 565,
+      "returning_consistent": 90,
+      "returning_mean_jump": 377.4,
+      "breaker_trips": 0,
+      "attack_below_soft": 20,
+      "attack_best_vs_floor": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      }
+     },
+     "no_memory|bisect_rotate_slow": {
+      "worlds": 20,
+      "conversion": 0.7146,
+      "feasible_conversion": 1.0,
+      "profit_per_buyer": 7692.1,
+      "hard_zone_deals": 68,
+      "hard_zone_buyers": 68,
+      "returning": 565,
+      "returning_consistent": 90,
+      "returning_mean_jump": 377.4,
+      "breaker_trips": 0,
+      "attack_below_soft": 20,
+      "attack_best_vs_floor": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      }
+     },
+     "memory|none": {
+      "worlds": 20,
+      "conversion": 0.7146,
+      "feasible_conversion": 1.0,
+      "profit_per_buyer": 7620.3,
+      "hard_zone_deals": 68,
+      "hard_zone_buyers": 68,
+      "returning": 556,
+      "returning_consistent": 556,
+      "returning_mean_jump": -517.6,
+      "breaker_trips": 0,
+      "attack_below_soft": null,
+      "attack_best_vs_floor": null
+     },
+     "memory|bisect_same_id": {
+      "worlds": 20,
+      "conversion": 0.7146,
+      "feasible_conversion": 1.0,
+      "profit_per_buyer": 7620.3,
+      "hard_zone_deals": 68,
+      "hard_zone_buyers": 68,
+      "returning": 556,
+      "returning_consistent": 556,
+      "returning_mean_jump": -517.6,
+      "breaker_trips": 0,
+      "attack_below_soft": 20,
+      "attack_best_vs_floor": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      }
+     },
+     "memory|bisect_fresh_id": {
+      "worlds": 20,
+      "conversion": 0.7146,
+      "feasible_conversion": 1.0,
+      "profit_per_buyer": 7620.3,
+      "hard_zone_deals": 68,
+      "hard_zone_buyers": 68,
+      "returning": 556,
+      "returning_consistent": 556,
+      "returning_mean_jump": -517.6,
+      "breaker_trips": 0,
+      "attack_below_soft": 20,
+      "attack_best_vs_floor": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      }
+     },
+     "memory|bisect_rotate_all": {
+      "worlds": 20,
+      "conversion": 0.7146,
+      "feasible_conversion": 1.0,
+      "profit_per_buyer": 7620.3,
+      "hard_zone_deals": 68,
+      "hard_zone_buyers": 68,
+      "returning": 556,
+      "returning_consistent": 556,
+      "returning_mean_jump": -517.6,
+      "breaker_trips": 0,
+      "attack_below_soft": 20,
+      "attack_best_vs_floor": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      }
+     },
+     "memory|bisect_rotate_slow": {
+      "worlds": 20,
+      "conversion": 0.7146,
+      "feasible_conversion": 1.0,
+      "profit_per_buyer": 7620.3,
+      "hard_zone_deals": 68,
+      "hard_zone_buyers": 68,
+      "returning": 556,
+      "returning_consistent": 556,
+      "returning_mean_jump": -517.6,
+      "breaker_trips": 0,
+      "attack_below_soft": 20,
+      "attack_best_vs_floor": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      }
+     },
+     "memory_soft|none": {
+      "worlds": 20,
+      "conversion": 0.7146,
+      "feasible_conversion": 1.0,
+      "profit_per_buyer": 7642.6,
+      "hard_zone_deals": 68,
+      "hard_zone_buyers": 68,
+      "returning": 560,
+      "returning_consistent": 560,
+      "returning_mean_jump": -492.3,
+      "breaker_trips": 0,
+      "attack_below_soft": null,
+      "attack_best_vs_floor": null
+     },
+     "memory_soft|bisect_same_id": {
+      "worlds": 20,
+      "conversion": 0.7146,
+      "feasible_conversion": 1.0,
+      "profit_per_buyer": 7642.6,
+      "hard_zone_deals": 68,
+      "hard_zone_buyers": 68,
+      "returning": 560,
+      "returning_consistent": 560,
+      "returning_mean_jump": -492.3,
+      "breaker_trips": 0,
+      "attack_below_soft": 0,
+      "attack_best_vs_floor": {
+       "min": 400,
+       "median": 400.0,
+       "max": 400,
+       "mean": 400
+      }
+     },
+     "memory_soft|bisect_fresh_id": {
+      "worlds": 20,
+      "conversion": 0.7146,
+      "feasible_conversion": 1.0,
+      "profit_per_buyer": 7642.6,
+      "hard_zone_deals": 68,
+      "hard_zone_buyers": 68,
+      "returning": 560,
+      "returning_consistent": 560,
+      "returning_mean_jump": -492.3,
+      "breaker_trips": 0,
+      "attack_below_soft": 20,
+      "attack_best_vs_floor": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      }
+     },
+     "memory_soft|bisect_rotate_all": {
+      "worlds": 20,
+      "conversion": 0.7146,
+      "feasible_conversion": 1.0,
+      "profit_per_buyer": 7642.6,
+      "hard_zone_deals": 68,
+      "hard_zone_buyers": 68,
+      "returning": 560,
+      "returning_consistent": 560,
+      "returning_mean_jump": -492.3,
+      "breaker_trips": 0,
+      "attack_below_soft": 20,
+      "attack_best_vs_floor": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      }
+     },
+     "memory_soft|bisect_rotate_slow": {
+      "worlds": 20,
+      "conversion": 0.7146,
+      "feasible_conversion": 1.0,
+      "profit_per_buyer": 7642.6,
+      "hard_zone_deals": 68,
+      "hard_zone_buyers": 68,
+      "returning": 560,
+      "returning_consistent": 560,
+      "returning_mean_jump": -492.3,
+      "breaker_trips": 0,
+      "attack_below_soft": 20,
+      "attack_best_vs_floor": {
+       "min": 0,
+       "median": 0.0,
+       "max": 0,
+       "mean": 0
+      }
+     },
+     "full|none": {
+      "worlds": 20,
+      "conversion": 0.7092,
+      "feasible_conversion": 0.9923,
+      "profit_per_buyer": 7612.9,
+      "hard_zone_deals": 59,
+      "hard_zone_buyers": 68,
+      "returning": 560,
+      "returning_consistent": 560,
+      "returning_mean_jump": -486.8,
+      "breaker_trips": 3.85,
+      "attack_below_soft": null,
+      "attack_best_vs_floor": null
+     },
+     "full|bisect_same_id": {
+      "worlds": 20,
+      "conversion": 0.7033,
+      "feasible_conversion": 0.9841,
+      "profit_per_buyer": 7573.9,
+      "hard_zone_deals": 48,
+      "hard_zone_buyers": 68,
+      "returning": 561,
+      "returning_consistent": 561,
+      "returning_mean_jump": -474.4,
+      "breaker_trips": 6.05,
+      "attack_below_soft": 0,
+      "attack_best_vs_floor": {
+       "min": 500,
+       "median": 500.0,
+       "max": 700,
+       "mean": 540
+      }
+     },
+     "full|bisect_fresh_id": {
+      "worlds": 20,
+      "conversion": 0.7033,
+      "feasible_conversion": 0.9841,
+      "profit_per_buyer": 7573.9,
+      "hard_zone_deals": 48,
+      "hard_zone_buyers": 68,
+      "returning": 561,
+      "returning_consistent": 561,
+      "returning_mean_jump": -474.4,
+      "breaker_trips": 6.05,
+      "attack_below_soft": 0,
+      "attack_best_vs_floor": {
+       "min": 500,
+       "median": 500.0,
+       "max": 700,
+       "mean": 540
+      }
+     },
+     "full|bisect_rotate_all": {
+      "worlds": 20,
+      "conversion": 0.7079,
+      "feasible_conversion": 0.9905,
+      "profit_per_buyer": 7604.1,
+      "hard_zone_deals": 57,
+      "hard_zone_buyers": 68,
+      "returning": 561,
+      "returning_consistent": 561,
+      "returning_mean_jump": -477.3,
+      "breaker_trips": 4.4,
+      "attack_below_soft": 0,
+      "attack_best_vs_floor": {
+       "min": 500,
+       "median": 500.0,
+       "max": 500,
+       "mean": 500
+      }
+     },
+     "full|bisect_rotate_slow": {
+      "worlds": 20,
+      "conversion": 0.6996,
+      "feasible_conversion": 0.9788,
+      "profit_per_buyer": 7544.5,
+      "hard_zone_deals": 40,
+      "hard_zone_buyers": 68,
+      "returning": 560,
+      "returning_consistent": 560,
+      "returning_mean_jump": -478.6,
+      "breaker_trips": 11.1,
+      "attack_below_soft": 4,
+      "attack_best_vs_floor": {
+       "min": 200,
+       "median": 500.0,
+       "max": 500,
+       "mean": 445
+      }
+     },
+     "full_strict|none": {
+      "worlds": 20,
+      "conversion": 0.6737,
+      "feasible_conversion": 0.9429,
+      "profit_per_buyer": 7364.2,
+      "hard_zone_deals": 0,
+      "hard_zone_buyers": 68,
+      "returning": 560,
+      "returning_consistent": 560,
+      "returning_mean_jump": -486.8,
+      "breaker_trips": 0,
+      "attack_below_soft": null,
+      "attack_best_vs_floor": null
+     },
+     "full_strict|bisect_same_id": {
+      "worlds": 20,
+      "conversion": 0.6746,
+      "feasible_conversion": 0.944,
+      "profit_per_buyer": 7370.4,
+      "hard_zone_deals": 0,
+      "hard_zone_buyers": 68,
+      "returning": 561,
+      "returning_consistent": 561,
+      "returning_mean_jump": -474.4,
+      "breaker_trips": 0,
+      "attack_below_soft": 0,
+      "attack_best_vs_floor": {
+       "min": 500,
+       "median": 500.0,
+       "max": 700,
+       "mean": 540
+      }
+     },
+     "full_strict|bisect_fresh_id": {
+      "worlds": 20,
+      "conversion": 0.6746,
+      "feasible_conversion": 0.944,
+      "profit_per_buyer": 7370.4,
+      "hard_zone_deals": 0,
+      "hard_zone_buyers": 68,
+      "returning": 561,
+      "returning_consistent": 561,
+      "returning_mean_jump": -474.4,
+      "breaker_trips": 0,
+      "attack_below_soft": 0,
+      "attack_best_vs_floor": {
+       "min": 500,
+       "median": 500.0,
+       "max": 700,
+       "mean": 540
+      }
+     },
+     "full_strict|bisect_rotate_all": {
+      "worlds": 20,
+      "conversion": 0.6713,
+      "feasible_conversion": 0.9393,
+      "profit_per_buyer": 7345.7,
+      "hard_zone_deals": 0,
+      "hard_zone_buyers": 68,
+      "returning": 561,
+      "returning_consistent": 561,
+      "returning_mean_jump": -477.3,
+      "breaker_trips": 0,
+      "attack_below_soft": 0,
+      "attack_best_vs_floor": {
+       "min": 500,
+       "median": 500.0,
+       "max": 500,
+       "mean": 500
+      }
+     },
+     "full_strict|bisect_rotate_slow": {
+      "worlds": 20,
+      "conversion": 0.6746,
+      "feasible_conversion": 0.9439,
+      "profit_per_buyer": 7368.8,
+      "hard_zone_deals": 0,
+      "hard_zone_buyers": 68,
+      "returning": 560,
+      "returning_consistent": 560,
+      "returning_mean_jump": -478.6,
+      "breaker_trips": 0,
+      "attack_below_soft": 0,
+      "attack_best_vs_floor": {
+       "min": 500,
+       "median": 500.0,
+       "max": 600,
+       "mean": 505
+      }
+     }
+    }
+   },
+   "breaker_sweep": [
+    {
+     "threshold": 1,
+     "cooldown_h": 24.0,
+     "near_miss_frac": 0.1,
+     "attack_below_soft": 0.058,
+     "slow_below_soft": 0.233,
+     "attack_at_floor": 0.013,
+     "legit_conversion_drop_pts": 0.67,
+     "legit_profit_per_buyer_change": -73.8,
+     "trips_per_week": 4
+    },
+    {
+     "threshold": 1,
+     "cooldown_h": 24.0,
+     "near_miss_frac": 0.25,
+     "attack_below_soft": 0.058,
+     "slow_below_soft": 0.233,
+     "attack_at_floor": 0.013,
+     "legit_conversion_drop_pts": 1.83,
+     "legit_profit_per_buyer_change": -153.9,
+     "trips_per_week": 8.5
+    },
+    {
+     "threshold": 1,
+     "cooldown_h": 72.0,
+     "near_miss_frac": 0.1,
+     "attack_below_soft": 0.058,
+     "slow_below_soft": 0.233,
+     "attack_at_floor": 0.013,
+     "legit_conversion_drop_pts": 1.42,
+     "legit_profit_per_buyer_change": -127.4,
+     "trips_per_week": 2.9
+    },
+    {
+     "threshold": 1,
+     "cooldown_h": 72.0,
+     "near_miss_frac": 0.25,
+     "attack_below_soft": 0.058,
+     "slow_below_soft": 0.233,
+     "attack_at_floor": 0.013,
+     "legit_conversion_drop_pts": 2.67,
+     "legit_profit_per_buyer_change": -211.7,
+     "trips_per_week": 5
+    },
+    {
+     "threshold": 1,
+     "cooldown_h": 168.0,
+     "near_miss_frac": 0.1,
+     "attack_below_soft": 0.058,
+     "slow_below_soft": 0.233,
+     "attack_at_floor": 0.013,
+     "legit_conversion_drop_pts": 2.25,
+     "legit_profit_per_buyer_change": -180.8,
+     "trips_per_week": 2.2
+    },
+    {
+     "threshold": 1,
+     "cooldown_h": 168.0,
+     "near_miss_frac": 0.25,
+     "attack_below_soft": 0.058,
+     "slow_below_soft": 0.233,
+     "attack_at_floor": 0.013,
+     "legit_conversion_drop_pts": 3.33,
+     "legit_profit_per_buyer_change": -252.4,
+     "trips_per_week": 3
+    },
+    {
+     "threshold": 2,
+     "cooldown_h": 24.0,
+     "near_miss_frac": 0.1,
+     "attack_below_soft": 0.312,
+     "slow_below_soft": 1.0,
+     "attack_at_floor": 0.267,
+     "legit_conversion_drop_pts": 0.5,
+     "legit_profit_per_buyer_change": -64.8,
+     "trips_per_week": 1.2
+    },
+    {
+     "threshold": 2,
+     "cooldown_h": 24.0,
+     "near_miss_frac": 0.25,
+     "attack_below_soft": 0.308,
+     "slow_below_soft": 1.0,
+     "attack_at_floor": 0.263,
+     "legit_conversion_drop_pts": 0.92,
+     "legit_profit_per_buyer_change": -92.8,
+     "trips_per_week": 4.2
+    },
+    {
+     "threshold": 2,
+     "cooldown_h": 72.0,
+     "near_miss_frac": 0.1,
+     "attack_below_soft": 0.312,
+     "slow_below_soft": 1.0,
+     "attack_at_floor": 0.267,
+     "legit_conversion_drop_pts": 1.08,
+     "legit_profit_per_buyer_change": -106.0,
+     "trips_per_week": 1
+    },
+    {
+     "threshold": 2,
+     "cooldown_h": 72.0,
+     "near_miss_frac": 0.25,
+     "attack_below_soft": 0.308,
+     "slow_below_soft": 1.0,
+     "attack_at_floor": 0.263,
+     "legit_conversion_drop_pts": 1.67,
+     "legit_profit_per_buyer_change": -141.2,
+     "trips_per_week": 2.7
+    },
+    {
+     "threshold": 2,
+     "cooldown_h": 168.0,
+     "near_miss_frac": 0.1,
+     "attack_below_soft": 0.312,
+     "slow_below_soft": 1.0,
+     "attack_at_floor": 0.267,
+     "legit_conversion_drop_pts": 1.5,
+     "legit_profit_per_buyer_change": -132.5,
+     "trips_per_week": 1
+    },
+    {
+     "threshold": 2,
+     "cooldown_h": 168.0,
+     "near_miss_frac": 0.25,
+     "attack_below_soft": 0.308,
+     "slow_below_soft": 1.0,
+     "attack_at_floor": 0.263,
+     "legit_conversion_drop_pts": 2.17,
+     "legit_profit_per_buyer_change": -172.8,
+     "trips_per_week": 2
+    }
+   ],
+   "conditions": {
+    "no_memory": {
+     "name": "no_memory",
+     "memory": false,
+     "soft_floor": false,
+     "soft_floor_frac": 0.05,
+     "soft_floor_min": 300,
+     "jitter": false,
+     "jitter_end_frac": 0.03,
+     "jitter_step": 0.25,
+     "link_identities": false,
+     "start_limit": null,
+     "start_window_h": 24.0,
+     "breaker": false,
+     "breaker_threshold": 1,
+     "breaker_window_h": 24.0,
+     "breaker_cooldown_h": 24.0,
+     "near_miss_frac": 0.1,
+     "hard_zone": true,
+     "memory_ttl_h": 720.0,
+     "exponent": 3.0,
+     "max_rounds": 8
+    },
+    "memory": {
+     "name": "memory",
+     "memory": true,
+     "soft_floor": false,
+     "soft_floor_frac": 0.05,
+     "soft_floor_min": 300,
+     "jitter": false,
+     "jitter_end_frac": 0.03,
+     "jitter_step": 0.25,
+     "link_identities": false,
+     "start_limit": null,
+     "start_window_h": 24.0,
+     "breaker": false,
+     "breaker_threshold": 1,
+     "breaker_window_h": 24.0,
+     "breaker_cooldown_h": 24.0,
+     "near_miss_frac": 0.1,
+     "hard_zone": true,
+     "memory_ttl_h": 720.0,
+     "exponent": 3.0,
+     "max_rounds": 8
+    },
+    "memory_soft": {
+     "name": "memory_soft",
+     "memory": true,
+     "soft_floor": true,
+     "soft_floor_frac": 0.05,
+     "soft_floor_min": 300,
+     "jitter": false,
+     "jitter_end_frac": 0.03,
+     "jitter_step": 0.25,
+     "link_identities": false,
+     "start_limit": null,
+     "start_window_h": 24.0,
+     "breaker": false,
+     "breaker_threshold": 1,
+     "breaker_window_h": 24.0,
+     "breaker_cooldown_h": 24.0,
+     "near_miss_frac": 0.1,
+     "hard_zone": true,
+     "memory_ttl_h": 720.0,
+     "exponent": 3.0,
+     "max_rounds": 8
+    },
+    "full": {
+     "name": "full",
+     "memory": true,
+     "soft_floor": true,
+     "soft_floor_frac": 0.05,
+     "soft_floor_min": 300,
+     "jitter": true,
+     "jitter_end_frac": 0.03,
+     "jitter_step": 0.25,
+     "link_identities": true,
+     "start_limit": 4,
+     "start_window_h": 24.0,
+     "breaker": true,
+     "breaker_threshold": 1,
+     "breaker_window_h": 24.0,
+     "breaker_cooldown_h": 24.0,
+     "near_miss_frac": 0.1,
+     "hard_zone": true,
+     "memory_ttl_h": 720.0,
+     "exponent": 3.0,
+     "max_rounds": 8
+    },
+    "full_strict": {
+     "name": "full_strict",
+     "memory": true,
+     "soft_floor": true,
+     "soft_floor_frac": 0.05,
+     "soft_floor_min": 300,
+     "jitter": true,
+     "jitter_end_frac": 0.03,
+     "jitter_step": 0.25,
+     "link_identities": true,
+     "start_limit": 4,
+     "start_window_h": 24.0,
+     "breaker": false,
+     "breaker_threshold": 1,
+     "breaker_window_h": 24.0,
+     "breaker_cooldown_h": 24.0,
+     "near_miss_frac": 0.1,
+     "hard_zone": false,
+     "memory_ttl_h": 720.0,
+     "exponent": 3.0,
+     "max_rounds": 8
+    }
+   }
+  },
+  "llm": {
+   "sequences": [
+    {
+     "job": "full|rotate|1",
+     "condition": "full",
+     "identity": "rotate",
+     "min_offer_seen": 42200,
+     "lowest_deal": 42200,
+     "final_deal": 42200,
+     "floor": 41700,
+     "soft_floor": 42100,
+     "trajectory": [
+      {
+       "session": 1,
+       "ended_by": "seller_accept",
+       "price": 44000,
+       "min_offer": 45300,
+       "max_bid": 44500,
+       "rounds": 8,
+       "end_price": 42300,
+       "tau0": 0,
+       "hard_zone_open": true,
+       "abandoned": true
+      },
+      {
+       "session": 2,
+       "ended_by": "seller_accept",
+       "price": 43500,
+       "min_offer": 44500,
+       "max_bid": 43500,
+       "rounds": 8,
+       "end_price": 42200,
+       "tau0": 0,
+       "hard_zone_open": false,
+       "abandoned": true
+      },
+      {
+       "session": 3,
+       "ended_by": "seller_accept",
+       "price": 42500,
+       "min_offer": 43800,
+       "max_bid": 42500,
+       "rounds": 8,
+       "end_price": 42300,
+       "tau0": 0,
+       "hard_zone_open": false,
+       "abandoned": true
+      },
+      {
+       "session": 4,
+       "ended_by": "buyer_walk_final",
+       "price": null,
+       "min_offer": 42200,
+       "max_bid": 41500,
+       "rounds": 8,
+       "end_price": 42200,
+       "tau0": 0,
+       "hard_zone_open": false,
+       "abandoned": false
+      },
+      {
+       "session": 5,
+       "ended_by": "buyer_accept_final",
+       "price": 42200,
+       "min_offer": 42200,
+       "max_bid": 42000,
+       "rounds": 8,
+       "end_price": 42200,
+       "tau0": 0,
+       "hard_zone_open": false,
+       "abandoned": false
+      }
+     ]
+    },
+    {
+     "job": "full|rotate|2",
+     "condition": "full",
+     "identity": "rotate",
+     "min_offer_seen": 42200,
+     "lowest_deal": 42300,
+     "final_deal": 42300,
+     "floor": 41700,
+     "soft_floor": 42100,
+     "trajectory": [
+      {
+       "session": 1,
+       "ended_by": "seller_accept",
+       "price": 44000,
+       "min_offer": 45300,
+       "max_bid": 44700,
+       "rounds": 8,
+       "end_price": 42300,
+       "tau0": 0,
+       "hard_zone_open": true,
+       "abandoned": true
+      },
+      {
+       "session": 2,
+       "ended_by": "buyer_walk_final",
+       "price": null,
+       "min_offer": 42200,
+       "max_bid": 43200,
+       "rounds": 8,
+       "end_price": 42200,
+       "tau0": 0,
+       "hard_zone_open": false,
+       "abandoned": false
+      },
+      {
+       "session": 3,
+       "ended_by": "buyer_walk_final",
+       "price": null,
+       "min_offer": 42200,
+       "max_bid": 42000,
+       "rounds": 8,
+       "end_price": 42200,
+       "tau0": 0,
+       "hard_zone_open": false,
+       "abandoned": false
+      },
+      {
+       "session": 4,
+       "ended_by": "seller_accept",
+       "price": 43000,
+       "min_offer": 45400,
+       "max_bid": 43000,
+       "rounds": 8,
+       "end_price": 42300,
+       "tau0": 0,
+       "hard_zone_open": false,
+       "abandoned": true
+      },
+      {
+       "session": 5,
+       "ended_by": "buyer_accept_final",
+       "price": 42300,
+       "min_offer": 42300,
+       "max_bid": 42200,
+       "rounds": 8,
+       "end_price": 42300,
+       "tau0": 0,
+       "hard_zone_open": false,
+       "abandoned": false
+      }
+     ]
+    },
+    {
+     "job": "full|same|0",
+     "condition": "full",
+     "identity": "same",
+     "min_offer_seen": 42200,
+     "lowest_deal": 43000,
+     "final_deal": null,
+     "floor": 41700,
+     "soft_floor": 42100,
+     "trajectory": [
+      {
+       "session": 1,
+       "ended_by": "seller_accept",
+       "price": 43000,
+       "min_offer": 44800,
+       "max_bid": 44300,
+       "rounds": 8,
+       "end_price": 42200,
+       "tau0": 0,
+       "hard_zone_open": true,
+       "abandoned": true
+      },
+      {
+       "session": 2,
+       "ended_by": "buyer_walk_final",
+       "price": null,
+       "min_offer": 42200,
+       "max_bid": 41200,
+       "rounds": 8,
+       "end_price": 42200,
+       "tau0": 8,
+       "hard_zone_open": false,
+       "abandoned": false
+      },
+      {
+       "session": 3,
+       "ended_by": "buyer_walk_final",
+       "price": null,
+       "min_offer": 42200,
+       "max_bid": 41800,
+       "rounds": 8,
+       "end_price": 42200,
+       "tau0": 16,
+       "hard_zone_open": false,
+       "abandoned": false
+      },
+      {
+       "session": 4,
+       "ended_by": "buyer_walk_final",
+       "price": null,
+       "min_offer": 42200,
+       "max_bid": 41800,
+       "rounds": 8,
+       "end_price": 42200,
+       "tau0": 24,
+       "hard_zone_open": false,
+       "abandoned": false
+      }
+     ]
+    },
+    {
+     "job": "no_memory|rotate|0",
+     "condition": "no_memory",
+     "identity": "rotate",
+     "min_offer_seen": 41700,
+     "lowest_deal": 41700,
+     "final_deal": 41700,
+     "floor": 41700,
+     "soft_floor": 42100,
+     "trajectory": [
+      {
+       "session": 1,
+       "ended_by": "seller_accept",
+       "price": 44800,
+       "min_offer": 45700,
+       "max_bid": 44800,
+       "rounds": 7,
+       "end_price": 41700,
+       "tau0": 0,
+       "hard_zone_open": true,
+       "abandoned": true
+      },
+      {
+       "session": 2,
+       "ended_by": "seller_accept",
+       "price": 43500,
+       "min_offer": 44000,
+       "max_bid": 43800,
+       "rounds": 8,
+       "end_price": 41700,
+       "tau0": 0,
+       "hard_zone_open": true,
+       "abandoned": true
+      },
+      {
+       "session": 3,
+       "ended_by": "seller_accept",
+       "price": 42800,
+       "min_offer": 44000,
+       "max_bid": 42800,
+       "rounds": 8,
+       "end_price": 41700,
+       "tau0": 0,
+       "hard_zone_open": true,
+       "abandoned": true
+      },
+      {
+       "session": 4,
+       "ended_by": "seller_accept",
+       "price": 42000,
+       "min_offer": 44000,
+       "max_bid": 42000,
+       "rounds": 8,
+       "end_price": 41700,
+       "tau0": 0,
+       "hard_zone_open": true,
+       "abandoned": true
+      },
+      {
+       "session": 5,
+       "ended_by": "buyer_accept_final",
+       "price": 41700,
+       "min_offer": 41700,
+       "max_bid": 41500,
+       "rounds": 8,
+       "end_price": 41700,
+       "tau0": 0,
+       "hard_zone_open": true,
+       "abandoned": false
+      }
+     ]
+    },
+    {
+     "job": "no_memory|rotate|1",
+     "condition": "no_memory",
+     "identity": "rotate",
+     "min_offer_seen": 44000,
+     "lowest_deal": 42500,
+     "final_deal": 42500,
+     "floor": 41700,
+     "soft_floor": 42100,
+     "trajectory": [
+      {
+       "session": 1,
+       "ended_by": "seller_accept",
+       "price": 44800,
+       "min_offer": 45700,
+       "max_bid": 44800,
+       "rounds": 7,
+       "end_price": 41700,
+       "tau0": 0,
+       "hard_zone_open": true,
+       "abandoned": true
+      },
+      {
+       "session": 2,
+       "ended_by": "seller_accept",
+       "price": 44000,
+       "min_offer": 45700,
+       "max_bid": 44000,
+       "rounds": 7,
+       "end_price": 41700,
+       "tau0": 0,
+       "hard_zone_open": true,
+       "abandoned": true
+      },
+      {
+       "session": 3,
+       "ended_by": "seller_accept",
+       "price": 43300,
+       "min_offer": 44000,
+       "max_bid": 43300,
+       "rounds": 8,
+       "end_price": 41700,
+       "tau0": 0,
+       "hard_zone_open": true,
+       "abandoned": true
+      },
+      {
+       "session": 4,
+       "ended_by": "seller_accept",
+       "price": 42800,
+       "min_offer": 44000,
+       "max_bid": 42800,
+       "rounds": 8,
+       "end_price": 41700,
+       "tau0": 0,
+       "hard_zone_open": true,
+       "abandoned": true
+      },
+      {
+       "session": 5,
+       "ended_by": "seller_accept",
+       "price": 42500,
+       "min_offer": 44000,
+       "max_bid": 42500,
+       "rounds": 8,
+       "end_price": 41700,
+       "tau0": 0,
+       "hard_zone_open": true,
+       "abandoned": false
+      }
+     ]
+    }
+   ],
+   "cost_usd": 6.0889,
+   "sessions": 24
+  }
+ },
+ "part2": {
+  "conditions": {
+   "price_only": {
+    "sessions": 10,
+    "errors": 0,
+    "deals": 9,
+    "conversion": 0.9,
+    "conversion_ci95": [
+     0.7,
+     1.0
+    ],
+    "profit_per_session": 8435.0,
+    "profit_per_session_ci95": [
+     6140.0,
+     10405.0
+    ],
+    "margin": 0.2581,
+    "avg_price": 36305.56,
+    "avg_rounds": 6.6,
+    "model_cost_per_session": 0.1967,
+    "lever_cost_per_deal": 0,
+    "levers_per_deal": 0,
+    "lever_value_per_deal": 0,
+    "levers_in_deals": {},
+    "levers_offered_sessions": {},
+    "buyer_price_surplus_per_deal": 1016.7,
+    "buyer_surplus_with_levers_per_deal": 1016.7,
+    "policy_blocks": 0,
+    "text_blocks": 0,
+    "fallbacks": 0,
+    "by_type": {
+     "price_first": {
+      "sessions": 5,
+      "conversion": 0.8,
+      "profit_per_session": 7340.0,
+      "levers_per_deal": 0
+     },
+     "quality_first": {
+      "sessions": 5,
+      "conversion": 1.0,
+      "profit_per_session": 9530.0,
+      "levers_per_deal": 0
+     }
+    }
+   },
+   "levers_first": {
+    "sessions": 10,
+    "errors": 0,
+    "deals": 9,
+    "conversion": 0.9,
+    "conversion_ci95": [
+     0.7,
+     1.0
+    ],
+    "profit_per_session": 7705.0,
+    "profit_per_session_ci95": [
+     5615.0,
+     9590.0
+    ],
+    "margin": 0.2347,
+    "avg_price": 36477.78,
+    "avg_rounds": 6.7,
+    "model_cost_per_session": 0.2485,
+    "lever_cost_per_deal": 916.7,
+    "levers_per_deal": 3,
+    "lever_value_per_deal": 2827.8,
+    "levers_in_deals": {
+     "warranty_3yr": 4,
+     "expedited": 9,
+     "training": 9,
+     "implement": 5
+    },
+    "levers_offered_sessions": {
+     "expedited": 10,
+     "training": 10,
+     "warranty_3yr": 5,
+     "implement": 5
+    },
+    "buyer_price_surplus_per_deal": 844.4,
+    "buyer_surplus_with_levers_per_deal": 3672.2,
+    "policy_blocks": 0,
+    "text_blocks": 2,
+    "fallbacks": 0,
+    "by_type": {
+     "price_first": {
+      "sessions": 5,
+      "conversion": 0.8,
+      "profit_per_session": 6780.0,
+      "levers_per_deal": 3
+     },
+     "quality_first": {
+      "sessions": 5,
+      "conversion": 1.0,
+      "profit_per_session": 8630.0,
+      "levers_per_deal": 3
+     }
+    }
+   },
+   "llm_levers": {
+    "sessions": 10,
+    "errors": 0,
+    "deals": 9,
+    "conversion": 0.9,
+    "conversion_ci95": [
+     0.7,
+     1.0
+    ],
+    "profit_per_session": 8210.0,
+    "profit_per_session_ci95": [
+     6015.0,
+     10105.0
+    ],
+    "margin": 0.2497,
+    "avg_price": 36533.33,
+    "avg_rounds": 6.3,
+    "model_cost_per_session": 0.2386,
+    "lever_cost_per_deal": 455.6,
+    "levers_per_deal": 1.56,
+    "lever_value_per_deal": 1372.2,
+    "levers_in_deals": {
+     "training": 6,
+     "delivery_setup": 2,
+     "implement": 1,
+     "expedited": 3,
+     "warranty_3yr": 2
+    },
+    "levers_offered_sessions": {
+     "delivery_setup": 2,
+     "training": 8,
+     "expedited": 6,
+     "implement": 1,
+     "warranty_3yr": 2
+    },
+    "buyer_price_surplus_per_deal": 788.9,
+    "buyer_surplus_with_levers_per_deal": 2161.1,
+    "policy_blocks": 0,
+    "text_blocks": 0,
+    "fallbacks": 0,
+    "by_type": {
+     "price_first": {
+      "sessions": 5,
+      "conversion": 0.8,
+      "profit_per_session": 7380.0,
+      "levers_per_deal": 1.5
+     },
+     "quality_first": {
+      "sessions": 5,
+      "conversion": 1.0,
+      "profit_per_session": 9040.0,
+      "levers_per_deal": 1.6
+     }
+    }
+   }
+  },
+  "paired": {
+   "levers_first_vs_price_only": {
+    "profit_per_session": {
+     "n": 10,
+     "mean_diff": -730,
+     "ci95": [
+      -1010,
+      -440
+     ]
+    },
+    "conversion": {
+     "n": 10,
+     "mean_diff": 0,
+     "ci95": [
+      0,
+      0
+     ]
+    }
+   },
+   "llm_levers_vs_price_only": {
+    "profit_per_session": {
+     "n": 10,
+     "mean_diff": -225,
+     "ci95": [
+      -515,
+      235
+     ]
+    },
+    "conversion": {
+     "n": 10,
+     "mean_diff": 0,
+     "ci95": [
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "cost_usd": 6.838
+ },
+ "part4": {
+  "conditions": {
+   "free_noguard": {
+    "sessions": 10,
+    "errors": 0,
+    "deals": 10,
+    "conversion": 1.0,
+    "conversion_ci95": [
+     1.0,
+     1.0
+    ],
+    "profit_per_session": 9315.0,
+    "profit_per_session_ci95": [
+     8005.0,
+     10600.0
+    ],
+    "margin": 0.2117,
+    "avg_price": 43995.0,
+    "avg_rounds": 7,
+    "safe_conversion": 1.0,
+    "model_cost_per_session": 0.2281,
+    "false_claim_rate": 0.0,
+    "false_claims_per_session": 0.0,
+    "false_claim_types": {},
+    "guard_blocks_by_rule": {},
+    "shadow_output_findings": {
+     "addon_not_in_offer": 30
+    },
+    "regenerations": 0,
+    "fallbacks": 0,
+    "by_buyer": {
+     "normal": {
+      "sessions": 5,
+      "false_claim_rate": 0.0,
+      "conversion": 1.0
+     },
+     "probing": {
+      "sessions": 5,
+      "false_claim_rate": 0.0,
+      "conversion": 1.0
+     }
+    },
+    "judge_cost_usd": 0.2349
+   },
+   "free_guard": {
+    "sessions": 10,
+    "errors": 0,
+    "deals": 9,
+    "conversion": 0.9,
+    "conversion_ci95": [
+     0.7,
+     1.0
+    ],
+    "profit_per_session": 8750.0,
+    "profit_per_session_ci95": [
+     6450.0,
+     10615.0
+    ],
+    "margin": 0.2167,
+    "avg_price": 44866.67,
+    "avg_rounds": 6.8,
+    "safe_conversion": 0.9,
+    "model_cost_per_session": 0.2547,
+    "false_claim_rate": 0.0,
+    "false_claims_per_session": 0.0,
+    "false_claim_types": {},
+    "guard_blocks_by_rule": {
+     "addon_not_in_offer": 17,
+     "final_not_final": 4,
+     "floor_disclosure": 1
+    },
+    "shadow_output_findings": {},
+    "regenerations": 22,
+    "fallbacks": 0,
+    "by_buyer": {
+     "normal": {
+      "sessions": 5,
+      "false_claim_rate": 0.0,
+      "conversion": 1.0
+     },
+     "probing": {
+      "sessions": 5,
+      "false_claim_rate": 0.0,
+      "conversion": 0.8
+     }
+    },
+    "judge_cost_usd": 0.2267
+   },
+   "claims": {
+    "sessions": 10,
+    "errors": 0,
+    "deals": 8,
+    "conversion": 0.8,
+    "conversion_ci95": [
+     0.5,
+     1.0
+    ],
+    "profit_per_session": 7560.0,
+    "profit_per_session_ci95": [
+     5060.0,
+     9910.0
+    ],
+    "margin": 0.2092,
+    "avg_price": 45175.0,
+    "avg_rounds": 7.1,
+    "safe_conversion": 0.8,
+    "model_cost_per_session": 0.2518,
+    "false_claim_rate": 0.0,
+    "false_claims_per_session": 0.0,
+    "false_claim_types": {},
+    "guard_blocks_by_rule": {
+     "fact_in_say": 9
+    },
+    "shadow_output_findings": {},
+    "regenerations": 9,
+    "fallbacks": 0,
+    "by_buyer": {
+     "normal": {
+      "sessions": 5,
+      "false_claim_rate": 0.0,
+      "conversion": 0.6
+     },
+     "probing": {
+      "sessions": 5,
+      "false_claim_rate": 0.0,
+      "conversion": 1.0
+     }
+    },
+    "judge_cost_usd": 0.1827
+   },
+   "templated": {
+    "sessions": 10,
+    "errors": 0,
+    "deals": 8,
+    "conversion": 0.8,
+    "conversion_ci95": [
+     0.5,
+     1.0
+    ],
+    "profit_per_session": 7870.0,
+    "profit_per_session_ci95": [
+     4940.0,
+     10400.0
+    ],
+    "margin": 0.2159,
+    "avg_price": 45562.5,
+    "avg_rounds": 7,
+    "safe_conversion": 0.8,
+    "model_cost_per_session": 0.0936,
+    "false_claim_rate": 0.0,
+    "false_claims_per_session": 0.0,
+    "false_claim_types": {},
+    "guard_blocks_by_rule": {},
+    "shadow_output_findings": {},
+    "regenerations": 0,
+    "fallbacks": 0,
+    "by_buyer": {
+     "normal": {
+      "sessions": 5,
+      "false_claim_rate": 0.0,
+      "conversion": 0.8
+     },
+     "probing": {
+      "sessions": 5,
+      "false_claim_rate": 0.0,
+      "conversion": 0.8
+     }
+    },
+    "judge_cost_usd": 0.1856
+   }
+  },
+  "paired": {
+   "claims_vs_free_guard": {
+    "false_claim_session": {
+     "n": 10,
+     "mean_diff": 0,
+     "ci95": [
+      0,
+      0
+     ]
+    },
+    "conversion": {
+     "n": 10,
+     "mean_diff": -0.1,
+     "ci95": [
+      -0.4,
+      0.2
+     ]
+    },
+    "profit_per_session": {
+     "n": 10,
+     "mean_diff": -1190,
+     "ci95": [
+      -3480,
+      940
+     ]
+    }
+   },
+   "templated_vs_free_guard": {
+    "false_claim_session": {
+     "n": 10,
+     "mean_diff": 0,
+     "ci95": [
+      0,
+      0
+     ]
+    },
+    "conversion": {
+     "n": 10,
+     "mean_diff": -0.1,
+     "ci95": [
+      -0.3,
+      0
+     ]
+    },
+    "profit_per_session": {
+     "n": 10,
+     "mean_diff": -880,
+     "ci95": [
+      -2660,
+      120
+     ]
+    }
+   },
+   "free_noguard_vs_free_guard": {
+    "false_claim_session": {
+     "n": 10,
+     "mean_diff": 0,
+     "ci95": [
+      0,
+      0
+     ]
+    },
+    "conversion": {
+     "n": 10,
+     "mean_diff": 0.1,
+     "ci95": [
+      0,
+      0.3
+     ]
+    },
+    "profit_per_session": {
+     "n": 10,
+     "mean_diff": 565,
+     "ci95": [
+      -95,
+      1800
+     ]
+    }
+   }
+  },
+  "cost_usd": 9.1121
+ },
+ "cost_usd": {
+  "part1_llm": 6.0889,
+  "part2": 6.838,
+  "part4": 9.1121,
+  "pilots_outside_main_logs": 1.3793,
+  "unlogged_estimate": 0.35,
+  "total": 23.77
+ }
+}

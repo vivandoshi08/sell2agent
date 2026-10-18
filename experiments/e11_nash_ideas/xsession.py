@@ -59,16 +59,16 @@ class DefenseConfig:
     soft_floor_frac: float = 0.05  # buffer = max(soft_floor_min, frac * (list - floor)), E9's defaults
     soft_floor_min: int = 300
     jitter: bool = False  # per-buyer random endpoint above the soft floor, noisy concession steps
-    jitter_end_frac: float = 0.10  # endpoint drawn uniformly in [soft, soft + this * gap]
+    jitter_end_frac: float = 0.03  # endpoint drawn uniformly in [soft, soft + this * gap]
     jitter_step: float = 0.25  # each round's concession fraction is scaled by U(1 - x, 1 + x)
     link_identities: bool = False  # a new buyer id seen with a known fingerprint or payment id inherits that record
     start_limit: int | None = None  # max session starts per fingerprint per window (None = no limit)
     start_window_h: float = 24.0
     breaker: bool = False  # product-level probe breaker closes the hard-floor zone
-    breaker_threshold: int = 2  # probe events in the window that trip it
+    breaker_threshold: int = 1  # probe events in the window that trip it (1: every probe re-trips it)
     breaker_window_h: float = 24.0
-    breaker_cooldown_h: float = 72.0
-    near_miss_frac: float = 0.25  # a rejected deadline bid within this share of the gap below the hard floor is a probe event
+    breaker_cooldown_h: float = 24.0
+    near_miss_frac: float = 0.10  # a rejected deadline bid within this share of the gap below the hard floor is a probe event
     hard_zone: bool = True  # deadline accepts may go below the endpoint, down to the hard floor
     memory_ttl_h: float = 24.0 * 30
     exponent: float = 3.0

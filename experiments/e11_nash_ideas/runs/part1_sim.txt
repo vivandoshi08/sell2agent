@@ -1,0 +1,94 @@
+
+Breaker sweep (variants of full; attack-only, 4 attackers x 6 bundles x 10 seeds; legit vs no_memory, 10 worlds):
+{'threshold': 1, 'cooldown_h': 24.0, 'near_miss_frac': 0.1, 'attack_below_soft': 0.058, 'slow_below_soft': 0.233, 'attack_at_floor': 0.013, 'legit_conversion_drop_pts': 0.67, 'legit_profit_per_buyer_change': -73.8, 'trips_per_week': 4}
+{'threshold': 1, 'cooldown_h': 24.0, 'near_miss_frac': 0.25, 'attack_below_soft': 0.058, 'slow_below_soft': 0.233, 'attack_at_floor': 0.013, 'legit_conversion_drop_pts': 1.83, 'legit_profit_per_buyer_change': -153.9, 'trips_per_week': 8.5}
+{'threshold': 1, 'cooldown_h': 72.0, 'near_miss_frac': 0.1, 'attack_below_soft': 0.058, 'slow_below_soft': 0.233, 'attack_at_floor': 0.013, 'legit_conversion_drop_pts': 1.42, 'legit_profit_per_buyer_change': -127.4, 'trips_per_week': 2.9}
+{'threshold': 1, 'cooldown_h': 72.0, 'near_miss_frac': 0.25, 'attack_below_soft': 0.058, 'slow_below_soft': 0.233, 'attack_at_floor': 0.013, 'legit_conversion_drop_pts': 2.67, 'legit_profit_per_buyer_change': -211.7, 'trips_per_week': 5}
+{'threshold': 1, 'cooldown_h': 168.0, 'near_miss_frac': 0.1, 'attack_below_soft': 0.058, 'slow_below_soft': 0.233, 'attack_at_floor': 0.013, 'legit_conversion_drop_pts': 2.25, 'legit_profit_per_buyer_change': -180.8, 'trips_per_week': 2.2}
+{'threshold': 1, 'cooldown_h': 168.0, 'near_miss_frac': 0.25, 'attack_below_soft': 0.058, 'slow_below_soft': 0.233, 'attack_at_floor': 0.013, 'legit_conversion_drop_pts': 3.33, 'legit_profit_per_buyer_change': -252.4, 'trips_per_week': 3}
+{'threshold': 2, 'cooldown_h': 24.0, 'near_miss_frac': 0.1, 'attack_below_soft': 0.312, 'slow_below_soft': 1.0, 'attack_at_floor': 0.267, 'legit_conversion_drop_pts': 0.5, 'legit_profit_per_buyer_change': -64.8, 'trips_per_week': 1.2}
+{'threshold': 2, 'cooldown_h': 24.0, 'near_miss_frac': 0.25, 'attack_below_soft': 0.308, 'slow_below_soft': 1.0, 'attack_at_floor': 0.263, 'legit_conversion_drop_pts': 0.92, 'legit_profit_per_buyer_change': -92.8, 'trips_per_week': 4.2}
+{'threshold': 2, 'cooldown_h': 72.0, 'near_miss_frac': 0.1, 'attack_below_soft': 0.312, 'slow_below_soft': 1.0, 'attack_at_floor': 0.267, 'legit_conversion_drop_pts': 1.08, 'legit_profit_per_buyer_change': -106.0, 'trips_per_week': 1}
+{'threshold': 2, 'cooldown_h': 72.0, 'near_miss_frac': 0.25, 'attack_below_soft': 0.308, 'slow_below_soft': 1.0, 'attack_at_floor': 0.263, 'legit_conversion_drop_pts': 1.67, 'legit_profit_per_buyer_change': -141.2, 'trips_per_week': 2.7}
+{'threshold': 2, 'cooldown_h': 168.0, 'near_miss_frac': 0.1, 'attack_below_soft': 0.312, 'slow_below_soft': 1.0, 'attack_at_floor': 0.267, 'legit_conversion_drop_pts': 1.5, 'legit_profit_per_buyer_change': -132.5, 'trips_per_week': 1}
+{'threshold': 2, 'cooldown_h': 168.0, 'near_miss_frac': 0.25, 'attack_below_soft': 0.308, 'slow_below_soft': 1.0, 'attack_at_floor': 0.263, 'legit_conversion_drop_pts': 2.17, 'legit_profit_per_buyer_change': -172.8, 'trips_per_week': 2}
+
+Attack-only (no legit traffic). Best extracted price after 10 sessions, as $ above the hard floor and share of the list-floor gap.
+condition|attacker                       $ above floor (min/med/max)    gap frac med below soft  at floor k@floor med  refused  hours
+no_memory|bisect_same_id                 0 / 0.0 / 0                             0.0        1.0       1.0         1.0      0.0    9.0
+no_memory|bisect_fresh_id                0 / 0.0 / 0                             0.0        1.0       1.0         1.0      0.0    9.0
+no_memory|bisect_rotate_all              0 / 0.0 / 0                             0.0        1.0       1.0         1.0      0.0    9.0
+no_memory|bisect_rotate_slow             0 / 0.0 / 0                             0.0        1.0       1.0         1.0      0.0  225.0
+memory|bisect_same_id                    0 / 0.0 / 0                             0.0        1.0       1.0         1.0      0.0    9.0
+memory|bisect_fresh_id                   0 / 0.0 / 0                             0.0        1.0       1.0         1.0      0.0    9.0
+memory|bisect_rotate_all                 0 / 0.0 / 0                             0.0        1.0       1.0         1.0      0.0    9.0
+memory|bisect_rotate_slow                0 / 0.0 / 0                             0.0        1.0       1.0         1.0      0.0  225.0
+memory_soft|bisect_same_id               300 / 350.0 / 600                    0.0588        0.0       0.0           -      0.0    9.0
+memory_soft|bisect_fresh_id              0 / 0.0 / 0                             0.0        1.0       1.0         2.0      0.0    9.0
+memory_soft|bisect_rotate_all            0 / 0.0 / 0                             0.0        1.0       1.0         2.0      0.0    9.0
+memory_soft|bisect_rotate_slow           0 / 0.0 / 0                             0.0        1.0       1.0         2.0      0.0  225.0
+full|bisect_same_id                      400 / 500.0 / 900                    0.0882        0.0       0.0           -     42.0   51.0
+full|bisect_fresh_id                     400 / 500.0 / 900                    0.0882        0.0       0.0           -     42.0   51.0
+full|bisect_rotate_all                   400 / 450.0 / 700                    0.0731        0.0       0.0           -      0.0    9.0
+full|bisect_rotate_slow                  0 / 400.0 / 700                      0.0686      0.267     0.058           2      0.0  225.0
+full_strict|bisect_same_id               400 / 500.0 / 900                    0.0882        0.0       0.0           -     42.0   51.0
+full_strict|bisect_fresh_id              400 / 500.0 / 900                    0.0882        0.0       0.0           -     42.0   51.0
+full_strict|bisect_rotate_all            400 / 500.0 / 800                    0.0735        0.0       0.0           -      0.0    9.0
+full_strict|bisect_rotate_slow           400 / 500.0 / 800                    0.0735        0.0       0.0           -      0.0  225.0
+
+Median extracted (share of gap above floor) after k = 1..10 sessions:
+no_memory|bisect_same_id                  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00
+no_memory|bisect_fresh_id                 0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00
+no_memory|bisect_rotate_all               0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00
+no_memory|bisect_rotate_slow              0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00
+memory|bisect_same_id                     0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00
+memory|bisect_fresh_id                    0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00
+memory|bisect_rotate_all                  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00
+memory|bisect_rotate_slow                 0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00
+memory_soft|bisect_same_id                0.06  0.06  0.06  0.06  0.06  0.06  0.06  0.06  0.06  0.06
+memory_soft|bisect_fresh_id               0.06  0.02  0.01  0.00  0.00  0.00  0.00  0.00  0.00  0.00
+memory_soft|bisect_rotate_all             0.06  0.02  0.01  0.00  0.00  0.00  0.00  0.00  0.00  0.00
+memory_soft|bisect_rotate_slow            0.06  0.02  0.01  0.00  0.00  0.00  0.00  0.00  0.00  0.00
+full|bisect_same_id                       0.09  0.09  0.09  0.09  0.09  0.09  0.09  0.09  0.09  0.09
+full|bisect_fresh_id                      0.09  0.09  0.09  0.09  0.09  0.09  0.09  0.09  0.09  0.09
+full|bisect_rotate_all                    0.09  0.08  0.08  0.07  0.07  0.07  0.07  0.07  0.07  0.07
+full|bisect_rotate_slow                   0.09  0.07  0.07  0.07  0.07  0.07  0.07  0.07  0.07  0.07
+full_strict|bisect_same_id                0.09  0.09  0.09  0.09  0.09  0.09  0.09  0.09  0.09  0.09
+full_strict|bisect_fresh_id               0.09  0.09  0.09  0.09  0.09  0.09  0.09  0.09  0.09  0.09
+full_strict|bisect_rotate_all             0.09  0.09  0.08  0.07  0.07  0.07  0.07  0.07  0.07  0.07
+full_strict|bisect_rotate_slow            0.09  0.09  0.08  0.07  0.07  0.07  0.07  0.07  0.07  0.07
+
+Curve-fit leak from session-1 offers in rounds 5-6 (|estimate - hard floor|):
+no_memory      {'abs_err_vs_floor': {'min': 112, 'median': 212.0, 'max': 314, 'mean': 216.7}, 'within_200_of_floor': 0.333}
+memory         {'abs_err_vs_floor': {'min': 112, 'median': 212.0, 'max': 314, 'mean': 216.7}, 'within_200_of_floor': 0.333}
+memory_soft    {'abs_err_vs_floor': {'min': 337, 'median': 541.0, 'max': 756, 'mean': 550.5}, 'within_200_of_floor': 0.0}
+full           {'abs_err_vs_floor': {'min': 14, 'median': 793.0, 'max': 2958, 'mean': 873.9}, 'within_200_of_floor': 0.1}
+full_strict    {'abs_err_vs_floor': {'min': 14, 'median': 793.0, 'max': 2958, 'mean': 873.9}, 'within_200_of_floor': 0.1}
+
+Legit traffic (a week, 120 buyers per world, 20 worlds), with and without an attacker on T45+loader:
+condition|attack                     conv   feas profit/buyer hz deals/buyers  ret consistent mean jump  trips atk<soft atk $>floor med
+no_memory|none                     0.7146    1.0       7692.1           68/68          90/565     377.4      0     None               -
+no_memory|bisect_same_id           0.7146    1.0       7692.1           68/68          90/565     377.4      0       20             0.0
+no_memory|bisect_fresh_id          0.7146    1.0       7692.1           68/68          90/565     377.4      0       20             0.0
+no_memory|bisect_rotate_all        0.7146    1.0       7692.1           68/68          90/565     377.4      0       20             0.0
+no_memory|bisect_rotate_slow       0.7146    1.0       7692.1           68/68          90/565     377.4      0       20             0.0
+memory|none                        0.7146    1.0       7620.3           68/68         556/556    -517.6      0     None               -
+memory|bisect_same_id              0.7146    1.0       7620.3           68/68         556/556    -517.6      0       20             0.0
+memory|bisect_fresh_id             0.7146    1.0       7620.3           68/68         556/556    -517.6      0       20             0.0
+memory|bisect_rotate_all           0.7146    1.0       7620.3           68/68         556/556    -517.6      0       20             0.0
+memory|bisect_rotate_slow          0.7146    1.0       7620.3           68/68         556/556    -517.6      0       20             0.0
+memory_soft|none                   0.7146    1.0       7642.6           68/68         560/560    -492.3      0     None               -
+memory_soft|bisect_same_id         0.7146    1.0       7642.6           68/68         560/560    -492.3      0        0           400.0
+memory_soft|bisect_fresh_id        0.7146    1.0       7642.6           68/68         560/560    -492.3      0       20             0.0
+memory_soft|bisect_rotate_all      0.7146    1.0       7642.6           68/68         560/560    -492.3      0       20             0.0
+memory_soft|bisect_rotate_slow     0.7146    1.0       7642.6           68/68         560/560    -492.3      0       20             0.0
+full|none                          0.7092 0.9923       7612.9           59/68         560/560    -486.8   3.85     None               -
+full|bisect_same_id                0.7033 0.9841       7573.9           48/68         561/561    -474.4   6.05        0           500.0
+full|bisect_fresh_id               0.7033 0.9841       7573.9           48/68         561/561    -474.4   6.05        0           500.0
+full|bisect_rotate_all             0.7079 0.9905       7604.1           57/68         561/561    -477.3    4.4        0           500.0
+full|bisect_rotate_slow            0.6996 0.9788       7544.5           40/68         560/560    -478.6   11.1        4           500.0
+full_strict|none                   0.6737 0.9429       7364.2            0/68         560/560    -486.8      0     None               -
+full_strict|bisect_same_id         0.6746  0.944       7370.4            0/68         561/561    -474.4      0        0           500.0
+full_strict|bisect_fresh_id        0.6746  0.944       7370.4            0/68         561/561    -474.4      0        0           500.0
+full_strict|bisect_rotate_all      0.6713 0.9393       7345.7            0/68         561/561    -477.3      0        0           500.0
+full_strict|bisect_rotate_slow     0.6746 0.9439       7368.8            0/68         560/560    -478.6      0        0           500.0
