@@ -115,12 +115,20 @@ export class Exchange {
     }
   }
 
-  /** S2: after payDeal() succeeds. Marks the deal paid and moves the negotiation to `paid`. */
+  /**
+   * S2: after payDeal() succeeds. Marks the deal paid and moves the negotiation to `paid`.
+   * A purchase ends that buyer's haggle on that product, so their buyer memory for it is cleared: the next negotiation
+   * starts from list instead of resuming at a final offer (a rehearsal that ends in a buy leaves nothing frozen for the
+   * demo). Walk-aways keep their memory, so restarting still can't bisect toward the floor.
+   */
   async markPaid(deal_id: string, payment_intent_id: string): Promise<void> {
     await this.deals.markPaid(deal_id, payment_intent_id);
     const d = await this.store.getDeal(deal_id);
     const n = d && (await this.store.getNegotiation(d.negotiation_id));
-    if (n && n.state === "agreed") await this.setState(n, "paid");
+    if (n && n.state === "agreed") {
+      await this.setState(n, "paid");
+      await this.store.clearBuyerMemory(memoryKey(n.buyer_id, n.product_id, n.run_id));
+    }
   }
 
   // ---------------------------------------------------------------- moves
