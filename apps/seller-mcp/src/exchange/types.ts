@@ -182,6 +182,9 @@ export interface ExchangeResponse {
   allowed_actions: BuyerAction[];
   message: string; // seller's words (guarded) or an explanation
   reason?: string; // true reason code
+  /** Contract v3: one plain line a text-only agent (Instinct) can relay verbatim (E2 offerSummary / dealSummary). Never floor or cost. */
+  summary?: string;
+  list_price_cents?: number;
   error?: ExchangeError;
 }
 

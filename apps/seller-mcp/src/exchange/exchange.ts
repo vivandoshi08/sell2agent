@@ -6,8 +6,8 @@
  * offer_id bound to this buyer, accept is idempotent, illegal state transitions throw.
  */
 import { randomUUID } from "node:crypto";
-import { BuyerContext, type NegotiationEvent } from "@sa/shared";
-import { decide as e2decide, voice as e2voice, type Llm, type ProposedMove, type SellerPolicy, type SellerState,
+import { BuyerChannel, BuyerContext, type NegotiationEvent } from "@sa/shared";
+import { decide as e2decide, voice as e2voice, offerSummary, dealSummary, type Llm, type ProposedMove, type SellerPolicy, type SellerState,
   type BuyerLeverProfile, type VoiceContext, type VoiceResult, DEFAULT_SOFT_FLOOR_BUFFER, softFloor } from "../sellers";
 import { StaticCatalog } from "./catalog";
 import { guardMove } from "./decision-guard";
@@ -241,7 +241,8 @@ export class Exchange {
       await this.store.putOffer(offer);
       const why = this.why(move.reason_text, ruleRefs(refs, move, p, offer), [base.floor_price_cents, p.floor_price_cents, p.unit_cost_cents]);
       const deal = await this.lock(n, base, offer, why); // base floor: lock() subtracts lever cost itself (p's floor already includes it)
-      await this.emit(n, "offer_accepted", "seller", move.price_cents, { offer_id: offer.offer_id, lever_package: offer.levers, message, final: true, expires_at: deal.expires_at, ...why });
+      await this.emit(n, "offer_accepted", "seller", move.price_cents, { offer_id: offer.offer_id, lever_package: offer.levers, message, final: true, expires_at: deal.expires_at, ...why,
+        summary: this.offerLine(p, offer, "accept") });
       return this.respond(n, p, offer, { ok: true, status: "accept", message, reason: move.reason, deal });
     }
 
@@ -253,7 +254,7 @@ export class Exchange {
     await this.setState(n, "negotiating");
     await this.remember(n, move.price_cents);
     await this.emit(n, "offer_countered", "seller", move.price_cents, { offer_id: offer.offer_id, lever_package: offer.levers, message, final: offer.final, expires_at: offer.expires_at, round: n.round,
-      ...this.why(move.reason_text, ruleRefs(refs, move, p, offer), [base.floor_price_cents, p.floor_price_cents, p.unit_cost_cents]) });
+      ...this.why(move.reason_text, ruleRefs(refs, move, p, offer), [base.floor_price_cents, p.floor_price_cents, p.unit_cost_cents]), summary: this.offerLine(p, offer, "counter") });
     return this.respond(n, p, offer, { ok: true, status: "counter", message, reason: move.reason });
   }
 
@@ -288,7 +289,7 @@ export class Exchange {
     await this.store.putOffer(accepted);
     const why = this.why(`The buyer accepted the standing offer of ${usd(o.price_cents)}.`, ["buyer_accepted", ...o.levers.map((l) => `lever:${l}`)]);
     const deal = await this.lock(n, p, accepted, why);
-    await this.emit(n, "offer_accepted", "buyer", o.price_cents, { offer_id: o.offer_id, lever_package: o.levers, final: o.final, expires_at: deal.expires_at, ...why });
+    await this.emit(n, "offer_accepted", "buyer", o.price_cents, { offer_id: o.offer_id, lever_package: o.levers, final: o.final, expires_at: deal.expires_at, ...why, summary: this.dealLine(p, deal) });
     return this.respond(n, p, accepted, { ok: true, status: "accept", message: `Deal locked: ${p.title} at ${usd(o.price_cents)}. Approve and pay to complete.`, deal });
   }
 
@@ -361,7 +362,8 @@ export class Exchange {
     const lever_cost_cents = leverCost(deal.levers, p.lever_costs);
     await this.emit(n, "deal_accepted", "seller", deal.unit_price_cents, { deal_id: deal.deal_id, offer_id: o.offer_id, lever_package: deal.levers,
       list_price_cents: p.list_price_cents, total_cents: deal.total_cents, quantity: deal.quantity, expires_at: deal.expires_at,
-      unit_cost_cents: p.unit_cost_cents, lever_cost_cents, below_floor: deal.unit_price_cents - lever_cost_cents < p.floor_price_cents, ...why });
+      unit_cost_cents: p.unit_cost_cents, lever_cost_cents, below_floor: deal.unit_price_cents - lever_cost_cents < p.floor_price_cents, ...why,
+      summary: this.dealLine(p, deal) });
     return deal;
   }
 
@@ -400,14 +402,25 @@ export class Exchange {
       round: n.round, rounds_left: Math.max(0, p.max_rounds - n.round),
       allowed_actions: allowedActions(n.state, atCap).filter((a) => a !== "accept" || !!(live && live.status === "live")),
       message: r.message ?? r.error?.message ?? "", reason: r.reason, error: r.error,
+      ...(r.ok === false || !p ? {} : { list_price_cents: p.list_price_cents,
+        summary: r.deal ? this.dealLine(p, r.deal) : live ? this.offerLine(p, live, r.status === "accept" ? "accept" : "counter") : undefined }),
     };
+  }
+
+  /** Contract v3 summary lines, built by E2's code from public fields only (title, price, list, levers, expiry). */
+  private offerLine(p: ProductConfig, o: StandingOffer, status: "counter" | "accept") {
+    return offerSummary({ title: p.title, price_cents: o.price_cents, list_price_cents: p.list_price_cents, quantity: o.quantity, levers: o.levers,
+      final: o.final, expires_at: o.expires_at, status }, this.now());
+  }
+  private dealLine(p: ProductConfig, d: Pick<LockedDeal, "total_cents" | "quantity" | "unit_price_cents" | "levers" | "status">) {
+    return dealSummary({ title: p.title, total_cents: d.total_cents, quantity: d.quantity, unit_price_cents: d.unit_price_cents, levers: d.levers, paid: d.status === "paid" });
   }
 
   /** Seller-facing context: public title, and channel / agent_operator when the gateway sends them in ctx (contract v3). */
   private client(n: Negotiation, ctx: unknown, p: ProductConfig) {
     n.product_title = p.title;
     const c = ctx as { channel?: unknown; agent_operator?: unknown };
-    if (typeof c?.channel === "string" && c.channel) n.channel = c.channel.slice(0, 32);
+    if (BuyerChannel.safeParse(c?.channel).success) n.channel = c.channel as string;
     if (typeof c?.agent_operator === "string" && c.agent_operator) n.agent_operator = c.agent_operator.slice(0, 32);
   }
 
