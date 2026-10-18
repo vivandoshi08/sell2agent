@@ -11,9 +11,14 @@
     "seed:fake": "tsx --env-file-if-exists=../../.env scripts/seed-fake.ts",
     "seed:fake:clean": "tsx --env-file-if-exists=../../.env scripts/seed-fake.ts --clean",
     "preview:html": "node scripts/build-preview.mjs",
-    "run-result": "tsx --env-file-if-exists=../../.env scripts/run-result.ts"
+    "run-result": "tsx --env-file-if-exists=../../.env scripts/run-result.ts",
+    "eval": "tsx --env-file-if-exists=../../.env scripts/eval.ts",
+    "preview:html:eval": "node scripts/build-preview.mjs --local",
+    "pay-smoke": "tsx --env-file-if-exists=../../.env scripts/pay-smoke.ts",
+    "armature:dryrun": "tsx --env-file-if-exists=../../.env scripts/armature-dryrun.ts"
   },
   "dependencies": {
+    "@sa/buyer-harness": "workspace:*",
     "@sa/seller-mcp": "workspace:*",
     "@sa/shared": "workspace:*",
     "@supabase/supabase-js": "^2.45.0",
@@ -21,6 +26,8 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@anthropic-ai/sdk": "^0.30.0",
+    "@modelcontextprotocol/sdk": "^1.0.0",
     "@types/node": "^22.0.0",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.3",

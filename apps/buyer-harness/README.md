@@ -25,6 +25,19 @@ pnpm buyers --policy negotiating --n 20 --models claude,gpt --gateway https://<d
 
 Before that run, check `src/gateway/mcp.ts` against S1's real `search_products` arguments and response shape, since that tool isn't in the frozen contract yet. Gateway failures show up as `ERROR gateway: …`, not as walk-aways.
 
+## Cloud workspaces: run S1's gateway locally
+
+Cloud Claude workspaces can't reach the deployed gateway or OpenAI (the egress policy answers 403). To exercise S1's real gateway code over real MCP anyway, run it on localhost:
+
+```bash
+git worktree add ../gw origin/s1/gateway-skeleton && cd ../gw && pnpm install
+cd apps/marketplace && npx mcp-use dev --port 3002      # MCP endpoint: http://localhost:3002/mcp
+# in this repo:
+pnpm buyers --policy negotiating --n 6 --models claude --gateway http://localhost:3002/mcp
+```
+
+Seller events are logged by the gateway's own exchange process (Supabase when configured), not in this run's `.jsonl`. `summary.gateway_errors` counts failed tool calls, such as a tool the gateway doesn't expose yet.
+
 ## For S2's eval runner
 
 ```ts

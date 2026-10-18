@@ -8,6 +8,8 @@
  *   --concurrency <n>         parallel buyers (default 4)
  *   --adversarial <share>     share of red-team buyers, 0..1 (default 0.1)
  *   --seller-voice            local gateway only: Claude writes seller messages (default: templates)
+ *   --max-rounds <n>          with --exchange: override every product's round cap (seed: 3–4)
+ *   --exchange                shop through E1's REAL exchange in-process (real offer_ids + guardrails); policy per run
  *   --gateway <url>           use the DEPLOYED gateway over MCP (or set GATEWAY_URL). Policy is then set server-side.
  */
 import { writeFileSync } from "node:fs";
@@ -17,6 +19,7 @@ import { defaultLlm, usd, type PolicyName } from "@sa/seller-mcp/sellers";
 import { makeBuyers, type BuyerModel } from "./agents/personas";
 import { LocalGateway } from "./gateway/local";
 import { McpGateway } from "./gateway/mcp";
+import { ExchangeGateway, type Strategy } from "./gateway/exchange";
 import type { Gateway } from "./gateway/types";
 import { runAll, RUNS_DIR, type Summary } from "./run-all";
 
@@ -25,7 +28,7 @@ try { process.loadEnvFile(resolve(import.meta.dirname, "../../../.env")); } catc
 const { values: f } = parseArgs({ options: {
   compare: { type: "boolean" }, policy: { type: "string" }, n: { type: "string", default: "10" }, models: { type: "string" },
   seed: { type: "string", default: "42" }, concurrency: { type: "string", default: "4" }, adversarial: { type: "string", default: "0.1" },
-  "seller-voice": { type: "boolean" }, gateway: { type: "string" },
+  "seller-voice": { type: "boolean" }, gateway: { type: "string" }, exchange: { type: "boolean" }, "max-rounds": { type: "string" },
 } });
 
 const defaultModels: BuyerModel[] = [
@@ -39,16 +42,20 @@ for (const m of models) {
 }
 
 const gatewayUrl = f.gateway ?? process.env.GATEWAY_URL;
-const policies: PolicyName[] = f.policy ? [f.policy as PolicyName] : ["static", "negotiating"];
+const policies: PolicyName[] = f.policy ? [f.policy as PolicyName] : f.exchange ? ["static", "negotiating", "balanced"] : ["static", "negotiating"];
+if (f.exchange && policies.some((p) => !["static", "negotiating", "balanced"].includes(p))) throw new Error("--exchange supports static, negotiating, balanced");
 const buyers = makeBuyers({ n: Number(f.n), models, seed: Number(f.seed), adversarial_share: Number(f.adversarial) });
 const stamp = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, "");
 
-console.log(`\n${buyers.length} buyers · models: ${models.join(", ")} · gateway: ${gatewayUrl ?? "local stand-in"} · policies: ${policies.join(" vs ")}\n`);
+console.log(`\n${buyers.length} buyers · models: ${models.join(", ")} · gateway: ${gatewayUrl ?? (f.exchange ? "E1 exchange (in-process)" : "local stand-in")} · policies: ${policies.join(" vs ")}\n`);
 
 const summaries: Summary[] = [];
 for (const policy of policies) {
-  const gw: Gateway = gatewayUrl ? new McpGateway(gatewayUrl) : new LocalGateway(policy, f["seller-voice"] ? defaultLlm() : null);
-  const run_id = `run_${stamp}_${policy}`;
+  const voiceLlm = f["seller-voice"] ? defaultLlm() : null;
+  const gw: Gateway = gatewayUrl ? new McpGateway(gatewayUrl)
+    : f.exchange ? new ExchangeGateway(policy as Strategy, voiceLlm, { max_rounds: f["max-rounds"] ? Number(f["max-rounds"]) : undefined })
+    : new LocalGateway(policy, voiceLlm);
+  const run_id = `run_${stamp}_${policy}${f["max-rounds"] ? `_r${f["max-rounds"]}` : ""}`;
   const { summary, outcomes } = await runAll({
     run_id, label: policy, buyers, gateway: gw, concurrency: Number(f.concurrency),
     on_outcome: (o) => console.log(`  [${policy}] ${o.buyer_id} ${o.persona.padEnd(13)} ${(o.adversary ?? "").padEnd(11)} ${o.buyer_model.padEnd(18)} ` +

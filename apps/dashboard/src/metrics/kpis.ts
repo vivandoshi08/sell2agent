@@ -16,6 +16,7 @@
  */
 import type { NegotiationEvent } from "@sa/shared";
 import { bootstrapCI, median, type Interval } from "./stats";
+import { buyerFit, leverIds, leverWins, type LeverWin } from "./levers";
 
 export type Ev = NegotiationEvent;
 
@@ -30,6 +31,10 @@ export interface BuyerOutcome {
   profit_cents: number | null;
   margin_pct: number | null;
   ms_to_first_offer: number | null;
+  /** 0–1: how much of what this buyer values the deal delivered (see levers.ts). null if not scorable. */
+  buyer_fit: number | null;
+  /** Lever ids included in the closed deal ([] = price only). */
+  levers: string[];
 }
 
 export interface PolicyKpis {
@@ -41,10 +46,11 @@ export interface PolicyKpis {
   paid_rate: number;
   profit_per_buyer_cents: number | null;
   avg_margin_pct: number | null;
+  avg_buyer_fit: number | null;
   median_ms_to_first_offer: number | null;
   unsafe_deals: number;
   guardrail_blocks: number;
-  ci: { conversion_rate: Interval; safe_conversion_rate: Interval; profit_per_buyer_cents: Interval | null };
+  ci: { conversion_rate: Interval; safe_conversion_rate: Interval; profit_per_buyer_cents: Interval | null; buyer_fit: Interval | null };
   outcomes: BuyerOutcome[];
 }
 
@@ -89,6 +95,11 @@ export function buyerOutcomes(events: Ev[]): BuyerOutcome[] {
     const judgedUnsafe = evs.some((e) => e.type === ("judged" as Ev["type"]) && p(e).safe === false);
     const unsafe = !!deal && (p(deal).below_floor === true || judge?.safe === false || judgedUnsafe);
 
+    const profileEv = evs.find((e) => p(e).lever_profile && typeof p(e).lever_profile === "object");
+    const levers = deal ? leverIds(p(deal).lever_package) : [];
+    const listCents = deal && typeof p(deal).list_price_cents === "number" ? (p(deal).list_price_cents as number) : null;
+    const fit = deal ? buyerFit(profileEv ? (p(profileEv).lever_profile as Record<string, number>) : undefined, levers, listCents, price) : null;
+
     const firstAsk = evs.find((e) => e.type === "offer_made");
     const firstReply = firstAsk && evs.find((e) => e.actor === "seller" && e.price_cents != null && ts(e) >= ts(firstAsk));
     out.push({
@@ -102,6 +113,8 @@ export function buyerOutcomes(events: Ev[]): BuyerOutcome[] {
       profit_cents: profit,
       margin_pct: margin,
       ms_to_first_offer: firstAsk && firstReply ? ts(firstReply) - ts(firstAsk) : null,
+      buyer_fit: fit,
+      levers,
     });
   }
   return out;
@@ -127,6 +140,7 @@ export function policyKpis(all: Ev[], opts: { resamples?: number; seed?: number 
     const profitKnown = profits.every((x) => x != null);
     const margins = outs.map((o) => o.margin_pct).filter((x): x is number => x != null);
     const latencies = outs.map((o) => o.ms_to_first_offer).filter((x): x is number => x != null);
+    const fits = outs.filter((o) => o.buyer_fit != null);
     const ci = (f: (o: BuyerOutcome[]) => number) => bootstrapCI(outs, f, opts);
     result.push({
       policy,
@@ -137,6 +151,7 @@ export function policyKpis(all: Ev[], opts: { resamples?: number; seed?: number 
       paid_rate: rate(outs.map((o) => o.paid)),
       profit_per_buyer_cents: profitKnown ? mean(profits as number[]) : null,
       avg_margin_pct: margins.length ? mean(margins) : null,
+      avg_buyer_fit: fits.length ? mean(fits.map((o) => o.buyer_fit as number)) : null,
       median_ms_to_first_offer: latencies.length ? median(latencies) : null,
       unsafe_deals: outs.filter((o) => o.converted && !o.safe).length,
       guardrail_blocks: evs.filter((e) => e.type === "guardrail_blocked").length,
@@ -144,6 +159,7 @@ export function policyKpis(all: Ev[], opts: { resamples?: number; seed?: number 
         conversion_rate: ci((s) => rate(s.map((o) => o.converted))),
         safe_conversion_rate: ci((s) => rate(s.map((o) => o.safe))),
         profit_per_buyer_cents: profitKnown ? ci((s) => mean(s.map((o) => o.profit_cents as number))) : null,
+        buyer_fit: fits.length ? bootstrapCI(fits, (s) => mean(s.map((o) => o.buyer_fit as number)), opts) : null,
       },
       outcomes: outs,
     });
@@ -163,4 +179,9 @@ export function personaGrid(kpis: PolicyKpis[]) {
       return { policy: k.policy, n: os.length, conversion_rate: rate(os.map((o) => o.converted)) };
     }),
   }));
+}
+
+/** "Which levers win, by buyer type": closed deals' lever packages per persona and policy. */
+export function leverWinsByPersona(kpis: PolicyKpis[]): LeverWin[] {
+  return leverWins(kpis.flatMap((k) => k.outcomes.map((o) => ({ persona: o.persona, policy: k.policy, converted: o.converted, levers: o.levers }))));
 }

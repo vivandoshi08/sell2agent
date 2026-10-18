@@ -1,24 +1,18 @@
 /**
- * Bundled faces (SIL OFL 1.1, see fonts/OFL.txt). Inlined as data URIs so the dashboard and the
- * single-file preview render the same with no network: Doto (dot-matrix) for display numbers,
- * Martian Mono for everything else. Fallbacks are system monospace.
+ * Bundled face (SIL OFL 1.1, see fonts/OFL.txt): Instrument Sans for the whole UI. Inlined as data URIs so the
+ * dashboard and the single-file preview look the same with no network. Numbers use its tabular figures.
  */
-import doto800 from "./fonts/doto-latin-800-normal.woff2?inline";
-import doto900 from "./fonts/doto-latin-900-normal.woff2?inline";
-import mm400 from "./fonts/martian-mono-latin-400-normal.woff2?inline";
-import mm500 from "./fonts/martian-mono-latin-500-normal.woff2?inline";
-import mm600 from "./fonts/martian-mono-latin-600-normal.woff2?inline";
+import is400 from "./fonts/instrument-sans-latin-400-normal.woff2?inline";
+import is500 from "./fonts/instrument-sans-latin-500-normal.woff2?inline";
+import is600 from "./fonts/instrument-sans-latin-600-normal.woff2?inline";
 
-const faces: [string, string, number][] = [
-  ["Doto", doto800, 800], ["Doto", doto900, 900],
-  ["Martian Mono", mm400, 400], ["Martian Mono", mm500, 500], ["Martian Mono", mm600, 600],
-];
+const faces: [string, number][] = [[is400, 400], [is500, 500], [is600, 600]];
 
 if (typeof document !== "undefined" && !document.getElementById("sa-fonts")) {
   const style = document.createElement("style");
   style.id = "sa-fonts";
   style.textContent = faces
-    .map(([family, src, weight]) => `@font-face{font-family:"${family}";src:url(${src}) format("woff2");font-weight:${weight};font-style:normal;font-display:swap}`)
+    .map(([src, weight]) => `@font-face{font-family:"Instrument Sans";src:url(${src}) format("woff2");font-weight:${weight};font-style:normal;font-display:swap}`)
     .join("\n");
   document.head.appendChild(style);
 }

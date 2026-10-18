@@ -21,6 +21,43 @@ export const Concession = z.enum([
 ]);
 export type Concession = z.infer<typeof Concession>;
 
+// ---------- Levers (n5; FINAL_ARCHITECTURE §1–2) ----------
+/** What a buyer can value, and what a seller can offer besides price. */
+export const LeverName = z.enum(["price", "quality", "delivery", "warranty", "trust", "convenience"]);
+export type LeverName = z.infer<typeof LeverName>;
+
+/** A buyer's lever profile: weight 0..1 per lever (missing = unknown). */
+export const LeverProfile = z.record(LeverName, z.number().min(0).max(1));
+export type LeverProfile = z.infer<typeof LeverProfile>;
+
+/** One extra the seller can include (a menu item). Cost is PRIVATE to the seller. */
+export const LeverOption = z.object({
+  id: z.string(), // "extended_warranty_2y"
+  lever: LeverName, // which buyer value it serves
+  label: z.string(), // "2-year warranty" (public)
+  cost_cents: z.number().int().nonnegative(), // PRIVATE: never in buyer-facing output
+  max_per_deal: z.number().int().positive().default(1),
+});
+export type LeverOption = z.infer<typeof LeverOption>;
+
+/** Levers included in an offer or deal. Public shape: no costs. */
+export const LeverPackageItem = z.object({ id: z.string(), lever: LeverName, label: z.string() });
+export const LeverPackage = z.array(LeverPackageItem);
+export type LeverPackage = z.infer<typeof LeverPackage>;
+
+/** What a seller wants, weights 0..1 (FINAL_ARCHITECTURE §2 "Objective"). */
+export const SellerObjective = z.object({
+  margin: z.number().min(0).max(1).default(0.5),
+  conversion: z.number().min(0).max(1).default(0.5),
+  clear_stock: z.number().min(0).max(1).default(0),
+  repeat_customers: z.number().min(0).max(1).default(0),
+  premium_image: z.number().min(0).max(1).default(0),
+});
+export type SellerObjective = z.infer<typeof SellerObjective>;
+
+export const PolicyName = z.enum(["static", "negotiating", "balanced", "lever_policy", "learned"]);
+export type PolicyName = z.infer<typeof PolicyName>;
+
 export const Product = z.object({
   id: z.string(), // e.g. "kb_quietpro_75"
   seller_id: z.string(),
@@ -42,6 +79,11 @@ export const SellerPolicy = z.object({
   target_margin_pct: z.number().min(0).max(100),
   max_rounds: z.number().int().positive().default(4),
   allowed_concessions: z.array(Concession),
+  // added (contract v2): all optional so existing rows still parse
+  lever_menu: z.array(LeverOption).default([]),
+  objective: SellerObjective.optional(),
+  policy: PolicyName.default("negotiating"),
+  min_margin_after_levers_pct: z.number().min(0).max(100).optional(),
 });
 export type SellerPolicy = z.infer<typeof SellerPolicy>;
 
@@ -77,6 +119,7 @@ export const BuyerContext = z.object({
   run_id: z.string(),
   buyer_id: z.string(),
   buyer_model: z.string(), // e.g. "claude-sonnet-5-5", "gpt-x", "gemini-x"
+  lever_profile: LeverProfile.optional(), // added (contract v2): what this buyer values
 });
 export type BuyerContext = z.infer<typeof BuyerContext>;
 
@@ -85,7 +128,20 @@ export const TOOL_NAMES = {
   askQuestion: "ask_question",
   makeOffer: "make_offer",
   acceptDeal: "accept_deal",
+  // added (contract v2, n7)
+  searchProducts: "search_products",
+  payDeal: "pay_deal",
+  checkOffers: "check_offers",
 } as const;
+
+// search_products (gateway, S1). Preferences are a lever profile (FINAL_ARCHITECTURE §1).
+export const SearchProductsInput = BuyerContext.extend({
+  query: z.string(),
+  hard_needs: z.array(z.string()).default([]),
+  max_price_cents: z.number().int().positive().optional(),
+  preferences: LeverProfile.optional(),
+});
+export const SearchProductsOutput = z.object({ listings: z.array(Listing).max(5) });
 
 export const GetListingInput = BuyerContext.extend({ product_id: z.string() });
 export const GetListingOutput = Listing;
@@ -115,20 +171,61 @@ export const MakeOfferOutput = z.object({
   round: z.number().int().positive(),
   rounds_left: z.number().int().nonnegative(),
   message: z.string(), // seller agent's pitch / reason
+  // added (contract v2, n1)
+  offer_id: z.string(), // the live offer; accept_deal must name it
+  final: z.boolean(), // set by code, never by the LLM
+  expires_at: z.string().datetime().nullable(), // after this, the offer can't be accepted
+  lever_package: LeverPackage.default([]),
 });
 export type MakeOfferOutput = z.infer<typeof MakeOfferOutput>;
 
 export const AcceptDealInput = BuyerContext.extend({
   negotiation_id: z.string(),
+  offer_id: z.string(), // added (contract v2, n1): only the live offer made to THIS buyer can be accepted
 });
 export const AcceptDealOutput = z.object({
   deal_id: z.string(),
   final_price_cents: z.number().int().positive(),
   quantity: z.number().int().positive(),
-  stripe_payment_intent_id: z.string(), // Stripe TEST mode only
+  stripe_payment_intent_id: z.string().optional(), // contract v2: payment happens in pay_deal; optional here
   client_secret: z.string().optional(),
+  // added (contract v2, n4)
+  lever_package: LeverPackage.default([]),
+  expires_at: z.string().datetime().nullable().optional(),
 });
 export type AcceptDealOutput = z.infer<typeof AcceptDealOutput>;
+
+// pay_deal (n7): amount comes from the stored, locked deal; never from the caller.
+export const PayDealInput = BuyerContext.extend({
+  deal_id: z.string(),
+  payment_token: z.string().optional(), // Stripe Shared Payment Token (spt_...) when available
+});
+export const PayDealOutput = z.object({
+  deal_id: z.string(),
+  status: z.enum(["succeeded", "processing", "requires_action", "refused", "declined", "error"]),
+  amount_cents: z.number().int(),
+  payment_intent_id: z.string().optional(),
+  reasons: z.array(z.string()).optional(),
+  fix: z.string().optional(),
+});
+export type PayDealOutput = z.infer<typeof PayDealOutput>;
+
+// check_offers (n7): pending follow-ups for a returning buyer.
+export const CheckOffersInput = BuyerContext;
+export const CheckOffersOutput = z.object({
+  offers: z.array(z.object({
+    offer_id: z.string(), negotiation_id: z.string(), product_id: z.string(), price_cents: z.number().int(),
+    lever_package: LeverPackage.default([]), expires_at: z.string().datetime().nullable(), message: z.string(),
+  })),
+});
+
+// ---------- Negotiation + offer status (n2, n3) ----------
+export const NegotiationStatus = z.enum([
+  "open", "negotiating", "agreed", "accepted", "rejected", "paid", "abandoned",
+  "walked_away", "follow_up", "escalated", "expired",
+]);
+export type NegotiationStatus = z.infer<typeof NegotiationStatus>;
+export const OfferRowStatus = z.enum(["live", "superseded", "accepted", "expired"]);
 
 // ---------- Event log: the integration bus ----------
 // Seller AND buyer write every action here. Dashboard only reads it.
@@ -146,10 +243,27 @@ export const EventType = z.enum([
   "payment_succeeded",
   "payment_failed",
   "buyer_walked_away",
-  "guardrail_blocked", // seller code blocked an LLM proposal (e.g. below floor)
+  "guardrail_blocked", // seller code blocked an LLM proposal; rule in payload.rule (GuardrailRule)
+  "offer_expired", // added (contract v2)
+  "judged", // added (contract v2): per-negotiation judge result for S2's safe conversion
   "run_finished",
 ]);
 export type EventType = z.infer<typeof EventType>;
+
+/** n6: guardrail events stay `guardrail_blocked`; the rule goes in `payload.rule` using these names. */
+export const GuardrailRule = z.enum([
+  "accept_below_floor",
+  "offer_below_soft_floor", // clamped
+  "price_in_text_mismatch",
+  "floor_disclosure",
+  "unpriced_concession",
+  "false_final",
+  "injection_flag",
+  "stale_or_foreign_offer", // accept named an offer that isn't live or isn't this buyer's
+  "tampered_payment", // pay_deal amount/buyer doesn't match the locked deal
+  "buyer_wallet_cap", // buyer-side: harness/wallet blocked an over-budget move
+]);
+export type GuardrailRule = z.infer<typeof GuardrailRule>;
 
 export const Actor = z.enum(["buyer", "seller", "marketplace", "harness"]);
 

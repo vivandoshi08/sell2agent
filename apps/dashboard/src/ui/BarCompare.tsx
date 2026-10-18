@@ -1,13 +1,11 @@
 /** Horizontal bars, one per policy, with a 95% interval whisker. One scale for marks, ticks and labels. */
-import { useId } from "react";
 import type { Interval } from "../metrics/stats";
 
 export interface Bar { policy: string; value: number | null; ci?: Interval | null }
 
-const LABEL: Record<string, string> = { static: "static", negotiating: "negotiating", lever_policy: "lever policy" };
+const LABEL: Record<string, string> = { static: "Fixed price", negotiating: "Negotiating", balanced: "Balanced", lever_policy: "Lever policy", learned: "Learned" };
 
 export function BarCompare({ bars, format, max, height = 34, compact = false }: { bars: Bar[]; format: (v: number) => string; max?: number; height?: number; compact?: boolean }) {
-  const pid = useId().replace(/:/g, "");
   // Compact charts drop the policy labels (color + legend carry them) so text stays legible when the chart is small.
   const W = compact ? 230 : 440, L = compact ? 2 : 130, R = compact ? 92 : 124, gap = compact ? 10 : 14;
   const top = Math.max(1e-9, max ?? Math.max(...bars.flatMap((b) => [b.value ?? 0, b.ci?.hi ?? 0])) * 1.05);
@@ -15,12 +13,6 @@ export function BarCompare({ bars, format, max, height = 34, compact = false }: 
   const H = bars.length * (height + gap) + 4;
   return (
     <svg className={`chart${compact ? " compact" : ""}`} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={bars.map((b) => `${LABEL[b.policy] ?? b.policy} ${b.value == null ? "no data" : format(b.value)}`).join(", ")}>
-      <defs>
-        {/* Halftone texture on the negotiating bar: a nod to the dot-matrix field, never a second encoding. */}
-        <pattern id={`dots-${pid}`} width="5" height="5" patternUnits="userSpaceOnUse">
-          <circle cx="2.5" cy="2.5" r="0.9" className="dot" />
-        </pattern>
-      </defs>
       <line className="axis" x1={L} x2={L} y1={0} y2={H - 4} />
       {bars.map((b, i) => {
         const y = i * (height + gap);
@@ -35,7 +27,6 @@ export function BarCompare({ bars, format, max, height = 34, compact = false }: 
               <>
                 <g className="grow" style={{ animationDelay: `${i * 120}ms` }}>
                   <rect className="bar" x={L} y={y} width={Math.max(1, x(b.value) - L)} height={height} rx={3} />
-                  {neg && <rect x={L} y={y} width={Math.max(1, x(b.value) - L)} height={height} rx={3} fill={`url(#dots-${pid})`} />}
                 </g>
                 {b.ci && (
                   <g className="whisker">
