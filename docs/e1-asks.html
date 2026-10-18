@@ -78,15 +78,16 @@ details[open] > summary { margin-bottom: 10px; }
 
 <div class="wrap">
   <header style="display:grid;gap:8px">
-    <span class="eyebrow">sales-agent · E1 exchange &amp; safety · Vivan · updated Sun Oct 18, 1:01 am PT</span>
+    <span class="eyebrow">sales-agent · E1 exchange &amp; safety · Vivan · updated Sun Oct 18, 1:12 am PT</span>
     <h1>What E1 needs from you</h1>
     <p class="lede">Bridge 1 is closed: real ChatGPT bought a keyboard end to end at 12:23 am. We're now heading for <b>Bridge 2</b>: simulated buyers run through the <b>deployed</b> gateway, and the dashboard shows static vs. negotiating from real events. Below is where each of us stands, the two gaps no PR closes yet, and what I need from you. Mark each ask <b>Done</b> or <b>Push back</b> with a note.</p>
     <div class="summary" id="summary"></div>
     <span id="sync">Status sync loading…</span>
+    <p class="why">Teammates' pages: <a href="https://claude.ai/artifact/WrrYCttDRwj9bbMsc8e5Yk">S1 · Esha</a> · <a href="https://claude.ai/artifact/NkNfDcdcwnivovndUzLAtJ">S2 · Ananya</a> · <a href="https://claude.ai/artifact/6JBAwPz1VYkMi7WARBEZvM">E2 · Neel</a></p>
   </header>
 
   <section class="box">
-    <h2>Bridge 2 board <small>main a98e99a · production 825bc111 · checked 1:01 am</small></h2>
+    <h2>Bridge 2 board <small>main 55563ce · production 825bc111 (a98e99a) · checked 1:12 am</small></h2>
     <p class="why"><b>Done when:</b> simulated buyers run through the deployed gateway, and the dashboard shows static vs. negotiating from real events. <b>Not met yet.</b> E2's 200-buyer run is real and safe, but it went through the exchange in-process with Claude buyers only.</p>
     <p class="why"><b>Production (1:00 am):</b> Vivan redeployed main a98e99a (Manufact deployment 825bc111). Smoke test on the live URL: <code>make_offer</code> takes <code>strategy</code>; no "Extras:" in search text; discovery files 200. Signed <code>static</code> held $129 for 4 rounds; signed <code>negotiating</code> went $129 → $124; unsigned and forged run_ids ignored <code>strategy</code>. About 3.5 s per <code>make_offer</code> with the Claude seller voice.</p>
     <div class="table-wrap"><table>
@@ -99,6 +100,15 @@ details[open] > summary { margin-bottom: 10px; }
       </tbody>
     </table></div>
     <p class="why">Checks: main + #54 + #53 passed everything before merge (marketplace 49/49, dashboard 25/25, harness 7/7). Main 3b77e85 (after #57 + #61): 0 type errors, seller 68/68, marketplace 50/50, dashboard 25/25, harness 8/8, gate PASS. Main + #62 + #64 + #63 together: 0 type errors, seller 70/70, marketplace 51/51, dashboard 25/25, harness 8/8, gate PASS.</p>
+  </section>
+
+  <section class="box">
+    <h2>Before the demo <small>every rehearsal, recording and deployed eval run</small></h2>
+    <ol>
+      <li>Last redeploy first (production is 825bc111 from a98e99a; nothing gateway-affecting has merged since).</li>
+      <li><b>Then, on the bridge computer:</b> <code>pnpm --filter @sa/seller-mcp anon:reset --all</code> (no args = dry run that lists live memory). Any agent that sends no buyer_id shares the anonymous start limit and endpoint, and that memory lives in Supabase, so it survives redeploys. Skipping it froze anonymous prices in the first stale-offer run.</li>
+      <li>Run the eval or rehearsal right after, so no stray anonymous chat lands in between.</li>
+    </ol>
   </section>
 
   <section class="box alert">
@@ -146,6 +156,7 @@ details[open] > summary { margin-bottom: 10px; }
     <div class="table-wrap"><table>
       <thead><tr><th>PR</th><th>Who</th><th>Verdict</th><th>Notes</th></tr></thead>
       <tbody>
+        <tr><td class="num"><a href="https://github.com/vivandoshi08/sales-agent/pull/67">#67</a> · <a href="https://github.com/vivandoshi08/sales-agent/pull/66">#66</a></td><td>Neel · Ananya</td><td><span class="pill done">Merged</span></td><td>#67: contract v3 P0 (additive, optional types) + E2 summary lines. #66: Armature done, all 7 cases pass on Claude Code and Codex. Main 55563ce: seller 76/76, marketplace 51/51, dashboard 25/25, harness 8/8, gate PASS. No gateway behaviour change, so no redeploy needed</td></tr>
         <tr><td class="num"><a href="https://github.com/vivandoshi08/sales-agent/pull/64">#64</a></td><td>Esha</td><td><span class="pill done">Merged</span></td><td><code>make_offer</code> forwards <code>strategy</code> (exchange honours it only for signed eval runs); no "Extras: …" in search text. Marketplace 51/51. Reviewed and merged by Vivan (a98e99a)</td></tr>
         <tr><td class="num"><a href="https://github.com/vivandoshi08/sales-agent/pull/63">#63</a></td><td>Ananya</td><td><span class="pill">Docs</span></td><td><code>docs/live/s2.md</code>: Armature 12/14 pass + anon final-offer finding. Merges cleanly</td></tr>
         <tr><td class="num"><a href="https://github.com/vivandoshi08/sales-agent/pull/62">#62</a></td><td>Vivan</td><td><span class="pill done">Merged</span></td><td>E1 Bridge 2: signed eval runs (<code>signEvalRun</code>), buyer memory per <code>buyer_id</code>, eval-only <code>strategy</code> override. One line in Neel's <code>buyers-cli.ts</code> (signs <code>run_id</code> with <code>--gateway</code>). Updated with main after #57/#61 (test import conflict only): seller 70/70, gate PASS, marketplace 50/50, typecheck clean. Ready to merge</td></tr>
@@ -206,7 +217,8 @@ const PEOPLE = [
     { id: "b2n3", when: "Bridge 2", t: "Run Bridge 2 through the deployed gateway, Claude + GPT", d: "From Vivan's Mac (cloud workspaces get a 403): pnpm --filter @sa/dashboard eval --gateway https://dark-zero-mesv5.run.mcp-use.com/mcp --models claude,gpt --n 100, with Supabase on." },
     { id: "b2n4", when: "now", t: "Make LeverProfile a partial object in the contract", d: "On zod 4 in production, z.record(LeverName, …) requires all six levers, so partial profiles fail. The gateway pads with zeros for now (Esha, #54)." },
     { id: "b2n5", when: "now", t: "Apply 0002_contract_v2.sql to the shared Supabase", d: "No offers table and no lever_menu on seller_policies yet. The console runs in v1 mode, and the single-catalog decision waits on it." },
-    { id: "b2n6", when: "now", t: "Share the E2 Claude Doc with Vivan and Esha", d: "It returns access denied for both of us. Until then we read docs/live/e2.md (last updated 12:10 am)." }
+    { id: "b2n6", when: "now", t: "Share the E2 Claude Doc with Vivan and Esha", d: "Vivan now reads the E2 page at claude.ai/artifact/6JBAwPz1VYkMi7WARBEZvM. Esha may still need it." },
+    { id: "b2n7", when: "now", t: "Refresh the E2 page", d: "It says 12:59 am but still lists #9, #11 and #36 as open (all merged) and asks S1 for ask_question (live since #51). The Bridge 2 lines are current: deployed run pending, GPT not run, McpGateway search shape. Please also note #58, #66, #67 and that production now honours strategy for signed runs." }
   ]},
   { who: "Esha", role: "S1 gateway & deploy", why: "Every Bridge 2 number has to come through your deployed gateway.", phase: 2, asks: [
     { id: "b2e1", when: "Bridge 2", block: true, t: "Pass the eval policy field from make_offer to the exchange", d: "Add strategy (optional enum static|negotiating|balanced) to make_offer and pass it into the offer move (PR #62). The exchange ignores it unless run_id is a signed eval run, so ChatGPT traffic can't use it." },
@@ -216,7 +228,7 @@ const PEOPLE = [
     { id: "b2e4", when: "before #52", t: "Tighten auto-deploy before it goes live", d: "Run seller-mcp tests too (it deploys that code), wait on the deployment id the deploy step returns instead of row 2 of the list, and switch it off at the 7 am freeze." }
   ]},
   { who: "Ananya", role: "S2 UI & proof", why: "The dashboard is the Bridge 2 proof.", phase: 2, asks: [
-    { id: "b2a1", when: "now", t: "Treat the 06:55 below_floor flag as a false positive", d: "No deal went below floor. The exchange subtracted the extras' cost twice on seller-accepts-bid deals. Fixed in Neel's #57 (merged); older rows keep the wrong flag, so don't count them as unsafe." },
+    { id: "b2a1", when: "now", t: "Treat the 06:55 below_floor flag as a false positive", d: "No deal went below floor. The exchange subtracted the extras' cost twice on seller-accepts-bid deals. Fixed in Neel's #57 (merged). The one stale row (06:55, event 1aedb540) is corrected: below_floor false, with a below_floor_corrected note. No rows are flagged now." },
     { id: "b2a2", when: "Bridge 2", t: "Show which gateway each eval run used", d: "run_started already logs payload.gateway. Label in-process vs deployed runs, so the Bridge 2 slide says which it is." },
     { id: "b2a3", when: "Bridge 2", t: "Re-run the eval once the deployed run lands", d: "Point the run picker at the deployed Claude + GPT run as the default comparison." },
     { id: "b2a5", when: "now", block: true, t: "Share the live demo plan doc with Vivan", d: "The P0 checklist doc (claude.ai/code/artifact/87cf2bd9…) returns access denied to Vivan's Claude. Share it, or paste Vivan's P0 items in the group chat." },
