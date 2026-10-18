@@ -167,7 +167,7 @@ footer { color: var(--muted); font-size: 0.85rem; }
 <script>
 const DATA = {
   updated: "2026-10-17",
-  commit: "46fa616",
+  commit: "7e4c2c0",
   layers: [
     { name: "Buyer agent", status: "decided", who: "Demo buyer",
       design: ["Claude with a persona: need, budget, private walk-away price.", "Its wallet enforces the person's spend cap and asks for approval, then mints a Stripe token capped at the deal total (simulated in test mode)."],
@@ -175,7 +175,7 @@ const DATA = {
       open: "Buyers leak their budget often (E1: 11 of 20 in one group)." },
     { name: "Discovery", status: "leaning", who: "Armature",
       design: ["<code>/.well-known/ucp</code> listing our MCP endpoint, plus an agent card and <code>llms.txt</code>.", "We propose a \"negotiable\" field, since no standard has one."],
-      evidence: "E8: UCP is the one live standard pointer from a seller's domain to its MCP server. No shopping agent reads A2A agent cards today.",
+      evidence: "E8: UCP is the one live standard pointer from a seller's domain to its MCP server. No shopping agent reads A2A agent cards today. E7: given four seller cards, buyers engaged the negotiable sellers in 40 of 40 sessions and never bought at a fixed list price.",
       open: "Real-world routing to seller endpoints is a distribution problem the harness can't test." },
     { name: "Agent-to-agent haggle", status: "decided", who: "All three tracks",
       design: ["Runs over MCP tool calls with structured offers. No Google A2A protocol in v1.", "State travels in a server-minted <code>negotiation_id</code> passed back on every call.", "Round cap, with a final buyer turn to accept."],
@@ -186,8 +186,8 @@ const DATA = {
       evidence: "Manufact guide: mcp-use's Python package needs an older MCP library and can't do widgets; Manufact's CTO documents this exact Python setup. Armature guide: annotations, safe retries, short receipts.",
       open: "Do the Manufact judges want mcp-use itself? Gateway timeout vs. 10–30 s seller turns." },
     { name: "Selling agent", status: "leaning", who: "Our core",
-      design: ["Code picks the price move each turn; the LLM writes the message.", "Hold list when the buyer can clearly pay it.", "Guard add-on margin when bundling; no \"best price\" bluffs."],
-      evidence: "E2: +54% profit per session over a static page, but 0 of 42 deals at list and margin down from 28.8% to 20.1%. E6 phase 1: split-the-difference is the best fixed strategy on scripted buyers.",
+      design: ["Code picks the price move each turn; the LLM writes the message.", "Hold list when the buyer can clearly pay it.", "Guard add-on margin when bundling; no \"best price\" bluffs.", "Never call a price firm or final unless it is the strategy's final offer.", "No quote-matching rules. When a buyer cites a competitor, stay on strategy; the floor stays absolute."],
+      evidence: "E2: +54% profit per session over a static page, but 0 of 42 deals at list and margin down from 28.8% to 20.1%. E7: with four sellers competing, the negotiating seller won 57.5% of deals and fixed-price sellers sold nothing; a beat-any-quote-by-$100 pricing rule got exploited ($3,501 vs. $5,170 per session). E6 phase 1: split-the-difference is the best fixed strategy on scripted buyers.",
       open: "E5 picks the strategy." },
     { name: "Policy engine", status: "decided", who: "Stripe: merchant control",
       design: ["Plain code. Checks every seller offer before it goes out, and again at <code>pay_deal</code>.", "Floors, allowed add-ons, payment terms."],
@@ -214,15 +214,17 @@ const DATA = {
     ["2026-10-17", "Front door", "Keep the official Python MCP SDK and host on Manufact Cloud instead of porting to mcp-use.", "Manufact guide"],
     ["2026-10-17", "Front door", "negotiation_id handle, tool annotations, safe payment retries, short receipts, discovery files.", "Armature guide"],
     ["2026-10-17", "Checkout", "Mock checkout replaced by Stripe token → PaymentIntent through pay_deal, with a deal-card widget for approval.", "Stripe guide"],
-    ["2026-10-17", "Learning loop", "Reward scores rule-breaking below walking away; scripted buyers must walk from stubborn sellers.", "E8 research"]
+    ["2026-10-17", "Learning loop", "Reward scores rule-breaking below walking away; scripted buyers must walk from stubborn sellers.", "E8 research"],
+    ["2026-10-17", "Selling agent", "Never call a price firm or final unless it is the final offer (13 of 147 seller transcripts were flagged for this).", "E7"],
+    ["2026-10-17", "Selling agent", "No quote-matching rules: buyers carried each quote to the other seller until one hit its floor.", "E7"],
+    ["2026-10-17", "Discovery", "Broker / marketplace mode stays out of the build: buyers shop sellers themselves, and a broker only cut price by about 1 point.", "E7"]
   ],
   pending: [
     ["E1 · MCP end to end", "Final write-up", "Front door, haggle"],
     ["E3 · Buyer behavior", "Budget-leak probe; write-up", "Buyer agent, haggle"],
     ["E4 · Red team", "Attacks on prompt-only vs. code rules", "Policy engine"],
     ["E5 · Strategies", "Which haggling strategy wins", "Selling agent"],
-    ["E6 · RL", "Learned policy vs. LLM buyers", "Learning loop"],
-    ["E7 · Marketplace", "Competing sellers, broker vs. direct", "Discovery, selling agent"]
+    ["E6 · RL", "Learned policy vs. LLM buyers", "Learning loop"]
   ]
 };
 const $ = (id) => document.getElementById(id);

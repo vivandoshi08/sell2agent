@@ -197,7 +197,7 @@ footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 4px; }
 <script>
 const DATA = {
   updated: "2026-10-17",
-  commit: "b288aa5",
+  commit: "7e4c2c0",
   stages: [
     { name: "Buyer agent", desc: "Claude, acting for a person with a need and a budget.", exps: ["E1", "E3"], qs: "B1–B10" },
     { name: "Discovery", desc: "Agent cards, feeds, registries.", exps: ["E1", "E7", "E8"], qs: "D1–D4" },
@@ -212,13 +212,13 @@ const DATA = {
           walkaways: [33000, 38500, 44000] },
   assumptions: [
     { id: "A1", text: "A buying agent can go from a need to a paid order through an MCP front door, with no human UI.", by: "E1", status: "untested" },
-    { id: "A2", text: "Buying agents use a seller's agent endpoint when there is one, rather than just reading the page.", by: "E1, E7", status: "untested" },
+    { id: "A2", text: "Buying agents use a seller's agent endpoint when there is one, rather than just reading the page.", by: "E1, E7", status: "validated", result: "E7: buyers engaged negotiable sellers in 40/40 sessions and never bought at a fixed list price. E1 (interim): 0 of 40 runs picked the cheaper web-only dealer." },
     { id: "A3", text: "A negotiating, agent-facing seller earns more per buyer than a static product page.", by: "E2", status: "validated", result: "+54% profit per session ($5,886 vs. $3,820), conversion 70% vs. 33%. All of the gain is from closing buyers the page loses; it gives money back on buyers who'd pay list." },
     { id: "A4", text: "Buying agents haggle when they can, and haggling changes the price.", by: "E3", status: "untested" },
     { id: "A5", text: "A selling agent can be kept safe, but only with rules enforced in code, not just written in the prompt.", by: "E4", status: "untested", note: "Early probe points this way: see Early signals." },
     { id: "A6", text: "Negotiation strategy matters: some strategies earn clearly more at the same conversion.", by: "E5", status: "untested" },
     { id: "A7", text: "A seller can learn to haggle better from its own transaction data.", by: "E6", status: "untested" },
-    { id: "A8", text: "With competing sellers, a negotiating or dynamically priced seller still wins deals and keeps its margin.", by: "E7", status: "untested" },
+    { id: "A8", text: "With competing sellers, a negotiating or dynamically priced seller still wins deals and keeps its margin.", by: "E7", status: "inconclusive", result: "Split. Wins deals: yes, negotiable sellers took 100% (57.5% / 42.5%). Keeps margin: no, 20.7% vs. 24.5–25.1% a fixed seller would have made on the same baskets." },
     { id: "A9", text: "Results from simulated buyers hold across buyer models, so the harness is worth trusting.", by: "E3, E6", status: "untested" },
     { id: "A10", text: "Negotiating pays for itself: the model cost per deal is small next to the margin it wins.", by: "E5", status: "untested" },
     { id: "A11", text: "Buying agents can use the front door's tools correctly, and the tool design changes outcomes.", by: "E1", status: "untested" },
@@ -255,7 +255,8 @@ const DATA = {
       q: "Can the seller learn to haggle better than any fixed strategy, and does it hold against LLM buyers?",
       setup: "Bandit and Q-learning over discrete concession moves, trained on fast scripted buyers, then tested on LLM buyers. Plus prompt-level learning from transcripts.",
       bar: "<strong>Validates A7</strong> if a learned policy beats the best fixed strategy by ≥5% profit per session against LLM buyers." },
-    { id: "E7", name: "Marketplace and dynamic pricing", track: "Marketplace", status: "running", tests: ["A2", "A8"],
+    { id: "E7", name: "Marketplace and dynamic pricing", track: "Marketplace", status: "done", tests: ["A2", "A8"], resultTone: "warn",
+      result: "A2 validated, A8 split. The buyer played sellers against each other in 39/40 sessions. Fixed-price sellers sold nothing, even 5% under list. The plain negotiating seller beat code-based dynamic pricing ($5,170 vs. $3,501 per session); its beat-any-quote rule got exploited. A broker cut prices about 1 point. No policy breaches.",
       q: "With several sellers competing, does a negotiating or dynamic seller still win deals and keep margin?",
       setup: "Four sellers (fixed, fixed-low, negotiating, dynamic). Buyer talks to any of them, directly or through a broker like Inkbox.",
       bar: "<strong>Validates A8</strong> if the negotiating or dynamic seller wins >25% of deals with margin ≥ the fixed-price seller." },
@@ -268,6 +269,7 @@ const DATA = {
   signals: [
     "Prompt-only price floors leak on smaller models. Told its floor was $44,000, a Haiku seller countered a $40,000 offer at $43,000. Opus held at $49,500. One probe, not a result: E4 tests it properly.",
     "Headless claude -p works as the model backend at about 700 tokens of overhead per call, so we can run experiments on our existing login with no API key.",
+    "E7: when buyers can shop four sellers, fixed-price sellers get zero deals and the buyer runs a bidding war between the negotiators. Quote-matching rules are exploitable; the selling agent now holds to its strategy instead.",
     "E2: the negotiating seller never sold at list (0 of 42 deals), even to buyers whose walk-away was $4,300 above it, and its discounted bundle upsells cut margin. Fix before the build: hold list when the buyer signals it can pay, and guard add-on margin.",
     "E2: the false-claims judge flagged 8 of 60 negotiating sessions, mostly 'best price' bluffs; in 2 the seller revealed its true floor. Safe conversion was 65%, not 70%.",
     "E8: no live consumer buying agent haggles today (ChatGPT, Perplexity, Google, Amazon, Copilot). Lowers the prior for A4: expect few counteroffers unless negotiation is advertised.",
