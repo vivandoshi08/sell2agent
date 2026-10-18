@@ -10,6 +10,8 @@ import { z } from "zod";
 import { Exchange, type ExchangeResponse, type Move } from "@sa/seller-mcp/exchange";
 import { defaultLlm, dealSummary as dealLine } from "@sa/seller-mcp/sellers";
 import { approveUrl } from "./deal/approve.js";
+import { blockerSchema, needSchema, recover, stillNeedSchema } from "./recovery-tools.js";
+import { recoveryText, type Blocker } from "./recovery.js";
 
 let exP: Promise<Exchange> | undefined;
 /** Supabase-backed when SUPABASE_URL is set (stateless-safe), else in-memory (single instance). */
@@ -94,8 +96,9 @@ async function run(move: Move) {
 }
 
 // biome-ignore lint: server type comes from mcp-use
-export function registerNegotiationTools(server: any, opts: { approveOrigin?: string } = {}) {
+export function registerNegotiationTools(server: any, opts: { approveOrigin?: string; mcpUrl?: string } = {}) {
   approveOrigin = opts.approveOrigin;
+  const mcpUrl = opts.mcpUrl ?? "http://localhost:3002/mcp";
   server.tool(
     {
       name: "make_offer",
@@ -139,10 +142,17 @@ export function registerNegotiationTools(server: any, opts: { approveOrigin?: st
     {
       name: "walk_away",
       title: "Walk away",
-      description: "End the negotiation. Optionally allow one later offer from this seller at reply_to (agent email, phone or A2A address); reply STOP to opt out.",
+      description:
+        "End the negotiation. Optional, asked once: say what got in the way (blocker, still_need) and the product_id, and the reply suggests up to two " +
+        "products that fit better, or says honestly that nothing does. Never the same product, never pricier. " +
+        "Optionally allow one later offer from this seller at reply_to (agent email, phone or A2A address); reply STOP to opt out.",
       inputSchema: z.object({
         negotiation_id: z.string(),
         reason: z.string().max(500).optional(),
+        product_id: z.string().optional().describe("The product you were negotiating; needed for better-fit suggestions"),
+        blocker: blockerSchema.optional(),
+        still_need: stillNeedSchema.optional(),
+        need: needSchema.optional(),
         allow_followup_to: z.string().optional().describe("Where the seller may send one later offer; omit for none"),
         followup_channel: z.enum(["email", "sms", "a2a"]).optional(),
         buyer_id: buyerIdReq,
@@ -150,8 +160,27 @@ export function registerNegotiationTools(server: any, opts: { approveOrigin?: st
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
-    async (a: any, rc?: RequestLike) => run({ kind: "walk", ctx: toCtx(a, rc), negotiation_id: a.negotiation_id, reason: a.reason,
-      followup: a.allow_followup_to ? { reply_to: a.allow_followup_to, channel: a.followup_channel ?? "email" } : undefined }),
+    async (a: any, rc?: RequestLike) => {
+      const ctx = toCtx(a, rc);
+      const blocker = a.blocker as Blocker | undefined;
+      // The blocker leads the logged reason, so the seller's Live view says what got in the way.
+      const said = a.reason ?? a.need;
+      const reason = blocker ? (said ? `${blocker}: ${said}` : blocker) : a.reason;
+      const res = await run({ kind: "walk", ctx, negotiation_id: a.negotiation_id, reason,
+        followup: a.allow_followup_to ? { reply_to: a.allow_followup_to, channel: a.followup_channel ?? "email" } : undefined });
+      const sc = res.structuredContent as { ok?: boolean; status?: string };
+      if (!sc?.ok || sc.status !== "walked") return res;
+      const text = res.content[0]?.text ?? "";
+      if (!blocker || !a.product_id) {
+        // Ask once, in the reply: no extra turn unless the agent wants one.
+        const ask = "Optional: if something specific got in the way, call find_alternatives with the product_id and a blocker (price, missing_feature, delivery, trust, other) to see whether anything here fits better.";
+        return { ...res, content: [{ type: "text" as const, text: `${text}\n${ask}` }] };
+      }
+      const r = await recover({ ...ctx, product_id: a.product_id, blocker, still_need: a.still_need, need: a.need,
+        negotiation_id: a.negotiation_id, trigger: "walk_away" }, mcpUrl);
+      if (!r) return res;
+      return { content: [{ type: "text" as const, text: `${text}\n${recoveryText(r)}` }], structuredContent: { ...res.structuredContent, recovery: r }, isError: false };
+    },
   );
 
   server.tool(

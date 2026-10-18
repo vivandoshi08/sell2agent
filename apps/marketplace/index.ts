@@ -12,6 +12,7 @@ import { deal, registerDealTools } from "./src/deal-tools.js";
 import { registerApprovePage } from "./src/deal/index.js";
 import { registerListingTools } from "./src/listing-tools.js";
 import { registerDiscovery } from "./src/discovery.js";
+import { registerRecoveryTools } from "./src/recovery-tools.js";
 
 // mcp-use and Manufact set MCP_URL to the public origin (no path); the endpoint is served at /mcp.
 const MCP_URL = new URL("/mcp", process.env.MCP_URL ?? "http://localhost:3002").toString();
@@ -22,7 +23,7 @@ const server = new MCPServer({
   version: "0.0.1",
   description: "Compare products from competing sellers and negotiate with each seller's agent.",
   instructions:
-    "This is a marketplace of competing sellers whose agents negotiate. Use search_products to find products that fit the buyer's needs and present those listings. Listings show public facts only; prices are negotiable through the seller's agent. Flow: search_products → (get_listing / ask_question) → make_offer rounds → accept_deal → review_deal (the card; the person approves and pays in it). A deal paid in the card is a finished purchase: if asked whether it was bought, call check_offers and report its state. Never start a new negotiation for the same item after a purchase unless the person asks to buy another.",
+    "This is a marketplace of competing sellers whose agents negotiate. Use search_products to find products that fit the buyer's needs and present those listings. Listings show public facts only; prices are negotiable through the seller's agent. Flow: search_products → (get_listing / ask_question) → make_offer rounds → accept_deal → review_deal (the card; the person approves and pays in it). A deal paid in the card is a finished purchase: if asked whether it was bought, call check_offers and report its state. Never start a new negotiation for the same item after a purchase unless the person asks to buy another. If a deal won't work, walk_away with the product_id and what got in the way (blocker, still_need): the reply suggests up to two products that fit better, or says honestly that nothing does.",
 });
 
 // Optional session context: simulated buyers send it so events can be grouped by run.
@@ -150,7 +151,8 @@ export const searchProductsTool = server.tool(
 );
 
 // Approve links point at this gateway's public origin (S2's hosted approve page, for agents that can't show the card).
-registerNegotiationTools(server, { approveOrigin: new URL(MCP_URL).origin });
+registerNegotiationTools(server, { approveOrigin: new URL(MCP_URL).origin, mcpUrl: MCP_URL });
+registerRecoveryTools(server, MCP_URL);
 registerDealTools(server);
 registerApprovePage(server, deal);
 registerListingTools(server, MCP_URL);
