@@ -16,12 +16,19 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { renderToStaticMarkup } from "react-dom/server";
 import { DealCardView, type PayState } from "../../views/deal-card/DealCardView";
+import type { PaymentCredential } from "@sa/payments";
 import type { DealCard, PayResult } from "./types";
 
 type DealModule = {
   reviewDeal(deal_id: string): Promise<DealCard>;
-  payApprovedDeal(deal_id: string, credential?: undefined, ctx?: { buyer?: { buyer_id: string; run_id?: string; buyer_model?: string }; run_id?: string }): Promise<PayResult>;
+  payApprovedDeal(deal_id: string, credential?: PaymentCredential, ctx?: { buyer?: { buyer_id: string; run_id?: string; buyer_model?: string }; run_id?: string }): Promise<PayResult>;
+  /** Hosted Stripe Checkout for the deal (absent on old/mock modules: the page then uses the one-tap test pay). */
+  startCheckout?(deal_id: string, buyer_id: string, urls: { success_url: string; cancel_url: string }):
+    Promise<{ ok: true; url: string } | { ok: false; code: string; reason: string }>;
 };
+
+/** Approve links open Stripe Checkout unless APPROVE_CHECKOUT=off (then the one-tap test-card pay, as before). */
+const checkoutOn = (mod: DealModule) => !!mod.startCheckout && process.env.APPROVE_CHECKOUT !== "off";
 
 const b64u = (s: string | Buffer) => Buffer.from(s).toString("base64url");
 const secret = () => {
@@ -61,6 +68,15 @@ export const scriptJson = (v: unknown) =>
   JSON.stringify(v).replace(/[<>&\u2028\u2029]/g, (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, "0")}`);
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
+function payStateOf(r: PayResult): PayState {
+  if (r.status === "succeeded") return { kind: "succeeded", card: r.card, payment_intent_id: r.payment_intent_id, held: r.held, pickup_code: r.pickup_code };
+  if (r.status === "processing") return { kind: "processing" };
+  if (r.status === "requires_action") return { kind: "requires_action", fix: r.fix };
+  if (r.status === "refused") return { kind: "refused", reasons: r.reasons ?? [], fix: r.fix };
+  if (r.status === "declined") return { kind: "declined", message: r.message, fix: r.fix };
+  return { kind: "error", message: r.message };
+}
+
 /** What the page shows after a pay attempt redirected back (?r=<status>&m=<message>). */
 function payStateFrom(card: DealCard, r?: string | null, m?: string | null): PayState {
   if (card.status === "paid" || r === "succeeded") return { kind: "succeeded" };
@@ -90,18 +106,36 @@ var m=(j.reasons&&j.reasons[0])||j.message||"";if(m)u.searchParams.set("m",m);el
 }).catch(function(){b.disabled=false;b.removeAttribute("aria-busy");b.textContent="Couldn't reach the payment server: nothing was charged. Tap to try again.";});});})();
 </script>`;
 
-/** GET /deal/:deal_id?t= */
-export async function approvePage(mod: DealModule, deal_id: string, q: { t?: string | null; r?: string | null; m?: string | null }, key?: string): Promise<HttpOut> {
+// Checkout variant: the button asks the gateway for a Stripe Checkout Session for this deal, then goes there.
+const CHECKOUT_SCRIPT = (checkoutPath: string) => `<script>
+(function(){var b=document.querySelector(".dc-btn");if(!b)return;b.addEventListener("click",function(){
+if(b.disabled)return;b.disabled=true;b.setAttribute("aria-busy","true");b.textContent="Opening secure checkout…";
+fetch(${scriptJson(checkoutPath)},{method:"POST",headers:{"content-type":"application/json"},body:"{}"}).then(function(r){return r.json().catch(function(){return {ok:false,reason:"The payment server replied "+r.status+"."}})}).then(function(j){
+if(j&&j.url){location.assign(j.url);return;}var u=new URL(location.href);u.searchParams.set("r","refused");u.searchParams.set("m",(j&&j.reason)||"Checkout isn't available for this deal.");location.replace(u.toString());
+}).catch(function(){b.disabled=false;b.removeAttribute("aria-busy");b.textContent="Couldn't reach the payment server: nothing was charged. Tap to try again.";});});})();
+</script>`;
+
+/** GET /deal/:deal_id?t=  (and ?cs=<checkout session> when Stripe Checkout redirects back) */
+export async function approvePage(mod: DealModule, deal_id: string, q: { t?: string | null; r?: string | null; m?: string | null; cs?: string | null }, key?: string): Promise<HttpOut> {
   const buyer = verifyApproveToken(deal_id, q.t, key);
   if (!buyer) return html(403, page("Link not valid", `<h1>This approval link isn't valid.</h1><p>Ask your assistant for a fresh link to this deal.</p>`));
   let card: DealCard;
   try { card = await mod.reviewDeal(deal_id); }
   catch { return html(404, page("Deal not found", `<h1>We couldn't find this deal.</h1><p>It may have expired. Ask your assistant to make a new offer.</p>`)); }
-  const pay = payStateFrom(card, q.r, q.m);
+  let pay = payStateFrom(card, q.r, q.m);
+  // Back from Stripe Checkout: settle the deal with that session (verified against the stored total, never trusted).
+  if (q.cs && /^cs_[A-Za-z0-9_]+$/.test(q.cs)) {
+    const r = await mod.payApprovedDeal(deal_id, { checkout_session: q.cs }, { buyer: { buyer_id: buyer } });
+    pay = payStateOf(r);
+    try { card = await mod.reviewDeal(deal_id); } catch { /* keep the card we have */ }
+  }
   const theme = "light" as const; // the page CSS follows the OS theme; the card's own palette handles light
   const markup = renderToStaticMarkup(<DealCardView card={card} pay={pay} theme={theme} onApprove={() => {}} />);
-  const payPath = `/deal/${encodeURIComponent(deal_id)}/pay?t=${encodeURIComponent(q.t!)}`;
-  return html(200, page(`Approve: ${card.product.title}`, markup, card.status === "ready" && pay.kind === "idle" ? SCRIPT(payPath) : ""));
+  const t = encodeURIComponent(q.t!);
+  const payPath = `/deal/${encodeURIComponent(deal_id)}/pay?t=${t}`;
+  const checkoutPath = `/deal/${encodeURIComponent(deal_id)}/checkout?t=${t}`;
+  const script = card.status === "ready" && pay.kind === "idle" ? (checkoutOn(mod) ? CHECKOUT_SCRIPT(checkoutPath) : SCRIPT(payPath)) : "";
+  return html(200, page(`Approve: ${card.product.title}`, markup, script));
 }
 
 /** POST /deal/:deal_id/pay?t= */
@@ -116,13 +150,36 @@ export async function approvePay(mod: DealModule, deal_id: string, t: string | n
   }
 }
 
+/** POST /deal/:deal_id/checkout?t=  → { url } of a Stripe Checkout Session for this deal, or { ok: false, reason } */
+export async function approveCheckout(mod: DealModule, deal_id: string, t: string | null | undefined, pageUrl: string, key?: string): Promise<HttpOut> {
+  const buyer_id = verifyApproveToken(deal_id, t, key);
+  if (!buyer_id) return json(403, { ok: false, reason: "This approval link isn't valid for this deal." });
+  if (!mod.startCheckout) return json(404, { ok: false, reason: "Checkout isn't enabled on this gateway." });
+  const back = new URL(`/deal/${encodeURIComponent(deal_id)}`, pageUrl);
+  back.searchParams.set("t", t!);
+  // Stripe fills {CHECKOUT_SESSION_ID}; keep the braces unescaped.
+  const success_url = `${back.toString()}&cs={CHECKOUT_SESSION_ID}`;
+  try {
+    const r = await mod.startCheckout(deal_id, buyer_id, { success_url, cancel_url: back.toString() });
+    return r.ok ? json(200, { ok: true, url: r.url }) : json(409, { ok: false, code: r.code, reason: r.reason });
+  } catch (e) {
+    return json(500, { ok: false, reason: `Couldn't start checkout: ${(e as Error).message}. Nothing was charged.` });
+  }
+}
+
 /** Mount both routes on the mcp-use (Hono-style) server. `deal` returns the gateway's own deal module instance. */
 // biome-ignore lint: server type comes from mcp-use
 export function registerApprovePage(server: any, deal: () => Promise<DealModule> | DealModule, opts: { key?: string } = {}) {
   const send = (c: any, o: HttpOut) => new Response(o.body, { status: o.status, headers: o.headers });
   server.get("/deal/:deal_id", async (c: any) => {
     const u = new URL(c.req.url);
-    return send(c, await approvePage(await deal(), c.req.param("deal_id"), { t: u.searchParams.get("t"), r: u.searchParams.get("r"), m: u.searchParams.get("m") }, opts.key));
+    return send(c, await approvePage(await deal(), c.req.param("deal_id"), { t: u.searchParams.get("t"), r: u.searchParams.get("r"), m: u.searchParams.get("m"), cs: u.searchParams.get("cs") }, opts.key));
+  });
+  server.post("/deal/:deal_id/checkout", async (c: any) => {
+    const u = new URL(c.req.url);
+    // Behind Manufact's proxy the request URL can be internal: build return links from the public MCP_URL origin when set.
+    const origin = process.env.MCP_URL ? new URL(process.env.MCP_URL).origin : u.origin;
+    return send(c, await approveCheckout(await deal(), c.req.param("deal_id"), u.searchParams.get("t"), origin, opts.key));
   });
   server.post("/deal/:deal_id/pay", async (c: any) => {
     const u = new URL(c.req.url);

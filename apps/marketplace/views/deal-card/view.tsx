@@ -12,7 +12,7 @@ export const viewConfig = { displayModes: ["inline"] } satisfies ViewConfig;
 
 export function toPayState(r: PayResult): PayState {
   switch (r.status) {
-    case "succeeded": return { kind: "succeeded", card: r.card, payment_intent_id: r.payment_intent_id };
+    case "succeeded": return { kind: "succeeded", card: r.card, payment_intent_id: r.payment_intent_id, held: r.held, pickup_code: r.pickup_code };
     case "processing": return { kind: "processing" };
     case "requires_action": return { kind: "requires_action", fix: r.fix };
     case "refused": return r.already_paid ? { kind: "succeeded" } : { kind: "refused", reasons: r.reasons ?? [], fix: r.fix };

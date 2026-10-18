@@ -4,9 +4,11 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { Deal } from "@sa/payments";
 import { createDealModule, createMockCatalog, createMockExchange, PRIVATE_KEYS } from "./index";
-import { approvePage, approvePay, approveToken, approveUrl, registerApprovePage, scriptJson, verifyApproveToken } from "./approve";
+import { approveCheckout, approvePage, approvePay, approveToken, approveUrl, registerApprovePage, scriptJson, verifyApproveToken } from "./approve";
 
 const KEY = "test-secret";
+// Most tests here cover the one-tap test-card page; the Checkout tests at the bottom turn Checkout back on.
+process.env.APPROVE_CHECKOUT = "off";
 function setup() {
   const charges: Deal[] = [];
   const mod = createDealModule({
@@ -128,3 +130,69 @@ test("JSON embedded in the inline <script> can't close the tag: <, >, &, U+2028,
   assert.equal(body.match(/<script/gi)?.length, 1);
   assert.equal(body.match(/<\/script/gi)?.length, 1);
 });
+
+// ── Stripe Checkout variant (default in production) ──────────────────────────────────────────────────
+function withCheckout<T>(f: () => Promise<T>): Promise<T> {
+  delete process.env.APPROVE_CHECKOUT;
+  return f().finally(() => { process.env.APPROVE_CHECKOUT = "off"; });
+}
+
+function checkoutSetup() {
+  const sessions: { deal: Deal; success_url: string }[] = [];
+  const paid: string[] = [], voided: string[] = [];
+  const mod = createDealModule({
+    deals: createMockExchange(), catalog: createMockCatalog(), logEvent: async () => {},
+    createCheckout: async (deal, urls) => { sessions.push({ deal, success_url: urls.success_url }); return { id: `cs_test_${sessions.length}`, url: `https://checkout.stripe.com/c/pay/cs_test_${sessions.length}` }; },
+    voidCheckout: async (cs) => { voided.push(cs); return "released"; },
+    payDeal: async (deal, cred) => {
+      const cs = (cred as { checkout_session: string }).checkout_session;
+      paid.push(cs);
+      return { status: "succeeded", deal_id: deal.deal_id, amount_cents: deal.amount_cents, mode: "checkout", payment_intent_id: "pi_held", held: true, pickup_code: "123456" };
+    },
+  });
+  return { mod, sessions, paid, voided };
+}
+
+test("Checkout: the page button goes to Stripe Checkout, not the one-tap pay route", () => withCheckout(async () => {
+  const { mod } = checkoutSetup();
+  const r = await approvePage(mod, "deal_demo_ready", { t: approveToken("deal_demo_ready", "buyer_demo", KEY) }, KEY);
+  assert.match(r.body, /\/deal\/deal_demo_ready\/checkout\?t=/);
+  assert.doesNotMatch(r.body, /\/pay\?t=/);
+}));
+
+test("Checkout: session is for the stored total and returns to this deal's page with {CHECKOUT_SESSION_ID}", () => withCheckout(async () => {
+  const { mod, sessions } = checkoutSetup();
+  const t = approveToken("deal_demo_ready", "buyer_demo", KEY);
+  const r = await approveCheckout(mod, "deal_demo_ready", t, "https://gw.example", KEY);
+  assert.equal(r.status, 200);
+  assert.match(JSON.parse(r.body).url, /^https:\/\/checkout\.stripe\.com\//);
+  assert.equal(sessions[0].deal.amount_cents, 11_900);
+  assert.match(sessions[0].success_url, /^https:\/\/gw\.example\/deal\/deal_demo_ready\?t=.+&cs=\{CHECKOUT_SESSION_ID\}$/);
+  // Wrong buyer or a bad token never gets a session.
+  assert.equal((await approveCheckout(mod, "deal_demo_ready", approveToken("deal_demo_ready", "someone_else", KEY), "https://gw.example", KEY)).status, 409);
+  assert.equal((await approveCheckout(mod, "deal_demo_ready", "garbage", "https://gw.example", KEY)).status, 403);
+  assert.equal(sessions.length, 1);
+}));
+
+test("Checkout: returning with ?cs settles the deal once and shows the pickup code", () => withCheckout(async () => {
+  const { mod, paid, voided } = checkoutSetup();
+  const t = approveToken("deal_demo_ready", "buyer_demo", KEY);
+  const r = await approvePage(mod, "deal_demo_ready", { t, cs: "cs_test_1" }, KEY);
+  assert.match(r.body, /held for pickup/);
+  assert.match(r.body, /123456/);
+  assert.deepEqual(paid, ["cs_test_1"]);
+  // A reload with the same session is already paid; a second, different session gets released.
+  await approvePage(mod, "deal_demo_ready", { t, cs: "cs_test_1" }, KEY);
+  await approvePage(mod, "deal_demo_ready", { t, cs: "cs_test_2" }, KEY);
+  assert.deepEqual(paid, ["cs_test_1"]);
+  assert.ok(voided.includes("cs_test_2"));
+}));
+
+test("Checkout: a completed session for a deal that can't settle is released, not charged", () => withCheckout(async () => {
+  const { mod, paid, voided } = checkoutSetup();
+  // deal_demo_paid is already settled by another payment in the mock.
+  const r = await approvePage(mod, "deal_demo_paid", { t: approveToken("deal_demo_paid", "buyer_demo", KEY), cs: "cs_test_9" }, KEY);
+  assert.equal(r.status, 200);
+  assert.deepEqual(paid, []);
+  assert.deepEqual(voided, ["cs_test_9"]);
+}));
