@@ -167,7 +167,7 @@ footer { color: var(--muted); font-size: 0.85rem; }
 <script>
 const DATA = {
   updated: "2026-10-17",
-  commit: "a2fb3ff",
+  commit: "4ad4161",
   layers: [
     { name: "Buyer agent", status: "decided", who: "Demo buyer",
       design: ["Claude with a persona: need, budget, private walk-away price.", "Its wallet enforces the person's spend cap and asks for approval, then mints a Stripe token capped at the deal total (simulated in test mode)."],
@@ -191,11 +191,11 @@ const DATA = {
       open: "E6: can a learned policy beat $8,870 per session against LLM buyers? Also stop the LLM inventing reasons for code-picked prices." },
     { name: "Policy engine", status: "decided", who: "Stripe: merchant control",
       design: ["Plain code. Checks every seller offer before it goes out, and again at <code>pay_deal</code>.", "Floors, allowed add-ons, payment terms."],
-      evidence: "E2: blocked 8 below-floor attempts; 0 closed deals broke a rule. E1: blocked an Opus seller accepting $29,200 against a $29,700 floor, so prompt-only rules leak even on the strongest model.",
-      open: "E4: do sellers promise financing or freebies in words, which a price check can't catch?" },
+      evidence: "E2: blocked 8 below-floor attempts; 0 closed deals broke a rule. E1: blocked an Opus seller accepting $29,200 against a $29,700 floor. E4: 0 rule-breaking deals in 56 engine sessions; a prompt-only Opus seller accepted $28,500 on a $41,700 floor after one injected SYSTEM line, and the engine blocked the same accept.",
+      open: "E4: verbal promises (\"I can include delivery\") pass a price-only engine 5 times; the output post-guard must check add-ons named in words against the structured offer (E9)." },
     { name: "Guardrails (cross-cutting)", status: "leaning", who: "Stripe: safe participation",
-      design: ["Input: buyer text is quoted untrusted data; deterministic injection detector; schema-checked offers.", "Decision: strategy and RL actions are masked so nothing below the low can be proposed; optionally the LLM never sees the low or cost.", "Output post-guard on every seller turn: policy engine on the offer, prices in the text must match a valid offer and stay above the low, no floor disclosure, no verbal financing or freebies, \"final\" only when final. Block, regenerate, then fall back to a safe template.", "Transaction: immutable server-side deals; pay_deal rejects tampered amounts, replays, expired deals, and tokens capped below the total.", "Session: max concession per round, circuit breaker on repeated attacks, escalate out-of-policy asks to a human."],
-      evidence: "E1: the policy engine stopped an Opus seller accepting $500 under its floor. E2: 2 sessions where the seller revealed its floor. E1/E5: \"best and final\" bluffs in 10 of 94 and 13 of 70 sessions.",
+      design: ["Input: buyer text is quoted untrusted data; deterministic injection detector; schema-checked offers.", "Decision: strategy and RL actions are masked so nothing below the low can be proposed; optionally the LLM never sees the low or cost.", "Soft floor: offers stop at floor plus a buffer so the private floor isn't revealed; accepts may go down to the hard floor.", "Output post-guard on every seller turn: policy engine on the offer, prices in the text must match a valid offer and stay above the low, no floor disclosure, no verbal financing or freebies, \"final\" only when final. Block, regenerate, then fall back to a safe template.", "Transaction: immutable server-side deals; pay_deal rejects tampered amounts, replays, expired deals, and tokens capped below the total.", "Session: max concession per round, circuit breaker on repeated attacks, escalate out-of-policy asks to a human."],
+      evidence: "E4: one injected SYSTEM line in the opening message beat prompt-only rules; sellers ended at exactly their floor in 50 of 71 attack sessions. E1: the policy engine stopped an Opus seller accepting $500 under its floor. E2: 2 sessions where the seller revealed its floor. E1/E5: \"best and final\" bluffs in 10 of 94 and 13 of 70 sessions.",
       open: "E9 tests each layer: what it catches, and what it costs legitimate sales." },
     { name: "Checkout", status: "decided", who: "Stripe",
       design: ["Deal stored when approved → buyer sends a Shared Payment Token capped at the exact total → <code>pay_deal</code> re-checks the deal and the token → PaymentIntent with an idempotency key.", "The amount always comes from our stored deal.", "Fallback: PaymentIntent with a test card."],
@@ -222,6 +222,8 @@ const DATA = {
     ["2026-10-17", "Selling agent", "Never call a price firm or final unless it is the final offer (13 of 147 seller transcripts were flagged for this).", "E7"],
     ["2026-10-17", "Selling agent", "No quote-matching rules: buyers carried each quote to the other seller until one hit its floor.", "E7"],
     ["2026-10-17", "Discovery", "Broker / marketplace mode stays out of the build: buyers shop sellers themselves, and a broker only cut price by about 1 point.", "E7"],
+    ["2026-10-17", "Policy engine", "Engine checks accepts as well as offers; confirmed it blocks an injection-driven accept that prompt rules let through.", "E4"],
+    ["2026-10-17", "Guardrails", "Added a soft floor (offers stop above the hard floor) and an add-ons-in-words check to the output post-guard.", "E4"],
     ["2026-10-17", "Haggle", "Final buyer turn to accept is required: 21 of 22 failed sessions ended at the round cap, two with an acceptable offer on the table.", "E3"],
     ["2026-10-17", "Discovery", "A \"negotiable\" flag is for routing only: buyers haggled the same whether or not negotiation was advertised.", "E3"],
     ["2026-10-17", "Guardrails", "Guardrails made an explicit cross-cutting layer (input, decision, output post-guard, transaction, session). E9 tests each layer.", "Safety review"],
@@ -235,7 +237,6 @@ const DATA = {
     ["2026-10-17", "Evals", "One job per sponsor: Manufact builds, hosts and publishes; Armature judges and evaluates AX; Stripe moves money. Manufact sessions feed learning; Armature verdicts measure AX.", "Sponsor docs check"]
   ],
   pending: [
-    ["E4 · Red team", "Attacks on prompt-only vs. code rules", "Policy engine"],
     ["E6 · RL", "Learned policy vs. LLM buyers", "Learning loop"],
     ["E9 · Guardrails", "Layer-by-layer safety ablation", "Guardrails, policy engine, checkout"],
     ["E10 · Priorities × buyer types", "Seller priority dial, adaptive selling, needs-fit", "Selling agent, buyer agent"]
