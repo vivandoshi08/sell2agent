@@ -54,7 +54,7 @@ LEVERS: dict[str, Lever] = {
               "Parts and labor for 3 years beyond the standard 1-year warranty, at no charge.", excludes_addon="warranty",
               pattern=r"\b(extended|3[- ]year|three[- ]year)\s+(extended\s+)?warrant\w*|\bwarranty\b"),
         Lever("expedited", "Expedited prep", 250, 750,
-              "Tractor prepped and ready (for pickup or delivery) within 5 business days instead of the standard 3-4 weeks.",
+              "Tractor prepped and ready (for pickup or delivery) within 5 business days instead of the standard 2-3 weeks.",
               pattern=r"\bexpedit\w*|\brush(ed)?\b|\bpriority (prep|delivery|scheduling)|\b5 business days|\bfive business days"),
         Lever("training", "Operator training session", 150, 400,
               "A 2-hour on-site session with a technician: safe operation, daily checks, implement hookup.",
@@ -169,14 +169,22 @@ def profit(offer: Offer) -> int:
 # ============================================================== text check
 
 _NEG = re.compile(r"\b(not|no|never|can't|cannot|can not|won't|unable|without|isn't|aren't|don't|doesn't|instead of|rather than|exclud\w*)\b", re.I)
-_PROMISE = re.compile(r"\b(includ\w*|free|no (extra )?charge|at no (extra |additional )?cost|complimentary|throw(ing)? in|thrown in|on us|"
-                      r"add(ing|ed)?|i'll (give|add|include|throw)|we'll (give|add|include|throw)|comes with|bundled?|on the house|yours)\b", re.I)
+# A promise: the seller commits to giving something ("I'll include", "at no charge", "free", "comes with", "included").
+_PROMISE = re.compile(r"\b(i'll|we'll|i will|we will|i'm|we're|i am|we are)\s+(also\s+)?(includ\w*|throw\w* in|add\w*|giv\w*|toss\w* in|put\w* in)\b|"
+                      r"\bat no (extra |additional )?(charge|cost)\b|\bno[- ]charge\b|\bfree\b|\bcomplimentary\b|\bon us\b|\bon the house\b|"
+                      r"\bcomes? with\b|\bincluded\b|\bincludes\b|\bincluding\b|\bthrown in\b|\bthrow(ing)? in\b|\bbundled in\b", re.I)
 _PRICED = re.compile(r"\bfor (an? )?(extra|additional)\b|\b(add|adding) (it|that|them|the \w+) for\b|\bat \$|\bfor \$|\b(costs?|runs?|is) \$|\bplus \$|\+\s*\$", re.I)
-_QUESTION_OR_OPTION = re.compile(r"\b(would you like|do you want|want me to|if you('d| would) like|interested in|could add|can add|happy to add|option)\b", re.I)
+_FREE_PHRASES = re.compile(r"\b(at )?no[- ](extra |additional )?(charge|cost)\b|\bno[- ]charge\b|\bfor no (extra |additional )?(charge|cost)\b", re.I)
+_STD_WARRANTY = re.compile(r"\b(standard|factory|base|basic)\s+(1[- ]year\s+|one[- ]year\s+)?warrant\w*|\b(1|one)[- ]year\s+(standard\s+|factory\s+)?warrant\w*", re.I)
+# Offering an option or a quote is not a promise ("I can also add delivery", "if your client decides to add the loader later").
+_OPTION = re.compile(r"\b(can|could|would be happy to|happy to|glad to)\s+(also\s+|still\s+)?(add|quote|price|include)\b|"
+                     r"\b(decides?|wants?|chooses?|like|prefer)\s+to\s+add\b|\blater\b|\bif you('d| would) like\b|\bwould you like\b|"
+                     r"\bdo you want\b|\bwant me to\b|\binterested in\b|\boption(al|s)?\b|\bquote\b", re.I)
+_STRONG = re.compile(r"\b(i'll|we'll|i will|we will)\s+(also\s+)?(includ\w*|throw\w* in|add\w*|giv\w*)\b|\bat no (extra |additional )?(charge|cost)\b|\bfree\b", re.I)
 _ADDON_PATTERNS = {
     "loader": r"\bloader\b|\bbucket\b",
     "warranty": r"\bwarrant\w*",
-    "delivery": r"\bdeliver\w*|\bset[- ]?up\b",
+    "delivery": r"\bdeliver\w*|\bdelivery and set[- ]?up\b",
 }
 
 
@@ -190,8 +198,10 @@ def _clauses(text: str) -> list[str]:
 def lever_text_findings(message: str, offer: Offer | None) -> list[dict]:
     """Flag levers or add-ons promised in words that the structured offer doesn't contain.
 
-    A promise is a clause with include/free/add/comes-with wording, not negated, not a
-    priced option ("for an extra $900"), and not a question or an offer to add it.
+    A promise is a clause with commitment wording ("I'll include", "at no charge", "free",
+    "comes with", "included"), not negated, not a priced option ("for an extra $900"), not a
+    question, and not an offer to add or quote it ("I can also add delivery") unless it also
+    has strong commitment wording.
     `offer` is the seller's structured offer this turn (or its standing offer).
     """
     if not message:
@@ -206,11 +216,14 @@ def lever_text_findings(message: str, offer: Offer | None) -> list[dict]:
         covered.add("addon:" + a)
     findings = []
     for c in _clauses(message):
+        c = _STD_WARRANTY.sub(" ", c)  # the standard 1-year warranty is not a lever
         pm = _PROMISE.search(c)
         if not pm:
             continue
-        rest = c.replace(pm.group(0), " ")
-        if _NEG.search(rest) or _PRICED.search(c) or _QUESTION_OR_OPTION.search(c) or c.strip().endswith("?"):
+        rest = _FREE_PHRASES.sub(" ", c.replace(pm.group(0), " "))  # "at no charge" is a promise, not a negation
+        if _NEG.search(rest) or _PRICED.search(c) or c.strip().endswith("?"):
+            continue
+        if _OPTION.search(c) and not _STRONG.search(c):
             continue
         for lid, lv in LEVERS.items():
             if lid in covered or not re.search(lv.pattern, c, re.I):

@@ -447,7 +447,7 @@ def main() -> None:
     out["summary"] = summary
     out["breaker_sweep"] = [] if args.quick else breaker_sweep()
     Path(args.out).parent.mkdir(exist_ok=True)
-    Path(args.out).write_text(json.dumps(out, indent=1, default=str))
+    Path(args.out).write_text(json.dumps(out, separators=(",", ":"), default=str))
     print_summary(summary)
 
 

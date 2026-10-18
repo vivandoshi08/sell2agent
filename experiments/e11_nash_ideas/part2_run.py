@@ -1,7 +1,7 @@
 """E11 Part 2 (A19): levers before discounts.
 
     uv run python experiments/e11_nash_ideas/part2_run.py --pilot          # 2 buyers x 3 sellers
-    uv run python experiments/e11_nash_ideas/part2_run.py                  # 12 buyers x 3 sellers
+    uv run python experiments/e11_nash_ideas/part2_run.py                  # 10 buyers x 3 sellers
 
 Sellers (Opus 5.5, effort low; every offer and accept goes through LeverPolicy, every
 message through the lever text check, 2 regenerations, then a templated fallback):
@@ -9,8 +9,8 @@ message through the lever text check, 2 regenerations, then a templated fallback
     levers_first  code: LeverBoulware, one lever per turn before any price concession
     llm_levers    LLM picks price and levers within the menu; Boulware described in words
                   (E5's boulware_llm text) plus "trade levers before discounts"
-Buyers (Opus 5.5): make_personas(6, seed=1111, briefs=[neutral, best_deal], x_range=(-0.2, 1.2))
-crossed with two buyer types adapted from E10 (price-first, quality-first) = 12 buyers, the same
+Buyers (Opus 5.5): make_personas(5, seed=1111, briefs=[neutral, best_deal], x_range=(-0.2, 1.2))
+crossed with two buyer types adapted from E10 (price-first, quality-first) = 10 buyers, the same
 for every seller. Buyers can keep levers in their counteroffers. 8 rounds plus a final buyer turn.
 """
 
@@ -316,7 +316,7 @@ CONDITIONS = ["price_only", "levers_first", "llm_levers"]
 
 
 def buyers():
-    ps = make_personas(6, seed=SEED, briefs=["neutral", "best_deal"], x_range=(-0.2, 1.2))
+    ps = make_personas(5, seed=SEED, briefs=["neutral", "best_deal"], x_range=(-0.2, 1.2))
     return [(p, t) for p in ps for t in TYPES]
 
 
@@ -327,7 +327,7 @@ def main() -> None:
     ap.add_argument("--concurrency", type=int, default=3)
     ap.add_argument("--conditions", default=",".join(CONDITIONS))
     args = ap.parse_args()
-    name = "part2_pilot" if args.pilot else "part2"
+    name = "part2"  # the pilot's sessions count toward the main run unless the code changes after it
     spend = Spend(args.budget, RUNS / f"{name}.log")
     log = RunLog(RUNS / f"{name}.jsonl")
     bs = buyers()

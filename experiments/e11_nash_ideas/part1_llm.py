@@ -72,19 +72,69 @@ def identity_text(mode: str, j: int) -> str:
             "to the seller.")
 
 
+def history_entry(d: dict, j: int, abandoned: bool) -> dict:
+    seller_offers = [(i // 2 + 1, t_["offer"]["price"]) for i, t_ in enumerate(d["transcript"]) if t_["role"] == "seller" and t_["offer"]]
+    buyer_offers = [(i // 2 + 1, t_["offer"]["price"]) for i, t_ in enumerate(d["transcript"]) if t_["role"] == "buyer" and t_["offer"]]
+    if d["deal"]:
+        ended = f"deal at ${d['price']:,} ({d['ended_by']})" + (" - you let it lapse" if abandoned else "")
+    else:
+        ended = d["ended_by"]
+    return {"j": j, "seller_offers": seller_offers, "buyer_offers": buyer_offers, "ended": ended}
+
+
+def replay(world: XSessionSeller, d: dict, ident: dict, t: float) -> None:
+    """Rebuild the seller world from a logged session (the pricer is deterministic given the buyer's moves)."""
+    sess = world.start(product_id=PID, addons=ADDONS, now_h=t, **ident)
+    assert sess is not None, "replay: session refused"
+    tr = d["transcript"]
+    seller_prices = []
+    for i, t_ in enumerate(tr):
+        if t_["role"] != "seller":
+            continue
+        j = i // 2 + 1
+        b = tr[i - 1]
+        bid = b["offer"]["price"] if (b["role"] == "buyer" and b["action"] == "offer" and b["offer"]
+                                      and b["offer"]["product_id"] == PID and sorted(b["offer"]["addons"]) == sorted(ADDONS)) else None
+        action, price = sess.respond(j, bid)
+        if action == "offer":
+            seller_prices.append(price)
+    logged = [t_["offer"]["price"] for t_ in tr if t_["role"] == "seller" and t_["offer"]]
+    assert seller_prices == logged, f"replay mismatch {seller_prices} vs {logged}"
+    if d["deal"] and d["ended_by"].startswith("buyer_accept"):
+        sess.buyer_accepts()
+    sess.close(abandoned=d["xsession"]["abandoned"])
+
+
+def ident_for(mode: str, seq: int, j: int) -> dict:
+    if mode == "same":
+        return {"buyer_id": "probe", "fingerprint": "probe-fp"}
+    return {"buyer_id": f"probe-{seq}-{j}", "fingerprint": f"probe-fp-{seq}-{j}"}
+
+
 def run_sequence(job: tuple) -> dict:
     cond, mode, seq, n = job
     seed = 100 + seq
     world = XSessionSeller(CONDITIONS[cond], seed=seed)
+    prefix = f"{cond}|{mode}|{seq}|"
+    logged = {x["meta"]["session"]: x for x in load(LOG.path) if x.get("job", "").startswith(prefix) and x.get("ended_by") != "error"}
     history, sessions = [], []
     usage_total = 0.0
     for j in range(1, n + 1):
+        t = float(j - 1)  # one hour apart
+        ident = ident_for(mode, seq, j)
+        if j in logged and all(k in logged for k in range(1, j)):  # resume: replay instead of re-running
+            d = logged[j]
+            replay(world, d, ident, t)
+            history.append(history_entry(d, j, d["xsession"]["abandoned"]))
+            sessions.append(d)
+            usage_total += d["usage"].get("cost_usd", 0)
+            SPEND.log(f"{prefix}{j}: replayed from log")
+            if d["deal"] and j == n:
+                break
+            continue
         if not SPEND.ok():
             break
-        t = float(j - 1)  # one hour apart
-        bid = "probe" if mode == "same" else f"probe-{seq}-{j}"
-        fp = "probe-fp" if mode == "same" else f"probe-fp-{seq}-{j}"
-        sess = world.start(buyer_id=bid, fingerprint=fp, product_id=PID, addons=ADDONS, now_h=t)
+        sess = world.start(product_id=PID, addons=ADDONS, now_h=t, **ident)
         if sess is None:
             history.append({"j": j, "seller_offers": [], "buyer_offers": [], "ended": "the store refused to start a session (rate limit)"})
             continue
@@ -93,18 +143,12 @@ def run_sequence(job: tuple) -> dict:
                                 identity=identity_text(mode, j), notes=notes_text(history), limit=LIST)
         buyer = RecordingBuyer(p, model=llm.OPUS, extra_instructions=extra)
         seller = GuardedSeller(config=TEXT_LAYER, model=llm.OPUS, strategy=XSessionStrategy(sess))
-        key = f"{cond}|{mode}|{seq}|{j}"
+        key = f"{prefix}{j}"
         d = run_guarded_session(buyer, seller, session_id=key.replace("|", "-"),
                                 meta={"experiment": "e11_part1_llm", "condition": cond, "identity": mode, "seq": seq, "session": j})
         abandoned = bool(d["deal"] and j < n)
         sess.close(abandoned=abandoned)
-        seller_offers = [(i // 2 + 1, t_["offer"]["price"]) for i, t_ in enumerate(d["transcript"]) if t_["role"] == "seller" and t_["offer"]]
-        buyer_offers = [(i // 2 + 1, t_["offer"]["price"]) for i, t_ in enumerate(d["transcript"]) if t_["role"] == "buyer" and t_["offer"]]
-        if d["deal"]:
-            ended = f"deal at ${d['price']:,} ({d['ended_by']})" + (" - you let it lapse" if abandoned else "")
-        else:
-            ended = d["ended_by"]
-        history.append({"j": j, "seller_offers": seller_offers, "buyer_offers": buyer_offers, "ended": ended})
+        history.append(history_entry(d, j, abandoned))
         d.update(job=key, xsession={"tau0": sess.tau0, "end_price": sess.end_price, "returning": sess.returning,
                                      "hard_zone_open_at_start": sess.hard_zone_open_at_start,
                                      "breaker_tripped": world.breaker.tripped(PID, t), "abandoned": abandoned})
@@ -112,9 +156,12 @@ def run_sequence(job: tuple) -> dict:
         cost = d["usage"].get("cost_usd", 0)
         usage_total += cost
         total = SPEND.add(cost)
-        SPEND.log(f"{key}: {d['ended_by']} deal={d['deal']} price={d.get('price')} min_offer={min((x for _, x in seller_offers), default=None)} "
+        offers = [x for _, x in history[-1]["seller_offers"]]
+        SPEND.log(f"{key}: {d['ended_by']} deal={d['deal']} price={d.get('price')} min_offer={min(offers, default=None)} "
                   f"end={sess.end_price} cost=${cost:.3f} total=${total:.2f} {('ERR ' + d['error'][:150]) if d.get('error') else ''}")
         sessions.append(d)
+        if d.get("error"):
+            break
         if d["deal"] and j == n:
             break
     offers = [x for h in history for _, x in h["seller_offers"]]
@@ -131,20 +178,20 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--pilot", action="store_true")
     ap.add_argument("--sessions", type=int, default=5)
-    ap.add_argument("--seqs", type=int, default=3)
+    ap.add_argument("--seqs", type=int, default=3, help="jobs = first 2*seqs of the fixed list (max 5)")
     ap.add_argument("--budget", type=float, default=6.0)
     ap.add_argument("--concurrency", type=int, default=3)
     args = ap.parse_args()
     name = "part1_llm_pilot" if args.pilot else "part1_llm"
     SPEND = Spend(args.budget, RUNS / f"{name}.log")
     LOG = RunLog(RUNS / f"{name}.jsonl")
+    SPEND.spent = sum(x["usage"].get("cost_usd", 0) for x in load(LOG.path))  # budget covers earlier (resumed) sessions too
     if args.pilot:
         jobs = [("no_memory", "rotate", 0, 2), ("full", "rotate", 0, 2)]
     else:
-        jobs = []
-        for seq in range(args.seqs):
-            jobs.append(("no_memory", "rotate", seq, args.sessions))
-            jobs.append(("full", "same" if seq == 0 else "rotate", seq, args.sessions))
+        # no_memory is deterministic Boulware, so 2 sequences; full gets 1 same-identity and 2 rotating sequences.
+        jobs = [("no_memory", "rotate", 0, args.sessions), ("full", "same", 0, args.sessions), ("no_memory", "rotate", 1, args.sessions),
+                ("full", "rotate", 1, args.sessions), ("full", "rotate", 2, args.sessions)][: args.seqs * 2]
     done = {r["job"] for r in load(RUNS / f"{name}_seqs.jsonl")}
     jobs = [j for j in jobs if f"{j[0]}|{'same' if j[1] == 'same' else 'rotate'}|{j[2]}" not in done]
     SPEND.log(f"{name}: {len(jobs)} sequences, budget ${args.budget}")
