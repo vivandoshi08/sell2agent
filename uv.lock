@@ -49,6 +49,20 @@ wheels = [
 ]
 
 [[package]]
+name = "armature-mcp-analytics"
+version = "0.1.42"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/c0/98/8560cea8d236731b736f7b991344d09f3337d2db56abcd4e2bffacd6a961/armature_mcp_analytics-0.1.42.tar.gz", hash = "sha256:c2bfdbfd33f31ee5eca0e6dc2b6b20da9ca5d22c9fc5e5169fbf52ec5a480edb", size = 77259, upload-time = "2026-10-14T20:05:26.771Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ad/bd/83ab968dbcb57d6542322735c9980743b6371c0d26af37d8925f8d9e1e6d/armature_mcp_analytics-0.1.42-py3-none-any.whl", hash = "sha256:3cacb69714178ab182754b4f29b8316e4209cd8a082186747bd45d8d4d283757", size = 67820, upload-time = "2026-10-14T20:05:24.831Z" },
+]
+
+[package.optional-dependencies]
+mcp = [
+    { name = "mcp" },
+]
+
+[[package]]
 name = "attrs"
 version = "26.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1010,6 +1024,9 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
+analytics = [
+    { name = "armature-mcp-analytics", extra = ["mcp"] },
+]
 api = [
     { name = "anthropic" },
 ]
@@ -1017,10 +1034,11 @@ api = [
 [package.metadata]
 requires-dist = [
     { name = "anthropic", marker = "extra == 'api'", specifier = ">=0.60" },
+    { name = "armature-mcp-analytics", extras = ["mcp"], marker = "extra == 'analytics'", specifier = ">=0.1.42" },
     { name = "mcp", specifier = ">=1.2" },
     { name = "numpy", specifier = ">=1.26" },
 ]
-provides-extras = ["api"]
+provides-extras = ["api", "analytics"]
 
 [[package]]
 name = "sniffio"

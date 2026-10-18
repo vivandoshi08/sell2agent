@@ -77,6 +77,9 @@ importers:
       '@anthropic-ai/sdk':
         specifier: ^0.30.0
         version: 0.30.1
+      '@armature-tech/mcp-analytics':
+        specifier: ^0.6.47
+        version: 0.6.47(@modelcontextprotocol/sdk@1.32.1(zod@3.25.76))
       '@modelcontextprotocol/sdk':
         specifier: ^1.0.0
         version: 1.32.1(zod@3.25.76)
@@ -130,6 +133,18 @@ packages:
 
   '@anthropic-ai/sdk@0.30.1':
     resolution: {integrity: sha512-nuKvp7wOIz6BFei8WrTdhmSsx5mwnArYyJgh4+vYu3V4J0Ltb8Xm3odPm51n1aSI0XxNCrDl7O88cxCtUdAkaw==}
+
+  '@armature-tech/mcp-analytics@0.6.47':
+    resolution: {integrity: sha512-1JIwBOCRT3XwYrUaNp1zMxgyKbfJ5jzgLitbtlA2jwQ2g/fwj5STcKM5j/Ty03culnohtmuokOOhI/GC/e1oUQ==}
+    hasBin: true
+    peerDependencies:
+      '@modelcontextprotocol/sdk': '>=1.20.0 <2'
+      '@modelcontextprotocol/server': ^2.0.0
+    peerDependenciesMeta:
+      '@modelcontextprotocol/sdk':
+        optional: true
+      '@modelcontextprotocol/server':
+        optional: true
 
   '@esbuild/aix-ppc64@0.28.2':
     resolution: {integrity: sha512-XExcO+dvLKvVtNTibSTBej1NCAbaGhWn9Ww1ZPx80qsahhPFe/8jgWP0IchNe0F3HwkU7n8ejhH8bjonqht8mQ==}
@@ -948,6 +963,12 @@ snapshots:
       node-fetch: 2.7.0
     transitivePeerDependencies:
       - encoding
+
+  '@armature-tech/mcp-analytics@0.6.47(@modelcontextprotocol/sdk@1.32.1(zod@3.25.76))':
+    dependencies:
+      zod: 3.25.76
+    optionalDependencies:
+      '@modelcontextprotocol/sdk': 1.32.1(zod@3.25.76)
 
   '@esbuild/aix-ppc64@0.28.2':
     optional: true
