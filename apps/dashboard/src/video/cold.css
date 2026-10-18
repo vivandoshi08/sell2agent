@@ -1,0 +1,37 @@
+/* Cold open. Same palette as the other segments; the big type is the dashboard's h1 voice, scaled up. */
+.cold { position: relative; overflow: hidden; background: #0b0d0c; }
+.cold .sea, .cold .spot { position: absolute; inset: 0; }
+.cold .spot { background: radial-gradient(ellipse 55% 50% at 50% 50%, rgba(95, 196, 151, .10), transparent 70%); }
+.cold .world { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.cold .tile { position: absolute; }
+.cold .kb { display: block; width: 100%; height: 100%; filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .55)); }
+.cold .hero-ring { position: absolute; inset: -6px; border: 2px solid #5fc497; border-radius: 15px; }
+
+.cold .big { position: absolute; left: 0; right: 0; margin: 0; text-align: center; color: #eef0ee; font-weight: 600; letter-spacing: -.035em; line-height: 1.02; text-wrap: balance; }
+.cold .sea-text { top: 250px; font-size: 150px; text-shadow: 0 6px 40px rgba(11, 13, 12, .9), 0 0 2px rgba(11, 13, 12, .8); }
+.cold .why { top: 560px; font-size: 128px; padding: 0 80px; text-shadow: 0 8px 60px rgba(11, 13, 12, .95); }
+.cold .why em { font-style: normal; color: #5fc497; }
+
+.cpane { position: absolute; border-radius: 20px; background: #121413; box-shadow: 0 0 0 1px #232725, 0 30px 80px rgba(0, 0, 0, .5); overflow: hidden; display: grid; grid-template-rows: auto 1fr; }
+.cpane.key { background: #00ff00; box-shadow: 0 0 0 1px #232725; }
+.cp-h { display: flex; align-items: center; gap: 14px; padding: 20px 22px; border-bottom: 1px solid #232725; }
+.cav { --t: #959b97; width: 44px; height: 44px; border-radius: 12px; flex: none; display: grid; place-items: center; font-weight: 650; font-size: 18px;
+  background: color-mix(in srgb, var(--t) 13%, #121413); color: var(--t); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--t) 22%, transparent); }
+.cav.a-chatgpt { --t: #eef0ee; } .cav.a-claude { --t: #e59a76; } .cav.a-grok { --t: #8fb3ea; }
+.cp-who { display: grid; line-height: 1.25; min-width: 0; }
+.cp-who b { font-size: 22px; font-weight: 600; color: #eef0ee; }
+.cp-who span { font-size: 15.5px; font-weight: 500; color: #959b97; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cp-h .live { margin-left: auto; width: 9px; height: 9px; border-radius: 50%; background: #5fc497; box-shadow: 0 0 0 4px rgba(95, 196, 151, .18); flex: none; }
+.cp-body { display: flex; flex-direction: column; gap: 16px; padding: 24px 22px; }
+.msg { display: grid; gap: 6px; max-width: 86%; }
+.msg .from { font-size: 14px; font-weight: 600; color: #959b97; }
+.msg p { margin: 0; padding: 14px 18px; border-radius: 16px; font-size: 21px; font-weight: 500; line-height: 1.32; color: #eef0ee; }
+.msg.buyer { justify-self: start; }
+.msg.buyer p { background: #1a1d1b; box-shadow: inset 0 0 0 1px #2e3330; border-top-left-radius: 5px; }
+.msg.seller { align-self: flex-end; text-align: right; }
+.msg.seller .from { color: #5fc497; }
+.msg.seller p { background: #16271f; box-shadow: inset 0 0 0 1px rgba(95, 196, 151, .25); border-top-right-radius: 5px; text-align: left; }
+.deal { align-self: center; display: inline-flex; align-items: center; gap: 10px; margin-top: 6px; padding: 12px 20px; border-radius: 999px; background: #5fc497; color: #0b0d0c; font-size: 20px; font-weight: 600; }
+.deal i { width: 16px; height: 9px; border: solid #0b0d0c; border-width: 0 0 2.6px 2.6px; transform: rotate(-45deg) translate(1px, -2px); }
+.cold .why-hero { position: absolute; left: 50%; top: 250px; width: 600px; height: 252px; margin-left: -300px; }
+.cold .why-hero .hero-ring { inset: -10px; border-radius: 24px; box-shadow: 0 0 0 8px rgba(95, 196, 151, .14), 0 0 60px rgba(95, 196, 151, .3); }
