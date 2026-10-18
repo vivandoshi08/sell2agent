@@ -1,0 +1,264 @@
+<title>Team Build Plan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a four-lane swimlane over hours, bridges as vertical markers, a detail panel for the selected block, and an option comparison. Same tokens as the other project pages. */
+:root {
+  --bg: #f4f6f5; --surface: #ffffff; --ink: #18211d; --muted: #5a6762; --line: #dce2de; --accent: #1f5f86;
+  --surf: #1c7a62; --surf-bg: #e2f3ed; --eng: #3d4fa8; --eng-bg: #eceefb; --all: #66726d; --all-bg: #eceff0;
+  --bridge: #b06a12; --bridge-bg: #fbefdc; --ok: #2b7a4b; --ok-bg: #e3f2e8; --bad: #b1281f; --bad-bg: #fbe6e4;
+  --font-display: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111513; --surface: #182019; --ink: #e4eae6; --muted: #98a59f; --line: #2a332e; --accent: #79b4da;
+    --surf: #7fd3b6; --surf-bg: #143229; --eng: #a9b3f2; --eng-bg: #1e2340; --all: #a3aeaa; --all-bg: #222a26;
+    --bridge: #f0b764; --bridge-bg: #3a2a12; --ok: #7fd3a0; --ok-bg: #173323; --bad: #f19a92; --bad-bg: #3a1a17; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111513; --surface: #182019; --ink: #e4eae6; --muted: #98a59f; --line: #2a332e; --accent: #79b4da;
+  --surf: #7fd3b6; --surf-bg: #143229; --eng: #a9b3f2; --eng-bg: #1e2340; --all: #a3aeaa; --all-bg: #222a26;
+  --bridge: #f0b764; --bridge-bg: #3a2a12; --ok: #7fd3a0; --ok-bg: #173323; --bad: #f19a92; --bad-bg: #3a1a17; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px 48px; }
+.wrap { max-width: 1240px; margin: 0 auto; display: grid; gap: 20px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; line-height: 1.15; text-wrap: balance; }
+h1 { font-size: clamp(1.8rem, 3.5vw, 2.4rem); font-weight: 700; }
+h2 { font-size: 1.2rem; font-weight: 600; }
+p { margin: 0; }
+.eyebrow { font-family: var(--font-data); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.lede { color: var(--muted); max-width: 78ch; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 10px; min-width: 0; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; flex-wrap: wrap; }
+.seg button { font: inherit; font-size: .88rem; font-weight: 600; padding: 7px 12px; border: 0; background: transparent; color: var(--ink); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.stat { background: var(--surface); padding: 12px 14px; display: grid; gap: 2px; }
+.stat b { font-family: var(--font-display); font-size: 1.6rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.stat span { color: var(--muted); font-size: .84rem; }
+.good { color: var(--ok); } .badc { color: var(--bad); }
+.tl-wrap { overflow-x: auto; }
+.tl { min-width: 980px; display: grid; grid-template-columns: 170px repeat(14, minmax(0, 1fr)); gap: 4px 3px; position: relative; }
+.hour { font-family: var(--font-data); font-size: .7rem; color: var(--muted); text-align: left; padding-left: 2px; border-left: 1px dashed var(--line); }
+.lane { font-size: .84rem; font-weight: 600; display: grid; align-content: center; gap: 1px; padding-right: 8px; }
+.lane small { font-weight: 400; color: var(--muted); font-size: .75rem; }
+.blk { font: inherit; text-align: left; font-size: .78rem; line-height: 1.25; padding: 6px 7px; border-radius: 6px; border: 1px solid; cursor: pointer; min-height: 54px; overflow: hidden; }
+.blk.surface { background: var(--surf-bg); border-color: color-mix(in srgb, var(--surf) 45%, transparent); color: var(--ink); }
+.blk.engine { background: var(--eng-bg); border-color: color-mix(in srgb, var(--eng) 45%, transparent); color: var(--ink); }
+.blk.all { background: var(--all-bg); border-color: var(--line); color: var(--ink); }
+.blk.swarm { background: var(--bridge-bg); border-color: color-mix(in srgb, var(--bridge) 45%, transparent); color: var(--ink); }
+.blk.idle { background: repeating-linear-gradient(45deg, var(--bg), var(--bg) 6px, var(--line) 6px, var(--line) 7px); border-color: var(--line); color: var(--muted); }
+.blk[aria-pressed="true"] { outline: 2px solid var(--accent); outline-offset: 1px; }
+.blk .tag { display: block; font-family: var(--font-data); font-size: .66rem; color: var(--muted); margin-top: 2px; }
+.bridges { display: grid; grid-template-columns: 170px repeat(14, minmax(0, 1fr)); gap: 3px; min-width: 980px; }
+.bmark { font-family: var(--font-data); font-size: .7rem; color: var(--bridge); background: var(--bridge-bg); border-radius: 4px; padding: 3px 6px; text-align: center; cursor: pointer; border: 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .82rem; color: var(--muted); }
+.sw { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; border: 1px solid var(--line); }
+.cols { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 860px) { .cols { grid-template-columns: 1fr; } }
+.kv { display: grid; grid-template-columns: 120px 1fr; gap: 6px 12px; font-size: .9rem; }
+.kv dt { font-family: var(--font-data); font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+.kv dd { margin: 0; min-width: 0; }
+.gate { border-left: 3px solid var(--ok); padding-left: 10px; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; min-width: 560px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; font-size: .88rem; }
+th { font-family: var(--font-data); font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+code { font-family: var(--font-data); font-size: .85em; background: var(--all-bg); padding: 1px 5px; border-radius: 4px; }
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:6px">
+    <span class="eyebrow">sales-agent · build plan · draft for the team</span>
+    <h1>Team Build Plan</h1>
+    <p class="lede">Four people, two pairs. The Surface pair owns infrastructure, MCP, UI and outside services; the Engine pair owns the negotiation brain. Each starts on its riskiest piece and builds against a mock of the other, then the pairs bridge. Switch plans to compare idle time and collisions. Click any block or bridge for its owner, files, mocks, and the test that says it's done. Hours are relative (H0 = start).</p>
+  </header>
+
+  <div class="seg" role="group" aria-label="Plan">
+    <button data-plan="hybrid" aria-pressed="true">Recommended: split + risk first</button>
+    <button data-plan="split" aria-pressed="false">Pure split</button>
+    <button data-plan="swarm" aria-pressed="false">Hardest first, all together</button>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <section class="panel">
+    <div class="tl-wrap">
+      <div class="bridges" id="bridges"></div>
+      <div class="tl" id="tl" style="margin-top:6px"></div>
+    </div>
+    <div class="legend">
+      <span><span class="sw" style="background:var(--surf-bg);border-color:var(--surf)"></span>Surface pair</span>
+      <span><span class="sw" style="background:var(--eng-bg);border-color:var(--eng)"></span>Engine pair</span>
+      <span><span class="sw" style="background:var(--all-bg)"></span>Everyone</span>
+      <span><span class="sw" style="background:var(--bridge-bg);border-color:var(--bridge)"></span>Swarm / bridge</span>
+      <span><span class="sw" style="background:repeating-linear-gradient(45deg,var(--bg),var(--bg) 3px,var(--line) 3px,var(--line) 4px)"></span>Waiting (idle)</span>
+    </div>
+  </section>
+
+  <div class="cols">
+    <section class="panel" id="detail" aria-live="polite"></section>
+    <section class="panel">
+      <h2>Who owns which files (collision check)</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Person</th><th>Owns</th><th>Builds against</th></tr></thead>
+        <tbody>
+          <tr><td><b>S1</b> gateway &amp; deploy</td><td><code>apps/marketplace</code>, Manufact config, discovery files, Inkbox adapter</td><td>mock exchange until Bridge 1</td></tr>
+          <tr><td><b>S2</b> UI &amp; proof</td><td><code>apps/dashboard</code>, deal-card widget, wiring <code>packages/payments</code>, Armature evals</td><td>fake <code>events</code> rows until Bridge 2</td></tr>
+          <tr><td><b>E1</b> exchange &amp; safety</td><td><code>apps/seller-mcp</code> exchange module, guardrails, buyer memory, outreach</td><td>a test script calling the exchange directly</td></tr>
+          <tr><td><b>E2</b> policy &amp; buyers</td><td><code>apps/seller-mcp</code> seller module, <code>apps/buyer-harness</code>, bandit / learning</td><td>scripted buyers until simulated buyers land</td></tr>
+          <tr><td><b>Contract owner</b></td><td><code>packages/shared</code>, <code>supabase/migrations</code> (frozen after H1)</td><td>the seam both pairs code to</td></tr>
+        </tbody>
+      </table></div>
+      <p class="lede" style="font-size:.86rem">Only one shared file set: the contract, frozen at H1 with one owner. E1 and E2 share <code>apps/seller-mcp</code> but in separate modules, joined by one interface: <code>decide(state) → move</code>.</p>
+    </section>
+  </div>
+</div>
+
+<script>
+const LANES = [
+  { id: "S1", name: "S1 · Gateway & deploy", pair: "Surface" },
+  { id: "S2", name: "S2 · UI & proof", pair: "Surface" },
+  { id: "E1", name: "E1 · Exchange & safety", pair: "Engine" },
+  { id: "E2", name: "E2 · Policy & buyers", pair: "Engine" },
+];
+const B = (id, lane, start, end, kind, title, d) => ({ id, lane, start, end, kind, title, ...d });
+const CONTRACT = { owner: "Contract owner, with all four", files: "packages/shared (zod), supabase/migrations", mock: "none", deps: "none",
+  gate: "Exchange interface frozen: Move in → Response out, event shape, lever-profile and lever-menu fields. A mock exchange returns valid responses for every tool. Everyone has pulled it." };
+
+const PLANS = {
+  hybrid: {
+    label: "Recommended: split + risk first",
+    stats: { idle: 1, collisions: "Low", riskBy: "H5", firstDemo: "H5" },
+    blocks: [
+      ...LANES.map((l) => B("c" + l.id, l.id, 0, 1, "all", "Freeze the contract", CONTRACT)),
+      B("s1a", "S1", 1, 5, "surface", "Riskiest path: ChatGPT → deployed gateway → mock exchange → deal card → Stripe test", { owner: "S1", files: "apps/marketplace, Manufact deploy", mock: "mock exchange", deps: "contract",
+        gate: "In real ChatGPT (and Claude), adding the deployed connector and buying a keyboard against the MOCK exchange ends in a paid Stripe test PaymentIntent. No timeouts at 15 s per call." }),
+      B("s1b", "S1", 6, 9, "surface", "Search by lever profile, catalog seed with lever menus, discovery files", { owner: "S1", files: "apps/marketplace, supabase/seed.sql", mock: "none (real exchange after Bridge 1)", deps: "Bridge 1",
+        gate: "search_products returns 3–5 listings ranked by fit to a lever profile; every listing passes the 'no private fields' test; /.well-known/ucp and the agent card serve." }),
+      B("s1c", "S1", 10, 13, "surface", "Inkbox follow-up door (email / text / A2A)", { owner: "S1 + E1", files: "messaging adapter", mock: "none", deps: "outreach scheduler (E1)",
+        gate: "An opted-in buyer gets a follow-up email from the verified seller identity; replying 'ACCEPT off_…' locks a deal through the exchange." }),
+      B("s2a", "S2", 1, 5, "surface", "Deal-card widget, wire @sa/payments, dashboard on fake events", { owner: "S2", files: "apps/dashboard, widget", mock: "fake events rows", deps: "contract",
+        gate: "Dashboard renders KPI bars, live feed and guardrail log from fake events; the deal card's Approve & Pay calls payDeal in Stripe test mode." }),
+      B("s2b", "S2", 6, 9, "surface", "Eval runner UI on real events: static vs. negotiating", { owner: "S2", files: "apps/dashboard", mock: "none", deps: "Bridge 1 events",
+        gate: "A run of simulated buyers shows real conversion, safe conversion, profit per buyer, margin and buyer fit, static vs. negotiating, with confidence intervals." }),
+      B("s2c", "S2", 10, 13, "surface", "Armature evals on the deployed URL, then merchant console", { owner: "S2", files: "apps/dashboard, eval cases", mock: "none", deps: "deployed gateway",
+        gate: "5 Armature eval cases score ≥4/5 in both Claude Code and Codex; console can edit a lever menu and the next negotiation uses it." }),
+      B("e1a", "E1", 1, 5, "engine", "Riskiest logic: state machine, sessions, offers, deals, rules + E9 guardrails", { owner: "E1", files: "apps/seller-mcp/exchange", mock: "stub seller that counters at 95%", deps: "contract",
+        gate: "A test script runs 30 negotiations incl. E4's attacks: every state transition valid, 0 deals below floor, 0 floor disclosures, tampered pay_deal rejected, accept only by live buyer-bound offer_id." }),
+      B("e1b", "E1", 6, 9, "engine", "Buyer memory, soft floor, noisy concession steps", { owner: "E1", files: "apps/seller-mcp/exchange", mock: "none", deps: "Bridge 1",
+        gate: "Restarting a negotiation never gets a better price (E11 bisection test); returning buyers see consistent prices." }),
+      B("e1c", "E1", 10, 13, "engine", "Outreach scheduler + inbound parser", { owner: "E1 + S1", files: "apps/seller-mcp/exchange", mock: "none", deps: "Inkbox door (S1)",
+        gate: "Walk-away with consent triggers one follow-up within policy; inbound replies parse to a structured move or a clarifying question, never a guess." }),
+      B("e2a", "E2", 1, 5, "engine", "One seller policy end to end: price pacing + LLM voice + grounded answers", { owner: "E2", files: "apps/seller-mcp/sellers", mock: "scripted buyers", deps: "contract",
+        gate: "Against 10 scripted buyers: stated price matches code 100%, 0 ungrounded answers, profit per buyer ≥ the static seller." }),
+      B("e2b", "E2", 6, 8, "engine", "Simulated buyers: lever profiles, walk-aways, 2 model families", { owner: "E2", files: "apps/buyer-harness", mock: "none", deps: "deployed gateway",
+        gate: "Buyers run through the deployed gateway; each persona type closes, walks or trades levers as designed; runs on Claude and one other family." }),
+      B("e2c", "E2", 9, 13, "engine", "Lever policy (gated candidate) + bandit", { owner: "E2", files: "apps/seller-mcp/sellers, learning", mock: "none", deps: "Bridge 2 data",
+        gate: "Lever policy ships only if it beats price pacing on lever-profile buyers (E11 warning); bandit picks per-profile packages from logged outcomes and shows a learning curve." }),
+      ...LANES.map((l) => B("f" + l.id, l.id, 13, 14, "all", "Freeze, rehearse, record", { owner: "Everyone", files: "—", mock: "—", deps: "all", gate: "Code freeze; 2-minute demo recorded; README and track write-ups done." })),
+    ],
+    bridges: [
+      { at: 5, label: "Bridge 1", gate: "Swap the mock exchange for the real one behind the deployed gateway. Done when real ChatGPT buys a keyboard end to end through the real exchange with a clean guardrail log." },
+      { at: 8, label: "Bridge 2", gate: "Simulated buyers run through the deployed gateway and the dashboard shows static vs. negotiating from real events." },
+      { at: 12, label: "Bridge 3", gate: "Follow-ups, lever policy and console plug into the existing seams; the full demo runs twice in a row without a manual fix." },
+    ],
+  },
+  split: {
+    label: "Pure split",
+    stats: { idle: 2, collisions: "Low", riskBy: "H8", firstDemo: "H8" },
+    blocks: [
+      ...LANES.map((l) => B("c" + l.id, l.id, 0, 1, "all", "Freeze the contract", CONTRACT)),
+      B("p1", "S1", 1, 8, "surface", "Build the whole gateway + catalog + discovery, deploy at the end", { owner: "S1", files: "apps/marketplace", mock: "mock exchange", deps: "contract", gate: "Gateway complete, deployed late." }),
+      B("p2", "S2", 1, 8, "surface", "Build the whole dashboard + widget + payments", { owner: "S2", files: "apps/dashboard", mock: "fake events", deps: "contract", gate: "UI complete on fake data." }),
+      B("p3", "E1", 1, 8, "engine", "Build the whole exchange + guardrails + memory", { owner: "E1", files: "apps/seller-mcp", mock: "stub seller", deps: "contract", gate: "Exchange complete in isolation." }),
+      B("p4", "E2", 1, 7, "engine", "Build policies + buyers", { owner: "E2", files: "apps/seller-mcp, buyer-harness", mock: "scripted buyers", deps: "contract", gate: "Policies complete in isolation." }),
+      B("p4i", "E2", 7, 8, "idle", "Waiting for the deployed gateway", { owner: "E2", files: "—", mock: "—", deps: "S1 deploy", gate: "Blocked: buyers can't run the real path until deploy." }),
+      ...["S1","S2","E1","E2"].map((l) => B("pb" + l, l, 8, 11, "swarm", "Integration week-in-a-night: first real ChatGPT run, surprises fixed", { owner: "Everyone", files: "everything", mock: "—", deps: "all", gate: "First end-to-end demo works, but late. Deploy, widget and timeout problems surface here." })),
+      ...LANES.map((l) => B("pe" + l.id, l.id, 11, 13, l.id[0] === "S" ? "surface" : "engine", "Extras, if time is left", { owner: l.id, files: "own", mock: "—", deps: "integration", gate: "Usually squeezed." })),
+      ...LANES.map((l) => B("pf" + l.id, l.id, 13, 14, "all", "Freeze, rehearse, record", { owner: "Everyone", files: "—", mock: "—", deps: "all", gate: "Freeze." })),
+    ],
+    bridges: [{ at: 8, label: "Only bridge", gate: "Everything meets at once. Risky unknowns (deploy, connector, widget, timeouts) are discovered here, late." }],
+  },
+  swarm: {
+    label: "Hardest first, all together",
+    stats: { idle: 6, collisions: "High", riskBy: "H4", firstDemo: "H6" },
+    blocks: [
+      ...LANES.map((l) => B("c" + l.id, l.id, 0, 1, "all", "Freeze the contract", CONTRACT)),
+      B("w1", "E1", 1, 4, "swarm", "Exchange + guardrails (pair-programming)", { owner: "E1 + E2", files: "apps/seller-mcp", mock: "—", deps: "contract", gate: "Engine correct." }),
+      B("w2", "E2", 1, 4, "swarm", "Exchange + guardrails (pair-programming)", { owner: "E1 + E2", files: "apps/seller-mcp (same files)", mock: "—", deps: "contract", gate: "Two people in one module: merge conflicts." }),
+      B("w3", "S1", 1, 4, "swarm", "Also on the engine, then deploy", { owner: "S1", files: "apps/seller-mcp + marketplace", mock: "—", deps: "contract", gate: "Context switching between engine and infra." }),
+      B("w4", "S2", 1, 3, "idle", "Waiting: little UI work makes sense before the engine", { owner: "S2", files: "—", mock: "—", deps: "engine", gate: "Idle or low-value work." }),
+      B("w4b", "S2", 3, 4, "surface", "Dashboard skeleton", { owner: "S2", files: "apps/dashboard", mock: "fake events", deps: "—", gate: "Skeleton." }),
+      ...["S1","S2","E1","E2"].map((l) => B("w5" + l, l, 4, 6, "swarm", "Everyone: deploy + ChatGPT path", { owner: "Everyone", files: "apps/marketplace", mock: "—", deps: "engine", gate: "Real demo at H6, but four people in one app." })),
+      ...LANES.map((l) => B("w6" + l.id, l.id, 6, 13, l.id[0] === "S" ? "surface" : "engine", "Split up for the rest", { owner: l.id, files: "own", mock: "—", deps: "demo", gate: "Normal parallel work from here." })),
+      ...LANES.map((l) => B("wf" + l.id, l.id, 13, 14, "all", "Freeze, rehearse, record", { owner: "Everyone", files: "—", mock: "—", deps: "all", gate: "Freeze." })),
+    ],
+    bridges: [{ at: 4, label: "Engine ready", gate: "Engine works, but three people spent 3 hours in the same module." }, { at: 6, label: "First demo", gate: "Real ChatGPT demo, then the team splits." }],
+  },
+};
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+let plan = "hybrid", selected = null;
+
+function render() {
+  const P = PLANS[plan];
+  const s = P.stats;
+  $("stats").innerHTML = [
+    [s.idle + " h", "idle person-hours (estimate)", s.idle <= 1 ? "good" : s.idle >= 5 ? "badc" : ""],
+    [s.collisions, "file collisions", s.collisions === "Low" ? "good" : "badc"],
+    [s.riskBy, "biggest unknowns retired by", s.riskBy <= "H5" && s.riskBy.length === 2 ? "good" : "badc"],
+    [s.firstDemo, "first real ChatGPT purchase", ""],
+  ].map(([b, t, c]) => `<div class="stat"><b class="${c}">${b}</b><span>${t}</span></div>`).join("");
+
+  let bh = '<div></div>';
+  for (let h = 0; h < 14; h++) {
+    const br = P.bridges.find((x) => x.at === h + 1);
+    bh += br ? `<button class="bmark" data-bridge="${h + 1}" style="grid-column:${h + 3} / span 1">${br.label}</button>` : "<div></div>";
+  }
+  $("bridges").innerHTML = bh;
+
+  let html = '<div></div>' + Array.from({ length: 14 }, (_, h) => `<div class="hour">H${h}</div>`).join("");
+  LANES.forEach((l, i) => {
+    const row = i + 2;
+    html += `<div class="lane" style="grid-row:${row};grid-column:1">${esc(l.name)}<small>${l.pair} pair</small></div>`;
+    P.blocks.filter((b) => b.lane === l.id).forEach((b) => {
+      html += `<button class="blk ${b.kind}" data-id="${b.id}" aria-pressed="${selected === b.id}" style="grid-row:${row};grid-column:${b.start + 2} / ${b.end + 2}">${esc(b.title)}<span class="tag">${esc(b.owner)}</span></button>`;
+    });
+  });
+  $("tl").innerHTML = html;
+  $("tl").style.gridTemplateRows = `auto repeat(${LANES.length}, auto)`;
+  document.querySelectorAll(".blk").forEach((el) => el.onclick = () => { selected = el.dataset.id; render(); });
+  document.querySelectorAll(".bmark").forEach((el) => el.onclick = () => { selected = "bridge:" + el.dataset.bridge; render(); });
+
+  const d = $("detail");
+  if (selected && selected.startsWith("bridge:")) {
+    const br = P.bridges.find((x) => "bridge:" + x.at === selected);
+    if (br) { d.innerHTML = `<span class="eyebrow">${esc(P.label)} · H${br.at}</span><h2>${esc(br.label)}</h2><dl class="kv"><dt>Move on when</dt><dd class="gate">${esc(br.gate)}</dd></dl>`; return; }
+  }
+  const b = P.blocks.find((x) => x.id === selected) || P.blocks.find((x) => x.lane === "E1" && x.start === 1) || P.blocks[0];
+  d.innerHTML = `<span class="eyebrow">${esc(P.label)} · H${b.start}–H${b.end}</span><h2>${esc(b.title)}</h2>
+    <dl class="kv">
+      <dt>Owner</dt><dd>${esc(b.owner)}</dd>
+      <dt>Files</dt><dd><code>${esc(b.files)}</code></dd>
+      <dt>Builds against</dt><dd>${esc(b.mock)}</dd>
+      <dt>Needs</dt><dd>${esc(b.deps)}</dd>
+      <dt>Done when</dt><dd class="gate">${esc(b.gate)}</dd>
+    </dl>`;
+}
+document.querySelectorAll("[data-plan]").forEach((btn) => btn.onclick = () => {
+  plan = btn.dataset.plan; selected = null;
+  document.querySelectorAll("[data-plan]").forEach((x) => x.setAttribute("aria-pressed", x === btn));
+  render();
+});
+render();
+</script>
