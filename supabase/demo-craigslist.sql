@@ -1,6 +1,6 @@
 -- Demo: the two real Craigslist keyboards the Grok personas shop between (additive, idempotent: safe to re-run).
 -- Both list at $40, pickup in Potrero Hill. They differ in one way that matters for the demo:
---   kb_keychron_k2_real        s_potrero    policy 'balanced': a sell2agent seller (answers, haggles, follows up)
+--   kb_keychron_k2_real        s_potrero    policy 'learned':  a sell2agent seller (answers, haggles, follows up)
 --   kb_lenovo_legion_k510_real s_potrero_b  policy 'static':   the same kind of listing without sell2agent (list price, fixed)
 -- Personas: apps/dashboard/demo/PERSONAS.md. Never touches existing seller_policies rows.
 -- Apply in the Supabase SQL editor, or: psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/demo-craigslist.sql
@@ -23,7 +23,7 @@ insert into products (id, seller_id, category, title, description, specs, list_p
 on conflict (id) do nothing;
 
 insert into seller_policies (product_id, floor_price_cents, unit_cost_cents, target_margin_pct, max_rounds, allowed_concessions, policy) values
-  ('kb_keychron_k2_real',        3000, 2000, 25, 6, '{}', 'balanced'),
+  ('kb_keychron_k2_real',        3000, 2000, 25, 6, '{}', 'learned'),
   ('kb_lenovo_legion_k510_real', 4000, 2000, 25, 6, '{}', 'static')
 on conflict (product_id) do nothing;
 
