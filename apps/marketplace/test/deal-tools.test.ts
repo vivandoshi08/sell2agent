@@ -41,3 +41,10 @@ test("pay_deal refuses a buyer who didn't accept the deal, before any charge", a
   assert.equal(r.status, "refused");
   assert.ok(!r.payment_intent_id);
 });
+
+test("pay_deal without any buyer_id (no subject) is a clear error, not a charge", async () => {
+  const deal = await lockDeal("s1-test-buyer-c");
+  const r = await call("pay_deal", { deal_id: deal.deal_id });
+  assert.equal(r.structuredContent.error.code, "missing_buyer_id");
+  assert.equal(r.isError, true);
+});
