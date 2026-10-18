@@ -3,6 +3,10 @@
  *
  *   pnpm e2:retrain --runs b3A_learned,b3A_negotiating,b3A_balanced          # runs/<id>.events.jsonl
  *   pnpm e2:retrain --runs eval_x_learned --from-db                           # Supabase `events` (needs SUPABASE_URL + service key)
+ *   pnpm e2:retrain --runs b3L_explore --live --since 2026-10-17              # simulated runs + REAL live marketplace traffic
+ *     --live adds every negotiation logged under run_id "live" (ChatGPT, Claude, Armature testers) from Supabase. Each
+ *     session is tagged real or sim; the policy file records how many of each trained it (trained_on.by_source).
+ * Reward: the seller's goal per session (objectiveReward: console margin vs conversion weights → profit vs revenue).
  *   options: --epsilon 0.1  --epochs 20  --min-sessions 10  --weighting mixture|logged  --order time|interleave  --out ../seller-mcp/learned_policy.json
  *
  * Each negotiation is one session: arm + propensity from the exchange's seller events (learned: payload.arm/propensity;
@@ -28,18 +32,18 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { parseArgs } from "node:util";
-import { ARMS, Bandit, usd, type Arm, type LearnedPolicy } from "@sa/seller-mcp/sellers";
+import { ARMS, Bandit, objectiveFormula, usd, type Arm, type LearnedPolicy } from "@sa/seller-mcp/sellers";
 import { readEvents, sessions, type Ev, type Session } from "./learned-logs";
 
 try { process.loadEnvFile(resolve(import.meta.dirname, "../../../.env")); } catch { /* optional */ }
 
 const { values: f } = parseArgs({ options: {
-  runs: { type: "string" }, "from-db": { type: "boolean" }, epsilon: { type: "string", default: "0.1" }, epochs: { type: "string", default: "20" },
+  runs: { type: "string" }, "from-db": { type: "boolean" }, live: { type: "boolean" }, since: { type: "string" }, epsilon: { type: "string", default: "0.1" }, epochs: { type: "string", default: "20" },
   "min-sessions": { type: "string", default: "10" }, weighting: { type: "string", default: "mixture" }, order: { type: "string", default: "time" },
   out: { type: "string" },
 } });
-if (!f.runs) throw new Error("--runs <run id,...> is required");
-const runs = f.runs.split(",").filter(Boolean);
+if (!f.runs && !f.live) throw new Error("--runs <run id,...> and/or --live is required");
+const runs = (f.runs ?? "").split(",").filter(Boolean);
 const out = f.out ? resolve(process.cwd(), f.out) : resolve(import.meta.dirname, "../../seller-mcp/learned_policy.json");
 
 async function dbEvents(run_id: string): Promise<Ev[]> {
@@ -57,6 +61,11 @@ async function dbEvents(run_id: string): Promise<Ev[]> {
 // ---- sessions, in logged order (or interleaved across runs)
 const perRun: Session[][] = [];
 for (const r of runs) perRun.push(sessions(f["from-db"] ? await dbEvents(r) : readEvents(r)).filter((s) => s.arm));
+if (f.live) {
+  const live = sessions((await dbEvents("live")).filter((e) => !f.since || (e.ts ?? "") >= f.since!)).filter((s) => s.arm);
+  console.log(`live marketplace traffic: ${live.length} negotiations${f.since ? ` since ${f.since}` : ""}`);
+  perRun.push(live);
+}
 let all: Session[] = [];
 if (f.order === "interleave") { for (let i = 0; perRun.some((xs) => i < xs.length); i++) for (const xs of perRun) if (i < xs.length) all.push(xs[i]); }
 else all = perRun.flat().sort((a, b) => a.ts.localeCompare(b.ts));
@@ -70,7 +79,7 @@ for (const s of all) for (const a of ARMS) mixAll[a] = (mixAll[a] ?? 0) + (s.pro
 const weight = (s: Session) => (f.weighting === "logged" ? 1 / s.propensity : count[s.context] / mix[s.context][s.arm!]!);
 const weightAll = (s: Session) => (f.weighting === "logged" ? 1 / s.propensity : all.length / mixAll[s.arm!]!);
 const train = (xs: Session[]) => {
-  const b = new Bandit(ARMS, Number(f.epsilon), Number(f["min-sessions"]));
+  const b = new Bandit([...ARMS], Number(f.epsilon), Number(f["min-sessions"]));
   for (const s of xs) {
     if (s.context !== "unknown") b.update(s.context, s.arm!, s.reward_cents, weight(s));
     b.update("unknown", s.arm!, s.reward_cents, weightAll(s)); // pooled: the choice when the buyer's type isn't known
@@ -89,16 +98,23 @@ for (let e = 1; e <= E; e++) {
   curve.push({ epoch: e, bandit: Math.round(value((c) => b.greedy(c))), negotiating: Math.round(value(() => "negotiating")), balanced: Math.round(value(() => "balanced")) });
 }
 
+const bySource = { real: all.filter((s) => s.source === "real").length, sim: all.filter((s) => s.source === "sim").length };
+const contexts: Record<string, { real: number; sim: number }> = {};
+for (const s of all) (contexts[s.context] ??= { real: 0, sim: 0 })[s.source]++;
+const formulas = [...new Set(all.map((s) => objectiveFormula(s.objective)))];
+const rewardText = formulas.length === 1 ? formulas[0] : `per seller's goals (${formulas.join("; ")})`;
 const prev = existsSync(out) ? (JSON.parse(readFileSync(out, "utf8")) as LearnedPolicy) : null;
 const lp: LearnedPolicy = {
   ...full.export((prev?.version ?? 0) + 1),
   curve,
   gate: { passed: false, best_fixed_policy: "", learned_minus_best_fixed_cents: 0, holdout_buyers: 0, diff_vs_negotiating_cents: 0, ci95_cents: [0, 0], below_floor: 0,
     source: "pending: score on held-out buyers with pnpm e2:learned --policy-file <this file> --gate" },
-  trained_on: { source: `logged${f["from-db"] ? " (supabase)" : ""}, ${f.weighting} IPS`, sessions: all.length, runs, ...(prev ? { previous_version: prev.version } : {}) },
+  trained_on: { source: `logged${f["from-db"] || f.live ? " (supabase)" : ""}, ${f.weighting} IPS`, sessions: all.length, runs: [...runs, ...(f.live ? ["live"] : [])],
+    ...(prev ? { previous_version: prev.version } : {}), by_source: bySource, contexts, reward: rewardText },
 };
 
 // ---- report
+console.log(`\nSessions: ${bySource.real} real (live marketplace) + ${bySource.sim} simulated · reward = ${rewardText}`);
 console.log(`\nRetrained from ${all.length} logged negotiations in ${runs.length} runs → v${lp.version}${prev ? ` (was v${prev.version})` : ""} · ${f.weighting} IPS · min ${f["min-sessions"]} sessions per arm\n`);
 console.log("Per buyer type: IPS mean profit per negotiation (sessions) → choice   (unknown = all sessions pooled: buyers who send no profile)");
 for (const ctx of Object.keys(lp.stats).sort()) {

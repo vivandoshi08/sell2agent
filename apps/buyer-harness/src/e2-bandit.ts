@@ -10,14 +10,14 @@
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { parseArgs } from "node:util";
-import { ARMS, Bandit, contextOf, usd, type PolicyName } from "@sa/seller-mcp/sellers";
+import { BASE_ARMS, Bandit, contextOf, usd, type PolicyName } from "@sa/seller-mcp/sellers";
 import { makeSimBuyers, simulate } from "./scripted/lever-sim";
 
 const { values: f } = parseArgs({ options: { epochs: { type: "string", default: "40" }, "per-epoch": { type: "string", default: "30" }, holdout: { type: "string", default: "900" } } });
 const EPOCHS = Number(f.epochs), PER = Number(f["per-epoch"]), HOLD = Number(f.holdout);
 
 // ---- train (UCB), and the same buyers under fixed negotiating for the curve
-const bandit = new Bandit(ARMS, 0.1);
+const bandit = new Bandit(BASE_ARMS, 0.1); // scripted sim: base arms only (package arms run through the real exchange)
 const curve: { epoch: number; bandit: number; negotiating: number }[] = [];
 for (let e = 0; e < EPOCHS; e++) {
   const buyers = makeSimBuyers(PER, 1000 + e);
@@ -25,7 +25,7 @@ for (let e = 0; e < EPOCHS; e++) {
   for (const b of buyers) {
     const ctx = contextOf(b.profile);
     const arm = bandit.chooseTraining(ctx);
-    const r = simulate(b, arm);
+    const r = simulate(b, arm as PolicyName);
     bandit.update(ctx, arm, r.profit);
     sb += r.profit;
     sn += simulate(b, "negotiating").profit;
@@ -41,7 +41,7 @@ const res: Record<string, number[]> = { learned: [], ...Object.fromEntries(fixed
 const conv: Record<string, number> = {};
 let below = 0;
 for (const b of held) {
-  const arm = lp.choice[contextOf(b.profile)] ?? "negotiating";
+  const arm = (lp.choice[contextOf(b.profile)] ?? "negotiating") as PolicyName;
   const r = simulate(b, arm);
   res.learned.push(r.profit); conv.learned = (conv.learned ?? 0) + (r.closed ? 1 : 0); if (r.belowFloor) below++;
   for (const p of fixed) { const x = simulate(b, p); res[p].push(x.profit); conv[p] = (conv[p] ?? 0) + (x.closed ? 1 : 0); if (x.belowFloor) below++; }
@@ -56,7 +56,7 @@ const passed = ci[0] > 0 && below === 0;
 console.log(`\nE2 bandit: trained on ${EPOCHS * PER} sessions (${EPOCHS} epochs × ${PER}), tested on ${HOLD} held-out buyers\n`);
 console.log("What it learned (per buyer type, mean profit per session in training):");
 for (const [ctx, arms] of Object.entries(lp.stats)) {
-  const cells = ARMS.map((a) => `${a} ${arms[a]?.n ? usd(Math.round(arms[a].sum / arms[a].n)) : "—"} (n=${arms[a]?.n ?? 0})`).join("   ");
+  const cells = BASE_ARMS.map((a) => `${a} ${arms[a]?.n ? usd(Math.round(arms[a].sum / arms[a].n)) : "—"} (n=${arms[a]?.n ?? 0})`).join("   ");
   console.log(`  ${ctx.padEnd(9)} → ${lp.choice[ctx].padEnd(12)} | ${cells}`);
 }
 console.log("\nLearning curve (profit per buyer, every 5th epoch):  bandit vs fixed negotiating");

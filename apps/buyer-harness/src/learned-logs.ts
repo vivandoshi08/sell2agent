@@ -6,14 +6,17 @@
  * propensity 1 (a fixed policy always plays its arm). `probs` = the logging policy's probability for every arm:
  * payload.arm_probs, else rebuilt (fixed: one-hot; older learned logs: ε-greedy around the arm logged with the highest
  * propensity in that run and context). Context = payload.bandit_context, else contextOf() of the
- * buyer's lever_profile from the harness events. Reward = seller profit on the session's deal (price − unit cost −
- * extras' cost, × quantity), 0 when it didn't close. Profit comes from the exchange's deal_accepted, so extras count.
+ * buyer's lever_profile from the harness events (or the preferences a live buyer sent to search_products).
+ * Reward = the seller's goal on the session's deal: objectiveReward(profit, revenue, the console objective logged on the
+ * seller events), 0 when it didn't close. Profit = price − unit cost − extras' cost, × quantity (from deal_accepted).
+ * Source: "real" = live marketplace traffic (run_id "live": ChatGPT, Claude, Armature testers), else "sim".
  */
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { gunzipSync } from "node:zlib";
 import type { NegotiationEvent } from "@sa/shared";
-import { ARMS, contextOf, type Arm, type BuyerLeverProfile } from "@sa/seller-mcp/sellers";
+import { BASE_ARMS, contextOf, isArm, objectiveReward, type Arm, type BuyerLeverProfile } from "@sa/seller-mcp/sellers";
+import type { SellerObjective } from "@sa/shared";
 import { RUNS_DIR } from "./run-all";
 
 export type Ev = NegotiationEvent & { ts?: string };
@@ -37,7 +40,12 @@ export interface Session {
   /** The logging policy's probability for each arm in this context (sums to 1). */
   probs: Partial<Record<Arm, number>>;
   context: string;
+  /** The seller's goal (objectiveReward); what the bandit maximizes. */
   reward_cents: number;
+  profit_cents: number;
+  revenue_cents: number;
+  objective: Partial<SellerObjective> | null;
+  source: "real" | "sim";
   closed: boolean;
   below_floor: boolean;
   policy_version: number | null;
@@ -49,10 +57,13 @@ const dealProfit = (e: Ev) => {
   return ((e.price_cents ?? 0) - (p.unit_cost_cents ?? 0)) * q - (p.lever_cost_cents ?? 0) * q;
 };
 
+const dealRevenue = (e: Ev) => (e.price_cents ?? 0) * ((e.payload as Record<string, number>).quantity ?? 1);
+
 export function sessions(events: Ev[]): Session[] {
   const profileOf = new Map<string, BuyerLeverProfile>();
   for (const e of events) {
-    const lp = (e.payload as { lever_profile?: BuyerLeverProfile } | null)?.lever_profile;
+    const pl = e.payload as { lever_profile?: BuyerLeverProfile; preferences?: BuyerLeverProfile } | null;
+    const lp = pl?.lever_profile ?? (e.type === "search" && pl?.preferences && Object.values(pl.preferences).some((w) => (w ?? 0) > 0) ? pl.preferences : undefined);
     if (e.buyer_id && lp && !profileOf.has(`${e.run_id}|${e.buyer_id}`)) profileOf.set(`${e.run_id}|${e.buyer_id}`, lp);
   }
   const by = new Map<string, Ev[]>();
@@ -65,14 +76,17 @@ export function sessions(events: Ev[]): Session[] {
     const fixed = seller.flatMap((e) => ((e.payload as { rule_refs?: string[] }).rule_refs ?? [])).find((r) => r.startsWith("policy:"))?.slice(7);
     const lp = learned?.payload as { arm: Arm; propensity: number; arm_probs?: Partial<Record<Arm, number>>; bandit_context?: string; policy_version?: number | null } | undefined;
     const armName = lp?.arm ?? fixed;
-    const arm = ARMS.includes(armName as Arm) ? (armName as Arm) : null;
+    const arm = isArm(armName) ? armName : null;
     const deal = es.find((e) => e.type === "deal_accepted");
     const first = es[0];
+    const objective = (seller.find((e) => (e.payload as { objective?: unknown }).objective)?.payload as { objective?: Partial<SellerObjective> } | undefined)?.objective ?? null;
+    const profit = deal ? dealProfit(deal) : 0, revenue = deal ? dealRevenue(deal) : 0;
     out.push({
       run_id: first.run_id, negotiation_id: nid, buyer_id: first.buyer_id!, ts: first.ts ?? "",
       arm, propensity: lp?.propensity ?? 1, probs: lp?.arm_probs ?? (lp || !arm ? {} : { [arm]: 1 }),
       context: lp?.bandit_context ?? contextOf(profileOf.get(`${first.run_id}|${first.buyer_id}`)),
-      reward_cents: deal ? dealProfit(deal) : 0, closed: !!deal, below_floor: (deal?.payload as { below_floor?: boolean } | undefined)?.below_floor === true,
+      reward_cents: deal ? objectiveReward(profit, revenue, objective) : 0, profit_cents: profit, revenue_cents: revenue, objective,
+      source: first.run_id === "live" ? "real" : "sim", closed: !!deal, below_floor: (deal?.payload as { below_floor?: boolean } | undefined)?.below_floor === true,
       policy_version: lp?.policy_version ?? null,
     });
   }
@@ -84,7 +98,7 @@ export function sessions(events: Ev[]): Session[] {
   }
   for (const s of out) if (s.arm && !Object.keys(s.probs).length) {
     const g = greedyOf.get(`${s.run_id}|${s.context}`)!;
-    s.probs = Object.fromEntries(ARMS.map((a) => [a, a === g.arm ? g.p : (1 - g.p) / (ARMS.length - 1)]));
+    s.probs = Object.fromEntries(BASE_ARMS.map((a) => [a, a === g.arm ? g.p : (1 - g.p) / (BASE_ARMS.length - 1)])); // older logs: 3 base arms
   }
   return out.sort((a, b) => a.ts.localeCompare(b.ts));
 }
