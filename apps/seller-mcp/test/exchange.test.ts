@@ -346,3 +346,18 @@ test("lever packages: only allowed levers; price covers floor + lever cost; deal
   assert.equal(dealEv.payload.lever_cost_cents, 800, "S2 profit needs the lever cost");
   assert.equal(dealEv.payload.below_floor, false);
 });
+
+test("deal_accepted.below_floor doesn't double-count lever cost when the seller accepts a package offer", async () => {
+  const { Exchange, MemorySink, StaticCatalog, SEED_PRODUCTS } = await import("../src/exchange");
+  const sink = new MemorySink();
+  const ex = new Exchange({ catalog: new StaticCatalog(SEED_PRODUCTS), sink: sink.sink });
+  const ctx = { run_id: "t_bf", buyer_id: "b_bf", buyer_model: "test" };
+  // ClackCo: floor $95, free_shipping costs $8 → $106 nets $98, above floor.
+  let r: any = await ex.handle({ kind: "offer", ctx, product_id: "kb_clackco_tkl", offer_price_cents: 10600, levers: ["free_shipping"] });
+  for (let i = 0; i < 6 && r.status === "counter"; i++) r = await ex.handle({ kind: "offer", ctx, negotiation_id: r.negotiation_id, product_id: "kb_clackco_tkl", offer_price_cents: 10600 });
+  if (r.status !== "accept") r = await ex.handle({ kind: "accept", ctx, negotiation_id: r.negotiation_id, offer_id: r.standing_offer.offer_id });
+  const d = sink.events.find((e: any) => e.type === "deal_accepted");
+  assert.ok(d, "deal locked");
+  assert.equal((d!.payload as any).lever_cost_cents, 800);
+  assert.equal((d!.payload as any).below_floor, (d!.price_cents! - 800) < 9500);
+});
