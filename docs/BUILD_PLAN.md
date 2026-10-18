@@ -1,14 +1,15 @@
 # Build Plan
 
-> How the four of us build [FINAL_ARCHITECTURE.md](FINAL_ARCHITECTURE.md). Two pairs work in parallel on separate code, each starting on its riskiest piece against a mock of the other, then the pairs merge at three bridges. Interactive version: `docs/team-plan.html` (the "Team Build Plan" page). Hours are relative to the start (H0); fill in the clock time and names below.
+> How the four of us build [FINAL_ARCHITECTURE.md](FINAL_ARCHITECTURE.md). Two pairs work in parallel on separate code, each starting on its riskiest piece against a mock of the other, then the pairs merge at three bridges. Interactive version: `docs/team-plan.html` (the "Team Build Plan" page). Hours are relative to the start (H0); fill in the clock time and the two open names below.
 
 | Role | Pair | Person | Owns |
 |---|---|---|---|
-| **S1** gateway & deploy | Surface | _name_ | `apps/marketplace`, Manufact deploy, catalog seed, discovery files, Inkbox adapter |
-| **S2** UI & proof | Surface | _name_ | `apps/dashboard`, deal-card widget, wiring `packages/payments`, Armature evals, merchant console |
-| **E1** exchange & safety | Engine | _name_ | `apps/seller-mcp/exchange`: state machine, sessions, offers, deals, guardrails, buyer memory, outreach |
-| **E2** policy & buyers | Engine | _name_ | `apps/seller-mcp/sellers`, `apps/buyer-harness`, bandit and learning |
-| **Contract owner** | (seam) | Neel | `packages/shared`, `supabase/migrations`: frozen after H1, changes go through Neel |
+| **S1** gateway & deploy | Surface | _open: Ananya or #4_ | `apps/marketplace`, Manufact deploy, catalog seed, discovery files, Inkbox adapter |
+| **S2** UI & proof | Surface | Neel | `apps/dashboard`, deal-card widget, wiring `packages/payments`, Armature evals, merchant console |
+| **E1** exchange & safety | Engine | Vivan | `apps/seller-mcp/exchange`: state machine, sessions, offers, deals, guardrails, buyer memory, outreach |
+| **E2** policy & buyers | Engine | _open: Ananya or #4_ | `apps/seller-mcp/sellers`, `apps/buyer-harness`, bandit and learning |
+
+**Contract owner is a side duty, not a fifth person.** Neel carries it alongside S2: he wrote the contract (`packages/shared`, `supabase/migrations`) and `@sa/payments`, which S2 wires. It is real work only in H0–H1 (freeze the contract with everyone); after that it is frozen and the job is reviewing change requests, e.g. E1 asking for `offer_id`, `final`, `expires_at`. Changes go through Neel.
 
 Start time (H0): _clock time_. Code freeze: H13. Submit: 10:00.
 
@@ -85,7 +86,7 @@ Move to the next step only when the "done when" test passes.
 
 ## Collision and idle-time rules
 
-- **Only one shared file set:** the contract (`packages/shared`, `supabase/migrations`), frozen at H1, one owner.
+- **Only one shared file set:** the contract (`packages/shared`, `supabase/migrations`), frozen at H1, one owner (Neel, alongside S2).
 - **E1 and E2 share `apps/seller-mcp`** but work in separate modules (`exchange/` and `sellers/`), joined only by `decide()`.
 - **Nobody waits:** every step builds against a mock (fake exchange, fake events, stub seller, scripted buyers) until the matching bridge.
 - **Merge to `main` at each bridge,** in small PRs reviewed by the pair partner.
@@ -93,7 +94,7 @@ Move to the next step only when the "done when" test passes.
 ## First hour (H0–H1), everyone
 
 - [ ] Pull `main`, read [FINAL_ARCHITECTURE.md](FINAL_ARCHITECTURE.md) and this plan.
-- [ ] Contract owner adds the fields the seams need: lever profile on buyer context, lever menu and objective on seller policy, lever package on offers and deals, `final` and `expires_at` on offers, guardrail event types.
+- [ ] Neel (contract owner) adds the fields the seams need: lever profile on buyer context, lever menu and objective on seller policy, lever package on offers and deals, `final` and `expires_at` on offers, guardrail event types.
 - [ ] Each person writes their mock: S1 a fake exchange, S2 fake events, E1 a stub seller, E2 scripted buyers.
 - [ ] Booths: Manufact (gateway timeout; is mcp-use expected), Stripe (payment tokens in a sandbox), Armature (switch on evals), Inkbox (quota).
 - [ ] Keys in `.env`: Anthropic, OpenAI, Stripe test, Supabase, Manufact login.
