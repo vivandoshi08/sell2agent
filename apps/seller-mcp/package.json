@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "tsx watch --env-file-if-exists=../../.env src/index.ts",
     "typecheck": "tsc -p .",
-    "test": "node --import tsx --test test/*.test.ts"
+    "test": "node --import tsx --test test/*.test.ts",
+    "gate": "tsx scripts/run30.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.30.0",
@@ -17,11 +18,12 @@
     "stripe": "^17.0.0"
   },
   "devDependencies": {
+    "@types/node": "^22.0.0",
     "tsx": "^4.19.0",
-    "typescript": "^5.6.0",
-    "@types/node": "^22.0.0"
+    "typescript": "^5.6.0"
   },
   "exports": {
-    "./sellers": "./src/sellers/index.ts"
+    "./sellers": "./src/sellers/index.ts",
+    "./exchange": "./src/exchange/index.ts"
   }
 }

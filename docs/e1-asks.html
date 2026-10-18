@@ -74,6 +74,22 @@ th { font-family: var(--font-data); font-size: .7rem; letter-spacing: .06em; tex
     <div class="summary" id="summary"></div>
     <span id="sync">Status sync loading…</span>
   </header>
+  <section class="box">
+    <h2>Shipped: use it now <small>branch e1/exchange</small></h2>
+    <p class="why">The exchange runs end to end against Neel's real <code>decide()</code> and <code>voice()</code>. Memory store and seed catalog by default; events go to Supabase when <code>SUPABASE_URL</code> is set. Gate: <code>pnpm --filter @sa/seller-mcp gate</code> runs 30 negotiations (10 normal, 11 recorded E4/E9 attacks, 9 protocol abuses and adversarial sellers): 0 deals below floor, 0 floor or cost figures in seller text, every tamper rejected.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Who</th><th>Call</th><th>Returns</th></tr></thead>
+      <tbody>
+        <tr><td>Esha</td><td><code>import { Exchange } from "@sa/seller-mcp/exchange"</code><br><code>ex.handle({ kind: "offer", ctx, product_id, negotiation_id?, offer_price_cents, message? })</code></td><td><code>{ ok, negotiation_id, state, status, standing_offer: { offer_id, price_cents, final, expires_at, levers }, round, rounds_left, allowed_actions, message, error? }</code></td></tr>
+        <tr><td>Esha</td><td><code>{ kind: "accept", ctx, negotiation_id, offer_id }</code> · <code>{ kind: "walk", … }</code> · <code>{ kind: "status", … }</code></td><td>Accept locks a deal and returns <code>deal</code>. Errors carry a <code>code</code> and an agent-readable fix: <code>stale_offer</code>, <code>wrong_buyer</code>, <code>offer_expired</code>, <code>round_cap</code>…</td></tr>
+        <tr><td>Ananya</td><td><code>ex.deals.getLockedDeal(deal_id)</code></td><td>Your shape: <code>deal_id, negotiation_id, buyer_id, seller_id, product_id, title, quantity, unit_price_cents, total_cents, list_price_cents, levers, expires_at, status</code></td></tr>
+        <tr><td>Ananya</td><td><code>ex.deals.validateForPayment(deal_id, buyer_id, amount_cents?)</code> then <code>payDeal</code>, then <code>ex.markPaid(deal_id, payment_intent_id)</code></td><td><code>{ ok: true, deal }</code> or <code>{ ok: false, code, reason, fix }</code> with code <code>unknown_deal | tampered | expired | already_paid | wrong_buyer | amount_mismatch | policy_recheck_failed</code></td></tr>
+        <tr><td>Everyone</td><td>events</td><td><code>offer_made</code>, <code>offer_countered</code>, <code>offer_accepted</code>, <code>deal_accepted</code>, <code>buyer_walked_away</code>, <code>guardrail_blocked</code> with <code>payload.rule</code>, <code>proposed_price_cents</code>, <code>clamped_to_cents</code>, <code>reason</code>; every payload carries <code>state</code></td></tr>
+      </tbody>
+    </table></div>
+    <p class="why"><b>Decision on accept vs. pay:</b> <code>accept</code> only locks the deal. Charging happens in Ananya's pay handler on Approve &amp; Pay, which matches FINAL_ARCHITECTURE.</p>
+  </section>
+
   <div id="people"></div>
 
   <section class="box">
