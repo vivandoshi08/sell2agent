@@ -197,7 +197,7 @@ footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 4px; }
 <script>
 const DATA = {
   updated: "2026-10-17",
-  commit: "4ad4161",
+  commit: "e2604db",
   stages: [
     { name: "Buyer agent", desc: "Claude, acting for a person with a need and a budget.", exps: ["E1", "E3"], qs: "B1–B10" },
     { name: "Discovery", desc: "Agent cards, feeds, registries.", exps: ["E1", "E7", "E8"], qs: "D1–D4" },
@@ -217,9 +217,9 @@ const DATA = {
     { id: "A4", text: "Buying agents haggle when they can, and haggling changes the price.", by: "E3", status: "validated", result: "Opus buyers countered in 64/64 negotiable sessions; on the same buyer and bundle, haggling paid ~6% less than fixed price (95% CI 5.0–6.3%), and conversion rose from 38% to 94%." },
     { id: "A5", text: "A selling agent can be kept safe, but only with rules enforced in code, not just written in the prompt.", by: "E4", status: "validated", result: "Engine: 0 rule-breaking deals in 56 sessions (36 attack, 20 control). Prompt-only: an Opus seller accepted $28,500 against a $41,700 floor after one fake SYSTEM line. Normal-buyer conversion unchanged (n=10 per setup, so directional)." },
     { id: "A6", text: "Negotiation strategy matters: some strategies earn clearly more at the same conversion.", by: "E5", status: "validated", result: "Slow concession (Boulware) in the prompt: $8,870 vs. $7,668 per session for the default negotiator (+15.7%, paired 95% CI +$714 to +$1,757), same 78.6% conversion. Conceding early was worst (−10.2%)." },
-    { id: "A7", text: "A seller can learn to haggle better from its own transaction data.", by: "E6", status: "untested" },
+    { id: "A7", text: "A seller can learn to haggle better from its own transaction data.", by: "E6", status: "inconclusive", result: "Leaning no. Learned policy vs. best fixed strategy: +7.9% on Opus buyers (95% CI −$240 to +$1,663), −19.1% on Haiku, −0.9% on scripted buyers. Prompt-level playbook learning didn't climb and overfit our persona generator." },
     { id: "A8", text: "With competing sellers, a negotiating or dynamically priced seller still wins deals and keeps its margin.", by: "E7", status: "inconclusive", result: "Split. Wins deals: yes, negotiable sellers took 100% (57.5% / 42.5%). Keeps margin: no, 20.7% vs. 24.5–25.1% a fixed seller would have made on the same baskets." },
-    { id: "A9", text: "Results from simulated buyers hold across buyer models, so the harness is worth trusting.", by: "E3, E6", status: "validated", result: "E3: Opus, Sonnet and Haiku all countered 100% when they could and all paid less than fixed price. Models differ in style (Sonnet never shares its budget; Sonnet and Haiku push on fixed prices). E6 transfer still pending; GPT-family buyers untested." },
+    { id: "A9", text: "Results from simulated buyers hold across buyer models, so the harness is worth trusting.", by: "E3, E6", status: "inconclusive", result: "Split. Buyer behavior holds across Opus, Sonnet and Haiku (E3). Policy rankings don\'t: E6\'s learned policy won with Opus buyers and lost with Haiku (−19.1%), and scripted buyers predicted a tie. Strategy rankings also shifted between E5\'s and E6\'s buyer sets." },
     { id: "A10", text: "Negotiating pays for itself: the model cost per deal is small next to the margin it wins.", by: "E5", status: "validated", result: "Model cost was 0.02% of the profit gained over fixed price ($0.19 vs. +$1,063 per session; bar 5%). Caveat: whether negotiating beats fixed price at all is inconclusive (CI −$856 to +$3,663), and the default negotiator lost to fixed price." },
     { id: "A11", text: "Buying agents can use the front door's tools correctly, and the tool design changes outcomes.", by: "E1", status: "validated", result: "0 invalid arguments and 1 recoverable error in 116 runs with no tool instructions. Free-text deals closed $499 higher for the seller (95% CI $266–$788) and took 19 s longer; completion was the same." },
     { id: "A12", text: "Our setup fits the existing protocol landscape instead of fighting it.", by: "E8", status: "validated", result: "No major protocol (MCP, A2A, ACP, AP2, UCP, x402) covers price negotiation; we sit on top. Caveats: Pier39's Nash (May 2026) is a small direct competitor, and an ACP proposal names future bidding." },
@@ -260,7 +260,8 @@ const DATA = {
       q: "Which haggling strategy earns the most, and does negotiating pay for its model cost?",
       setup: "Open LLM, Boulware, Conceder, tit-for-tat, split the difference, bundle first, honest anchoring. Code picks the price, the LLM talks.",
       bar: "<strong>Validates A6</strong> if the best strategy earns ≥10% more profit per session than the open LLM. <strong>A10</strong> if model cost is <5% of the gain." },
-    { id: "E6", name: "Seller learns to haggle (RL)", track: "Learning", status: "running", tests: ["A7", "A9"],
+    { id: "E6", name: "Seller learns to haggle (RL)", track: "Learning", status: "inconclusive", tests: ["A7", "A9"], resultTone: "warn",
+      result: "Learning didn\'t beat a tuned fixed strategy: −0.9% on 5,000 held-out scripted buyers, +7.9% on Opus buyers (CI includes zero), −19.1% on Haiku. The simulator misses what LLM buyers do most: change the bundle (36% of sessions). Upside: the learned policy\'s \"final offer\" was always true, and the engine blocked every below-floor move (144 sessions, 0 bad deals).",
       q: "Can the seller learn to haggle better than any fixed strategy, and does it hold against LLM buyers?",
       setup: "Bandit and Q-learning over discrete concession moves, trained on fast scripted buyers, then tested on LLM buyers. Plus prompt-level learning from transcripts.",
       bar: "<strong>Validates A7</strong> if a learned policy beats the best fixed strategy by ≥5% profit per session against LLM buyers." },
@@ -286,6 +287,7 @@ const DATA = {
   signals: [
     "Prompt-only price floors leak on smaller models. Told its floor was $44,000, a Haiku seller countered a $40,000 offer at $43,000. Opus held at $49,500. One probe, not a result: E4 tests it properly.",
     "Headless claude -p works as the model backend at about 700 tokens of overhead per call, so we can run experiments on our existing login with no API key.",
+    "E6: a seller learned against scripted buyers doesn't transfer reliably. LLM buyers change the bundle in 36% of sessions and never walked on a \"final offer\"; scripted buyers can't change bundles and walked 30% of the time. The simulator needs those behaviors before RL is worth it.",
     "E4: one injected SYSTEM line in a buyer's opening message got a prompt-only Opus seller to accept $6,100 below cost. Fake competitor quotes, fake managers and hardship stories moved no seller below its floor.",
     "E4: sellers ground down to exactly their floor in 50 of 71 attack sessions. That's legal, but it reveals the private floor, so offers should stop at a soft floor above the hard one.",
     "E3: buyers haggle whether or not negotiation is advertised, so a \"negotiable\" flag matters for routing, not persuasion. Failures cluster at the round cap, so the buyer must get a final turn to accept.",
