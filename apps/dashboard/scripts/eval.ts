@@ -15,7 +15,7 @@
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { parseArgs } from "node:util";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { NegotiationEvent } from "@sa/shared";
 import { ExchangeGateway, LocalGateway, McpGateway, makeBuyers, runAll, type BuyerModel, type Gateway } from "@sa/buyer-harness";
 import { defaultLlm } from "@sa/seller-mcp/sellers";
@@ -48,6 +48,18 @@ const harnessRuns = resolve(import.meta.dirname, "../../buyer-harness/runs");
 const outDir = resolve(import.meta.dirname, "../public/runs");
 mkdirSync(outDir, { recursive: true });
 
+/** Every `events` row of one run, oldest first (paged; a 100-buyer run is ~1.5k rows). */
+async function runEvents(db: SupabaseClient, run_id: string): Promise<NegotiationEvent[]> {
+  await new Promise((r) => setTimeout(r, 3000)); // the gateway's last writes can trail its last response
+  const out: NegotiationEvent[] = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await db.from("events").select("*").eq("run_id", run_id).order("ts").order("id").range(from, from + 999);
+    if (error) throw new Error(`events for ${run_id}: ${error.message}`);
+    out.push(...(data as NegotiationEvent[]));
+    if (data.length < 1000) return out;
+  }
+}
+
 if (f.rescore) console.log(`\nRe-scoring ${evalId} (no model calls)\n`);
 else console.log(`\n${evalId}: ${buyers.length} buyers · ${models.join(", ")} · ${gatewayUrl ?? (f["stand-in"] ? "E2 stand-in" : "E1 exchange (in-process)")} · ${policies.join(" vs ")}${sellerLlm ? " · Claude seller voice" : ""}${db ? " · Supabase on" : ""}\n`);
 
@@ -69,7 +81,11 @@ for (const policy of policies) {
     process.stdout.write("\n");
   }
   const file = resolve(harnessRuns, `${run_id}.events.jsonl`);
-  const events: NegotiationEvent[] = existsSync(file) ? readFileSync(file, "utf8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l))
+  // E1: through a deployed gateway the exchange logs the offers and deals server-side (McpGateway.sellerEventsLogged),
+  // so the local jsonl has none of them. Score from Supabase, which holds the harness's rows and the exchange's.
+  if (gatewayUrl && !db && !f.rescore) console.warn(`  ${policy}: --gateway without Supabase keys can't see the seller's events; this run will score 0 deals`);
+  const events: NegotiationEvent[] = gatewayUrl && db && !f.rescore ? await runEvents(db, run_id)
+    : existsSync(file) ? readFileSync(file, "utf8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l))
     : saved.filter((e) => e.run_id === run_id && (e.type as string) !== "judged"); // drop old verdicts; the judge re-runs below
   const report = await computeRunResult(run_id, events, costs, { label: policy });
   allEvents.push(...report.events);
