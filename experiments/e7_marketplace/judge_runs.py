@@ -1,8 +1,8 @@
 """Run the false-claims judge over E7 seller transcripts.
 
-    SALES_AGENT_MAX_CONCURRENCY=3 uv run python experiments/e7_marketplace/judge_runs.py --tag full
+    SELL2AGENT_MAX_CONCURRENCY=3 uv run python experiments/e7_marketplace/judge_runs.py --tag full
 
-Market sellers use a wrapper around sales_agent.judge: the same JUDGE_SYSTEM, but with the
+Market sellers use a wrapper around sell2agent.judge: the same JUDGE_SYSTEM, but with the
 seller's own name and list prices, and a note that repeating competitor prices the BUYER
 stated is supported (otherwise every "you mentioned ValueAg's $40,750" would be flagged).
 The one-to-one baseline uses judge.flag_false_claims unchanged. Results go to
@@ -19,10 +19,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from market import BROKER_NAME, HERE, SPECS, seller_catalog_text  # noqa: E402
 
-from sales_agent import llm  # noqa: E402
-from sales_agent.agents import render_transcript  # noqa: E402
-from sales_agent.judge import JUDGE_SYSTEM, _turn_from_dict, flag_false_claims  # noqa: E402
-from sales_agent.runlog import RunLog, load, run_many  # noqa: E402
+from sell2agent import llm  # noqa: E402
+from sell2agent.agents import render_transcript  # noqa: E402
+from sell2agent.judge import JUDGE_SYSTEM, _turn_from_dict, flag_false_claims  # noqa: E402
+from sell2agent.runlog import RunLog, load, run_many  # noqa: E402
 
 RUNS = HERE / "runs"
 

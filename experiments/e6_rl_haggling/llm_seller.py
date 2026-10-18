@@ -10,13 +10,13 @@ from __future__ import annotations
 
 import os
 
-os.environ.setdefault("SALES_AGENT_MAX_CONCURRENCY", "3")
+os.environ.setdefault("SELL2AGENT_MAX_CONCURRENCY", "3")
 
 import traceback  # noqa: E402
 
-from sales_agent.agents import BuyerAgent, SellerAgent  # noqa: E402
-from sales_agent.negotiation import Outcome, run_negotiation  # noqa: E402
-from sales_agent.policy import PolicyEngine  # noqa: E402
+from sell2agent.agents import BuyerAgent, SellerAgent  # noqa: E402
+from sell2agent.negotiation import Outcome, run_negotiation  # noqa: E402
+from sell2agent.policy import PolicyEngine  # noqa: E402
 
 HINTS = {
     "final": "This is your final offer. Say so plainly: you will not go lower in this conversation.",

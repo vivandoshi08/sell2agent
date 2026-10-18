@@ -1,7 +1,7 @@
 """E5 runner: every seller condition against the same seeded buyers.
 
-    SALES_AGENT_MAX_CONCURRENCY=3 uv run python experiments/e5_strategies/run.py --phase pilot --personas 2
-    SALES_AGENT_MAX_CONCURRENCY=3 uv run python experiments/e5_strategies/run.py --phase main --personas 20
+    SELL2AGENT_MAX_CONCURRENCY=3 uv run python experiments/e5_strategies/run.py --phase pilot --personas 2
+    SELL2AGENT_MAX_CONCURRENCY=3 uv run python experiments/e5_strategies/run.py --phase main --personas 20
 
 Writes one outcome per line to runs/<phase>.jsonl and progress to runs/<phase>.log.
 Re-running skips (condition, persona) pairs that already finished without an
@@ -20,12 +20,12 @@ import threading
 import time
 from pathlib import Path
 
-from sales_agent import llm
-from sales_agent.agents import BuyerAgent, NegotiationState, SellerAgent, Turn
-from sales_agent.negotiation import run_negotiation
-from sales_agent.personas import make_personas
-from sales_agent.policy import Offer, PolicyEngine
-from sales_agent.runlog import RunLog, load, run_many
+from sell2agent import llm
+from sell2agent.agents import BuyerAgent, NegotiationState, SellerAgent, Turn
+from sell2agent.negotiation import run_negotiation
+from sell2agent.personas import make_personas
+from sell2agent.policy import Offer, PolicyEngine
+from sell2agent.runlog import RunLog, load, run_many
 
 from strategies import CONDITIONS, make_seller
 

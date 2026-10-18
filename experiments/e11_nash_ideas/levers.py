@@ -1,7 +1,7 @@
 """Levers before discounts (E11 Part 2, A19).
 
 Generalizes "warranty before discount" into a merchant-configured lever menu.
-Written so it can move into `sales_agent/` for the build:
+Written so it can move into `sell2agent/` for the build:
 
     Lever, LEVERS     the menu: each lever has a seller cost and a buyer-facing value.
     LeverOffer        an Offer with a `levers` list. Levers live in the structured
@@ -24,9 +24,9 @@ from __future__ import annotations
 import re
 from dataclasses import asdict, dataclass, field
 
-from sales_agent.agents import NegotiationState
-from sales_agent.catalog import ADDONS, PRODUCTS, cost_total, describe, floor_total, list_total
-from sales_agent.policy import Decision, Offer, PolicyEngine
+from sell2agent.agents import NegotiationState
+from sell2agent.catalog import ADDONS, PRODUCTS, cost_total, describe, floor_total, list_total
+from sell2agent.policy import Decision, Offer, PolicyEngine
 
 # ============================================================== the menu
 

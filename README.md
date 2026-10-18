@@ -1,4 +1,4 @@
-# sales-agent
+# sell2agent
 
 **A seller-side agent for e-commerce.** When a buyer's agent (ChatGPT, Claude, a script) is choosing between products, each product's seller agent talks to it over MCP, answers questions honestly, negotiates price to win the sale, and takes payment. It does this inside hard limits the human seller sets: a floor price and a margin that live in code, not in a prompt.
 
@@ -45,7 +45,7 @@ Every number below comes from a saved run; each row says where.
 
 | Item | State | Numbers |
 |---|---|---|
-| Follow-ups after a walk-away | **Live on production.** `apps/marketplace/scripts/followup-e2e.mjs` passes against production: walk-away with consent → nothing sent before the 60 s delay → follow-up via the log courier → `/outbox` → an unclear reply gets a clarifying question → ACCEPT locks the deal and returns an approve link → a second walk-away is capped. Delivery is the log courier until Inkbox is on (being wired now) | Simulated: when buyer agents walk away and opt in to one follow-up, the seller wins back **33%** of them (30 of 92, 95% CI 24–43%), **+$2.58 profit per buyer** [$1.70–$3.50]. 0 deals below floor, 0 follow-ups below the buyer's last price. 600 simulated Claude Haiku buyers, in-process through the real exchange. Source: `docs/results/followups/README.md` in [PR #94](https://github.com/vivandoshi08/sales-agent/pull/94) (merged) |
+| Follow-ups after a walk-away | **Live on production.** `apps/marketplace/scripts/followup-e2e.mjs` passes against production: walk-away with consent → nothing sent before the 60 s delay → follow-up via the log courier → `/outbox` → an unclear reply gets a clarifying question → ACCEPT locks the deal and returns an approve link → a second walk-away is capped. Delivery is the log courier until Inkbox is on (being wired now) | Simulated: when buyer agents walk away and opt in to one follow-up, the seller wins back **33%** of them (30 of 92, 95% CI 24–43%), **+$2.58 profit per buyer** [$1.70–$3.50]. 0 deals below floor, 0 follow-ups below the buyer's last price. 600 simulated Claude Haiku buyers, in-process through the real exchange. Source: `docs/results/followups/README.md` in [PR #94](https://github.com/vivandoshi08/sell2agent/pull/94) (merged) |
 | Learned policy (bandit over lever packages, `learned_policy.json`) gated on LLM buyers | **Gate passed; live on production but not the default.** A signed eval check on production logged arm `balanced`, `policy_version` 4 | v4, 300 held-out Claude Haiku buyers, seed 777: **+$6.25/buyer vs `negotiating` [$3.58, $8.92]**, −$1.03 vs `balanced` [−$3.10, $1.05], 0 below floor. It does not beat `balanced`, so `balanced` stays the default. Source: [docs/results/b3-learned](docs/results/b3-learned/README.md) (PR #91) |
 | Merchant console → live negotiations | **Done-test passed on production** (PR #92): `npx -y pnpm@9.12.0 --filter @sa/dashboard console:e2e` | — |
 | Full demo twice in a row with no manual fix | **Passed.** 5:04–5:05 am PT, `scripts/demo-check.sh --runs 2 --pay` on production `c5a9689` | 2 of 2 runs clean, 8/8 PASS each, 0 warnings, no manual fix between |
@@ -130,7 +130,7 @@ Stripe is **test mode only**: `@sa/payments` refuses live keys. All Stripe calls
 | `apps/dashboard` | The seller's dashboard, merchant console, eval runner, Armature eval cases |
 | `supabase/` | Migrations, seed catalog |
 | `docs/` | Plans, live logs per role (`docs/live`), track write-ups (`docs/tracks`), results (`docs/results`) |
-| `experiments/`, `sales_agent/` | The Python experiment harness behind the design (E1–E11); `uv sync` then `uv run python scripts/smoke.py` |
+| `experiments/`, `sell2agent/` | The Python experiment harness behind the design (E1–E11); `uv sync` then `uv run python scripts/smoke.py` |
 
 ## Honest limits
 

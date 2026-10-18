@@ -6,7 +6,7 @@
     d  fixed-price selling agent: same agent, told not to haggle, list price
        enforced in code, and the buyer is told prices are fixed
 
-    SALES_AGENT_MAX_CONCURRENCY=3 uv run python experiments/e2_static_vs_agent/run.py \
+    SELL2AGENT_MAX_CONCURRENCY=3 uv run python experiments/e2_static_vs_agent/run.py \
         --arms a,b,c --first 0 --count 5 --tag pilot
 
 Each arm logs to runs/[<tag>_]<arm>.jsonl. --reps 1,2 runs each persona
@@ -24,17 +24,17 @@ import os
 import sys
 from pathlib import Path
 
-os.environ.setdefault("SALES_AGENT_MAX_CONCURRENCY", "3")
+os.environ.setdefault("SELL2AGENT_MAX_CONCURRENCY", "3")
 
-from sales_agent import llm  # noqa: E402
-from sales_agent.agents import BuyerAgent, SellerAgent  # noqa: E402
-from sales_agent.agents import render_transcript  # noqa: E402
-from sales_agent.catalog import seller_catalog  # noqa: E402
-from sales_agent.judge import JUDGE_SYSTEM, _turn_from_dict, flag_false_claims  # noqa: E402
-from sales_agent.negotiation import run_negotiation  # noqa: E402
-from sales_agent.personas import BuyerPersona, make_personas  # noqa: E402
-from sales_agent.policy import PolicyEngine, SellerRules  # noqa: E402
-from sales_agent.runlog import RunLog, load, run_many  # noqa: E402
+from sell2agent import llm  # noqa: E402
+from sell2agent.agents import BuyerAgent, SellerAgent  # noqa: E402
+from sell2agent.agents import render_transcript  # noqa: E402
+from sell2agent.catalog import seller_catalog  # noqa: E402
+from sell2agent.judge import JUDGE_SYSTEM, _turn_from_dict, flag_false_claims  # noqa: E402
+from sell2agent.negotiation import run_negotiation  # noqa: E402
+from sell2agent.personas import BuyerPersona, make_personas  # noqa: E402
+from sell2agent.policy import PolicyEngine, SellerRules  # noqa: E402
+from sell2agent.runlog import RunLog, load, run_many  # noqa: E402
 
 from static_buyer import run_static, zone  # noqa: E402
 from storefront import render_feed, render_html  # noqa: E402

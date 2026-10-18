@@ -15,8 +15,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
-from sales_agent.metrics import compare, summarize  # noqa: E402
-from sales_agent.runlog import load  # noqa: E402
+from sell2agent.metrics import compare, summarize  # noqa: E402
+from sell2agent.runlog import load  # noqa: E402
 
 RUNS = HERE / "runs"
 KEYS = ("sessions", "errors", "conversion", "conversion_ci95", "feasible_conversion", "profit_per_session",

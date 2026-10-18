@@ -1,7 +1,7 @@
 """Approved claims library (E11 Part 4, A20).
 
 A merchant-approved set of facts and reasons the seller may state. Written so it
-can move into `sales_agent/` for the build:
+can move into `sell2agent/` for the build:
 
     Claim, LIBRARY      approved facts (catalog specs, list prices, warranty terms,
                         delivery time, return policy, no financing, no price matching)
@@ -28,7 +28,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from sales_agent.catalog import ADDONS, PRODUCTS, describe
+from sell2agent.catalog import ADDONS, PRODUCTS, describe
 
 
 @dataclass(frozen=True)

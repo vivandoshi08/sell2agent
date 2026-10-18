@@ -1,7 +1,7 @@
 """E10 runner: 4 seller priorities x 24 buyers (8 needs x 3 buyer types).
 
-    SALES_AGENT_MAX_CONCURRENCY=3 uv run python experiments/e10_priorities/run.py --phase pilot
-    SALES_AGENT_MAX_CONCURRENCY=3 uv run python experiments/e10_priorities/run.py --phase main --reuse experiments/e10_priorities/runs/pilot.jsonl
+    SELL2AGENT_MAX_CONCURRENCY=3 uv run python experiments/e10_priorities/run.py --phase pilot
+    SELL2AGENT_MAX_CONCURRENCY=3 uv run python experiments/e10_priorities/run.py --phase main --reuse experiments/e10_priorities/runs/pilot.jsonl
 
 Writes one Outcome per line to runs/<phase>.jsonl and progress to runs/<phase>.log.
 Re-running skips (priority, buyer) pairs already finished without an error, so a
@@ -19,9 +19,9 @@ import threading
 import time
 from pathlib import Path
 
-from sales_agent import llm
-from sales_agent.negotiation import run_negotiation
-from sales_agent.runlog import RunLog, load, run_many
+from sell2agent import llm
+from sell2agent.negotiation import run_negotiation
+from sell2agent.runlog import RunLog, load, run_many
 
 import catalog_ext as cx
 from buyers import E10Buyer, make_buyers

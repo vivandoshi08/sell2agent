@@ -25,16 +25,16 @@ workspace — it is step 6 in armature.md. Paste it into `.env`.
 **With no key set, everything still runs** — both helpers below no-op and send
 nothing. Nobody is blocked on the signup.
 
-## Python servers (experiments, `sales_agent/`)
+## Python servers (experiments, `sell2agent/`)
 
 ```python
-from sales_agent.analytics import instrument
+from sell2agent.analytics import instrument
 
 srv = LoggedServer("prairie_equipment")
 inst = instrument(srv)             # BEFORE any @srv.tool()
 ```
 
-`sales_agent/analytics.py` also carries `load_env()` (reads `/.env`, no dotenv
+`sell2agent/analytics.py` also carries `load_env()` (reads `/.env`, no dotenv
 dependency), `is_configured()`, and `await flush(inst)` for shutdown.
 Options pass straight through: `instrument(srv, delivery="await", request_capability=False)`.
 

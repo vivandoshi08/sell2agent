@@ -24,9 +24,9 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
-from sales_agent.agents import NegotiationState, StrategyMove
-from sales_agent.catalog import ADDONS, floor_total, list_total
-from sales_agent.policy import Offer, PolicyEngine
+from sell2agent.agents import NegotiationState, StrategyMove
+from sell2agent.catalog import ADDONS, floor_total, list_total
+from sell2agent.policy import Offer, PolicyEngine
 
 WARRANTY = "warranty"
 POLICY = PolicyEngine()

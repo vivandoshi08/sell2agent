@@ -12,7 +12,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sales_agent.analytics import ENV_PATH, load_env  # noqa: E402
+from sell2agent.analytics import ENV_PATH, load_env  # noqa: E402
 
 OK, BAD, WARN = "  ok  ", " FAIL ", " warn "
 

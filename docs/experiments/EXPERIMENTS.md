@@ -51,12 +51,12 @@
 
 The common pieces every experiment uses, so results compare.
 
-- **Catalog:** three tractors plus add-ons, each with a list price, a floor, and a cost (`sales_agent/catalog.py`).
-- **Buyer personas:** a need, a stated budget, a private walk-away price, an urgency level, and a brief. Generated from a seed so every experiment can re-run the same buyers (`sales_agent/personas.py`).
-- **Policy engine:** code that checks every offer against the seller's rules (`sales_agent/policy.py`).
-- **Buyer and seller agents** that negotiate in a structured format, with an optional hook for a strategy or learned policy to pick the seller's price (`sales_agent/agents.py`, `sales_agent/negotiation.py`).
-- **Metrics:** conversion, safe conversion, revenue, profit, margin, profit per session, turns, and model cost (`sales_agent/metrics.py`).
-- **Model backend:** headless `claude -p`, using our existing Claude login. Switches to the Anthropic SDK if `ANTHROPIC_API_KEY` is set (`sales_agent/llm.py`).
+- **Catalog:** three tractors plus add-ons, each with a list price, a floor, and a cost (`sell2agent/catalog.py`).
+- **Buyer personas:** a need, a stated budget, a private walk-away price, an urgency level, and a brief. Generated from a seed so every experiment can re-run the same buyers (`sell2agent/personas.py`).
+- **Policy engine:** code that checks every offer against the seller's rules (`sell2agent/policy.py`).
+- **Buyer and seller agents** that negotiate in a structured format, with an optional hook for a strategy or learned policy to pick the seller's price (`sell2agent/agents.py`, `sell2agent/negotiation.py`).
+- **Metrics:** conversion, safe conversion, revenue, profit, margin, profit per session, turns, and model cost (`sell2agent/metrics.py`).
+- **Model backend:** headless `claude -p`, using our existing Claude login. Switches to the Anthropic SDK if `ANTHROPIC_API_KEY` is set (`sell2agent/llm.py`).
 
 ### E1: End-to-end tractor purchase over MCP
 
@@ -138,7 +138,7 @@ The common pieces every experiment uses, so results compare.
 **Question:** what does it take to guarantee no mishaps end to end, and which layer catches what?
 
 - **Tests:** A13, A14. **Questions:** G6, N3, N4, P1–P4, H5, H6, R12.
-- **The guardrail stack** (built in `experiments/e9_safety/guardrails.py`, written so it can move into `sales_agent/` for the build):
+- **The guardrail stack** (built in `experiments/e9_safety/guardrails.py`, written so it can move into `sell2agent/` for the build):
   1. **Input (buyer → seller):** buyer text is untrusted data. It is quoted and delimited in the seller's prompt, never placed in a system role. A deterministic detector flags injection patterns (fake system or pricing-system messages, "ignore previous instructions", fake tool output). Structured fields are schema-checked: numeric price, known product and add-on ids.
   2. **Decision (strategy, RL, prompt):** the strategy or learned policy can't pick a price below the low (action masking plus clamping, not just a reward penalty). "Accept" is only possible on an offer at or above the low. The prompt states the rules. Optionally the LLM never sees the low or the cost at all (need-to-know): code gives it only this round's target and the true reason.
   3. **Output (seller → buyer), deterministic post-guard, blocking:** the structured offer passes the policy engine; every dollar figure in the message text is checked against the low and must match a valid offer (no lower price "in words"); no floor or cost disclosure; no financing, deferred payment, or free extras promised in words; "final offer" only when the strategy marks it final; no competitor or scarcity claims. A blocked turn is regenerated with the reason (up to 2 times), then replaced with a templated safe message restating the last valid offer.
@@ -188,7 +188,7 @@ The common pieces every experiment uses, so results compare.
 
 ## How we run them
 
-- **Code:** each experiment lives in `experiments/<id>_<name>/` and builds on the shared harness in `sales_agent/`.
+- **Code:** each experiment lives in `experiments/<id>_<name>/` and builds on the shared harness in `sell2agent/`.
 - **Models:** buyer and seller both default to Claude Opus 5.5 at low effort. E3, E4, and E6 also use Sonnet and Haiku on purpose.
 - **Size:** mini MVPs. Run a small pilot first, then about 20–30 sessions per condition. With samples this small, results show direction, not proof, and each write-up says so.
 - **What "safe" means for now (G6):** a deal is safe if its price and terms pass every policy rule, and the seller made no false claims (invented competitor prices, fake scarcity, wrong specs).

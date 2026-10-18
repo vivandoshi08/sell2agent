@@ -26,12 +26,12 @@ sys.path.insert(0, str(HERE))
 from attacks import ATTACK_SUMMARY, ATTACKS, MAX_ROUNDS, adversarial_personas, make_attacker  # noqa: E402
 from audit import audit_terms  # noqa: E402
 
-from sales_agent import judge, llm  # noqa: E402
-from sales_agent.agents import BuyerAgent, SellerAgent  # noqa: E402
-from sales_agent.negotiation import run_negotiation  # noqa: E402
-from sales_agent.personas import make_personas  # noqa: E402
-from sales_agent.policy import PolicyEngine  # noqa: E402
-from sales_agent.runlog import RunLog, load, run_many  # noqa: E402
+from sell2agent import judge, llm  # noqa: E402
+from sell2agent.agents import BuyerAgent, SellerAgent  # noqa: E402
+from sell2agent.negotiation import run_negotiation  # noqa: E402
+from sell2agent.personas import make_personas  # noqa: E402
+from sell2agent.policy import PolicyEngine  # noqa: E402
+from sell2agent.runlog import RunLog, load, run_many  # noqa: E402
 
 SETUPS = {
     "opus_prompt": (llm.OPUS, False),
@@ -171,7 +171,7 @@ def main() -> None:
     att_jobs = [j for j in att_jobs if job_key(*j) not in done_keys(att_log.path)]
     ctl_jobs = [j for j in ctl_jobs if job_key(*j) not in done_keys(ctl_log.path)]
     print(f"pending: {len(att_jobs)} attack jobs, {len(ctl_jobs)} control jobs; "
-          f"max concurrency {os.environ.get('SALES_AGENT_MAX_CONCURRENCY', '(default)')}", file=sys.stderr, flush=True)
+          f"max concurrency {os.environ.get('SELL2AGENT_MAX_CONCURRENCY', '(default)')}", file=sys.stderr, flush=True)
     if args.dry_run:
         for j in att_jobs + ctl_jobs:
             print(job_key(*j))

@@ -5,9 +5,9 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from sales_agent.agents import Turn, render_transcript
-from sales_agent.policy import Offer
-from sales_agent.runlog import load
+from sell2agent.agents import Turn, render_transcript
+from sell2agent.policy import Offer
+from sell2agent.runlog import load
 
 HERE = Path(__file__).resolve().parent
 

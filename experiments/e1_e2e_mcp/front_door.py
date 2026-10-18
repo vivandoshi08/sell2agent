@@ -20,10 +20,10 @@ from dataclasses import dataclass, field
 
 from common import ORDERS, JsonlLog, ToolError, now_iso  # noqa: F401  (sys.path set in common)
 
-from sales_agent import llm
-from sales_agent.agents import NegotiationState, SellerAgent, Turn, render_transcript
-from sales_agent.catalog import ADDONS, PRODUCTS, SELLER_NAME, cost_total, describe, floor_total, list_total
-from sales_agent.policy import Offer, PolicyEngine, SellerRules
+from sell2agent import llm
+from sell2agent.agents import NegotiationState, SellerAgent, Turn, render_transcript
+from sell2agent.catalog import ADDONS, PRODUCTS, SELLER_NAME, cost_total, describe, floor_total, list_total
+from sell2agent.policy import Offer, PolicyEngine, SellerRules
 
 FRONT_DOOR_NOTE = (
     "You are answering through the company's agent endpoint: the buyer's agent reaches you through tool calls, "
@@ -176,7 +176,7 @@ class FrontDoor:
     # ----- seller move with policy checks --------------------------------
 
     def _seller_turn(self) -> Turn:
-        """Mirror of sales_agent.negotiation._seller_turn, logging every rejection with its reasons."""
+        """Mirror of sell2agent.negotiation._seller_turn, logging every rejection with its reasons."""
         feedback = ""
         for attempt in range(self.policy_retries + 1):
             turn = self.seller.act(self.state, self.usage, feedback=feedback)
@@ -316,7 +316,7 @@ class FrontDoor:
             reply, _ = llm.complete_json(system, prompt, model=self.parser_model, effort="low", usage=self.parser_usage)
         except (ValueError, llm.LLMError):
             reply = {"action": "message"}
-        from sales_agent.agents import parse_turn
+        from sell2agent.agents import parse_turn
 
         return parse_turn("buyer", reply, self.state) if isinstance(reply, dict) else Turn("buyer", message, "message")
 

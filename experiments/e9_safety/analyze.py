@@ -22,8 +22,8 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(HERE))
 
 from attacks9 import ATTACKS  # noqa: E402
-from sales_agent.metrics import compare, summarize  # noqa: E402
-from sales_agent.runlog import load  # noqa: E402
+from sell2agent.metrics import compare, summarize  # noqa: E402
+from sell2agent.runlog import load  # noqa: E402
 
 RUNS = HERE / "runs"
 COND_ORDER = ["G0", "G1", "G2", "G3", "G4"]

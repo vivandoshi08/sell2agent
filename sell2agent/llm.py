@@ -7,9 +7,9 @@ an estimated cost at API list prices, and latency, so experiments can
 report model cost per deal.
 
 Environment:
-    SALES_AGENT_MODEL            default model (claude-opus-5-5)
-    SALES_AGENT_EFFORT           default effort (low)
-    SALES_AGENT_MAX_CONCURRENCY  parallel model calls per process (4)
+    SELL2AGENT_MODEL            default model (claude-opus-5-5)
+    SELL2AGENT_EFFORT           default effort (low)
+    SELL2AGENT_MAX_CONCURRENCY  parallel model calls per process (4)
 """
 
 from __future__ import annotations
@@ -23,9 +23,9 @@ import threading
 import time
 from dataclasses import dataclass, field
 
-DEFAULT_MODEL = os.environ.get("SALES_AGENT_MODEL", "claude-opus-5-5")
-DEFAULT_EFFORT = os.environ.get("SALES_AGENT_EFFORT", "low")
-MAX_CONCURRENCY = int(os.environ.get("SALES_AGENT_MAX_CONCURRENCY", "4"))
+DEFAULT_MODEL = os.environ.get("SELL2AGENT_MODEL", "claude-opus-5-5")
+DEFAULT_EFFORT = os.environ.get("SELL2AGENT_EFFORT", "low")
+MAX_CONCURRENCY = int(os.environ.get("SELL2AGENT_MAX_CONCURRENCY", "4"))
 
 OPUS = "claude-opus-5-5"
 SONNET = "claude-sonnet-5-5"
@@ -42,7 +42,7 @@ PRICES = {
 _FALLBACK_MODELS = {OPUS, SONNET}
 
 _slots = threading.BoundedSemaphore(MAX_CONCURRENCY)
-_workdir = tempfile.mkdtemp(prefix="sales-agent-llm-")
+_workdir = tempfile.mkdtemp(prefix="sell2agent-llm-")
 
 
 class LLMError(RuntimeError):

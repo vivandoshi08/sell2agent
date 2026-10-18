@@ -25,9 +25,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from common import BUYER_STREAMS, HERE, REPO, now_iso  # noqa: E402
 
-from sales_agent import llm  # noqa: E402
-from sales_agent.catalog import ADDONS  # noqa: E402
-from sales_agent.personas import BRIEFS, BuyerPersona, make_personas  # noqa: E402
+from sell2agent import llm  # noqa: E402
+from sell2agent.catalog import ADDONS  # noqa: E402
+from sell2agent.personas import BRIEFS, BuyerPersona, make_personas  # noqa: E402
 
 BUYER_MODEL = llm.OPUS
 BUYER_EFFORT = "low"
@@ -71,7 +71,7 @@ USER_PROMPT = "Please take care of this purchase for your client."
 
 def mcp_config(run_id: str, design: str, variant: str = "negotiable") -> dict:
     fixed = variant == "fixed"
-    env = {"SALES_AGENT_MAX_CONCURRENCY": os.environ.get("SALES_AGENT_MAX_CONCURRENCY", "3"), "PYTHONUNBUFFERED": "1"}
+    env = {"SELL2AGENT_MAX_CONCURRENCY": os.environ.get("SELL2AGENT_MAX_CONCURRENCY", "3"), "PYTHONUNBUFFERED": "1"}
     return {
         "mcpServers": {
             "registry": {

@@ -29,7 +29,7 @@
 
 Every guardrail so far works inside one negotiation. A buyer can restart and bisect across sessions to learn the floor. Cross-session memory plus a soft floor should stop that: a returning buyer never gets a better price than before, pricing resumes instead of resetting, and the seller's own offers never reach the hard floor. Identity rotation needs something that doesn't depend on identity.
 
-### Design of the defenses (`xsession.py`, written to move into `sales_agent/`)
+### Design of the defenses (`xsession.py`, written to move into `sell2agent/`)
 
 The pricing core is E5's Boulware in concession-fraction space (0 = list, 1 = hard floor): `price = list - end_frac * gap * (tau/8)^3`, rounded up to $100. The defenses are cumulative:
 
@@ -138,7 +138,7 @@ Excerpt (`no_memory` #0, session 5, round 8):
 
 Generalizing "warranty before discount" into a merchant lever menu earns more than price-only haggling: an extra that costs us $150-$600 but is worth $400-$2,400 to the buyer should buy a higher price or a faster close.
 
-### Design (`levers.py`, written to move into `sales_agent/`)
+### Design (`levers.py`, written to move into `sell2agent/`)
 
 **Lever menu** (merchant config; hidden from buyers until offered):
 
@@ -195,7 +195,7 @@ Both `price_only` and `levers_first` closed this buyer at exactly $44,700. Price
 
 Nash's sellers say only pre-approved things. A merchant-approved claims library should attack false claims (bluffs, invented reasons for code-picked prices, wrong policies) at the source, better than a post-guard that catches them after the fact.
 
-### Design (`claims.py`, written to move into `sales_agent/`)
+### Design (`claims.py`, written to move into `sell2agent/`)
 
 - **Library** (20 entries): specs straight from the catalog, list prices, a size guide, standard 1-year warranty, what the 3-year extended warranty adds, delivery terms, lead time (2-3 weeks), returns (14 days, under 10 hours, 10% restocking fee), payment in full with no financing, escalation to a person, no price matching, "prices come from our pricing system", three approved reasons for price moves ("We start at list and come down gradually as we work toward a deal", "This is my offer for this round", "Your offer doesn't work for us at this point"), `final_offer` (allowed only when the pricing system marks the move final) and `not_final`. Policies like the return window are merchant configuration; the judge and every seller get the same text.
 - **Constrained seller**: the LLM writes its message as a list of segments: `{"claim": id}` (inserted word for word), `{"offer": true}` (code renders the exact structured offer), and up to three `{"say": text}` segments of at most 35 words. A deterministic checker blocks unknown ids, `final_offer` on a move that isn't final, an offer move without the offer segment, and any "say" text with a digit or fact vocabulary (specs, warranty, delivery, returns, financing, matching, competitors, scarcity, finality, floors, costs, reasons). A blocked turn is regenerated twice, then replaced by E9's safe template. It runs inside E9's `GuardedSeller`, so E9's output post-guard also checks the rendered message.

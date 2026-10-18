@@ -1,6 +1,6 @@
 """E9 glue: a negotiation loop that runs the guarded seller, and buyers that keep their raw replies.
 
-`run_guarded_negotiation` mirrors `sales_agent.negotiation.run_negotiation` (buyer
+`run_guarded_negotiation` mirrors `sell2agent.negotiation.run_negotiation` (buyer
 opens, alternate turns, accept closes on the other side's standing offer, walk
 ends it, 8-round cap, the seller's round-8 offer can't be answered) so G1 here
 behaves like today's harness. The differences: every buyer turn goes through
@@ -17,11 +17,11 @@ import traceback
 import uuid
 
 from guardrails import GuardedSeller
-from sales_agent import llm
-from sales_agent.agents import BuyerAgent, NegotiationState, Turn, parse_turn, render_transcript
-from sales_agent.catalog import cost_total, floor_total, list_total
-from sales_agent.negotiation import Outcome
-from sales_agent.policy import Offer, PolicyEngine
+from sell2agent import llm
+from sell2agent.agents import BuyerAgent, NegotiationState, Turn, parse_turn, render_transcript
+from sell2agent.catalog import cost_total, floor_total, list_total
+from sell2agent.negotiation import Outcome
+from sell2agent.policy import Offer, PolicyEngine
 
 
 class RecordingBuyer(BuyerAgent):

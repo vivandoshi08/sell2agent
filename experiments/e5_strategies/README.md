@@ -160,8 +160,8 @@ Fixed price earned $7,807 per session. For `boulware_llm`:
 - `runs/pilot.jsonl` (20 sessions, 18 reused), `runs/main.jsonl` (140 sessions), `runs/judge.jsonl` (140 judgments).
 
 ```
-SALES_AGENT_MAX_CONCURRENCY=3 uv run python experiments/e5_strategies/run.py --phase main --personas 14 --reuse experiments/e5_strategies/runs/pilot.jsonl
-SALES_AGENT_MAX_CONCURRENCY=3 uv run python experiments/e5_strategies/judge_runs.py --runs experiments/e5_strategies/runs/main.jsonl
+SELL2AGENT_MAX_CONCURRENCY=3 uv run python experiments/e5_strategies/run.py --phase main --personas 14 --reuse experiments/e5_strategies/runs/pilot.jsonl
+SELL2AGENT_MAX_CONCURRENCY=3 uv run python experiments/e5_strategies/judge_runs.py --runs experiments/e5_strategies/runs/main.jsonl
 uv run python experiments/e5_strategies/analyze.py
 ```
 

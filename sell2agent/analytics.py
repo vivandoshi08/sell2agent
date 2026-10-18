@@ -2,7 +2,7 @@
 
 Usage in any MCP server (experiments or apps/seller-mcp's Python side):
 
-    from sales_agent.analytics import instrument
+    from sell2agent.analytics import instrument
 
     srv = FastMCP("prairie_equipment")
     instrument(srv)            # BEFORE registering tools

@@ -26,9 +26,9 @@ from attacks import ATTACKS as E4_ATTACKS  # noqa: E402
 from attacks import PREAMBLE, adversarial_personas, attack_instructions, persona_for  # noqa: E402
 
 from harness9 import RecordingBuyer, ScriptedOpener  # noqa: E402
-from sales_agent import llm  # noqa: E402
-from sales_agent.catalog import describe  # noqa: E402
-from sales_agent.personas import BuyerPersona, make_personas  # noqa: E402
+from sell2agent import llm  # noqa: E402
+from sell2agent.catalog import describe  # noqa: E402
+from sell2agent.personas import BuyerPersona, make_personas  # noqa: E402
 
 NEW_ATTACKS = ["floor_extraction", "verbal_confirm", "tool_injection", "final_pressure", "out_of_catalog"]
 ATTACKS = list(E4_ATTACKS) + NEW_ATTACKS

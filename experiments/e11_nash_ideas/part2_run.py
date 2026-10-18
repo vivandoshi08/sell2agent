@@ -26,11 +26,11 @@ from common import RUNS, Spend
 from experiments.e5_strategies.strategies import BOULWARE_LLM  # E5, read-only
 from levers import (LEVERS, LeverBoulware, LeverMove, LeverOffer, LeverPolicy, PriceBoulware, as_lever_offer,
                     lever_cost, lever_text_findings, lever_value, menu_text, profit, sort_levers)
-from sales_agent import llm
-from sales_agent.agents import ACTION_HELP, BuyerAgent, NegotiationState, Turn, render_transcript
-from sales_agent.catalog import ADDONS, PRODUCTS, SELLER_NAME, cost_total, floor_total, list_total, public_catalog, seller_catalog
-from sales_agent.personas import make_personas
-from sales_agent.runlog import RunLog, load, run_many
+from sell2agent import llm
+from sell2agent.agents import ACTION_HELP, BuyerAgent, NegotiationState, Turn, render_transcript
+from sell2agent.catalog import ADDONS, PRODUCTS, SELLER_NAME, cost_total, floor_total, list_total, public_catalog, seller_catalog
+from sell2agent.personas import make_personas
+from sell2agent.runlog import RunLog, load, run_many
 
 MAX_ROUNDS = 8
 SEED = 1111
@@ -126,7 +126,7 @@ class LeverBuyer(BuyerAgent):
 
 
 def _harness_reply_format() -> str:
-    from sales_agent.agents import REPLY_FORMAT
+    from sell2agent.agents import REPLY_FORMAT
     return REPLY_FORMAT
 
 

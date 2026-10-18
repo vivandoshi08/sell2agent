@@ -22,10 +22,10 @@ import argparse
 import json
 
 from common import RUNS, GuardConfig, GuardedSeller, MAX_ROUNDS, RecordingBuyer, Spend, run_guarded_session
-from sales_agent import llm
-from sales_agent.catalog import floor_total, list_total
-from sales_agent.personas import BuyerPersona
-from sales_agent.runlog import RunLog, load, run_many
+from sell2agent import llm
+from sell2agent.catalog import floor_total, list_total
+from sell2agent.personas import BuyerPersona
+from sell2agent.runlog import RunLog, load, run_many
 from xsession import CONDITIONS, XSessionSeller, XSessionStrategy, buffer_for
 
 PID, ADDONS = "T45", ["loader"]

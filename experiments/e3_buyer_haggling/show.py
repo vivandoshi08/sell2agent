@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from common import RUNS, session_behavior  # noqa: E402
 
-from sales_agent.runlog import load  # noqa: E402
+from sell2agent.runlog import load  # noqa: E402
 
 
 def show(r: dict) -> None:

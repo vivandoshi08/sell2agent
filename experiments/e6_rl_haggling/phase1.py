@@ -31,7 +31,7 @@ sys.path.insert(0, str(HERE))
 from buyers import TYPES, evaluate, paired_diff, population, run_episode, summarize  # noqa: E402
 from core import ACTIONS  # noqa: E402
 from learn import BanditPolicy, train_bandit, train_q  # noqa: E402
-from sales_agent.catalog import cost_total  # noqa: E402
+from sell2agent.catalog import cost_total  # noqa: E402
 from strategies import QPolicy, arm_name, arm_specs, fixed_by_name, make_arm, named_fixed  # noqa: E402
 
 

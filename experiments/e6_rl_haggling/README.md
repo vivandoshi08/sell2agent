@@ -18,7 +18,7 @@
 - **H3 (A9):** the phase-2 ranking (learned vs. best fixed) is the same with Haiku buyers.
 - **H4 (phase 3):** a seller LLM that rewrites its own playbook from its transcripts earns more per session after a few rounds.
 
-Assumed throughout: the shared harness (8-round cap, buyer opens, policy engine on, Opus seller at low effort), the catalog's floors and costs, and buyers' walk-away prices placed as in `sales_agent/personas.py` (x ~ U(−0.6, 1.4) between floor and list).
+Assumed throughout: the shared harness (8-round cap, buyer opens, policy engine on, Opus seller at low effort), the catalog's floors and costs, and buyers' walk-away prices placed as in `sell2agent/personas.py` (x ~ U(−0.6, 1.4) between floor and list).
 
 ## The seller MDP (R1–R4 decisions)
 
@@ -45,7 +45,7 @@ Code is in `core.py` (state, actions, action-to-price) and `learn.py` (reward, l
 | deadline | 0.80–0.88 | 30–50% | closes or walks after round 3–5 |
 | anchored | 0.76–0.88 | 30–50% of the gap to the *seller's ask* | splits the difference, 0–30% chance to take the seller's first offer if it's under its walk-away (LLM-like per E8's literature review) |
 
-Every buyer: never pays more than its walk-away; accepts when the seller's ask is within a small tolerance of its own next offer, when the seller says "final" (85%), when its patience is spent, at its deadline, or on the last round; walks on a "final" above its walk-away (60%) or when patience runs out. Patience is spent by slow seller concessions: a concession of less than `stub_k` × list (0.3–2% by type) adds a "stubborn" mark with probability 1 − concession/(stub_k × list), so there is no sharp threshold to game. An added warranty is worth 0–80% of its $2,400 list to the buyer, but only for deciding whether to accept now; it never raises the walk-away (the LLM personas' walk-away is a hard cap on the total too). 15% open with a question instead of an offer. Turn order, the 8-round cap (a seller offer in round 8 can't be answered), and the policy engine's handling of rejected moves copy `sales_agent/negotiation.py`.
+Every buyer: never pays more than its walk-away; accepts when the seller's ask is within a small tolerance of its own next offer, when the seller says "final" (85%), when its patience is spent, at its deadline, or on the last round; walks on a "final" above its walk-away (60%) or when patience runs out. Patience is spent by slow seller concessions: a concession of less than `stub_k` × list (0.3–2% by type) adds a "stubborn" mark with probability 1 − concession/(stub_k × list), so there is no sharp threshold to game. An added warranty is worth 0–80% of its $2,400 list to the buyer, but only for deciding whether to accept now; it never raises the walk-away (the LLM personas' walk-away is a hard cap on the total too). 15% open with a question instead of an offer. Turn order, the 8-round cap (a seller offer in round 8 can't be answered), and the policy engine's handling of rejected moves copy `sell2agent/negotiation.py`.
 
 Populations: training 300,000 buyers per seed (3 seeds) plus one 1,000,000-episode Q run for the learning curve; validation 2,000 (seed 3003) for hyperparameters (`sweep.py`) and for picking the best fixed strategy; **held-out 5,000 (seed 2002)** for the reported numbers; a **shifted** 5,000 (seed 2003: tougher, less patient, wider openings, half the add-on appetite) for robustness. Strategies are compared on common random numbers (each buyer gets the same random stream under every strategy), with paired bootstrap CIs.
 
@@ -265,4 +265,4 @@ The bar was "≥5% over the best fixed strategy against LLM buyers" to validate,
 - `phase3.py` → `runs/phase3.jsonl`, `playbooks.json` (+ `runs/phase3_pilot.jsonl`).
 - `audit.py` → `audit_results.json`, `runs/judge.jsonl`. `report.py` → `results.json`.
 
-Re-run: `uv run python experiments/e6_rl_haggling/phase1.py` (free, ~8 min), then `phase2.py`, `phase3.py`, `audit.py`, `report.py` (with `SALES_AGENT_MAX_CONCURRENCY=3`).
+Re-run: `uv run python experiments/e6_rl_haggling/phase1.py` (free, ~8 min), then `phase2.py`, `phase3.py`, `audit.py`, `report.py` (with `SELL2AGENT_MAX_CONCURRENCY=3`).

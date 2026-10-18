@@ -21,9 +21,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from common import HERE, RUNS, classify_leaks, judge_leaks, load_judgments, session_behavior  # noqa: E402
 
-from sales_agent import llm  # noqa: E402
-from sales_agent.metrics import summarize  # noqa: E402
-from sales_agent.runlog import RunLog, load, run_many  # noqa: E402
+from sell2agent import llm  # noqa: E402
+from sell2agent.metrics import summarize  # noqa: E402
+from sell2agent.runlog import RunLog, load, run_many  # noqa: E402
 
 JUDGMENTS_V1 = RUNS / "leak_judgments.jsonl"  # older, looser prompt; only its empty verdicts are reused
 JUDGMENTS = RUNS / "leak_judgments_v2.jsonl"

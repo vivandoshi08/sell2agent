@@ -22,9 +22,9 @@ from __future__ import annotations
 import random
 from dataclasses import asdict, dataclass, field
 
-from sales_agent import llm
-from sales_agent.agents import BuyerAgent, NegotiationState, parse_turn, render_transcript, Turn
-from sales_agent.personas import BuyerPersona
+from sell2agent import llm
+from sell2agent.agents import BuyerAgent, NegotiationState, parse_turn, render_transcript, Turn
+from sell2agent.personas import BuyerPersona
 
 import catalog_ext as cx
 from catalog_ext import Requirement

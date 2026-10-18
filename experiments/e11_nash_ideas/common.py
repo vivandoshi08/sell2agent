@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import os
 
-os.environ.setdefault("SALES_AGENT_MAX_CONCURRENCY", "3")
+os.environ.setdefault("SELL2AGENT_MAX_CONCURRENCY", "3")
 
 import sys  # noqa: E402
 import threading  # noqa: E402
@@ -32,11 +32,11 @@ from guardrails import CONDITIONS as E9_CONDITIONS  # noqa: E402,F401  (E9, read
 from guardrails import GuardConfig, GuardedSeller, OutputGuard  # noqa: E402,F401
 from harness9 import RecordingBuyer  # noqa: E402,F401
 
-from sales_agent import llm  # noqa: E402
-from sales_agent.agents import NegotiationState, Turn, parse_turn, render_transcript  # noqa: E402
-from sales_agent.catalog import cost_total, floor_total, list_total  # noqa: E402
-from sales_agent.negotiation import Outcome  # noqa: E402
-from sales_agent.policy import Offer, PolicyEngine  # noqa: E402
+from sell2agent import llm  # noqa: E402
+from sell2agent.agents import NegotiationState, Turn, parse_turn, render_transcript  # noqa: E402
+from sell2agent.catalog import cost_total, floor_total, list_total  # noqa: E402
+from sell2agent.negotiation import Outcome  # noqa: E402
+from sell2agent.policy import Offer, PolicyEngine  # noqa: E402
 
 MAX_ROUNDS = 8
 

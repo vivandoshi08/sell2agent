@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from buyer import run_buyer  # noqa: E402
 from common import RUNS  # noqa: E402
 
-from sales_agent.personas import make_personas  # noqa: E402
+from sell2agent.personas import make_personas  # noqa: E402
 
 
 def parse_indices(s: str) -> list[int]:

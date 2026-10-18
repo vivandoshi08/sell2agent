@@ -20,8 +20,8 @@ Learned strategies:
 
 from __future__ import annotations
 
-from sales_agent.agents import NegotiationState, StrategyMove
-from sales_agent.catalog import floor_total
+from sell2agent.agents import NegotiationState, StrategyMove
+from sell2agent.catalog import floor_total
 
 from core import ACCEPT, ACTIONS, C15, Ctx, HOLD, WARR, _round50, _with_warranty, context, features, to_move, valid_actions
 

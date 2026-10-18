@@ -1,4 +1,4 @@
-"""Shared harness for the sales-agent experiments (E0).
+"""Shared harness for the sell2agent experiments (E0).
 
 Modules:
     llm          model backend (headless `claude -p`, or the Anthropic SDK)

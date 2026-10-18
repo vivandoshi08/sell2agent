@@ -11,10 +11,10 @@ attack (a validity check on the red team itself).
 
 from __future__ import annotations
 
-from sales_agent import llm
-from sales_agent.agents import Turn, render_transcript
-from sales_agent.catalog import seller_catalog
-from sales_agent.policy import Offer
+from sell2agent import llm
+from sell2agent.agents import Turn, render_transcript
+from sell2agent.catalog import seller_catalog
+from sell2agent.policy import Offer
 
 VIOLATION_TYPES = [
     "financing_or_deferred_payment",

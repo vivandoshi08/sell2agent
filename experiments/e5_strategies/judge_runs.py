@@ -1,6 +1,6 @@
-"""Run the false-claims judge (sales_agent.judge) over E5 seller transcripts.
+"""Run the false-claims judge (sell2agent.judge) over E5 seller transcripts.
 
-    SALES_AGENT_MAX_CONCURRENCY=3 uv run python experiments/e5_strategies/judge_runs.py --runs runs/main.jsonl
+    SELL2AGENT_MAX_CONCURRENCY=3 uv run python experiments/e5_strategies/judge_runs.py --runs runs/main.jsonl
 
 Writes {session_id, condition, persona_id, deal, false_claims, usage} per line to
 runs/judge.jsonl and skips sessions already judged. analyze.py merges the flags
@@ -13,8 +13,8 @@ import argparse
 import threading
 from pathlib import Path
 
-from sales_agent import judge, llm
-from sales_agent.runlog import RunLog, load, run_many
+from sell2agent import judge, llm
+from sell2agent.runlog import RunLog, load, run_many
 
 from run import RUNS, Logger
 

@@ -1,4 +1,4 @@
-<title>Sales Agent Experiments</title>
+<title>sell2agent Experiments</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -139,8 +139,8 @@ footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 4px; }
 
 <div class="wrap">
   <header>
-    <span class="eyebrow">sales-agent · experiments branch</span>
-    <h1>Sales Agent Experiments</h1>
+    <span class="eyebrow">sell2agent · experiments branch</span>
+    <h1>sell2agent Experiments</h1>
     <p class="lede">Everything we're testing before the real build. Each experiment is a small MVP that validates or invalidates one or more assumptions about selling to AI buying agents.</p>
     <div class="meta" id="meta"></div>
   </header>
@@ -189,7 +189,7 @@ footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 4px; }
   </section>
 
   <footer>
-    <span>Source docs: <a href="https://github.com/vivandoshi08/sales-agent/blob/experiments/docs/experiments/EXPERIMENTS.md">EXPERIMENTS.md</a> · <a href="https://github.com/vivandoshi08/sales-agent/blob/experiments/docs/experiments/OPEN_QUESTIONS.md">OPEN_QUESTIONS.md</a> · <a href="https://github.com/vivandoshi08/sales-agent/blob/experiments/docs/ARCHITECTURE.md">ARCHITECTURE.md</a></span>
+    <span>Source docs: <a href="https://github.com/vivandoshi08/sell2agent/blob/experiments/docs/experiments/EXPERIMENTS.md">EXPERIMENTS.md</a> · <a href="https://github.com/vivandoshi08/sell2agent/blob/experiments/docs/experiments/OPEN_QUESTIONS.md">OPEN_QUESTIONS.md</a> · <a href="https://github.com/vivandoshi08/sell2agent/blob/experiments/docs/ARCHITECTURE.md">ARCHITECTURE.md</a></span>
     <span id="updated"></span>
   </footer>
 </div>
@@ -207,7 +207,7 @@ const DATA = {
     { name: "Checkout", desc: "Stripe, mocked. We assume payment works.", exps: ["E1", "E8"], qs: "C1–C2" },
     { name: "Learning", desc: "Seller policy improves from haggling data.", exps: ["E6"], qs: "R1–R12" }
   ],
-  // Utility tractor from the shared catalog (sales_agent/catalog.py).
+  // Utility tractor from the shared catalog (sell2agent/catalog.py).
   zone: { product: "T45 Utility, 45 hp", cost: 30500, floor: 36500, list: 42000, min: 28000, max: 46000,
           walkaways: [33000, 38500, 44000] },
   assumptions: [
@@ -236,7 +236,7 @@ const DATA = {
     { id: "E0", name: "Shared harness", track: "All", status: "done", tests: [], resultTone: "ok",
       result: "Done. Smoke run, Opus vs. Opus on a T75 bundle: deal in 5 rounds at $65,800 (floor $65,400, buyer walk-away $66,100). Seller kept 57% of the haggle room; profit $10,100 for $0.12 of model cost.",
       q: "Common catalog, buyer personas, policy engine, agents, and metrics, so results compare.",
-      setup: "Python package sales_agent/. Models run through headless claude -p on our existing login.",
+      setup: "Python package sell2agent/. Models run through headless claude -p on our existing login.",
       bar: "Done when one tractor negotiation runs end to end and logs every KPI." },
     { id: "E1", name: "End-to-end tractor purchase over MCP", track: "General", status: "validated", tests: ["A1", "A2", "A11"], resultTone: "ok",
       result: "A1 and A11 validated, A2 nuanced. 116 real Claude buyers through the MCP front door: every feasible negotiated run paid, every unaffordable one declined, 1 recoverable tool error. The policy engine blocked an Opus seller accepting $500 under its floor. Buyers never called get_product or request_quote. Negotiating front door: $12,285 profit per session vs. $3,541 at fixed price.",

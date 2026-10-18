@@ -25,7 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import SESSIONS, JsonlLog, LoggedServer, ToolError  # noqa: E402
 from front_door import FrontDoor  # noqa: E402
 
-from sales_agent.catalog import ADDONS, PRODUCTS, SELLER_NAME  # noqa: E402
+from sell2agent.catalog import ADDONS, PRODUCTS, SELLER_NAME  # noqa: E402
 
 INSTRUCTIONS = {
     "structured": (

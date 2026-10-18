@@ -15,11 +15,11 @@ import re
 import time
 import uuid
 
-from sales_agent import llm
-from sales_agent.catalog import ADDONS, PRODUCTS, cost_total, floor_total, list_total
-from sales_agent.negotiation import Outcome
-from sales_agent.personas import BRIEFS, BuyerPersona
-from sales_agent.policy import Offer, PolicyEngine
+from sell2agent import llm
+from sell2agent.catalog import ADDONS, PRODUCTS, cost_total, floor_total, list_total
+from sell2agent.negotiation import Outcome
+from sell2agent.personas import BRIEFS, BuyerPersona
+from sell2agent.policy import Offer, PolicyEngine
 
 DECISION_FORMAT = """Reply with one JSON object and nothing else:
 {"decision": "buy" | "no_buy", "product_id": "<tractor id from the store, or null>", "addons": ["<add-on id>", ...], "expected_total": <integer dollars you will pay, or null>, "reason": "<one or two sentences>"}"""

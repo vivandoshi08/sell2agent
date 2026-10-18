@@ -1,8 +1,8 @@
 """Run E7 market sessions or the one-to-one baseline.
 
-    SALES_AGENT_MAX_CONCURRENCY=3 uv run python experiments/e7_marketplace/run_market.py --mode direct --n 2 --tag pilot
-    SALES_AGENT_MAX_CONCURRENCY=3 uv run python experiments/e7_marketplace/run_market.py --mode both --n 20 --tag full
-    SALES_AGENT_MAX_CONCURRENCY=3 uv run python experiments/e7_marketplace/run_market.py --baseline --n 20 --tag full
+    SELL2AGENT_MAX_CONCURRENCY=3 uv run python experiments/e7_marketplace/run_market.py --mode direct --n 2 --tag pilot
+    SELL2AGENT_MAX_CONCURRENCY=3 uv run python experiments/e7_marketplace/run_market.py --mode both --n 20 --tag full
+    SELL2AGENT_MAX_CONCURRENCY=3 uv run python experiments/e7_marketplace/run_market.py --baseline --n 20 --tag full
     uv run python experiments/e7_marketplace/run_market.py --registry   # write registry.json only
 
 Re-running the same command skips personas already in the output file, so a crashed run resumes.
@@ -19,11 +19,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from market import HERE, registry, render_session, run_market_session  # noqa: E402
 
-from sales_agent.agents import BuyerAgent, SellerAgent  # noqa: E402
-from sales_agent.negotiation import run_negotiation  # noqa: E402
-from sales_agent.personas import make_personas  # noqa: E402
-from sales_agent.policy import PolicyEngine  # noqa: E402
-from sales_agent.runlog import RunLog, load, run_many  # noqa: E402
+from sell2agent.agents import BuyerAgent, SellerAgent  # noqa: E402
+from sell2agent.negotiation import run_negotiation  # noqa: E402
+from sell2agent.personas import make_personas  # noqa: E402
+from sell2agent.policy import PolicyEngine  # noqa: E402
+from sell2agent.runlog import RunLog, load, run_many  # noqa: E402
 
 SEED = 707
 RUNS = HERE / "runs"

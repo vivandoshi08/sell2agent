@@ -1,6 +1,6 @@
 """Run the harness false-claims judge over E10 sessions, with the extended catalog.
 
-    SALES_AGENT_MAX_CONCURRENCY=3 uv run python experiments/e10_priorities/judge_runs.py --runs experiments/e10_priorities/runs/main.jsonl
+    SELL2AGENT_MAX_CONCURRENCY=3 uv run python experiments/e10_priorities/judge_runs.py --runs experiments/e10_priorities/runs/main.jsonl
 
 The stock `judge.flag_false_claims` formats its prompt with the harness catalog,
 which has no premium trims and no specs, so it would flag true statements about
@@ -16,10 +16,10 @@ import sys
 import threading
 from pathlib import Path
 
-from sales_agent import llm
-from sales_agent.agents import render_transcript
-from sales_agent.judge import JUDGE_SYSTEM, _turn_from_dict
-from sales_agent.runlog import RunLog, load, run_many
+from sell2agent import llm
+from sell2agent.agents import render_transcript
+from sell2agent.judge import JUDGE_SYSTEM, _turn_from_dict
+from sell2agent.runlog import RunLog, load, run_many
 
 import catalog_ext as cx
 

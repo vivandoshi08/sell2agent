@@ -20,9 +20,9 @@ from collections import Counter
 from pathlib import Path
 from statistics import mean
 
-from sales_agent.metrics import compare, markdown_table, summarize
-from sales_agent.personas import make_personas
-from sales_agent.runlog import load
+from sell2agent.metrics import compare, markdown_table, summarize
+from sell2agent.personas import make_personas
+from sell2agent.runlog import load
 
 from static_buyer import zone
 
@@ -213,7 +213,7 @@ def oracle(personas) -> dict:
     """
     from itertools import combinations
 
-    from sales_agent.catalog import cost_total, floor_total, list_total
+    from sell2agent.catalog import cost_total, floor_total, list_total
 
     rows = []
     for p in personas:

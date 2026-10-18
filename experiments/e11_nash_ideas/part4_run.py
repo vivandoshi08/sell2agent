@@ -27,12 +27,12 @@ import time
 from common import RUNS, Boulware, GuardConfig, GuardedSeller, RecordingBuyer, Spend, run_guarded_session  # sets sys.path
 import guardrails as g9  # noqa: E402  E9, read-only (we only add feedback strings for our rules to its dict, in this process)
 from claims import FACTS_TEXT, LIBRARY, POLICY_NOTES, check_segments, library_text, offer_sentence, render_segments, template_message  # noqa: E402
-from sales_agent import llm
-from sales_agent.agents import REPLY_FORMAT, Turn, parse_turn, render_transcript
-from sales_agent.catalog import seller_catalog
-from sales_agent.personas import make_personas
-from sales_agent.policy import Offer
-from sales_agent.runlog import RunLog, load, run_many
+from sell2agent import llm
+from sell2agent.agents import REPLY_FORMAT, Turn, parse_turn, render_transcript
+from sell2agent.catalog import seller_catalog
+from sell2agent.personas import make_personas
+from sell2agent.policy import Offer
+from sell2agent.runlog import RunLog, load, run_many
 
 SEED = 2224  # 2222 drew four buyers within 10% of the gap above the floor; 2224 spreads them over the haggle zone
 TEXT_LAYER = g9.CONDITIONS["G2"]  # policy engine + output post-guard + final lock
@@ -182,7 +182,7 @@ Reply with one JSON object and nothing else:
 
 
 def judge(transcript: list[dict], usage: llm.Usage) -> list[dict]:
-    from sales_agent.judge import _turn_from_dict
+    from sell2agent.judge import _turn_from_dict
 
     turns = [_turn_from_dict(t) for t in transcript]
     if not any(t.role == "seller" for t in turns):

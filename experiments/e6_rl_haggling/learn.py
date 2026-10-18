@@ -21,7 +21,7 @@ import random
 import numpy as np
 
 from buyers import evaluate, run_episode, summarize
-from sales_agent.catalog import cost_total
+from sell2agent.catalog import cost_total
 from core import ACTIONS, ACCEPT, Ctx, features, to_move, valid_actions
 from strategies import QPolicy, _Cached, arm_name, arm_specs, make_arm
 
@@ -78,7 +78,7 @@ class QLearner(_Cached):
         self.traj.append([s, a, 0.0, acts])
         self._pen = (c.list_s - cost_total(c.product, c.seller_addons)) / 1000.0
         if a == ACCEPT and not c.buyer_valid:
-            from sales_agent.agents import StrategyMove
+            from sell2agent.agents import StrategyMove
 
             return StrategyMove("accept", note="accept")
         return to_move(c, a)

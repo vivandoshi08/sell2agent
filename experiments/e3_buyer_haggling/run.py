@@ -18,8 +18,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from common import AVAILABILITY, BRIEF_NAMES, RUNS, done_keys, make_job, run_job  # noqa: E402
 
-from sales_agent.personas import make_personas  # noqa: E402
-from sales_agent.runlog import RunLog, run_many  # noqa: E402
+from sell2agent.personas import make_personas  # noqa: E402
+from sell2agent.runlog import RunLog, run_many  # noqa: E402
 
 
 def pick(xs, sel):

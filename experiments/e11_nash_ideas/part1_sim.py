@@ -38,8 +38,8 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parents[1]))
 sys.path.insert(0, str(HERE))
 
-from sales_agent.catalog import cost_total, floor_total, list_total  # noqa: E402
-from sales_agent.personas import make_personas  # noqa: E402
+from sell2agent.catalog import cost_total, floor_total, list_total  # noqa: E402
+from sell2agent.personas import make_personas  # noqa: E402
 from xsession import CONDITIONS, DefenseConfig, SellerSession, XSessionSeller, buffer_for  # noqa: E402
 
 R = 8
