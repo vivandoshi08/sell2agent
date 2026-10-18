@@ -56,6 +56,9 @@ export function approveUrl(origin: string, deal_id: string, buyer_id: string, ke
 export interface HttpOut { status: number; headers: Record<string, string>; body: string }
 const html = (status: number, body: string): HttpOut => ({ status, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store", "x-frame-options": "DENY", "referrer-policy": "no-referrer" }, body });
 const json = (status: number, body: unknown): HttpOut => ({ status, headers: { "content-type": "application/json", "cache-control": "no-store" }, body: JSON.stringify(body) });
+/** JSON for an inline <script>: escapes <, >, & and U+2028/U+2029 so a value can never close the tag or break the line. */
+export const scriptJson = (v: unknown) =>
+  JSON.stringify(v).replace(/[<>&\u2028\u2029]/g, (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, "0")}`);
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
 /** What the page shows after a pay attempt redirected back (?r=<status>&m=<message>). */
@@ -80,7 +83,7 @@ const SCRIPT = (payPath: string) => `<script>
 (function(){var b=document.querySelector(".dc-btn");if(!b)return;b.addEventListener("click",function(){
 if(b.disabled)return;b.disabled=true;b.setAttribute("aria-busy","true");var t=b.textContent;b.textContent="Paying…";
 // Always send a JSON body: the gateway's body parser 400s ("Invalid JSON") on an empty body with a JSON content-type.
-fetch(${JSON.stringify(payPath)},{method:"POST",headers:{"content-type":"application/json"},body:"{}"}).then(function(r){return r.text().then(function(x){
+fetch(${scriptJson(payPath)},{method:"POST",headers:{"content-type":"application/json"},body:"{}"}).then(function(r){return r.text().then(function(x){
 var j;try{j=JSON.parse(x)}catch(e){j={status:"error",message:"The payment server replied "+r.status+(x?": "+x.slice(0,120):"")+". Nothing was charged."}}return j;})}).then(function(j){
 var u=new URL(location.href);u.searchParams.set("r",j.status==="refused"&&j.already_paid?"succeeded":(j.status||"error"));
 var m=(j.reasons&&j.reasons[0])||j.message||"";if(m)u.searchParams.set("m",m);else u.searchParams.delete("m");location.replace(u.toString());

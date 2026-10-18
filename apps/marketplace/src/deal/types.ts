@@ -60,6 +60,8 @@ export interface DealSource {
   validateForPayment(deal_id: string, buyer: Partial<BuyerContext> | undefined, credential: PaymentCredential): Promise<Validation>;
   /** Tell the exchange the deal is paid (E1: `ex.markPaid`). Optional for mocks. */
   markPaid?(deal_id: string, payment_intent_id: string): Promise<void>;
+  /** run_id / buyer_model of the negotiation a deal came from, so payment events keep their run (the approve link carries none). */
+  runContext?(negotiation_id: string): Promise<{ run_id?: string | null; buyer_model?: string | null } | null>;
 }
 
 export interface CatalogSource {

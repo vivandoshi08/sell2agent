@@ -173,3 +173,31 @@ test("a tampered row can't take a seed product below the seed's unit cost", asyn
   assert.equal(p.unit_cost_cents, 6000);
   assert.equal(p.floor_price_cents, 6000);
 });
+
+test("seller_policies is read with an explicit column list; a v1 schema (no lever_menu/policy) falls back once", async (t) => {
+  t.mock.method(console, "warn", () => {});
+  const asked: string[] = [];
+  const rows = v1Rows();
+  const db = {
+    from: (tbl: "products" | "seller_policies") => ({
+      select: async (cols: string) => {
+        if (tbl === "products") return { data: structuredClone(rows.products), error: null };
+        asked.push(cols);
+        if (cols.includes("lever_menu")) return { data: null, error: { message: "column seller_policies.lever_menu does not exist" } };
+        const keep = cols.split(",");
+        return { data: rows.seller_policies.map((r) => Object.fromEntries(Object.entries(r).filter(([k]) => keep.includes(k)))), error: null };
+      },
+    }),
+  };
+  Object.assign(rows.seller_policies.find((r) => r.product_id === KB)!, { floor_price_cents: 11000, allowed_concessions: ["free_shipping"] });
+  const clk = clock();
+  const cat = new SupabaseCatalog(db, { ttl_ms: 5000, now: clk.now });
+  const p = (await cat.get(KB))!;
+  assert.equal(p.floor_price_cents, 11000);
+  assert.deepEqual(p.allowed_levers, ["free_shipping"]);
+  assert.deepEqual(asked, ["product_id,floor_price_cents,unit_cost_cents,allowed_concessions,lever_menu,policy", "product_id,floor_price_cents,unit_cost_cents,allowed_concessions"]);
+  clk.advance(5000);
+  await cat.get(KB);
+  assert.equal(asked.length, 3, "remembers v1: no second failed query");
+  assert.equal(asked.at(-1), "product_id,floor_price_cents,unit_cost_cents,allowed_concessions");
+});

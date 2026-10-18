@@ -16,7 +16,9 @@ export function catalogCosts(catalog = new StaticCatalog()): CostSource {
 }
 
 export async function supabaseCosts(db: SupabaseClient): Promise<CostSource> {
-  const { data, error } = await db.from("seller_policies").select("*");
+  // Only the columns read below; on a v1 schema (no lever_menu yet) retry without it.
+  let { data, error } = await db.from("seller_policies").select("product_id,unit_cost_cents,lever_menu");
+  if (error && /lever_menu/.test(error.message ?? "")) ({ data, error } = await db.from("seller_policies").select("product_id,unit_cost_cents"));
   if (error) throw new Error(`seller_policies: ${error.message}`);
   const unit = new Map<string, number>();
   const levers = new Map<string, Record<string, number>>();

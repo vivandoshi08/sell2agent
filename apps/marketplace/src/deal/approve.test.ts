@@ -4,7 +4,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { Deal } from "@sa/payments";
 import { createDealModule, createMockCatalog, createMockExchange, PRIVATE_KEYS } from "./index";
-import { approvePage, approvePay, approveToken, approveUrl, registerApprovePage, verifyApproveToken } from "./approve";
+import { approvePage, approvePay, approveToken, approveUrl, registerApprovePage, scriptJson, verifyApproveToken } from "./approve";
 
 const KEY = "test-secret";
 function setup() {
@@ -113,4 +113,18 @@ test("page script sends a JSON body, and a non-JSON error shows the server's rep
   const bad = await runPageScript(() => ({ status: 400, text: "Invalid JSON" }));
   assert.equal(bad.replaced?.searchParams.get("r"), "error");
   assert.match(bad.replaced?.searchParams.get("m") ?? "", /400: Invalid JSON\. Nothing was charged/);
+});
+
+test("JSON embedded in the inline <script> can't close the tag: <, >, &, U+2028, U+2029 are escaped and round-trip", async () => {
+  const nasty = "</script><script>alert(1)</script>&  <!--";
+  const out = scriptJson({ v: nasty });
+  for (const c of ["<", ">", "&", " ", " "]) assert.ok(!out.includes(c), `raw ${JSON.stringify(c)} left in ${out}`);
+  assert.deepEqual(JSON.parse(out), { v: nasty });
+  const { runInNewContext } = await import("node:vm");
+  assert.equal(runInNewContext(`(${out}).v`), nasty, "still a valid JS literal");
+  // The rendered page: exactly one <script> open and one close, whatever the token holds.
+  const { mod } = setup();
+  const body = (await approvePage(mod, "deal_demo_ready", { t: approveToken("deal_demo_ready", "buyer_demo", KEY) }, KEY)).body;
+  assert.equal(body.match(/<script/gi)?.length, 1);
+  assert.equal(body.match(/<\/script/gi)?.length, 1);
 });
