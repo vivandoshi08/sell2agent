@@ -8,7 +8,8 @@ import { CATEGORIES, categoriesOf, searchProducts } from "./src/search.js";
 import { catalog } from "./src/catalog-source.js";
 import { log } from "./src/log.js";
 import { registerNegotiationTools, subjectBuyerId, type RequestLike } from "./src/negotiate.js";
-import { registerDealTools } from "./src/deal-tools.js";
+import { deal, registerDealTools } from "./src/deal-tools.js";
+import { registerApprovePage } from "./src/deal/index.js";
 import { registerListingTools } from "./src/listing-tools.js";
 import { registerDiscovery } from "./src/discovery.js";
 
@@ -148,8 +149,10 @@ export const searchProductsTool = server.tool(
   },
 );
 
-registerNegotiationTools(server);
+// Approve links point at this gateway's public origin (S2's hosted approve page, for agents that can't show the card).
+registerNegotiationTools(server, { approveOrigin: new URL(MCP_URL).origin });
 registerDealTools(server);
+registerApprovePage(server, deal);
 registerListingTools(server, MCP_URL);
 registerDiscovery(server, MCP_URL);
 
