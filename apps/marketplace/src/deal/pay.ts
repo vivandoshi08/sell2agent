@@ -33,6 +33,8 @@ const FIXES: Record<string, string> = {
   wrong_buyer: "only the buyer who accepted this deal can pay for it",
   tampered: "the deal changed after it was locked; accept the current offer again",
   not_payable: "this deal can't be paid in its current state; check_offers for the live offer",
+  amount_mismatch: "pay the deal total shown on the card",
+  policy_recheck_failed: "the seller can no longer honor this deal; make a new offer",
 };
 
 function toPaymentsDeal(d: StoredDeal): Deal {
@@ -82,9 +84,13 @@ export function createPayHandler(deps: PayDeps) {
     }
 
     const check = await deps.deals.validateForPayment(deal_id, ctx.buyer, cred);
+    if (!check.ok && check.code === "already_paid") {
+      // A retry after the exchange already recorded payment: report it as paid, don't charge again.
+      return { status: "succeeded", deal_id, amount_cents: 0, mode: "test_card", payment_intent_id: check.payment_intent_id, already_paid: true };
+    }
     if (!check.ok) {
       const r: PayResult = { status: "refused", deal_id, amount_cents: 0, mode: typeof cred === "object" && "test_card" in cred ? "test_card" : "spt",
-        code: check.code, reasons: [check.reason], fix: FIXES[check.code] };
+        code: check.code, reasons: [check.reason], fix: check.fix ?? FIXES[check.code] };
       await log("payment_failed", null, deal_id, r, ctx);
       return r;
     }
@@ -92,7 +98,13 @@ export function createPayHandler(deps: PayDeps) {
     const result: PayResult = await deps.payDeal(toPaymentsDeal(check.deal), cred);
     results.set(deal_id, result);
     // "processing" is confirmed later by the Stripe webhook, so it isn't logged as a success yet.
-    if (result.status === "succeeded") await log("payment_succeeded", check.deal, deal_id, result, ctx);
+    if (result.status === "succeeded") {
+      if (deps.deals.markPaid && result.payment_intent_id) {
+        try { await deps.deals.markPaid(deal_id, result.payment_intent_id); }
+        catch (e) { console.error("[pay_deal] markPaid failed after a successful charge", deal_id, (e as Error).message); }
+      }
+      await log("payment_succeeded", check.deal, deal_id, result, ctx);
+    }
     else if (result.status !== "processing") await log("payment_failed", check.deal, deal_id, result, ctx);
     return result;
   }

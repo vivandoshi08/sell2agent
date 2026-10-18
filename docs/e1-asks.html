@@ -74,6 +74,27 @@ th { font-family: var(--font-data); font-size: .7rem; letter-spacing: .06em; tex
     <div class="summary" id="summary"></div>
     <span id="sync">Status sync loading…</span>
   </header>
+  <section class="box">
+    <h2>Shipped: use it now <small>branch e1/exchange · PR #11</small></h2>
+    <p class="why"><b>Deploy (Esha):</b> use <code>await Exchange.fromEnv()</code>. With <code>SUPABASE_URL</code> set, state lives in Supabase, so a stateless deploy works; without it, memory. Also set <code>EXCHANGE_HMAC_SECRET</code> so deal signatures survive restarts.</p>
+    <p class="why"><b>Dashboard (Ananya):</b> exchange state is saved as rows in <code>events</code> with <code>run_id = "exchange_state"</code> and <code>type = "exchange_snapshot"</code>. Filter those out of the feed and KPIs. <code>negotiations</code> and <code>deals</code> rows are kept in sync; status uses the old enum (agreed → <code>accepted</code>, walked away or expired → <code>abandoned</code>).</p>
+    <p class="why" style="color:var(--warn)"><b>Still wanted (Neel, n2–n4):</b> the offers table and wider status enum. That's no longer a blocker, since the snapshot rows cover it, but real tables are cleaner and faster. Not tested against a live Supabase yet: no keys on this machine (g1).</p>
+    <p class="why">The exchange runs end to end against Neel's real <code>decide()</code> and <code>voice()</code>. Memory store and seed catalog by default; events go to Supabase when <code>SUPABASE_URL</code> is set. Gate: <code>pnpm --filter @sa/seller-mcp gate</code> runs 30 negotiations (10 normal, 11 recorded E4/E9 attacks, 9 protocol abuses and adversarial sellers): 0 deals below floor, 0 floor or cost figures in seller text, every tamper rejected.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Who</th><th>Call</th><th>Returns</th></tr></thead>
+      <tbody>
+        <tr><td>Esha</td><td><code>import { Exchange } from "@sa/seller-mcp/exchange"</code><br><code>ex.handle({ kind: "offer", ctx, product_id, negotiation_id?, offer_price_cents, message? })</code></td><td><code>{ ok, negotiation_id, state, status, standing_offer: { offer_id, price_cents, final, expires_at, levers }, round, rounds_left, allowed_actions, message, error? }</code></td></tr>
+        <tr><td>Esha</td><td><code>{ kind: "accept", ctx, negotiation_id, offer_id }</code> · <code>{ kind: "walk", … }</code> · <code>{ kind: "status", … }</code></td><td>Accept locks a deal and returns <code>deal</code>. Errors carry a <code>code</code> and an agent-readable fix: <code>stale_offer</code>, <code>wrong_buyer</code>, <code>offer_expired</code>, <code>round_cap</code>…</td></tr>
+        <tr><td>Ananya</td><td><code>ex.deals.getLockedDeal(deal_id)</code></td><td>Your shape: <code>deal_id, negotiation_id, buyer_id, seller_id, product_id, title, quantity, unit_price_cents, total_cents, list_price_cents, levers, expires_at, status</code></td></tr>
+        <tr><td>Ananya</td><td><code>ex.deals.validateForPayment(deal_id, buyer_id, amount_cents?)</code> then <code>payDeal</code>, then <code>ex.markPaid(deal_id, payment_intent_id)</code></td><td><code>{ ok: true, deal }</code> or <code>{ ok: false, code, reason, fix }</code> with code <code>unknown_deal | tampered | expired | already_paid | wrong_buyer | amount_mismatch | policy_recheck_failed</code></td></tr>
+        <tr><td>Everyone</td><td>events</td><td><code>offer_made</code>, <code>offer_countered</code>, <code>offer_accepted</code>, <code>deal_accepted</code>, <code>buyer_walked_away</code>, <code>guardrail_blocked</code> with <code>payload.rule</code>, <code>proposed_price_cents</code>, <code>clamped_to_cents</code>, <code>reason</code>; every payload carries <code>state</code></td></tr>
+      </tbody>
+    </table></div>
+    <p class="why"><b>Stage 2 (PR e1/stage2):</b> make_offer takes optional <code>levers: ["free_shipping", …]</code>. Only the listing's allowed levers, price always covers floor + lever cost, and the deal carries them (Ananya: show <code>deal.levers</code> on the card). New error codes <code>bad_lever</code> and <code>rate_limited</code> (4 starts per buyer per product per day). Anti-probing from E11: per-buyer jittered endpoints, and a probe breaker that closes the last-round accept zone for 24 h after a near-miss bid or an abandoned deal.</p>
+    <p class="why"><b>Stage 3, follow-ups (Esha's Inkbox door):</b> buyers opt in with <code>walk</code> + <code>followup: { reply_to, channel: "email" | "sms" | "a2a" }</code>, or later with <code>ex.allowFollowups(negotiation_id, buyer_id, consent)</code>. Pass <code>new Exchange({ send })</code> or <code>Exchange.fromEnv({ send })</code> with your Inkbox sender, and call <code>ex.outreach.runDue()</code> on a timer. Each message is <code>{ channel, reply_to, subject, text, offer: { offer_id, price_cents, levers, expires_at, accept: "ACCEPT off_…" } }</code>: one per negotiation, at most one per buyer per week, never below the buyer's last price. For replies, call <code>ex.inbound(negotiation_id, buyer_id, text)</code>. It returns the exchange's response plus <code>intent</code> (accept, counter, walk, unsubscribe, or clarify with a question to send back). It never guesses.</p>
+    <p class="why"><b>Decision on accept vs. pay:</b> <code>accept</code> only locks the deal. Charging happens in Ananya's pay handler on Approve &amp; Pay, which matches FINAL_ARCHITECTURE.</p>
+  </section>
+
   <div id="people"></div>
 
   <section class="box">

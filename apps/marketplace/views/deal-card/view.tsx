@@ -24,7 +24,7 @@ export function toPayState(r: PayResult): PayState {
 export default function DealCardHost() {
   const ctx = useToolContext();
   const theme = useViewTheme();
-  const payDeal = useDynamicTool<{ deal_id: string }, PayResult>("pay_deal");
+  const payDeal = useDynamicTool<{ deal_id: string; run_id?: string; buyer_id?: string; buyer_model?: string }, PayResult>("pay_deal");
   const [pay, setPay] = useState<PayState>({ kind: "idle" });
 
   if (ctx.status === "pending") return <p style={{ font: "14px system-ui", opacity: 0.7 }}>Loading the deal…</p>;
@@ -34,7 +34,9 @@ export default function DealCardHost() {
   const approve = async () => {
     setPay({ kind: "paying" });
     try {
-      const res = await payDeal.callTool({ deal_id: card.deal_id });
+      // The exchange only lets the buyer who accepted the deal pay for it, so pass back the same context review_deal got.
+      const input = (ctx.toolInput ?? {}) as { run_id?: string; buyer_id?: string; buyer_model?: string };
+      const res = await payDeal.callTool({ deal_id: card.deal_id, run_id: input.run_id, buyer_id: input.buyer_id, buyer_model: input.buyer_model });
       const r = (res.structuredContent ?? null) as PayResult | null;
       setPay(r ? toPayState(r) : { kind: "error", message: "No payment result came back." });
     } catch (e) {

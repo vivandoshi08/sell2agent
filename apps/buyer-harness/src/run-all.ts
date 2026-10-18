@@ -97,7 +97,7 @@ export function summarize(run_id: string, label: string, os: BuyerOutcome[]): Su
 export async function runAll(cfg: RunAllConfig): Promise<{ summary: Summary; outcomes: BuyerOutcome[] }> {
   const { emit, flush } = await makeEmit(cfg.run_id);
   emit({ run_id: cfg.run_id, buyer_id: null, buyer_model: null, seller_id: null, product_id: null, negotiation_id: null,
-    actor: "harness", type: "run_started", price_cents: null, payload: { label: cfg.label, buyers: cfg.buyers.length, gateway: cfg.gateway.kind } });
+    actor: "harness", type: "run_started", price_cents: null, payload: { label: cfg.label, policy: cfg.label, buyers: cfg.buyers.length, gateway: cfg.gateway.kind } });
 
   const outcomes: BuyerOutcome[] = new Array(cfg.buyers.length);
   let next = 0;
@@ -105,7 +105,7 @@ export async function runAll(cfg: RunAllConfig): Promise<{ summary: Summary; out
     while (next < cfg.buyers.length) {
       const i = next++;
       const t = cfg.buyers[i];
-      outcomes[i] = await runBuyer(t, brainFor(t.buyer_model), cfg.gateway, cfg.run_id, emit, cfg.max_steps ?? 30);
+      outcomes[i] = await runBuyer(t, brainFor(t.buyer_model), cfg.gateway, cfg.run_id, emit, cfg.max_steps ?? 30, cfg.label);
       cfg.on_outcome?.(outcomes[i]);
     }
   };
