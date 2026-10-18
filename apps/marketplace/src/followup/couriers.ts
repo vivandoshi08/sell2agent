@@ -36,6 +36,9 @@ export interface OutboxEntry {
 
 const OUTBOX_MAX = 100;
 
+/** The courier has no sender for this channel (e.g. the Inkbox identity has no phone number): use the fallback. */
+export class NotConfigured extends Error {}
+
 export class LogCourier implements Courier {
   readonly name = "log";
   readonly outbox: OutboxEntry[] = [];
@@ -94,18 +97,18 @@ export class InkboxCourier implements Courier {
     const { mailbox, phoneNumberId } = await this.channels();
     const key = m.idempotency_key ? { "Idempotency-Key": m.idempotency_key.slice(0, 255), Prefer: "idempotency-replay" } : undefined;
     if (m.channel === "email") {
-      if (!mailbox) throw new Error("inkbox: no sending mailbox (set INKBOX_MAILBOX or INKBOX_IDENTITY)");
+      if (!mailbox) throw new NotConfigured("inkbox: no sending mailbox (set INKBOX_MAILBOX or INKBOX_IDENTITY)");
       const r = await this.call("POST", `/mail/mailboxes/${encodeURIComponent(mailbox)}/messages`, {
         recipients: { to: [m.to] }, subject: m.subject.slice(0, 998), body_text: m.text, ...(m.in_reply_to ? { in_reply_to_message_id: m.in_reply_to } : {}),
       }, key) as { id?: string; message_id?: string; thread_id?: string };
       return { via: "inkbox", status: "sent", message_id: r.message_id ?? r.id, thread_id: r.thread_id };
     }
     if (m.channel === "sms") {
-      if (!phoneNumberId) throw new Error("inkbox: no sending number (set INKBOX_PHONE_NUMBER_ID or attach one to INKBOX_IDENTITY)");
+      if (!phoneNumberId) throw new NotConfigured("inkbox: no sending number (set INKBOX_PHONE_NUMBER_ID or attach one to INKBOX_IDENTITY)");
       const r = await this.call("POST", `/phone/numbers/${encodeURIComponent(phoneNumberId)}/texts`, { to: m.to, text: m.text.slice(0, 1600) }, key) as { id?: string; conversation_id?: string };
       return { via: "inkbox", status: "sent", message_id: r.id, thread_id: r.conversation_id };
     }
-    throw new Error(`inkbox: channel ${m.channel} not supported`);
+    throw new NotConfigured(`inkbox: channel ${m.channel} not supported`);
   }
 
   private async call(method: string, path: string, body?: unknown, extra?: Record<string, string>): Promise<unknown> {
@@ -127,8 +130,14 @@ export class FallbackCourier implements Courier {
     this.name = primary ? `${primary.name}+${fallback.name}` : fallback.name;
   }
   canDeliver() { return true; }
-  deliver(m: Outgoing) {
-    return this.primary?.canDeliver(m.channel) ? this.primary.deliver(m) : this.fallback.deliver(m);
+  async deliver(m: Outgoing) {
+    if (!this.primary?.canDeliver(m.channel)) return this.fallback.deliver(m);
+    try {
+      return await this.primary.deliver(m);
+    } catch (e) {
+      if (e instanceof NotConfigured) return this.fallback.deliver(m); // e.g. SMS on an identity without a number
+      throw e;
+    }
   }
 }
 

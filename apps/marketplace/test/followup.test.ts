@@ -195,6 +195,12 @@ test("Inkbox courier: email from the identity's mailbox, SMS from its number, id
   const both = new FallbackCourier(new InkboxCourier({ apiKey: "k", mailbox: "a@b.example", fetch: fake }), new LogCourier());
   assert.equal((await both.deliver({ channel: "a2a", to: "agent://x", subject: "s", text: "t" })).via, "log", "A2A falls back to the log");
   assert.equal((await both.deliver({ channel: "sms", to: "+14155550199", subject: "s", text: "t" })).via, "log", "no number configured → log");
+  // identity with a mailbox but no phone number (the real sales-agent-veezy identity): SMS falls back, email goes out
+  const noPhone = (async (url: string) => url.endsWith("/identities/veezy") ? new Response(JSON.stringify({ mailbox: { email_address: "v@inkboxmail.com" }, phone_number: null }))
+    : new Response(JSON.stringify({ id: "m2", message_id: "<m2@inkboxmail.com>" }), { status: 201 })) as unknown as typeof fetch;
+  const veezy = new FallbackCourier(new InkboxCourier({ apiKey: "k", identity: "veezy", fetch: noPhone }), new LogCourier());
+  assert.equal((await veezy.deliver({ channel: "sms", to: "+14155550199", subject: "s", text: "t" })).via, "log", "identity without a number → log");
+  assert.equal((await veezy.deliver({ channel: "email", to: "b@example.test", subject: "s", text: "t" })).via, "inkbox");
 });
 
 test("timer: off when OUTREACH_TICK_MS=0 or in production by default", () => {
