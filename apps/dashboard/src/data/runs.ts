@@ -4,11 +4,12 @@
  */
 import { useMemo, useState } from "react";
 import type { NegotiationEvent } from "@sa/shared";
-import { isTestRun } from "../metrics/kpis";
+import { evalRunIds, isTestRun } from "../metrics/kpis";
 
-export interface RunInfo { run_id: string; policy: string; started: string; buyers: number; events: number }
+export interface RunInfo { run_id: string; policy: string; started: string; buyers: number; events: number; eval: boolean }
 
 export function listRuns(events: NegotiationEvent[]): RunInfo[] {
+  const evals = evalRunIds(events);
   const m = new Map<string, { policy?: string; started?: string; buyers: Set<string>; events: number }>();
   for (const e of events) {
     const r = m.get(e.run_id) ?? m.set(e.run_id, { buyers: new Set(), events: 0 }).get(e.run_id)!;
@@ -19,15 +20,17 @@ export function listRuns(events: NegotiationEvent[]): RunInfo[] {
     if (e.ts && (!r.started || e.ts < r.started)) r.started = e.ts;
   }
   return [...m.entries()]
-    .map(([run_id, r]) => ({ run_id, policy: r.policy ?? run_id, started: r.started ?? "", buyers: r.buyers.size, events: r.events }))
+    .map(([run_id, r]) => ({ run_id, policy: r.policy ?? run_id, started: r.started ?? "", buyers: r.buyers.size, events: r.events, eval: evals.has(run_id) }))
     .sort((a, b) => b.started.localeCompare(a.started));
 }
 
-/** Latest run per policy (static vs negotiating side by side after an eval). */
+/** Latest run per policy (static vs negotiating side by side after an eval). Once eval runs exist, only those:
+ *  live traffic has its own panel and isn't a policy arm. */
 export function defaultSelection(runs: RunInfo[]): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
-  for (const r of runs) if (!seen.has(r.policy) && r.buyers > 0 && !isTestRun(r.run_id) && r.run_id !== "exchange_state") { seen.add(r.policy); out.push(r.run_id); }
+  const pool = runs.some((r) => r.eval) ? runs.filter((r) => r.eval) : runs;
+  for (const r of pool) if (!seen.has(r.policy) && r.buyers > 0 && !isTestRun(r.run_id) && r.run_id !== "exchange_state") { seen.add(r.policy); out.push(r.run_id); }
   return out;
 }
 
