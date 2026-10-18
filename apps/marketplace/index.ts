@@ -13,6 +13,7 @@ import { registerApprovePage } from "./src/deal/index.js";
 import { registerListingTools } from "./src/listing-tools.js";
 import { registerDiscovery } from "./src/discovery.js";
 import { leverNames, preferencesSchema, rememberPreferences } from "./src/preferences.js";
+import { instrumentGateway } from "./src/armature.js";
 import { followupCourier, registerFollowups, startOutreachTimer } from "./src/followup/index.js";
 
 // mcp-use and Manufact set MCP_URL to the public origin (no path); the endpoint is served at /mcp.
@@ -26,6 +27,9 @@ const server = new MCPServer({
   instructions:
     "This is a marketplace of competing sellers whose agents negotiate. Use search_products to find products that fit the buyer's needs and present those listings. Listings show public facts only; prices are negotiable through the seller's agent. Flow: search_products → (get_listing / ask_question) → make_offer rounds → accept_deal → review_deal (the card; the person approves and pays in it). A deal paid in the card is a finished purchase: if asked whether it was bought, call check_offers and report its state. Never start a new negotiation for the same item after a purchase unless the person asks to buy another.",
 });
+
+// Armature MCP Analytics: wraps server.tool, so it must run before any tool is registered.
+instrumentGateway(server);
 
 // Optional session context: simulated buyers send it so events can be grouped by run.
 const buyerContext = {

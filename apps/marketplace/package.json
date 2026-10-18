@@ -15,6 +15,7 @@
     "check:learned-bundle": "node scripts/check-learned-bundle.mjs"
   },
   "dependencies": {
+    "@armature-tech/mcp-analytics": "0.6.47",
     "@mcp-use/client": "2.4.4",
     "@sa/payments": "workspace:*",
     "@sa/seller-mcp": "workspace:*",
