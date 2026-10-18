@@ -15,7 +15,7 @@ export function TopBar({ tab, badge }: { tab: Tab; badge?: { mode: string; label
   return (
     <header className="topbar">
       <div className="brand"><Mark /><b>sell2agent</b></div>
-      <span className="store"><span className="av">KF</span>Keyforge</span>
+      <span className="store">Potrero Hill</span>
       <nav className="tabs" aria-label="Views">
         <a href={dash("live")} aria-current={tab === "live" ? "page" : undefined}>Live</a>
         <a href={dash("proof")} aria-current={tab === "proof" ? "page" : undefined}>Results</a>
