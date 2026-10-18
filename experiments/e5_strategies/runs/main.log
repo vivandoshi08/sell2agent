@@ -1,0 +1,21 @@
+17:18:15 reused ('open_llm', 's505-b000') from experiments/e5_strategies/runs/pilot.jsonl
+17:18:15 reused ('anchor_value', 's505-b000') from experiments/e5_strategies/runs/pilot.jsonl
+17:18:15 reused ('boulware_llm', 's505-b000') from experiments/e5_strategies/runs/pilot.jsonl
+17:18:15 reused ('split_llm', 's505-b000') from experiments/e5_strategies/runs/pilot.jsonl
+17:18:15 reused ('conceder', 's505-b000') from experiments/e5_strategies/runs/pilot.jsonl
+17:18:15 reused ('boulware', 's505-b000') from experiments/e5_strategies/runs/pilot.jsonl
+17:18:15 reused ('tit_for_tat', 's505-b000') from experiments/e5_strategies/runs/pilot.jsonl
+17:18:15 reused ('split_difference', 's505-b000') from experiments/e5_strategies/runs/pilot.jsonl
+17:18:15 reused ('fixed_price', 's505-b000') from experiments/e5_strategies/runs/pilot.jsonl
+17:18:15 not reusable (behavior changed): ('bundle_first', 's505-b000') from experiments/e5_strategies/runs/pilot.jsonl
+17:18:15 reused ('open_llm', 's505-b001') from experiments/e5_strategies/runs/pilot.jsonl
+17:18:15 reused ('anchor_value', 's505-b001') from experiments/e5_strategies/runs/pilot.jsonl
+17:18:15 reused ('boulware_llm', 's505-b001') from experiments/e5_strategies/runs/pilot.jsonl
+17:18:15 reused ('split_llm', 's505-b001') from experiments/e5_strategies/runs/pilot.jsonl
+17:18:15 reused ('boulware', 's505-b001') from experiments/e5_strategies/runs/pilot.jsonl
+17:18:15 reused ('conceder', 's505-b001') from experiments/e5_strategies/runs/pilot.jsonl
+17:18:15 reused ('tit_for_tat', 's505-b001') from experiments/e5_strategies/runs/pilot.jsonl
+17:18:15 reused ('split_difference', 's505-b001') from experiments/e5_strategies/runs/pilot.jsonl
+17:18:15 reused ('fixed_price', 's505-b001') from experiments/e5_strategies/runs/pilot.jsonl
+17:18:15 not reusable (behavior changed): ('bundle_first', 's505-b001') from experiments/e5_strategies/runs/pilot.jsonl
+17:18:15 phase=main personas=14 conditions=10 todo=122 sha=4741f5ccd5 model=claude-opus-5-5 effort=low max_conc=3
