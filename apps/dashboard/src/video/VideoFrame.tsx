@@ -33,7 +33,7 @@ function useTime(): number {
   const [t, setT] = useState(fixed !== null ? Number(fixed) : 0);
   useEffect(() => {
     window.__seek = (v: number) => flushSync(() => setT(v));
-    window.__segment = isCold ? ({ ...seg, id: "coldopen", title: "Cold open", window: "0:00–0:07", duration: COLD.duration } as unknown as Segment) : seg;
+    window.__segment = isCold ? ({ id: "coldopen", title: "Cold open", window: "0:00–0:07", duration: COLD.duration, panes: COLD.panes } as unknown as Segment) : seg;
     if (mode !== "preview" || fixed !== null) return;
     // Preview: loop the segment in real time, with a beat of black-free hold at the end.
     const t0 = performance.now();

@@ -6,7 +6,7 @@
  *   5.3–7.0  the hero board returns, small and ringed, over "Why did my agent pick this one?"
  * VO (Ananya): "I asked my agent for a quiet keyboard. Why did it pick this one?"
  * mode=green swaps the three chat panes for #00FF00 so real recordings can be keyed in instead.
- * Prices shown are only ones in the README ($129 list, $118, $110).
+ * Final prices $118 and $110 are from the README; the other offers are illustrative and stay above each floor.
  */
 import type { ReactElement } from "react";
 import { W, H, easeOut, ramp } from "./segments";
@@ -14,7 +14,7 @@ import "./cold.css";
 
 export const COLD = {
   duration: 7,
-  panes: [0, 1, 2].map((i) => ({ x: 84 + i * (560 + 36), y: 150, w: 560, h: 760 })),
+  panes: [0, 1, 2].map((i) => ({ x: 84 + i * (560 + 36), y: 220, w: 560, h: 640 })),
 };
 
 const easeInOut = (p: number) => { const x = Math.min(Math.max(p, 0), 1); return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
@@ -82,13 +82,13 @@ const HC = 4, HR = 3;
 const heroCx = HC * (TW + GX) + TW / 2, heroCy = HR * (TH + GY) + TH / 2;
 
 function Sea({ t }: { t: number }) {
-  // push 0→1.5 (5.0→5.35), pull back 1.5→3.3 (→0.86); hero drifts from screen centre down to y=690
-  const pull = easeInOut(ramp(t, 1.45, 1.85));
-  const s = pull > 0 ? lerp(5.35, 0.86, pull) : lerp(5.0, 5.35, easeOut(ramp(t, 0, 1.5)));
+  // push 0→1.1 (5.0→5.3), pull back 1.05→2.55 (→0.86); hero drifts from screen centre down to y=690
+  const pull = easeInOut(ramp(t, 1.05, 1.5));
+  const s = pull > 0 ? lerp(5.3, 0.86, pull) : lerp(5.0, 5.3, easeOut(ramp(t, 0, 1.1)));
   const sy = lerp(H / 2, 690, pull);
-  const others = ramp(t, 1.6, 1.2);
-  const ring = ramp(t, 2.9, 0.4);
-  const out = ramp(t, 3.25, 0.5); // the sea recedes behind the panes
+  const others = ramp(t, 1.15, 1.0);
+  const ring = ramp(t, 2.2, 0.35);
+  const out = ramp(t, 2.6, 0.45); // the sea recedes behind the panes
   const tiles: ReactElement[] = [];
   for (let r = 0; r < ROWS_N; r++) for (let c = 0; c < COLS; c++) {
     const hero = r === HR && c === HC;
@@ -112,38 +112,45 @@ function Sea({ t }: { t: number }) {
 }
 
 // ---------- three agents haggling ----------
-type Msg = { who: "buyer" | "seller" | "deal"; text: string; seller?: string };
+type Msg = { who: "buyer" | "seller" | "deal"; text: string; seller?: string; rule?: string };
+// Five rounds per bot. Seller counters never go below the seller's floor (KeyForge $105, TypeWell $110 in seed.sql).
 const AGENTS: { name: string; cls: string; letter: string; ask: string; msgs: Msg[] }[] = [
   {
     name: "Grok", cls: "a-grok", letter: "G", ask: "price first", msgs: [
-      { who: "buyer", text: "Quiet mechanical keyboard, under $130?" },
-      { who: "seller", seller: "KeyForge", text: "KeyForge Quiet 75 lists at $129. For you, $118." },
-      { who: "buyer", text: "Deal at $118." },
+      { who: "buyer", text: "KeyForge Quiet 75 for $100?" },
+      { who: "seller", seller: "KeyForge", text: "Can't do $100. $124 with free shipping.", rule: "Concession: free shipping" },
+      { who: "buyer", text: "$110 and it's a deal." },
+      { who: "seller", seller: "KeyForge", text: "Meet me at $118." },
+      { who: "deal", text: "Deal · $118" },
     ],
   },
   {
     name: "Claude", cls: "a-claude", letter: "C", ask: "build quality first", msgs: [
-      { who: "buyer", text: "Which board has the best warranty?" },
-      { who: "seller", seller: "TypeWell", text: "TypeWell 65 Silent. I'll include an extended warranty." },
-      { who: "buyer", text: "The warranty matters more. Taking it." },
+      { who: "buyer", text: "Is the TypeWell 65 really quiet?" },
+      { who: "seller", seller: "TypeWell", text: "Silent switches, dampened case. $139." },
+      { who: "buyer", text: "$125 if you add a longer warranty?" },
+      { who: "seller", seller: "TypeWell", text: "$132 with the extended warranty.", rule: "Concession: warranty" },
+      { who: "deal", text: "Deal · $132 + warranty" },
     ],
   },
   {
     name: "ChatGPT", cls: "a-chatgpt", letter: "C", ask: "tough buyer", msgs: [
-      { who: "buyer", text: "Would you take $110?" },
-      { who: "seller", seller: "KeyForge", text: "$110 works. Locking the deal for you." },
+      { who: "buyer", text: "$95 for the Quiet 75." },
+      { who: "seller", seller: "KeyForge", text: "That's below what I can do. $125.", rule: "Floor held" },
+      { who: "buyer", text: "$100. Final offer." },
+      { who: "seller", seller: "KeyForge", text: "$110, and that's my best." },
       { who: "deal", text: "Deal locked · $110" },
     ],
   },
 ];
 
 function Panes({ t, green }: { t: number; green: boolean }) {
-  const dim = ramp(t, 5.25, 0.4);
+  const dim = ramp(t, 5.55, 0.35);
   return (
     <>
       {AGENTS.map((a, i) => {
         const r = COLD.panes[i];
-        const p = easeOut(ramp(t, 3.3 + i * 0.09, 0.55));
+        const p = easeOut(ramp(t, 2.6 + i * 0.08, 0.5));
         if (p <= 0) return null;
         const style = { left: r.x, top: r.y + (1 - p) * 40, width: r.w, height: r.h, opacity: green ? 1 : p };
         if (green) return <div key={i} className="cpane key" style={{ ...style, top: r.y }} />;
@@ -156,7 +163,7 @@ function Panes({ t, green }: { t: number; green: boolean }) {
             </div>
             <div className="cp-body">
               {a.msgs.map((m, j) => {
-                const at = 3.65 + i * 0.16 + j * 0.52;
+                const at = 2.9 + i * 0.12 + j * 0.45;
                 const o = ramp(t, at, 0.28);
                 if (o <= 0) return null;
                 const lift = (1 - easeOut(o)) * 14;
@@ -165,6 +172,7 @@ function Panes({ t, green }: { t: number; green: boolean }) {
                   <div key={j} className={`msg ${m.who}`} style={{ opacity: o, transform: `translateY(${lift}px)` }}>
                     <span className="from">{m.who === "buyer" ? a.name : `${m.seller} · seller agent`}</span>
                     <p>{m.text}</p>
+                    {m.rule && <span className={`rule${m.rule === "Floor held" ? " warn" : ""}`}>{m.rule}</span>}
                   </div>
                 );
               })}
@@ -178,9 +186,9 @@ function Panes({ t, green }: { t: number; green: boolean }) {
 
 export function ColdOpen({ t, mode }: { t: number; mode: string }) {
   const green = mode === "green";
-  const seaText = Math.min(ramp(t, 1.95, 0.4), 1 - ramp(t, 3.2, 0.3));
-  const seaLift = (1 - easeOut(ramp(t, 1.95, 0.55))) * 24;
-  const why = ramp(t, 5.35, 0.4);
+  const seaText = Math.min(ramp(t, 1.45, 0.35), 1 - ramp(t, 2.6, 0.25));
+  const seaLift = (1 - easeOut(ramp(t, 1.45, 0.5))) * 24;
+  const why = ramp(t, 5.65, 0.35);
   const whyLift = (1 - easeOut(why)) * 24;
   return (
     <div className="cold" style={{ width: W, height: H }}>

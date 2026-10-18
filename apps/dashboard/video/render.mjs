@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Renders the framed stage for the demo's live segments from the dashboard's /video page (src/video).
 //
-//   node apps/dashboard/video/render.mjs [negotiate|close|transact ...] [--buyer ChatGPT] [--cues 3,6,9.5] [--zoom 0.5,0.4,1.35|off]
+//   node apps/dashboard/video/render.mjs [coldopen|negotiate|close|transact ...] [--buyer ChatGPT] [--cues 3,6,9.5] [--zoom 0.5,0.4,1.35|off]
 //
 // Per segment, into apps/dashboard/video/out/<seg>/:
 //   <seg>-green.mp4   the CapCut layout: panes pure #00FF00 (chroma-key your recording under it)   ← deliverable
@@ -28,7 +28,7 @@ const flag = (name) => { const i = argv.indexOf(`--${name}`); return i >= 0 ? ar
 const extra = new URLSearchParams();
 for (const k of ["buyer", "cues", "zoom"]) { const v = flag(k) ?? process.env[k.toUpperCase()]; if (v) extra.set(k, v); }
 const segs = argv.length ? argv : ["negotiate", "close", "transact"];
-for (const s of segs) if (!["negotiate", "close", "transact"].includes(s)) { console.error(`unknown segment "${s}"`); process.exit(2); }
+for (const s of segs) if (!["coldopen", "negotiate", "close", "transact"].includes(s)) { console.error(`unknown segment "${s}"`); process.exit(2); }
 
 // ---- playwright-core, kept out of the workspace lockfile ----
 if (!existsSync(join(TOOLS, "node_modules", "playwright-core"))) {
@@ -68,11 +68,36 @@ function encoder(file, kind) {
   };
 }
 
+// Cold open: drawn in code, so it renders straight to the final clip, plus a green-pane version for keying real chats.
+async function renderCold(dir) {
+  const layers = [
+    { mode: "bg", file: join(dir, "coldopen.mp4") },
+    { mode: "green", file: join(dir, "coldopen-green.mp4") },
+  ];
+  for (const L of layers) { L.page = await open("coldopen", L.mode); L.enc = encoder(L.file, "key"); }
+  const s = await layers[0].page.evaluate(() => window.__segment);
+  writeFileSync(join(dir, "coords.json"), JSON.stringify({ segment: "coldopen", window: s.window, duration: s.duration, fps: FPS, width: W, height: H, radius: 20,
+    panes: Object.fromEntries(["grok", "claude", "chatgpt"].map((k, i) => [k, s.panes[i]])),
+    note: "Green panes are on screen 2.6–7.0 s (they rise in over 0.5 s, staggered 0.08 s)." }, null, 2) + "\n");
+  const frames = Math.round(s.duration * FPS);
+  for (let n = 0; n < frames; n++) {
+    await Promise.all(layers.map(async (L) => {
+      if (n > 0) await L.page.clock.runFor(1000 / FPS);
+      await L.page.evaluate((t) => window.__seek(t), n / FPS);
+      await L.enc.write(await L.page.screenshot({ type: "png" }));
+    }));
+    if (n % 30 === 0) console.log(`coldopen: frame ${n}/${frames}`);
+  }
+  for (const L of layers) { await L.enc.end(); await L.page.close(); }
+}
+
 try {
   for (const seg of segs) {
     const dir = join(OUT, seg);
     mkdirSync(dir, { recursive: true });
     const t0 = Date.now();
+
+    if (seg === "coldopen") { await renderCold(dir); console.log(`coldopen: ${((Date.now() - t0) / 1000).toFixed(0)} s → ${dir}`); continue; }
 
     // mask + coords
     const mp = await open(seg, "mask");
