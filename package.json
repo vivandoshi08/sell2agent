@@ -10,7 +10,9 @@
     "run:buyers": "pnpm --filter @sa/buyer-harness start",
     "smoke": "tsx scripts/smoke.ts",
     "stripe:smoke": "pnpm --filter @sa/payments smoke",
-    "test:payments": "pnpm --filter @sa/payments test"
+    "test:payments": "pnpm --filter @sa/payments test",
+    "e2:gate": "pnpm --filter @sa/buyer-harness e2:gate",
+    "test:sellers": "pnpm --filter @sa/seller-mcp test"
   },
   "devDependencies": {
     "tsx": "^4.19.0",
