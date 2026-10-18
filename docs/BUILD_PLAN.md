@@ -1,15 +1,15 @@
 # Build Plan
 
-> How the four of us build [FINAL_ARCHITECTURE.md](FINAL_ARCHITECTURE.md). Two pairs work in parallel on separate code, each starting on its riskiest piece against a mock of the other, then the pairs merge at three bridges. Interactive version: `docs/team-plan.html` (the "Team Build Plan" page). Hours are relative to the start (H0); fill in the clock time and the two open names below.
+> How the four of us build [FINAL_ARCHITECTURE.md](FINAL_ARCHITECTURE.md). Two pairs work in parallel on separate code, each starting on its riskiest piece against a mock of the other, then the pairs merge at three bridges. Interactive version: `docs/team-plan.html` (the "Team Build Plan" page). Hours are relative to the start (H0); fill in the clock time below.
 
 | Role | Pair | Person | Owns |
 |---|---|---|---|
-| **S1** gateway & deploy | Surface | _open: Ananya or #4_ | `apps/marketplace`, Manufact deploy, catalog seed, discovery files, Inkbox adapter |
-| **S2** UI & proof | Surface | Neel | `apps/dashboard`, deal-card widget, wiring `packages/payments`, Armature evals, merchant console |
+| **S1** gateway & deploy | Surface | Esha | `apps/marketplace`, Manufact deploy, catalog seed, discovery files, Inkbox adapter |
+| **S2** UI & proof | Surface | Ananya | `apps/dashboard`, deal-card widget, wiring `packages/payments`, Armature evals, merchant console |
 | **E1** exchange & safety | Engine | Vivan | `apps/seller-mcp/exchange`: state machine, sessions, offers, deals, guardrails, buyer memory, outreach |
-| **E2** policy & buyers | Engine | _open: Ananya or #4_ | `apps/seller-mcp/sellers`, `apps/buyer-harness`, bandit and learning |
+| **E2** policy & buyers | Engine | Neel | `apps/seller-mcp/sellers`, `apps/buyer-harness`, bandit and learning |
 
-**Contract owner is a side duty, not a fifth person.** Neel carries it alongside S2: he wrote the contract (`packages/shared`, `supabase/migrations`) and `@sa/payments`, which S2 wires. It is real work only in H0–H1 (freeze the contract with everyone); after that it is frozen and the job is reviewing change requests, e.g. E1 asking for `offer_id`, `final`, `expires_at`. Changes go through Neel.
+**Contract owner is a side duty, not a fifth person.** Neel carries it alongside E2: he wrote the contract (`packages/shared`, `supabase/migrations`) and `@sa/payments`. It is real work only in H0–H1 (freeze the contract with everyone); after that it is frozen and the job is reviewing change requests, e.g. E1 asking for `offer_id`, `final`, `expires_at`. Changes go through Neel.
 
 Start time (H0): _clock time_. Code freeze: H13. Submit: 10:00.
 
@@ -86,7 +86,7 @@ Move to the next step only when the "done when" test passes.
 
 ## Collision and idle-time rules
 
-- **Only one shared file set:** the contract (`packages/shared`, `supabase/migrations`), frozen at H1, one owner (Neel, alongside S2).
+- **Only one shared file set:** the contract (`packages/shared`, `supabase/migrations`), frozen at H1, one owner (Neel, alongside E2).
 - **E1 and E2 share `apps/seller-mcp`** but work in separate modules (`exchange/` and `sellers/`), joined only by `decide()`.
 - **Nobody waits:** every step builds against a mock (fake exchange, fake events, stub seller, scripted buyers) until the matching bridge.
 - **Merge to `main` at each bridge,** in small PRs reviewed by the pair partner.
