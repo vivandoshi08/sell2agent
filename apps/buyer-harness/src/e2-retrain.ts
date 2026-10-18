@@ -116,7 +116,7 @@ const lp: LearnedPolicy = {
 // ---- report
 console.log(`\nSessions: ${bySource.real} real (live marketplace) + ${bySource.sim} simulated · reward = ${rewardText}`);
 console.log(`\nRetrained from ${all.length} logged negotiations in ${runs.length} runs → v${lp.version}${prev ? ` (was v${prev.version})` : ""} · ${f.weighting} IPS · min ${f["min-sessions"]} sessions per arm\n`);
-console.log("Per buyer type: IPS mean profit per negotiation (sessions) → choice   (unknown = all sessions pooled: buyers who send no profile)");
+console.log("Per buyer type: IPS mean goal value per negotiation (sessions; no-deal = 0) → choice   (unknown = all sessions pooled: buyers who send no profile)");
 for (const ctx of Object.keys(lp.stats).sort()) {
   const cells = ARMS.map((a) => { const s = lp.stats[ctx][a]; return `${a} ${s?.n ? usd(Math.round(full.mean(ctx, a))) : "—"} (${s?.n ?? 0})`; }).join("   ");
   console.log(`  ${ctx.padEnd(9)} ${(lp.choice[ctx] + (prev?.choice[ctx] && prev.choice[ctx] !== lp.choice[ctx] ? ` (was ${prev.choice[ctx]})` : "")).padEnd(28)} | ${cells}`);

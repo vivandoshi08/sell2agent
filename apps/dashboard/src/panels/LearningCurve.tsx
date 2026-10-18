@@ -23,7 +23,11 @@ interface Learned {
   trained_on?: { source: string; sessions: number; runs?: string[]; previous_version?: number;
     by_source?: { real: number; sim: number }; reward?: string; contexts?: Record<string, { real: number; sim: number }> };
 }
-const LP = learned as unknown as Learned;
+const LIVE = learned as unknown as Learned;
+// A retrain writes learned_policy.candidate.json first; it replaces the live file only after its held-out gate passes.
+// The panel shows the newest one, and says which version the live seller runs.
+const CANDIDATE = Object.values(import.meta.glob("../../../seller-mcp/learned_policy.candidate.json", { eager: true, import: "default" }))[0] as Learned | undefined;
+const LP = CANDIDATE && CANDIDATE.version > LIVE.version ? CANDIDATE : LIVE;
 const usd = (c: number) => `${c < 0 ? "−" : ""}$${(Math.abs(c) / 100).toFixed(2)}`;
 const signed = (c: number) => `${c >= 0 ? "+" : "−"}${usd(Math.abs(c))}`;
 const pct = (x: number) => `${Math.round(x * 100)}%`;
@@ -85,7 +89,10 @@ export function LearningCurve({ data = LP, events }: { data?: Learned; events?: 
         {curve.length ? <CurveChart curve={curve} /> : <p className="empty">No learning curve yet: run <code>pnpm e2:bandit</code>.</p>}
       </div>
 
-      {data.gate && <Gate gate={data.gate} />}
+      {data.gate && (data.gate.holdout_buyers > 0 ? <Gate gate={data.gate} /> : (
+        <p className="sub lp-gate"><span className="pill bad">Gate pending</span>{" "}
+          v{data.version} is a candidate: it hasn't been scored on held-out buyers yet, so the live seller still runs v{LIVE.version}{LIVE.gate?.passed ? " (gate passed)" : ""}. Run <code>pnpm e2:learned --policy-file ../seller-mcp/learned_policy.candidate.json --gate</code> to score it.</p>
+      ))}
 
       {live.length > 0 && (
         <p className="sub">Live shoppers on the <code>learned</code> strategy so far: {live.map((l) => `${ctxName(l.context).toLowerCase()} → ${l.picks.map((x) => `${armName(x.arm)} ×${x.n}`).join(", ")}`).join("; ")}.</p>
@@ -111,7 +118,7 @@ export function LearningCurve({ data = LP, events }: { data?: Learned; events?: 
           </table>
         </div>
       </details>
-      <p className="empty">Playbooks: {data.arms.map((a) => `${armName(a)} ${ARM[a]?.how ?? ""}`.trim()).join("; ")}. Trained {new Date(data.trained_at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })} {data.trained_on?.source.startsWith("logged") ? `on ${data.trained_on.sessions} logged negotiations with AI buyers` : "on simulated lever-profile buyers"}; explores {Math.round(data.epsilon * 100)}% of the time in deployment, and logs the odds of every pick so retraining stays unbiased.</p>
+      <p className="empty">Playbooks: {data.arms.map((a) => `${armName(a)} ${ARM[a]?.how ?? ""}`.trim()).join("; ")}. Trained {new Date(data.trained_at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })} {data.trained_on?.source.startsWith("logged") ? `on ${data.trained_on.sessions} logged negotiations${data.trained_on.by_source ? ` (${data.trained_on.by_source.real} real shoppers, ${data.trained_on.by_source.sim} simulated buyers)` : " with AI buyers"}` : "on simulated lever-profile buyers"}; explores {Math.round(data.epsilon * 100)}% of the time in deployment, and logs the odds of every pick so retraining stays unbiased.</p>
     </section>
   );
 }
@@ -145,7 +152,8 @@ function PerkGrid({ data, contexts }: { data: Learned; contexts: string[] }) {
               const st = data.stats[c] ?? {};
               const cols = ["balanced", ...PERKS.map((p) => p.arm)];
               const vals = cols.map((a) => (st[a]?.n ? mean(st[a]) : null));
-              const best = Math.max(...vals.map((v) => v ?? -Infinity));
+              const enough = (a: string) => (st[a]?.n ?? 0) >= (data.min_sessions ?? 10);
+              const best = Math.max(...vals.map((v, i) => (v != null && enough(cols[i]) ? v : -Infinity)));
               const choice = data.choice[c] ?? "negotiating";
               const perk = PERKS.find((p) => p.arm === choice);
               return (
@@ -153,7 +161,7 @@ function PerkGrid({ data, contexts }: { data: Learned; contexts: string[] }) {
                   <td className="persona">{ctxName(c)}</td>
                   {cols.map((a, i) => {
                     const v = vals[i], n = st[a]?.n ?? 0;
-                    return <td key={a} className={`num${v != null && v === best ? " best" : v == null ? " dim" : ""}`}>{v != null ? <>{usd(Math.round(v))}<br /><span className="th-sub">{n} tries{n < (data.min_sessions ?? 10) ? " · too few" : ""}</span></> : "not tried"}</td>;
+                    return <td key={a} className={`num${v != null && v === best && enough(a) ? " best" : v == null || !enough(a) ? " dim" : ""}`}>{v != null ? <>{usd(Math.round(v))}<br /><span className="th-sub">{n} tries{n < (data.min_sessions ?? 10) ? " · too few" : ""}</span></> : "not tried"}</td>;
                   })}
                   <td><span className="pill neg">{perk ? perk.label : `No perk (${armName(choice)})`}</span></td>
                 </tr>

@@ -353,6 +353,7 @@ details.panel summary::-webkit-details-marker { display: none; }
 /* ---------- Bridge 3: what the seller learned ---------- */
 .lp h3 { margin: 0; font-size: 14px; font-weight: 600; }
 .lp code { font-family: var(--mono); font-size: .92em; }
+.lp > * { min-width: 0; }
 .lp-train-src { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 4px 0 18px; }
 .lp-src { display: grid; gap: 3px; align-content: start; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--canvas); min-width: 0; }
 .lp-src > b { font-size: 20px; }
