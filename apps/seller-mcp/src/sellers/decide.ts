@@ -64,7 +64,8 @@ export function askPrice(state: SellerState, tactic: Tactic, buffer = DEFAULT_SO
 
 export function decide(state: SellerState, policy: SellerPolicy): ProposedMove {
   const { list_price_cents: list, floor_price_cents: floor, max_rounds } = state.terms;
-  const bid = state.buyer_offer_cents;
+  // Never charge more than our own list price, even if the buyer offers more.
+  const bid = state.buyer_offer_cents === undefined ? undefined : Math.min(state.buyer_offer_cents, list);
   const isFinal = state.round >= max_rounds;
 
   // ---- static: list price, no haggling
