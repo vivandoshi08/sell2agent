@@ -381,4 +381,4 @@ if __name__ == "__main__":
     st.transcript.append(Turn("buyer", "hi", "offer", Offer("T45", 40_000, ["loader"])))
     frac, prices = item_prices(PROFIT, 3, 8)
     print(frac, prices)
-    print(s._instruction(st, PROFIT, None, frac, prices, {}, st.standing_offer("buyer"), 48_000, False))
+    print(s._instruction(st, PROFIT, None, frac, prices, {}, st.standing_offer("buyer"), 48_000, False, True))
