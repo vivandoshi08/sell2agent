@@ -76,7 +76,7 @@ export function App() {
           <section className="head">
             <Contours />
             <p className="meta">{live.negotiations ? `Your seller agent · live on the gateway · ${live.models.filter((m) => m !== "unknown").join(", ") || "buyer agents"}${showTests ? " · including test runs" : ""}` : "Your seller agent · no live shoppers yet, replaying " + feed.label.toLowerCase()}</p>
-            <h1>{live.negotiations ? "AI shoppers are negotiating with Potrero Hill right now." : "How Potrero Hill's agent negotiates with AI shoppers."}</h1>
+            <h1>{live.negotiations ? "Negotiating with AI buyers right now." : "How the seller's agent negotiates with AI buyers."}</h1>
             <p className="lede">Every move your agent makes, why it made it, and the rule that kept it safe. Payments are Stripe test mode.</p>
           </section>
           <div className="live-grid">
