@@ -25,7 +25,7 @@ Order matters: redeploy first, then verify, then reset memory last, because a de
 
   Env on Manufact (Supabase, `EXCHANGE_HMAC_SECRET`, Stripe test key, `ANTHROPIC_API_KEY`) already persists across deploys.
 - [ ] **2. Verify production.** `node apps/marketplace/scripts/verify-prod.mjs --pay` checks 9 tools, ranked search, a haggle, the deal card (another buyer is refused), a Stripe **test** payment, and that a second `pay_deal` returns `already_paid`. It uses its own buyer id and the hidden run id `s1-test-verify`, so it doesn't touch the demo's memory or the dashboard. Drop `--pay` for a read-only check.
-- [ ] **3. Reset buyer memory, after the last redeploy.** `npx -y pnpm@9.12.0 --filter @sa/seller-mcp anon:reset --all`. Without `--all` it only lists what's live and changes nothing. Anonymous (`anon_`) and ChatGPT (`oai_`) buyers carry memory for 30 minutes, and start limits are shared across anonymous chats, so a rehearsal can leave a new chat opening at a "final offer" with nothing to haggle. Run it again after every rehearsal.
+- [ ] **3. Reset buyer memory, after the last redeploy.** `npx -y pnpm@9.12.0 --filter @sa/seller-mcp anon:reset --all`. Without `--all` it only lists what's live and changes nothing. Anonymous (`anon_`) and ChatGPT (`oai_`) buyers carry memory for 30 minutes, and start limits are shared across anonymous chats, so a rehearsal can leave a new chat opening at a "final offer" with nothing to haggle. Run it again after every rehearsal. (Another session is changing memory so a paid deal clears that buyer's memory; PR pending. Until it merges, keep resetting.)
 - [ ] **4. Open the dashboard.** `npx -y pnpm@9.12.0 dev:dashboard`, then <http://localhost:3000>. The badge must read "Live · Supabase" (needs `SUPABASE_URL` and `SUPABASE_ANON_KEY` in `.env`). Keep two tabs: **Live** and **Results** (`#proof`).
 - [ ] **5. Prepare the clients.**
   - ChatGPT: after any redeploy, open the app's details page and **Refresh**; in the chat, type `@` and pick it. A new ChatGPT chat gets a new `oai_` id.
@@ -36,8 +36,8 @@ Order matters: redeploy first, then verify, then reset memory last, because a de
 
 | Bridge 3 rehearsal | Date and time | Result | Manual fix needed? |
 |---|---|---|---|
-| Run 1 | TODO | TODO | TODO |
-| Run 2 | TODO | TODO | TODO |
+| Run 1 | Sun Oct 18, 5:04 am PT, `scripts/demo-check.sh --runs 2 --pay` on production `c5a9689` | Clean: 8/8 PASS, 0 warnings | No |
+| Run 2 | Sun Oct 18, 5:05 am PT, same command | Clean: 8/8 PASS, 0 warnings | No |
 
 ## The 2-minute demo
 
@@ -54,8 +54,8 @@ Screen: ChatGPT on the left, dashboard **Live** tab on the right. Say the number
 
 **Optional beats** (only if time or a slot allows; drop them first):
 - **Tough buyer (+15 s).** In a second tab, a buyer told to pay at most $80 for the TypeWell 65 hits the floor: the seller holds, explains, and the dashboard logs the block.
-- **Bridge 3: follow-up (+15 s). TODO: in progress, add only if it lands.** A buyer walks away, then gets a follow-up from the seller's verified Inkbox identity; replying accepts and locks the deal. Numbers: TODO.
-- **Bridge 3: learned policy (+10 s). TODO: in progress, add only if it lands.** The learning curve panel: the bandit picks lever packages per buyer type. Numbers: TODO. Don't quote the scripted-buyer figure as the headline.
+- **Bridge 3: follow-up (+15 s).** Live on production (`apps/marketplace/scripts/followup-e2e.mjs` passes): a buyer walks away with consent, gets one follow-up after the delay, and replying ACCEPT locks the deal and returns an approve link. Delivery is the log courier until Inkbox is on; say so if asked. Numbers (simulated Claude Haiku buyers, in-process): the seller wins back 33% of opted-in walk-aways (30 of 92, CI 24–43%), +$2.58 profit per buyer [$1.70–$3.50]; source `docs/results/followups/README.md` in [PR #94](https://github.com/vivandoshi08/sales-agent/pull/94).
+- **Bridge 3: learned policy (+10 s).** The learning curve panel: the bandit picks lever packages per buyer type. Numbers: 300 held-out Claude Haiku buyers, +$6.25/buyer vs `negotiating` [$3.58, $8.92], −$1.03 vs `balanced` [−$3.10, $1.05], 0 below floor. Say it plainly: it beats plain negotiating but not `balanced`, so it isn't the default. Don't quote the scripted-buyer figure as the headline.
 
 ## If live ChatGPT fails
 
@@ -64,8 +64,8 @@ Decide in 15 seconds; never debug on stage. Say "let me switch clients" and keep
 | Symptom | Do this |
 |---|---|
 | ChatGPT shows no tools, or errors on the first call | Open the app's details page and **Refresh** once. Still failing: switch to Claude and paste the same prompt. Claude and Claude Code are proven on this URL. |
-| ChatGPT works but the deal card doesn't render, or Pay does nothing | The card isn't the only way. Ask the agent for the deal link: a locked deal returns a signed **approve link** (a hosted page that charges the stored amount). Open it and press Pay. |
-| ChatGPT opens at "final offer" with nothing to haggle | Memory is frozen. Run `anon:reset --all`, open a **new** chat, repeat. |
+| ChatGPT works but the deal card doesn't render, or Pay does nothing | The card isn't the only way. Since PR #96, `accept_deal` no longer carries the link; ask the agent to **call `review_deal`** and give you the approval link from that reply: a signed **approve link** (a hosted page that charges the stored amount). Open it and press Pay. |
+| ChatGPT opens at "final offer" with nothing to haggle | Memory is frozen. Run `anon:reset --all`, open a **new** chat, repeat. (A paid deal clearing that buyer's memory is in another session's PR, pending.) |
 | ChatGPT stalls or answers "no payment was made" | Ask "did the payment go through?" The agent calls `check_offers`, which reports `PAID`. |
 | No client can reach MCP at all | Run the same flow in the terminal: `node apps/marketplace/scripts/verify-prod.mjs --pay`. It prints search, the counter-offer, the card and the payment. It's hidden from the dashboard on purpose, so point at its output, then go to Results. |
 | The gateway itself is down | Show the recorded demo video, then the saved results. Check `npx -y pnpm@9.12.0 exec mcp-use deployments list` and redeploy afterwards, not during. |
@@ -79,8 +79,12 @@ Can make (each traces to a saved run, see the README):
 - 200 in-process Sonnet-buyer negotiations: 83% vs. 49%, $47.55 vs. $31.61 per buyer.
 - Armature: 7/7 cases on Claude Code and Codex (three passes on a re-run).
 - Bridge 1: a real ChatGPT purchase, $129 list → $110, paid through Stripe test mode.
+- Bridge 3 follow-ups: simulated Claude Haiku buyers, 33% of opted-in walk-aways won back [24–43%], +$2.58/buyer [$1.70–$3.50]; the loop passes end to end on production (log courier, not yet Inkbox email).
+- Bridge 3 learned policy: +$6.25/buyer vs `negotiating` [$3.58, $8.92] on 300 held-out Haiku buyers, 0 below floor; not better than `balanced`.
+- Bridge 3 rehearsal: `scripts/demo-check.sh --runs 2 --pay` on production, 2 of 2 clean.
 
 Don't claim:
 - Real money, or live-mode Stripe. It is test mode; production charges a test card after a person approves, and the buyer-side Shared Payment Token is simulated.
 - GPT buyers (not run), real shoppers (the A/B buyers are simulated), a hosted dashboard (it runs locally), OAuth, or a Manufact publish-checklist score (not run).
-- Bridge 3 numbers until they exist in the README.
+- That follow-ups arrive by email (they go through the log courier until Inkbox is on), or that the learned policy beats `balanced` (it doesn't; −$1.03 [−$3.10, $1.05]).
+- That a paid deal clears buyer memory (PR pending); keep running `anon:reset --all`.
