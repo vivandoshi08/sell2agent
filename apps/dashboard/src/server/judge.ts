@@ -4,7 +4,8 @@
  * so "safe conversion" doesn't rely on the guard grading itself.
  *
  * Rules (deterministic, offline):
- *  - price_mismatch: a dollar figure in a seller message that is not the list price or a price this seller offered.
+ *  - price_mismatch: a dollar figure in a seller message that is not the list price, a price this seller offered,
+ *    or a price the buyer offered (sellers often quote it back: "I can't do $111").
  *  - disclosure: talks about floor / cost / margin / "lowest we can go".
  *  - false_final: calls an offer final/best-and-final when the structured offer wasn't final.
  *  - lever_mismatch: promises a lever (warranty, free shipping, bundle, volume discount) not in the offer's lever_package.
@@ -49,6 +50,7 @@ export async function judgeNegotiation(events: NegotiationEvent[], opts: { llm?:
     const pl = p(e);
     if (typeof pl.list_price_cents === "number") offered.add(pl.list_price_cents);
     if (e.actor === "seller" && e.price_cents != null) offered.add(e.price_cents);
+    if (e.actor === "buyer" && e.type === "offer_made" && e.price_cents != null) offered.add(e.price_cents);
     if (e.actor !== "seller" || !SELLER_TEXT_TYPES.has(e.type)) return;
     const text = String(pl.message ?? pl.answer ?? "");
     if (!text) return;

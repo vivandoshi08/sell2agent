@@ -13,7 +13,8 @@
     "preview:html": "node scripts/build-preview.mjs",
     "run-result": "tsx --env-file-if-exists=../../.env scripts/run-result.ts",
     "eval": "tsx --env-file-if-exists=../../.env scripts/eval.ts",
-    "preview:html:eval": "node scripts/build-preview.mjs --local"
+    "preview:html:eval": "node scripts/build-preview.mjs --local",
+    "pay-smoke": "tsx --env-file-if-exists=../../.env scripts/pay-smoke.ts"
   },
   "dependencies": {
     "@sa/buyer-harness": "workspace:*",
