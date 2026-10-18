@@ -3,7 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { NegotiationEvent } from "@sa/shared";
 import { followupSummary } from "../src/metrics/followups";
-import { evalKey, learnedEval, liveArmPicks } from "../src/metrics/learned";
+import { buyerScores, evalKey, learnedEval, liveArmPicks } from "../src/metrics/learned";
 import { liveTraffic, policyKpis } from "../src/metrics/kpis";
 import { fakeComparison, fakeFollowups, fakeLearnedEval } from "../src/data/fake";
 import learnedFile from "../../seller-mcp/learned_policy.json";
@@ -88,4 +88,20 @@ test("live arm picks: real shoppers on the learned strategy, one pick per negoti
     { context: "price", picks: [{ arm: "balanced", n: 1, share: 1 }] },
     { context: "unknown", picks: [{ arm: "negotiating", n: 1, share: 1 }] },
   ]);
+});
+
+test("learned scoring matches E2's learned-logs: every deal a buyer closed counts, perks × quantity; context from the log or the lever profile", () => {
+  const e = (type: string, extra: Partial<NegotiationEvent>, payload: Record<string, unknown> = {}) =>
+    ({ run_id: "b3Z_negotiating", buyer_id: "b1", buyer_model: "haiku", seller_id: "s", product_id: "p", negotiation_id: "n1", actor: "seller", type, price_cents: null,
+      payload, ts: "2026-10-18T10:00:00Z", ...extra }) as NegotiationEvent;
+  const [s] = buyerScores([
+    e("search", { actor: "buyer", negotiation_id: null }, { lever_profile: { price: 0.2, trust: 0.9 } }),
+    e("deal_accepted", { price_cents: 10000 }, { unit_cost_cents: 6000, lever_cost_cents: 500, quantity: 2 }),
+    e("deal_accepted", { price_cents: 5000, negotiation_id: "n2" }, { unit_cost_cents: 3000 }),
+  ]);
+  assert.equal(s.context, "trust");
+  assert.equal(s.arm, null);
+  assert.equal(s.profit_cents, (10000 - 6000 - 500) * 2 + 2000);
+  const [m] = buyerScores([e("deal_accepted", { price_cents: 100 }, {})]);
+  assert.equal(m.profit_cents, null, "missing unit cost: null, never a guess");
 });

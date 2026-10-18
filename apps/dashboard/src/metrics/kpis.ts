@@ -17,8 +17,6 @@
 import type { NegotiationEvent } from "@sa/shared";
 import { bootstrapCI, median, type Interval } from "./stats";
 import { buyerFit, leverIds, leverWins, type LeverWin } from "./levers";
-// Pure (types only): the bandit's buyer-type rule, so the dashboard groups buyers exactly as the seller does.
-import { contextOf } from "../../../seller-mcp/src/sellers/bandit";
 
 export type Ev = NegotiationEvent;
 
@@ -37,11 +35,6 @@ export interface BuyerOutcome {
   buyer_fit: number | null;
   /** Lever ids included in the closed deal ([] = price only). */
   levers: string[];
-  /** Bandit buyer type (the lever the buyer weighs most: price, quality, delivery, trust…): the seller's logged
-   *  `bandit_context`, else derived from the buyer's lever profile like the bandit does. "unknown" without a profile. */
-  context: string;
-  /** `learned` strategy: the arm the seller drew for this buyer (negotiating | balanced | lever_policy). null otherwise. */
-  arm: string | null;
 }
 
 export interface PolicyKpis {
@@ -107,10 +100,6 @@ export function buyerOutcomes(events: Ev[]): BuyerOutcome[] {
     const listCents = deal && typeof p(deal).list_price_cents === "number" ? (p(deal).list_price_cents as number) : null;
     const fit = deal ? buyerFit(profileEv ? (p(profileEv).lever_profile as Record<string, number>) : undefined, levers, listCents, price) : null;
 
-    const drawn = evs.find((e) => e.actor === "seller" && typeof p(e).arm === "string");
-    const context = drawn && typeof p(drawn).bandit_context === "string" ? (p(drawn).bandit_context as string)
-      : contextOf(profileEv ? (p(profileEv).lever_profile as Record<string, number>) : undefined);
-
     const firstAsk = evs.find((e) => e.type === "offer_made");
     const firstReply = firstAsk && evs.find((e) => e.actor === "seller" && e.price_cents != null && ts(e) >= ts(firstAsk));
     out.push({
@@ -126,8 +115,6 @@ export function buyerOutcomes(events: Ev[]): BuyerOutcome[] {
       ms_to_first_offer: firstAsk && firstReply ? ts(firstReply) - ts(firstAsk) : null,
       buyer_fit: fit,
       levers,
-      context,
-      arm: drawn ? (p(drawn).arm as string) : null,
     });
   }
   return out;
