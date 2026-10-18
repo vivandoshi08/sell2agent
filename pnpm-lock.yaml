@@ -91,6 +91,9 @@ importers:
 
   apps/marketplace:
     dependencies:
+      '@sa/payments':
+        specifier: workspace:*
+        version: link:../../packages/payments
       '@sa/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -98,6 +101,9 @@ importers:
         specifier: ^4.21.0
         version: 4.22.3
     devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.5
       tsx:
         specifier: ^4.19.0
         version: 4.23.15
