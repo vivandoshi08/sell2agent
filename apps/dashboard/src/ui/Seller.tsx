@@ -45,6 +45,8 @@ const RULE_LABEL: Record<string, string> = {
   injection_flag: "Ignored instructions in buyer text", input_injection: "Ignored instructions in buyer text",
   price_in_text_mismatch: "Price matches the offer", floor_disclosure: "Never reveals the floor", unpriced_concession: "Only priced perks",
   false_final: "No fake “final offer”", stale_or_foreign_offer: "Only this buyer's live offer", tampered_payment: "Charges the locked amount", payment_refused: "Only the buyer who agreed can pay",
+  followup: "Buyer said OK to follow up", no_new_concession: "No new discount", followup_cap: "One follow-up a week", unsubscribed: "Respects STOP",
+  followup_policy: "Package must fit your rules", reply_cap: "Reply limit",
 };
 export function ruleLabel(r: string) {
   if (r.startsWith("lever:")) return `Perk allowed: ${r.slice(6).replace(/_/g, " ")}`;
@@ -55,7 +57,8 @@ interface Move { key: string; ts?: string; who: "buyer" | "seller" | "system"; t
 
 function toMove(e: NegotiationEvent, i: number): Move | null {
   const p = pl(e), price = e.price_cents != null ? usd(e.price_cents) : "";
-  const levers = Array.isArray(p.lever_package) ? (p.lever_package as { label?: string; id?: string }[]).map((l) => l.label ?? l.id).filter(Boolean) as string[] : [];
+  // The exchange logs lever ids ("free_shipping"); older rows carry { id, label } objects.
+  const levers = Array.isArray(p.lever_package) ? (p.lever_package as ({ label?: string; id?: string } | string)[]).map((l) => (typeof l === "string" ? l.replace(/_/g, " ") : l.label ?? l.id)).filter(Boolean) as string[] : [];
   const plus = levers.length ? ` + ${levers.join(", ")}` : "";
   const refs = Array.isArray(p.rule_refs) ? (p.rule_refs as string[]) : [];
   const why = str(p.reason) ?? str(p.message);
@@ -64,7 +67,12 @@ function toMove(e: NegotiationEvent, i: number): Move | null {
     case "listing_viewed": return { key: k, ts: e.ts, who: "buyer", text: "Looked at the listing", rules: [], tone: "" };
     case "question_answered": return { key: k, ts: e.ts, who: "seller", text: p.grounded === false ? "Said “I don't know” instead of guessing" : "Answered from your catalog", why: str(p.question), rules: [], tone: "" };
     case "offer_made": return { key: k, ts: e.ts, who: "buyer", text: `Offered ${price}`, why: str(p.message), rules: [], tone: "" };
-    case "offer_countered": return { key: k, ts: e.ts, who: "seller", text: `Countered ${price}${plus}`, why, rules: refs, tone: "" };
+    case "offer_countered": return p.followup === true
+      ? { key: k, ts: e.ts, who: "seller", text: `Followed up by ${p.followup_channel === "sms" ? "text" : str(p.followup_channel) ?? "message"}: ${price}${plus}`, why, rules: refs.filter((r) => r !== "followup"), tone: "" }
+      : { key: k, ts: e.ts, who: "seller", text: `Countered ${price}${plus}`, why, rules: refs, tone: "" };
+    case "question_asked": return p.inbound === true
+      ? { key: k, ts: e.ts, who: "buyer", text: `Replied${str(p.message) ? `: “${str(p.message)}”` : ""}`, why: str(p.reply), rules: [], tone: "" }
+      : null;
     case "offer_accepted": return { key: k, ts: e.ts, who: "seller", text: `Accepted ${price}${plus}`, why, rules: refs, tone: "win" };
     case "deal_accepted": return { key: k, ts: e.ts, who: "seller", text: `Deal agreed at ${price}${plus}`, why, rules: refs, tone: "win" };
     case "payment_succeeded": return { key: k, ts: e.ts, who: "system", text: `Paid ${price}`, why: "Charged exactly the agreed amount, once", rules: [], tone: "win" };
@@ -75,16 +83,17 @@ function toMove(e: NegotiationEvent, i: number): Move | null {
       const held = typeof p.clamped_to_cents === "number" ? ` at ${usd(p.clamped_to_cents)}` : "";
       return { key: k, ts: e.ts, who: "seller", text: str(p.seller_message) ?? (routine ? `Held the price${held}` : "Blocked a move that broke your rules"), why: str(p.reason), rules: [String(p.rule ?? "rule")], tone: routine ? "" : "warn" };
     }
-    case "buyer_walked_away": return { key: k, ts: e.ts, who: "buyer", text: "Walked away", why: str(p.reason), rules: [], tone: "" };
+    case "buyer_walked_away": return { key: k, ts: e.ts, who: "buyer", text: p.followup_consent === true ? `Walked away, OK to follow up by ${p.channel === "sms" ? "text" : str(p.channel) ?? "message"}` : "Walked away", why: str(p.reason), rules: [], tone: "" };
     case "offer_expired": return { key: k, ts: e.ts, who: "system", text: "Offer expired", rules: [], tone: "" };
     default: return null;
   }
 }
 
-type Status = "Negotiating" | "Agreed" | "Paid" | "Walked away";
+type Status = "Negotiating" | "Agreed" | "Paid" | "Walked away" | "Followed up";
 function statusOf(evs: NegotiationEvent[]): Status {
   if (evs.some((e) => e.type === "payment_succeeded")) return "Paid";
   if (evs.some((e) => e.type === "deal_accepted")) return "Agreed";
+  if (evs.some((e) => e.type === "offer_countered" && pl(e).followup === true)) return "Followed up";
   if (evs.some((e) => e.type === "buyer_walked_away")) return "Walked away";
   return "Negotiating";
 }
