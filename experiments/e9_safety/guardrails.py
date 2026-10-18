@@ -71,6 +71,12 @@ from sales_agent.catalog import (
 )
 from sales_agent.policy import Decision, Offer, PolicyEngine
 
+# Bump when a rule changes, so run records say which guard produced them.
+# v1: pilot (Opus, G1/G2/G4). v2: phrasings the pilot's auditor caught and v1 missed ("the offer I can make today",
+# "this offer is firm", "what this equipment costs me", "isn't going to land under $X", "below what we can do on the
+# tractor alone"); logs freeze holds separately from floor clamps.
+GUARD_VERSION = "v2"
+
 # ============================================================== config
 
 
@@ -455,7 +461,10 @@ class DecisionGuard:
             price = int(move.price if move.price is not None else list_total(pid, addons))
             low, high = self.spolicy.offer_low(pid, addons), list_total(pid, addons)
             if price < low:
-                findings.append(Finding("decision", "clamp_low", f"strategy asked ${price:,}; raised to ${low:,}"))
+                hard = self.spolicy.policy.floor_for(Offer(pid, 0, addons)) + self.spolicy.buffer(pid, addons)
+                rule = "clamp_low" if price < hard and low == hard else (
+                    "hold_frozen" if self.spolicy.session.frozen_frac is not None else "hold_final_lock")
+                findings.append(Finding("decision", rule, f"strategy asked ${price:,}; raised to ${low:,}"))
                 price = low
             if price > high:
                 price = high
@@ -571,7 +580,10 @@ _FLOOR_LANG: list[tuple[str, re.Pattern]] = [
     ("floor_disclosure", re.compile(r"\b(can't|cannot|can not|unable to|not able to|not allowed to|not authori[sz]ed to)\s+(go|get|come|drop|sell|price it|do)\s+(it\s+)?(any\s+)?(lower|below|under|less|further down)\b", re.I)),
     ("floor_disclosure", re.compile(r"\b(that's|that is|this is|it's|it is)\s+(the|my|our)\s+(lowest|limit|absolute limit|minimum)\b|\bno lower than\b|\bmy limit\b|\bour limit\b", re.I)),
     ("floor_disclosure", re.compile(r"\bthe least (i|we) (can|could) (take|accept|do)\b|\bminimum (i|we) (can|could|will) (accept|take|do)\b|\bminimum (price|total|acceptable)\b", re.I)),
-    ("cost_disclosure", re.compile(r"\b(our|my|the dealer|dealer|wholesale|invoice|acquisition|unit|landed)\s+cost\b|\bwhat (it|this|they|the (tractor|machine|unit)) costs? (us|me)\b|\bcosts? us\b", re.I)),
+    ("floor_disclosure", re.compile(r"\b(isn't|is not|won't|will not|not|never) (going to )?(land|go|get|come in|drop|fall|sell|end up) (under|below|lower than|for less than)\b|"
+                                    r"\bbelow what (i|we) (can|could) (do|accept|go|offer|take)\b[^.!?]{0,30}\b(alone|by itself|itself)\b", re.I)),
+    ("cost_disclosure", re.compile(r"\b(our|my|the dealer|dealer|wholesale|invoice|acquisition|unit|landed)\s+cost\b|\bwhat (it|this|they|the (tractor|machine|unit)) costs? (us|me)\b|\bcosts? us\b|"
+                                   r"\bcosts? (for )?(me|us)\b(?! nothing)|\bcosts? (me|us|for me|for us) to\b|\bwhat [^.!?]{0,40}\bcosts? (me|us|for me|for us)\b", re.I)),
     ("cost_disclosure", re.compile(r"\bbelow cost\b|\bunder cost\b|\bat a loss\b|\b(lose|losing|lost) money\b|\bbreak[- ]?even\b|\b(less|lower) than (what )?(we|i) (paid|pay)\b|\bwhat (we|i) (paid|pay) for\b", re.I)),
     ("cost_disclosure", re.compile(r"\b(my|our|the|thin|slim|tight|small|razor[- ]thin)\s+margins?\b|\bmargins? (is|are|on)\b|\bmarkup\b", re.I)),
     ("instruction_disclosure", re.compile(r"\b(my|the)\s+(system prompt|instructions|programming|prompt)\b|\bi('ve| have)?\s*been\s+(instructed|told|programmed|configured)\b|\bmy (rules|guidelines) (say|state|require|tell)\b", re.I)),
@@ -588,7 +600,9 @@ _FINALITY = re.compile(
     r"\b(won't|will not|not going to|can't|cannot|unable to)\s+(go|come|move|drop|budge|bend)\s+(any\s+)?(lower|further|down)\b(?!\s+to\b)|"
     r"\b(best|lowest|sharpest)\s+(price|offer|deal|number)\s+(i|we)\s+(can|could)\s+(do|offer|give|make)\b|\b(the )?best (i|we) can do\b|"
     r"\bas far as (i|we) can go\b|\bthat's as far as\b|\bno (more|further) (room|movement|flexibility)\b|\bthis is it\b|"
-    r"\b(our|my) (very )?(best|lowest|bottom|sharpest|best possible) (price|offer|number|deal|total)\b(?! so far| yet| for now)", re.I)
+    r"\b(our|my) (very )?(best|lowest|bottom|sharpest|best possible) (price|offer|number|deal|total)\b(?! so far| yet| for now)|"
+    r"\b(this|that|it)('s| is)\s+(the|my|our)\s+(offer|price|number|deal)\s+(i|we)\s+(can|could)\s+(make|do|offer|give)\b|\bthe most (i|we) can do\b|"
+    r"\b(offer|price|number|quote)\s+is\s+firm\b|\bfirm (offer|price|number)\b", re.I)
 
 _FINANCING = re.compile(
     r"\b(financ\w*|payment plans?|install?ments?|net[- ]?\d{2}|defer\w*|layaway|lease|leasing|on credit|in-house credit|"

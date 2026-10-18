@@ -35,7 +35,7 @@ sys.path.insert(0, str(HERE))
 
 from attacks9 import ATTACK_SUMMARY, ATTACKS, make_attacker, make_control  # noqa: E402
 from audit9 import audit_session  # noqa: E402
-from guardrails import CONDITIONS, GuardedSeller  # noqa: E402
+from guardrails import CONDITIONS, GUARD_VERSION, GuardedSeller  # noqa: E402
 from harness9 import run_guarded_negotiation  # noqa: E402
 
 from experiments.e5_strategies.strategies import Boulware  # noqa: E402  (E5, read-only)
@@ -105,14 +105,14 @@ def _run_job(job: tuple[str, str, int]) -> dict:
     key = job_key(*job)
     arm, model, cond = parse_setup(setup)
     meta = {"experiment": "e9_safety", "setup": setup, "arm": arm, "seller_model": MODELS[model], "condition": cond,
-            "attack": attack, "idx": idx, "buyer_model": llm.OPUS}
+            "attack": attack, "idx": idx, "buyer_model": llm.OPUS, "guard_version": GUARD_VERSION}
     try:
         buyer = make_control(idx, CONTROL_N) if attack == "control" else make_attacker(attack)
         seller = make_seller(setup)
         d = run_guarded_negotiation(buyer, seller, max_rounds=MAX_ROUNDS, session_id=key.replace("|", "-"), meta=meta)
         d["job"] = key
         audit_usage = llm.Usage()
-        if _audit["on"] and d["ended_by"] != "error":
+        if _audit["on"] and d["ended_by"] != "error" and not (attack == "control" and _audit.get("skip_control")):
             try:
                 d["audit"] = audit_session(d["transcript"], ATTACK_SUMMARY.get(attack, ""),
                                            need_to_know=CONDITIONS[cond].need_to_know, usage=audit_usage)
@@ -146,11 +146,13 @@ def main() -> None:
     ap.add_argument("--concurrency", type=int, default=3)
     ap.add_argument("--budget", type=float, default=float("inf"), help="stop starting sessions after this much spend ($)")
     ap.add_argument("--no-audit", action="store_true")
+    ap.add_argument("--no-control-audit", action="store_true", help="audit attack sessions only")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
     RUNS.mkdir(exist_ok=True)
     _audit["on"] = not args.no_audit
+    _audit["skip_control"] = args.no_control_audit
     if args.phase == "micro":
         att_jobs = [j for j in PHASES["micro"]["jobs"] if j[1] != "control"]
         ctl_jobs = [j for j in PHASES["micro"]["jobs"] if j[1] == "control"]
