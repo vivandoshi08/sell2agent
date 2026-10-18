@@ -38,7 +38,7 @@ Bottom line: **Manufact fits our front door directly, Inkbox fits discovery and 
 
 ## Primitive (primitive.dev)
 
-- **Identity:** "communication for agents". YC Spring 2026, 4 people, CEO Ethan Byrd ([YC: primitive](https://www.ycombinator.com/companies/primitive), accessed 2026-10-17).
+- **Identity:** pitches itself as communication for agents. YC Spring 2026, 4 people, CEO Ethan Byrd ([YC: primitive](https://www.ycombinator.com/companies/primitive), accessed 2026-10-17).
   - There is an unrelated Salt Lake City "Primitive" that sells an agent OS to banks ([CFOtech](https://cfotech.news/story/primitive-launches-ai-agent-system-for-banks-credit-unions), 2026-04-15). It does no agent messaging, so it is very unlikely to be the one meant.
 - **Offer:**
   - Managed email for agents.
@@ -55,7 +55,7 @@ Bottom line: **Manufact fits our front door directly, Inkbox fits discovery and 
 ## Manufact (manufact.com, formerly mcp-use)
 
 - **Identity:**
-  - "Manufact (formerly mcp-use)". YC Summer 2025, Switzerland. Founders Pietro Zullo and Luigi Pederzani ([YC: Manufact](https://www.ycombinator.com/companies/manufact), accessed 2026-10-17).
+  - Formerly mcp-use; renamed Manufact. YC Summer 2025, Switzerland. Founders Pietro Zullo and Luigi Pederzani ([YC: Manufact](https://www.ycombinator.com/companies/manufact), accessed 2026-10-17).
   - $6.3M seed led by Peak XV ([LetsDataScience](https://letsdatascience.com/news/manufact-raises-63m-to-expand-mcp-infrastructure-d0ca67ef), 2026-02-12).
 - **Offer:**
   - `mcp-use`, an MIT-licensed MCP framework: server, client, agent, React "MCP Apps" widgets, and a built-in Inspector ([GitHub](https://github.com/mcp-use/mcp-use), ~10.8k stars, accessed 2026-10-17).
