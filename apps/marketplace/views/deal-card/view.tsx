@@ -4,7 +4,7 @@
  * The look lives in DealCardView.tsx; this file only wires it to the host.
  */
 import { useState } from "react";
-import { useDynamicTool, useToolContext, useViewTheme, type ViewConfig } from "mcp-use/react";
+import { useDynamicTool, useSendFollowUp, useToolContext, useViewTheme, type ViewConfig } from "mcp-use/react";
 import type { DealCard, PayResult } from "../../src/deal/types";
 import { DealCardView, type PayState } from "./DealCardView";
 
@@ -25,6 +25,7 @@ export default function DealCardHost() {
   const ctx = useToolContext();
   const theme = useViewTheme();
   const payDeal = useDynamicTool<{ deal_id: string; run_id?: string; buyer_id?: string; buyer_model?: string }, PayResult>("pay_deal");
+  const sendFollowUp = useSendFollowUp();
   const [pay, setPay] = useState<PayState>({ kind: "idle" });
 
   if (ctx.status === "pending") return <p style={{ font: "14px system-ui", opacity: 0.7 }}>Loading the deal…</p>;
@@ -39,6 +40,12 @@ export default function DealCardHost() {
       const res = await payDeal.callTool({ deal_id: card.deal_id, run_id: input.run_id, buyer_id: input.buyer_id, buyer_model: input.buyer_model });
       const r = (res.structuredContent ?? null) as PayResult | null;
       setPay(r ? toPayState(r) : { kind: "error", message: "No payment result came back." });
+      // The model never sees a tool call made from inside the card, so tell the chat what happened.
+      // Otherwise ChatGPT answers "did we buy it?" with "no payment was made".
+      if (r && (r.status === "succeeded" || r.already_paid)) {
+        const usd = `$${(card.total_cents / 100).toFixed(2)}`;
+        sendFollowUp({ prompt: `I approved and paid ${usd} for ${card.product.title} in the deal card (Stripe test mode${r.payment_intent_id ? `, receipt ${r.payment_intent_id}` : ""}). Confirm the purchase in one line.` }).catch(() => {});
+      }
     } catch (e) {
       setPay({ kind: "error", message: (e as Error).message });
     }
