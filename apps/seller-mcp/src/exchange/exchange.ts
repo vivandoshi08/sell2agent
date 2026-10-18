@@ -16,7 +16,7 @@ import { defaultSink, type EventSink } from "./events";
 import { inspectInput } from "./input-guard";
 import { checkOutput, fallbackMessage, type OutputContext } from "./output-guard";
 import { allowedActions, assertTransition } from "./state";
-import { MemoryStore, memoryKey, type ExchangeStore } from "./store";
+import { MemoryStore, memoryKey, probeId, type ExchangeStore } from "./store";
 import { ProbeBreaker, StartLimiter, buyerEndpoint, jitterStep, leverCost, NEAR_MISS_BAND } from "./probing";
 import { CONCESSION_CAP } from "./decision-guard";
 import { Outreach, type Sender } from "./outreach";
@@ -78,7 +78,7 @@ export class Exchange {
     if (got.n.state !== "walked_away") return fail("not_allowed", "follow-ups are only offered after walking away");
     this.outreach.consent(got.n, consent);
     await this.store.putNegotiation(got.n);
-    return { ok: true, negotiation_id, state: got.n.state, allowed_actions: ["status"], message: `OK. We'll send at most one later offer to ${consent.reply_to}. Reply STOP any time.` };
+    return { ok: true, negotiation_id, buyer_id, state: got.n.state, allowed_actions: ["status"], message: `OK. We'll send at most one later offer to ${consent.reply_to}. Reply STOP any time.` };
   }
 
   /** Inbound reply on the messaging door → structured move or a clarifying question. */
@@ -203,10 +203,11 @@ export class Exchange {
     // E11 jitter: noisy steps toward a private per-buyer endpoint (not when frozen: a frozen price is final)
     if (move.action === "offer" && !n.frozen) {
       const soft = softFloor(p.list_price_cents, p.floor_price_cents, this.buffer);
-      const end = buyerEndpoint(n.buyer_id, base.product_id, soft, p.list_price_cents, p.floor_price_cents);
+      const who = probeId(n.buyer_id); // anon buyers share one endpoint + jitter stream per product
+      const end = buyerEndpoint(who, base.product_id, soft, p.list_price_cents, p.floor_price_cents);
       const maxStep = Math.ceil(CONCESSION_CAP * (p.list_price_cents - p.floor_price_cents));
       let price = prevSeller === undefined ? Math.max(move.price_cents, end)
-        : jitterStep(prevSeller, move.price_cents, `${n.buyer_id}|${base.product_id}|${n.round}`, end, maxStep);
+        : jitterStep(prevSeller, move.price_cents, `${who}|${base.product_id}|${n.round}`, end, maxStep);
       if (prevSeller !== undefined && prevSeller >= soft) price = Math.min(price, prevSeller);
       if (price !== move.price_cents) move = { ...move, price_cents: price, reason_text: `We can offer ${usd(price)} this round.` };
     }
@@ -377,7 +378,7 @@ export class Exchange {
     const live = o && (o.status === "live" || o.status === "accepted") ? o : null;
     const { signature: _s, ...deal } = (r.deal ?? {}) as LockedDeal;
     return {
-      ok: r.ok ?? true, negotiation_id: n.id, state: n.state, status: r.status,
+      ok: r.ok ?? true, negotiation_id: n.id, buyer_id: n.buyer_id, state: n.state, status: r.status,
       standing_offer: live ? { offer_id: live.offer_id, price_cents: live.price_cents, quantity: live.quantity, levers: live.levers, final: live.final, expires_at: live.expires_at, round: live.round } : undefined,
       deal: r.deal ? deal : undefined,
       round: n.round, rounds_left: Math.max(0, p.max_rounds - n.round),

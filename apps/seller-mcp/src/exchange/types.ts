@@ -162,6 +162,8 @@ export interface ExchangeError {
 export interface ExchangeResponse {
   ok: boolean;
   negotiation_id?: string;
+  /** Echo of ctx.buyer_id (incl. gateway-minted anon_ ids) so the caller can send it back on the next move. */
+  buyer_id?: string;
   state?: NegotiationState;
   /** "counter" = seller offer stands; "accept" = seller accepted buyer price, deal locked. */
   status?: "counter" | "accept" | "reject" | "walked" | "info";

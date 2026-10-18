@@ -176,6 +176,29 @@ test("buyer memory: restarting never gets a better price (E11 bisection)", async
   assert.ok(back.standing_offer!.price_cents <= fresh.standing_offer!.price_cents, "returning buyer never quoted higher");
 });
 
+test("anon buyers share one bucket per product: a fresh anon_ chat can't beat the last one or reset the start limit", async () => {
+  const { ex } = setup();
+  const runOut = async (id: string) => {
+    let r = await ex.handle({ kind: "offer", ctx: ctx(id), product_id: P, offer_price_cents: 9000 });
+    assert.equal(r.buyer_id, id, "buyer_id echoed");
+    while (r.allowed_actions.includes("offer")) r = await ex.handle({ kind: "offer", ctx: ctx(id), product_id: P, negotiation_id: r.negotiation_id, offer_price_cents: 9000 });
+    await ex.handle({ kind: "walk", ctx: ctx(id), negotiation_id: r.negotiation_id! });
+    return r.standing_offer!.price_cents;
+  };
+  const first = await runOut("anon_aaaa1111");
+  const fresh = await ex.handle({ kind: "offer", ctx: ctx("anon_bbbb2222"), product_id: P, offer_price_cents: 9000 });
+  assert.ok(fresh.standing_offer!.price_cents >= first, `fresh anon opened at ${fresh.standing_offer!.price_cents} < ${first}`);
+  await ex.handle({ kind: "walk", ctx: ctx("anon_bbbb2222"), negotiation_id: fresh.negotiation_id! });
+  for (const id of ["anon_cccc3333", "anon_dddd4444"]) assert.ok((await runOut(id)) >= first, "later anon chats never beat the first");
+  const fifth = await ex.handle({ kind: "offer", ctx: ctx("anon_eeee5555"), product_id: P, offer_price_cents: 9000 });
+  assert.equal(fifth.error?.code, "rate_limited", "shared anon start limit: 4 per product per day");
+  // named buyers keep their own bucket: a fresh session negotiates from list, not from the anon history
+  const named = await ex.handle({ kind: "offer", ctx: ctx("alice"), product_id: P, offer_price_cents: 9000 });
+  assert.equal(named.ok, true);
+  assert.equal(named.round, 1, "named buyer starts its own concession clock");
+  assert.ok(named.standing_offer!.price_cents > first, "named buyer not resumed at the anon price");
+});
+
 test("jitter: per-buyer endpoints differ, all at or above the soft floor; steps not a fixed curve", async () => {
   const { ex } = setup();
   const finals: number[] = [];
