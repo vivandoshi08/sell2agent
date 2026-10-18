@@ -12,7 +12,7 @@ import { decide as e2decide, voice as e2voice, type Llm, type ProposedMove, type
 import { StaticCatalog } from "./catalog";
 import { guardMove } from "./decision-guard";
 import { Deals, lockDeal } from "./deals";
-import { defaultSink, guardrailSeverity, type EventSink } from "./events";
+import { defaultSink, guardrailSeverity, ruleRef, sellerMessage, type EventSink } from "./events";
 import { inspectInput } from "./input-guard";
 import { checkOutput, fallbackMessage, type OutputContext } from "./output-guard";
 import { allowedActions, assertTransition } from "./state";
@@ -89,7 +89,10 @@ export class Exchange {
 
   /** Deploy default: Supabase store + events when SUPABASE_URL is set, else in-memory. */
   static async fromEnv(o: Omit<ExchangeOptions, "store"> = {}): Promise<Exchange> {
-    const catalog = o.catalog ?? new StaticCatalog();
+    // Live catalog: products + seller_policies from Supabase, so console edits reach negotiations (S2 demo P0).
+    // EXCHANGE_CATALOG=static pins the code seed (demo rollback switch).
+    const live = process.env.EXCHANGE_CATALOG === "static" ? null : await (await import("./supabase-catalog")).supabaseCatalogFromEnv();
+    const catalog = o.catalog ?? live ?? new StaticCatalog();
     const { supabaseStoreFromEnv } = await import("./supabase-store");
     const store = (await supabaseStoreFromEnv(catalog)) ?? new MemoryStore();
     return new Exchange({ ...o, catalog, store });
@@ -129,12 +132,14 @@ export class Exchange {
 
     let n: Negotiation;
     let p: ProductConfig | null;
+    const refs: string[] = []; // seller-facing rule chips for this turn (rule_refs)
     if (!m.negotiation_id) {
       p = await this.catalog.get(m.product_id);
       if (!p) return fail("unknown_product", `no product ${m.product_id}; use search_products to find one`);
       if (!this.limiter.allow(limitKey(m.ctx.buyer_id, p.product_id, m.ctx.run_id), startLimitFor(m.ctx.buyer_id)))
         return fail("rate_limited", "too many negotiations started on this product today; continue an existing negotiation_id instead");
       n = this.newNegotiation(m, p, qty);
+      this.client(n, m.ctx, p);
       if (m.strategy && isEvalRun(m.ctx.run_id) && ["static", "negotiating", "balanced"].includes(m.strategy)) n.strategy = m.strategy;
       // E11 buyer memory: a returning buyer resumes where they left off. Never quoted higher than before,
       // and the concession clock doesn't restart, so restarting can't bisect toward the floor.
@@ -143,6 +148,7 @@ export class Exchange {
         n.round = Math.min(mem.round, p.max_rounds - 1);
         n.frozen = mem.round >= p.max_rounds; // deadline already used: one final offer per buyer, at their best price
         n.history.push({ by: "seller", round: n.round, price_cents: mem.lowest_offer_cents });
+        refs.push("buyer_memory");
         await this.emit(n, "guardrail_blocked", "seller", mem.lowest_offer_cents, { rule: "buyer_memory_resume", reason: "returning buyer resumes at their last offer", sessions: mem.sessions + 1 });
       }
       await this.store.putNegotiation(n);
@@ -156,6 +162,7 @@ export class Exchange {
     }
 
     if (n.strategy) p = { ...p, strategy: n.strategy }; // eval A/B override (signed eval runs only)
+    this.client(n, m.ctx, p);
     // lever package: only levers this listing offers; price is checked against floor + lever costs
     const levers = [...new Set(m.levers ?? n.levers ?? [])];
     const bad = levers.filter((l) => !p!.allowed_levers.includes(l));
@@ -179,6 +186,7 @@ export class Exchange {
     const input = inspectInput(m.message ?? "");
     if (input.flagged) {
       n.attack_flags++;
+      refs.push("injection_guard");
       await this.emit(n, "guardrail_blocked", "seller", null, { rule: "input_injection", markers: input.markers, reason: "injected instructions removed from buyer message" });
       if (!n.frozen && n.attack_flags >= BREAKER_THRESHOLD) {
         n.frozen = true;
@@ -201,7 +209,7 @@ export class Exchange {
         unit_cost_cents: p.unit_cost_cents, max_rounds: p.max_rounds }, history: n.history.slice(0, -1), buyer_offer_cents: m.offer_price_cents },
       { name: p.strategy, soft_floor_buffer: this.buffer, final_round_accept_zone: !n.frozen && this.breaker.open(breakerKey(base.product_id, n.run_id)) }, m.buyer_profile);
     let { move, blocks } = guardMove({ move: proposed, product: p, round: n.round, prev_seller_offer_cents: prevSeller, frozen: n.frozen, soft_floor_buffer: this.buffer });
-    for (const b of blocks) await this.emit(n, "guardrail_blocked", "seller", move.price_cents, { ...b });
+    for (const b of blocks) { refs.push(ruleRef(b.rule)); await this.emit(n, "guardrail_blocked", "seller", move.price_cents, { ...b }); }
 
     // E11 jitter: noisy steps toward a private per-buyer endpoint (not when frozen: a frozen price is final)
     if (move.action === "offer" && !n.frozen) {
@@ -219,6 +227,7 @@ export class Exchange {
       const gap = base.list_price_cents - base.floor_price_cents;
       if (m.offer_price_cents < p.floor_price_cents && m.offer_price_cents >= p.floor_price_cents - NEAR_MISS_BAND * gap) {
         this.breaker.trip(breakerKey(base.product_id, n.run_id));
+        refs.push("probe_guard");
         await this.emit(n, "guardrail_blocked", "seller", null, { rule: "probe_breaker", reason: "near-miss deadline bid; final-round accept zone closed for 24 h" });
       }
     }
@@ -230,8 +239,9 @@ export class Exchange {
       const offer = this.newOffer(n, move, qty, "accepted");
       await this.supersede(standing);
       await this.store.putOffer(offer);
-      const deal = await this.lock(n, base, offer); // base floor: lock() subtracts lever cost itself (p's floor already includes it)
-      await this.emit(n, "offer_accepted", "seller", move.price_cents, { offer_id: offer.offer_id, lever_package: offer.levers, message, final: true, expires_at: deal.expires_at });
+      const why = this.why(move.reason_text, ruleRefs(refs, move, p, offer), [base.floor_price_cents, p.floor_price_cents, p.unit_cost_cents]);
+      const deal = await this.lock(n, base, offer, why); // base floor: lock() subtracts lever cost itself (p's floor already includes it)
+      await this.emit(n, "offer_accepted", "seller", move.price_cents, { offer_id: offer.offer_id, lever_package: offer.levers, message, final: true, expires_at: deal.expires_at, ...why });
       return this.respond(n, p, offer, { ok: true, status: "accept", message, reason: move.reason, deal });
     }
 
@@ -242,7 +252,8 @@ export class Exchange {
     n.standing_offer_id = offer.offer_id;
     await this.setState(n, "negotiating");
     await this.remember(n, move.price_cents);
-    await this.emit(n, "offer_countered", "seller", move.price_cents, { offer_id: offer.offer_id, lever_package: offer.levers, message, final: offer.final, expires_at: offer.expires_at, round: n.round });
+    await this.emit(n, "offer_countered", "seller", move.price_cents, { offer_id: offer.offer_id, lever_package: offer.levers, message, final: offer.final, expires_at: offer.expires_at, round: n.round,
+      ...this.why(move.reason_text, ruleRefs(refs, move, p, offer), [base.floor_price_cents, p.floor_price_cents, p.unit_cost_cents]) });
     return this.respond(n, p, offer, { ok: true, status: "counter", message, reason: move.reason });
   }
 
@@ -252,6 +263,7 @@ export class Exchange {
     const n = got.n;
     const p = await this.catalog.get(n.product_id);
     if (!p) return fail("unknown_product", `product ${n.product_id} is no longer sold`);
+    this.client(n, m.ctx, p);
     const o = await this.store.getOffer(m.offer_id);
     if (!o || o.negotiation_id !== n.id) return fail("unknown_offer", `offer ${m.offer_id} isn't an offer in negotiation ${n.id}`);
     if (o.buyer_id !== m.ctx.buyer_id) return fail("wrong_buyer", "that offer was made to a different buyer");
@@ -274,8 +286,9 @@ export class Exchange {
 
     const accepted: StandingOffer = { ...o, status: "accepted" };
     await this.store.putOffer(accepted);
-    const deal = await this.lock(n, p, accepted);
-    await this.emit(n, "offer_accepted", "buyer", o.price_cents, { offer_id: o.offer_id, lever_package: o.levers, final: o.final, expires_at: deal.expires_at });
+    const why = this.why(`The buyer accepted the standing offer of ${usd(o.price_cents)}.`, ["buyer_accepted", ...o.levers.map((l) => `lever:${l}`)]);
+    const deal = await this.lock(n, p, accepted, why);
+    await this.emit(n, "offer_accepted", "buyer", o.price_cents, { offer_id: o.offer_id, lever_package: o.levers, final: o.final, expires_at: deal.expires_at, ...why });
     return this.respond(n, p, accepted, { ok: true, status: "accept", message: `Deal locked: ${p.title} at ${usd(o.price_cents)}. Approve and pay to complete.`, deal });
   }
 
@@ -337,7 +350,7 @@ export class Exchange {
       final: move.final, expires_at: new Date(this.now() + OFFER_TTL_MS).toISOString(), status, round: n.round };
   }
 
-  private async lock(n: Negotiation, p: ProductConfig, o: StandingOffer): Promise<LockedDeal> {
+  private async lock(n: Negotiation, p: ProductConfig, o: StandingOffer, why: { reason?: string; rule_refs?: string[] } = {}): Promise<LockedDeal> {
     const deal = lockDeal({ negotiation_id: n.id, offer_id: o.offer_id, buyer_id: n.buyer_id, seller_id: n.seller_id, product_id: p.product_id,
       title: p.title, quantity: o.quantity, unit_price_cents: o.price_cents, list_price_cents: p.list_price_cents, levers: o.levers }, this.now());
     await this.store.putDeal(deal);
@@ -348,7 +361,7 @@ export class Exchange {
     const lever_cost_cents = leverCost(deal.levers, p.lever_costs);
     await this.emit(n, "deal_accepted", "seller", deal.unit_price_cents, { deal_id: deal.deal_id, offer_id: o.offer_id, lever_package: deal.levers,
       list_price_cents: p.list_price_cents, total_cents: deal.total_cents, quantity: deal.quantity, expires_at: deal.expires_at,
-      unit_cost_cents: p.unit_cost_cents, lever_cost_cents, below_floor: deal.unit_price_cents - lever_cost_cents < p.floor_price_cents });
+      unit_cost_cents: p.unit_cost_cents, lever_cost_cents, below_floor: deal.unit_price_cents - lever_cost_cents < p.floor_price_cents, ...why });
     return deal;
   }
 
@@ -390,16 +403,42 @@ export class Exchange {
     };
   }
 
+  /** Seller-facing context: public title, and channel / agent_operator when the gateway sends them in ctx (contract v3). */
+  private client(n: Negotiation, ctx: unknown, p: ProductConfig) {
+    n.product_title = p.title;
+    const c = ctx as { channel?: unknown; agent_operator?: unknown };
+    if (typeof c?.channel === "string" && c.channel) n.channel = c.channel.slice(0, 32);
+    if (typeof c?.agent_operator === "string" && c.agent_operator) n.agent_operator = c.agent_operator.slice(0, 32);
+  }
+
+  /** `reason` = the true reason handed to the voice (one sentence, never floor or cost); `rule_refs` = rule chips. */
+  private why(reason: string, rule_refs: string[], privateCents: number[] = []) {
+    // events aren't access-controlled: a reason that names a private figure (floor, cost) is replaced, not logged
+    const leaks = privateCents.some((c) => reason.includes(usd(c)) || reason.includes(String(c / 100)));
+    return { reason: (leaks ? "Price set by your negotiation rules." : reason).slice(0, 280), rule_refs: [...new Set(rule_refs)] };
+  }
+
   private async emit(n: Negotiation, type: NegotiationEvent["type"], actor: NegotiationEvent["actor"], price: number | null, payload: Record<string, unknown>) {
     const sink = await this.sinkP;
     try {
       await sink({ run_id: n.run_id, buyer_id: n.buyer_id, buyer_model: n.buyer_model, seller_id: n.seller_id, product_id: n.product_id,
         negotiation_id: n.id, actor, type, price_cents: price,
-        payload: { ...payload, ...(type === "guardrail_blocked" ? { severity: guardrailSeverity(payload.rule) } : {}), state: n.state } });
+        payload: { ...payload, ...(type === "guardrail_blocked" ? { severity: guardrailSeverity(payload.rule), seller_message: payload.seller_message ?? sellerMessage(payload.rule) } : {}),
+          ...(n.product_title ? { product_title: n.product_title } : {}), ...(n.channel ? { channel: n.channel } : {}),
+          ...(n.agent_operator ? { agent_operator: n.agent_operator } : {}), state: n.state } });
     } catch (e) {
       console.error("[exchange] event sink failed", (e as Error).message);
     }
   }
+}
+
+const REASON_REF: Partial<Record<ProposedMove["reason"], string>> = {
+  fixed_price: "fixed_price", opening_at_list: "pacing", pacing: "pacing", already_at_best: "floor", final_offer: "last_round",
+  final_round_accept: "last_round", buyer_offer_meets_ask: "buyer_met_ask", lever_instead_of_cut: "lever_instead_of_cut",
+};
+/** Rule chips for a seller move: guards that fired this turn, the decision's reason, the policy and the extras included. */
+function ruleRefs(refs: string[], move: ProposedMove, p: ProductConfig, o: StandingOffer): string[] {
+  return [...refs, REASON_REF[move.reason] ?? move.reason, `policy:${p.strategy}`, ...(o.final && move.action === "offer" ? ["last_round"] : []), ...o.levers.map((l) => `lever:${l}`)];
 }
 
 function lastSeller(n: Negotiation): number | undefined {

@@ -53,7 +53,7 @@ console.log(`\n${buyers.length} buyers · models: ${models.join(", ")} · gatewa
 const summaries: Summary[] = [];
 for (const policy of policies) {
   const voiceLlm = f["seller-voice"] ? defaultLlm() : null;
-  const gw: Gateway = gatewayUrl ? new McpGateway(gatewayUrl)
+  const gw: Gateway = gatewayUrl ? new McpGateway(gatewayUrl, policy as Strategy)
     : f.exchange ? new ExchangeGateway(policy as Strategy, voiceLlm, { max_rounds: f["max-rounds"] ? Number(f["max-rounds"]) : undefined })
     : new LocalGateway(policy, voiceLlm);
   const raw_id = `run_${stamp}_${policy}${f["max-rounds"] ? `_r${f["max-rounds"]}` : ""}`;

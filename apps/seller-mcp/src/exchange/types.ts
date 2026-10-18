@@ -125,6 +125,10 @@ export interface Negotiation {
   run_id: string;
   /** Eval A/B override (signed eval runs only); absent = the product's catalog strategy. */
   strategy?: "static" | "negotiating" | "balanced";
+  /** Seller-facing event fields (Instinct demo): public listing title, and how the buyer reached us (from ctx). */
+  product_title?: string;
+  channel?: string; // "messaging" (Instinct) | "mcp_app" (ChatGPT/Claude) | "web" | "harness"
+  agent_operator?: string; // "instinct" | "chatgpt" | "claude" | "harness"
   buyer_id: string;
   buyer_model: string;
   seller_id: string;

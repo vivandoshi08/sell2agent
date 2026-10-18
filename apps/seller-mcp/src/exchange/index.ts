@@ -17,6 +17,7 @@ export type { PaymentCheck } from "./deals";
 export { MemoryStore, probeId, memoryKey, limitKey, breakerKey, signEvalRun, isEvalRun, EVAL_PREFIX, isAnon, isClientAsserted, liveMemory, ANON_PREFIX, OAI_PREFIX, ANON_MEMORY_TTL_MS } from "./store";
 export type { ExchangeStore } from "./store";
 export { StaticCatalog, SEED_PRODUCTS } from "./catalog";
+export { SupabaseCatalog, supabaseCatalogFromEnv, type SupabaseCatalogOptions } from "./supabase-catalog";
 export { MemorySink, defaultSink, guardrailSeverity } from "./events";
 export type { EventSink, GuardrailSeverity } from "./events";
 export { TRANSITIONS, canTransition, allowedActions } from "./state";
