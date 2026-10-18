@@ -8,6 +8,48 @@
 - Manufact's framework (mcp-use) is TypeScript-first. The deal-card widget is a React view in mcp-use TS, and the Python version has no widgets.
 - The Python experiment harness (`sales_agent/`, `experiments/`) keeps working as an outside evaluator. It talks to any MCP server over HTTP, so it can test the TypeScript seller unchanged.
 
+## The end goal (what the demo must do)
+
+A person opens **ChatGPT** (or Claude), says *"I want a mechanical keyboard"*, and their own assistant goes through **our marketplace**: it finds competing sellers, talks to each seller's agent, gets offers tailored to **what this person wants** (budget, must-haves, quiet vs. tactile, how much they care about price vs. quality) and to **what each seller prioritizes** (profit, conversion, clearing stock), negotiates, and **closes**: the person approves and it's paid.
+
+## The catch that shapes the core: ChatGPT connects to one MCP server
+
+A ChatGPT or Claude user adds **one connector** (one MCP URL). The assistant can't jump to per-seller `mcp_url`s returned by a REST `/search`. So for the end goal:
+
+- **The marketplace is an MCP gateway** (one connector, hosted on Manufact). It exposes `search_products` (with the buyer's preferences) and the seller tools, and routes each call to the right **seller agent** on the server side.
+- **Each seller agent stays separate**, with its own catalog, policy (floor, cost, concessions), and priority. The gateway is a router, not a seller.
+- **The simulated buyers use the same gateway** as ChatGPT, so our evals measure the real path.
+- **Closing in ChatGPT:** `accept_deal` returns a deal card (Manufact MCP App) with an Approve & Pay button; approving creates the Stripe test-mode PaymentIntent at the agreed price.
+
+This needs Neel's sign-off (contract proposal below), since today `apps/marketplace` is REST-only.
+
+## CORE first: the thin end-to-end version of every layer
+
+Everything works end to end in its simplest form before any extra is added. "Core still has it all": every layer exists, just not every feature.
+
+| Layer | Core version | Owner |
+|---|---|---|
+| Ways in | **Marketplace MCP gateway** (one connector): `search_products(query, preferences)`, `get_listing`, `ask_question`, `make_offer`, `accept_deal`, routed to seller agents. Deployed on Manufact; added to ChatGPT and Claude. | C (gateway), A (seller side) |
+| Catalog | Mechanical keyboards: 3–4 competing products per sub-type from different sellers, each seller with its own policy and priority (seed data). | C |
+| Seller agent | Strategy picks the price (static baseline, negotiating = hold list longer + slow concession + concession before discount); LLM writes the pitch with the true reason; tailors to the buyer's stated preferences; respects the seller's priority. | A |
+| Safety | Floor checked on counters **and** accepts; soft floor; output check (price in text = structured price, no floor leak, no false "final", no unpriced freebies); buyer text treated as untrusted. | A |
+| Closing | Deal card widget → Approve & Pay → Stripe test PaymentIntent at the agreed price; amount from the stored deal. | A (widget), B (Stripe helper) |
+| Buyers | Simulated buyers with personas (price-first, quality-first, balanced; budgets, must-haves; some walk away) on 2 model families, going through the gateway. | B |
+| Data | Every action logged to Supabase `events`. | all |
+| Proof | Eval runner: static vs. negotiating; dashboard with conversion, safe conversion, profit per buyer, margin, guardrail log. | D |
+| Learning | Simplest real version: a bandit over the vetted strategies, learning from logged outcomes, shown on the dashboard. | D |
+
+**Core is done when:** in ChatGPT, "I want a mechanical keyboard" → search → offers from several sellers → haggle → deal card → paid, with the guardrail log clean; and the dashboard shows static vs. negotiating from simulated buyers.
+
+## AFTER core (in this order)
+
+1. Full learning loop: buyer simulator fitted to logs, Q-learning, promotion gate, `learned` strategy (S3 below).
+2. Decision feedback ("why did you choose this?"), speed as a KPI.
+3. Buyer entities and cross-session memory; a sentinel module for repeated attacks; escalation to the merchant.
+4. A2A over Inkbox (verified seller identity, seller-initiated messages); optional agent team.
+5. Payment depth: capped payment token, Link deposit, OAuth on payment.
+6. More strategies (adaptive, dynamic, inventory-aware), merchant console, broker mode, signposts and registry, outside benchmark.
+
 ## Stages: everything ships, in this order
 
 Everything we've discussed is in scope for the hackathon. These stages set the order, so the most important thing works first and each stage builds on the last. Times line up with CLAUDE.md's checkpoints.
@@ -111,6 +153,8 @@ Narrowed on purpose: **two ways in with distinct jobs, one engine behind both.**
 | `accept_deal` takes an optional `payment_token` (Stripe Shared Payment Token) and returns `PaymentResult`-style `status`, `reasons`, `fix` | Stripe track: buyer's spend cap enforced by Stripe, refusals explainable | medium |
 | Event types `guardrail_blocked` with `payload.rule` (`accept_below_floor`, `price_in_text_mismatch`, `floor_disclosure`, `unpriced_concession`, `false_final`, `injection_flag`) | Dashboard guardrail log and safe-conversion scoring | small |
 | (Stretch) `review_deal` tool with an MCP App widget | Manufact track; a human approves before payment | medium |
+| **Marketplace becomes an MCP gateway** (one connector for ChatGPT/Claude) exposing `search_products` + the seller tools, routing to seller agents; `SearchQuery` gains buyer `preferences` (budget, must-haves, priority: price / quality / speed) | The end goal: ChatGPT can only use one connector | medium, **core** |
+| `Seller.priority` (profit / conversion / balanced / clear_stock) | Each seller's priority shapes its offers (E10) | small, **core** |
 | `Seller.strategy` enum adds `"learned"`, `"adaptive"`, `"dynamic"` | S3/S5: gated strategies selectable per seller | small |
 | `BuyerContext` adds optional `buyer_identity` (verified id or null) and `buyer_entity_id` | Buyer entities, memory, trust tiers | small |
 | New tool `share_feedback` (optional) + event type `decision_feedback` | Why buyers bought or left | small |
