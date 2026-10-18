@@ -19,7 +19,7 @@ import { allowedActions, assertTransition } from "./state";
 import { MemoryStore, liveMemory, memoryKey, limitKey, breakerKey, probeId, isEvalRun, type ExchangeStore } from "./store";
 import { ProbeBreaker, StartLimiter, startLimitFor, buyerEndpoint, jitterStep, leverCost, NEAR_MISS_BAND } from "./probing";
 import { CONCESSION_CAP } from "./decision-guard";
-import { Outreach, type Sender } from "./outreach";
+import { Outreach, type InboundMeta, type Sender } from "./outreach";
 import type { AcceptMove, Catalog, ExchangeError, ExchangeResponse, Move, Negotiation, NegotiationState, OfferMove,
   ProductConfig, StandingOffer, StatusMove, WalkMove, LockedDeal } from "./types";
 
@@ -69,7 +69,7 @@ export class Exchange {
     this.voiceFn = o.voice ?? e2voice;
     this.buffer = o.soft_floor_buffer ?? DEFAULT_SOFT_FLOOR_BUFFER;
     this.outreach = new Outreach({ ex: this, now: this.now, send: o.send ?? (async () => {}),
-      emit: (n, type, price, payload) => this.emit(n, type, "seller", price, payload), setState: (n, to) => this.setState(n, to) });
+      emit: (n, type, price, payload, actor = "seller") => this.emit(n, type, actor, price, payload), setState: (n, to) => this.setState(n, to) });
   }
 
   /** Opt in to a follow-up after walking away (allow_followups). */
@@ -77,14 +77,14 @@ export class Exchange {
     const got = await this.load(negotiation_id, buyer_id);
     if ("error" in got) return got.error;
     if (got.n.state !== "walked_away") return fail("not_allowed", "follow-ups are only offered after walking away");
-    this.outreach.consent(got.n, consent);
+    await this.outreach.consent(got.n, consent);
     await this.store.putNegotiation(got.n);
     return { ok: true, negotiation_id, buyer_id, state: got.n.state, allowed_actions: ["status"], message: `OK. We'll send at most one later offer to ${consent.reply_to}. Reply STOP any time.` };
   }
 
   /** Inbound reply on the messaging door → structured move or a clarifying question. */
-  inbound(negotiation_id: string, buyer_id: string, text: string) {
-    return this.outreach.inbound(negotiation_id, buyer_id, text);
+  inbound(negotiation_id: string, buyer_id: string, text: string, meta?: InboundMeta) {
+    return this.outreach.inbound(negotiation_id, buyer_id, text, meta);
   }
 
   /** Deploy default: Supabase store + events when SUPABASE_URL is set, else in-memory. */
@@ -299,7 +299,7 @@ export class Exchange {
     const n = got.n;
     if (!allowedActions(n.state, false).includes("walk")) return fail("not_allowed", `can't walk away while the negotiation is ${n.state}`);
     await this.supersede(await this.standing(n));
-    if (m.followup) this.outreach.consent(n, m.followup);
+    if (m.followup) await this.outreach.consent(n, m.followup);
     await this.setState(n, "walked_away");
     await this.emit(n, "buyer_walked_away", "buyer", null, { reason: (m.reason ?? "").slice(0, 300), followup_consent: !!m.followup, channel: m.followup?.channel ?? null });
     const p = await this.catalog.get(n.product_id);
