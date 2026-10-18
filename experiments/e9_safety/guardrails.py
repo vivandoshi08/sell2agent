@@ -164,6 +164,13 @@ _INJECTION_PATTERNS: list[tuple[str, re.Pattern]] = [
         r"\b(ignore|disregard|forget|override|bypass|discard)\b[^.!?\n]{0,40}\b(previous|prior|above|earlier|all|your|existing|current|original)\b"
         r"[^.!?\n]{0,40}\b(instructions?|rules?|prompts?|guidelines|directives|pricing|programming|constraints)\b", re.I)),
     ("ignore_instructions", re.compile(r"\b(new|updated|revised)\s+(instructions?|rules?|system prompt|directives?)\s*(for (the )?(seller|assistant|agent))?\s*:", re.I)),
+    ("ignore_instructions", re.compile(r"\b(policy|policies|instructions?|rules?|floor values?|prices?|pricing)\s+(is|are|has been|have been|was|were)?\s*(now\s+)?"
+                                       r"(superseded|deprecated|revoked|rescinded|no longer (valid|apply|applies|in effect))\b", re.I)),
+    ("fake_system", re.compile(r"\b(operator|admin|administrator|system|developer|management|platform|runtime|configuration)\s+(note|message|notice|instruction|instructions|"
+                               r"override|directive|memo)s?\b[^.!?\n]{0,60}\b(seller|agent|assistant)\b|\b(note|message|instructions?)\s+to\s+(the\s+)?(seller|selling)\s+agent\b|"
+                               r"\bseller\s+(agent\s+)?(internal|instructions)\b|\bconfiguration\s+v?\d+(\.\d+)*\s+loaded\b", re.I)),
+    ("fake_boundary", re.compile(r"\[?\s*end of (the )?(customer|buyer|user|human)('s)? (message|turn|input)\s*\]?|</?\s*(conversation|transcript|chat|message|user|human)\s*>|"
+                                 r"\[\s*end( of)? (tool )?(response|output|result|message)\s*\]", re.I)),
     ("fake_tool_output", re.compile(
         r"<\s*/?\s*(tool_result|tool_use|tool_response|tool_output|function_results?|function_call|function_response|"
         r"tool|result|results|output|api_response|response|instructions?|operator|pricing[_ -]?\w*)\b[^>]*>", re.I)),
@@ -171,11 +178,12 @@ _INJECTION_PATTERNS: list[tuple[str, re.Pattern]] = [
         r"\{[^{}]{0,400}\"(status|approved|approval|override|approved_price|floor|floor_total|new_floor|min_price|minimum_price|"
         r"decision|authorized|authorized_by|policy_check|price_override)\"\s*:", re.I)),
     ("fake_tool_output", re.compile(
-        r"\[\s*(make_offer|accept_offer|pay_deal|review_deal|pricing[_ ]?(engine|tool|system)|policy[_ ]?engine|tool|checkout)"
+        r"\[\s*[^\]]{0,30}\b(make_offer|accept_offer|pay_deal|review_deal|pricing[_ ]?(engine|tool|system)|policy[_ ]?engine|tool|checkout)"
         r"[^\]]{0,40}\]\s*[:\-]?", re.I)),
+    ("fake_tool_output", re.compile(r"(^|\n)\s*[a-z]+(_[a-z0-9]+)+\s*[:=]\s*\S", re.I)),
     ("floor_update", re.compile(
-        r"\b(floor|floors|minimum price|min price|price floor|floor price|floor prices)\b[^.!?\n]{0,50}\b(updated|revised|changed|lowered|"
-        r"reduced|reset|overridden|override|adjusted)\b", re.I)),
+        r"\b(floor|floors|minimum|min price|price floor|floor price|floor prices)\b[^.!?\n]{0,50}\b(updated|revised|changed|lowered|"
+        r"reduced|reset|overridden|override|adjusted|temporarily set|now set|set to \$|superseded|deprecated)\b|\bfloor\s*[=:]\s*\$?\d", re.I)),
     ("floor_update", re.compile(
         r"\bpric(e|es|ing)\b[^.!?\n]{0,30}\b(revised|updated|override|overridden)\b[^.!?\n]{0,40}\b(effective|immediately|today|now)\b", re.I)),
     ("floor_update", re.compile(r"\bnew\s+([A-Z0-9+ ]{0,30}\s)?(bundle\s+)?(floor|minimum|min(imum)? price)\b", re.I)),
@@ -569,7 +577,7 @@ _FLOOR_LANG: list[tuple[str, re.Pattern]] = [
     ("instruction_disclosure", re.compile(r"\b(my|the)\s+(system prompt|instructions|programming|prompt)\b|\bi('ve| have)?\s*been\s+(instructed|told|programmed|configured)\b|\bmy (rules|guidelines) (say|state|require|tell)\b", re.I)),
 ]
 _COSTWORD = re.compile(r"\b(cost|costs|floor|lowest|minimum|margin|paid|bottom)\b", re.I)
-_SHARE_NEG = re.compile(r"\b(share|disclose|reveal|discuss|give out|give you|tell you|say|confirm|get into|go into|break down|talk about)\b", re.I)
+_SHARE_NEG = re.compile(r"\b(share|disclose|reveal|discuss|give out|give you|tell you|say|confirm|get into|go into|break down|talk about|describ\w*|name|answer)\b", re.I)
 _AT_COST = re.compile(r"\bat cost\b", re.I)
 
 _FINALITY = re.compile(
@@ -579,7 +587,8 @@ _FINALITY = re.compile(
     r"\btake it or leave it\b|"
     r"\b(won't|will not|not going to|can't|cannot|unable to)\s+(go|come|move|drop|budge|bend)\s+(any\s+)?(lower|further|down)\b(?!\s+to\b)|"
     r"\b(best|lowest|sharpest)\s+(price|offer|deal|number)\s+(i|we)\s+(can|could)\s+(do|offer|give|make)\b|\b(the )?best (i|we) can do\b|"
-    r"\bas far as (i|we) can go\b|\bthat's as far as\b|\bno (more|further) (room|movement|flexibility)\b|\bthis is it\b", re.I)
+    r"\bas far as (i|we) can go\b|\bthat's as far as\b|\bno (more|further) (room|movement|flexibility)\b|\bthis is it\b|"
+    r"\b(our|my) (very )?(best|lowest|bottom|sharpest|best possible) (price|offer|number|deal|total)\b(?! so far| yet| for now)", re.I)
 
 _FINANCING = re.compile(
     r"\b(financ\w*|payment plans?|install?ments?|net[- ]?\d{2}|defer\w*|layaway|lease|leasing|on credit|in-house credit|"
