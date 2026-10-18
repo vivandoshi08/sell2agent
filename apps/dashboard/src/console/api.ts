@@ -67,7 +67,10 @@ export function consoleApi(store: PolicyStore) {
     if (!url.pathname.startsWith("/api/console/")) return next();
     try {
       const [, , , what, id] = url.pathname.split("/"); // "", api, console, what, id
-      if (req.method === "GET" && what === "policies" && !id) return send(res, 200, { store: store.kind, policies: await store.list() });
+      if (req.method === "GET" && what === "policies" && !id) {
+        const notice = "notice" in store ? await (store as { notice(): Promise<string | null> }).notice() : null;
+        return send(res, 200, { store: store.kind, notice, policies: await store.list() });
+      }
       if (req.method === "PUT" && what === "policies" && id) {
         const edit = (await body(req)) as ConsolePolicy | null;
         if (!edit || edit.product_id !== decodeURIComponent(id)) return send(res, 400, { ok: false, problems: [{ field: "product_id", message: "Body product_id must match the URL." }] });
