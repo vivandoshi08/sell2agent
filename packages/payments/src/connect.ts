@@ -176,6 +176,8 @@ export interface SellerPayment {
   seller_cents: number;
   /** held = authorized, waiting for pickup; paid = captured; released = hold canceled */
   state: "held" | "paid" | "released" | "other";
+  /** true when Stripe splits this charge to the seller's account (false: made before payouts were connected) */
+  split: boolean;
   created: number;
 }
 
@@ -188,7 +190,7 @@ export async function sellerPayments(seller_id: string): Promise<SellerPayment[]
       const fee = p.application_fee_amount ?? 0;
       const state = p.status === "requires_capture" ? "held" : p.status === "succeeded" ? "paid" : p.status === "canceled" ? "released" : "other";
       return { payment_intent_id: p.id, deal_id: p.metadata?.deal_id ?? null, description: p.description, amount_cents: p.amount,
-        fee_cents: fee, seller_cents: p.amount - fee, state, created: p.created } as SellerPayment;
+        fee_cents: fee, seller_cents: p.transfer_data?.destination ? p.amount - fee : 0, state, split: !!p.transfer_data?.destination, created: p.created } as SellerPayment;
     });
 }
 

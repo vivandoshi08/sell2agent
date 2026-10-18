@@ -61,7 +61,8 @@ export function Store() {
     const pid = (p.description ?? "").split(" × ")[0];
     return view?.listings.find((l) => l.id === pid)?.title ?? (pid || p.deal_id || p.payment_intent_id);
   };
-  const earned = view?.payments.filter((p) => p.state === "paid").reduce((s, p) => s + p.seller_cents, 0) ?? 0;
+  // Only charges Stripe split to the seller count as theirs; earlier ones were kept by the platform.
+  const earned = view?.payments.filter((p) => p.state === "paid" && p.split).reduce((s, p) => s + p.seller_cents, 0) ?? 0;
 
   return (
     <div className="shell">
@@ -121,9 +122,10 @@ export function Store() {
                   <tr key={p.payment_intent_id}>
                     <td>{title(p)}<small>{new Date(p.created * 1000).toLocaleString()}</small></td>
                     <td className="num">{usd(p.amount_cents)}</td>
-                    <td className="num">{usd(p.fee_cents)}</td>
-                    <td className="num"><b>{usd(p.seller_cents)}</b></td>
-                    <td><span className={`pill ${p.state === "paid" ? "neg" : p.state === "held" ? "" : "bad"}`}>{STATE_LABEL[p.state]}</span></td>
+                    <td className="num">{p.split && p.state !== "released" ? usd(p.fee_cents) : "—"}</td>
+                    <td className="num"><b>{p.split && p.state !== "released" ? usd(p.seller_cents) : "—"}</b></td>
+                    <td><span className={`pill ${p.state === "paid" ? "neg" : p.state === "held" ? "" : "bad"}`}>{STATE_LABEL[p.state]}</span>
+                      {!p.split && <small>before payouts</small>}</td>
                     <td>
                       {p.state === "held" ? (
                         <form className="st-pickup" onSubmit={(e) => { e.preventDefault(); settle(p, "capture"); }}>
