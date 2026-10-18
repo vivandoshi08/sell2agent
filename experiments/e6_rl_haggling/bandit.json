@@ -1,0 +1,201 @@
+{
+ "contextual": {
+  "contextual": true,
+  "arms": [
+   "td(beta=0.2,reserve=0.0)",
+   "td(beta=0.2,reserve=0.0,warranty@r3)",
+   "td(beta=0.2,reserve=0.15)",
+   "td(beta=0.2,reserve=0.15,warranty@r3)",
+   "td(beta=0.2,reserve=0.3)",
+   "td(beta=0.2,reserve=0.3,warranty@r3)",
+   "td(beta=0.35,reserve=0.0)",
+   "td(beta=0.35,reserve=0.0,warranty@r3)",
+   "td(beta=0.35,reserve=0.15)",
+   "td(beta=0.35,reserve=0.15,warranty@r3)",
+   "td(beta=0.35,reserve=0.3)",
+   "td(beta=0.35,reserve=0.3,warranty@r3)",
+   "td(beta=0.5,reserve=0.0)",
+   "td(beta=0.5,reserve=0.0,warranty@r3)",
+   "td(beta=0.5,reserve=0.15)",
+   "td(beta=0.5,reserve=0.15,warranty@r3)",
+   "td(beta=0.5,reserve=0.3)",
+   "td(beta=0.5,reserve=0.3,warranty@r3)",
+   "td(beta=0.75,reserve=0.0)",
+   "td(beta=0.75,reserve=0.0,warranty@r3)",
+   "td(beta=0.75,reserve=0.15)",
+   "td(beta=0.75,reserve=0.15,warranty@r3)",
+   "td(beta=0.75,reserve=0.3)",
+   "td(beta=0.75,reserve=0.3,warranty@r3)",
+   "td(beta=1.0,reserve=0.0)",
+   "td(beta=1.0,reserve=0.0,warranty@r3)",
+   "td(beta=1.0,reserve=0.15)",
+   "td(beta=1.0,reserve=0.15,warranty@r3)",
+   "td(beta=1.0,reserve=0.3)",
+   "td(beta=1.0,reserve=0.3,warranty@r3)",
+   "td(beta=1.5,reserve=0.0)",
+   "td(beta=1.5,reserve=0.0,warranty@r3)",
+   "td(beta=1.5,reserve=0.15)",
+   "td(beta=1.5,reserve=0.15,warranty@r3)",
+   "td(beta=1.5,reserve=0.3)",
+   "td(beta=1.5,reserve=0.3,warranty@r3)",
+   "td(beta=2.5,reserve=0.0)",
+   "td(beta=2.5,reserve=0.0,warranty@r3)",
+   "td(beta=2.5,reserve=0.15)",
+   "td(beta=2.5,reserve=0.15,warranty@r3)",
+   "td(beta=2.5,reserve=0.3)",
+   "td(beta=2.5,reserve=0.3,warranty@r3)",
+   "td(beta=4.0,reserve=0.0)",
+   "td(beta=4.0,reserve=0.0,warranty@r3)",
+   "td(beta=4.0,reserve=0.15)",
+   "td(beta=4.0,reserve=0.15,warranty@r3)",
+   "td(beta=4.0,reserve=0.3)",
+   "td(beta=4.0,reserve=0.3,warranty@r3)",
+   "split_difference",
+   "tit_for_tat"
+  ],
+  "contexts": {
+   "T45|0": {
+    "best_arm": "td(beta=1.0,reserve=0.3)",
+    "best_mean_profit": 5950.2,
+    "pulls": 22535
+   },
+   "pooled": {
+    "best_arm": "td(beta=1.0,reserve=0.3,warranty@r3)",
+    "best_mean_profit": 12200.0,
+    "pulls": 300000
+   },
+   "T45|3": {
+    "best_arm": "td(beta=1.5,reserve=0.3)",
+    "best_mean_profit": 6756.2,
+    "pulls": 38218
+   },
+   "T25|4": {
+    "best_arm": "split_difference",
+    "best_mean_profit": 8209.1,
+    "pulls": 24054
+   },
+   "T75|4": {
+    "best_arm": "td(beta=0.5,reserve=0.0)",
+    "best_mean_profit": 15110.2,
+    "pulls": 19423
+   },
+   "T25|2": {
+    "best_arm": "td(beta=1.5,reserve=0.0)",
+    "best_mean_profit": 1496.7,
+    "pulls": 16023
+   },
+   "T75|2": {
+    "best_arm": "td(beta=1.5,reserve=0.0)",
+    "best_mean_profit": 3741.8,
+    "pulls": 18007
+   },
+   "T45|1": {
+    "best_arm": "split_difference",
+    "best_mean_profit": 840.1,
+    "pulls": 13886
+   },
+   "T45|4": {
+    "best_arm": "td(beta=0.5,reserve=0.0)",
+    "best_mean_profit": 10778.2,
+    "pulls": 40163
+   },
+   "T75|3": {
+    "best_arm": "td(beta=0.75,reserve=0.3)",
+    "best_mean_profit": 9461.2,
+    "pulls": 18796
+   },
+   "T75|0": {
+    "best_arm": "td(beta=0.5,reserve=0.0)",
+    "best_mean_profit": 8070.1,
+    "pulls": 11251
+   },
+   "T45|2": {
+    "best_arm": "td(beta=2.5,reserve=0.0)",
+    "best_mean_profit": 2574.8,
+    "pulls": 35021
+   },
+   "T25|3": {
+    "best_arm": "td(beta=1.0,reserve=0.3)",
+    "best_mean_profit": 4596.2,
+    "pulls": 19654
+   },
+   "T25|0": {
+    "best_arm": "td(beta=0.75,reserve=0.3)",
+    "best_mean_profit": 4683.8,
+    "pulls": 11146
+   },
+   "T25|1": {
+    "best_arm": "split_difference",
+    "best_mean_profit": 343.9,
+    "pulls": 4165
+   },
+   "T75|1": {
+    "best_arm": "td(beta=1.0,reserve=0.0)",
+    "best_mean_profit": 1118.2,
+    "pulls": 7658
+   }
+  }
+ },
+ "pooled": {
+  "contextual": false,
+  "arms": [
+   "td(beta=0.2,reserve=0.0)",
+   "td(beta=0.2,reserve=0.0,warranty@r3)",
+   "td(beta=0.2,reserve=0.15)",
+   "td(beta=0.2,reserve=0.15,warranty@r3)",
+   "td(beta=0.2,reserve=0.3)",
+   "td(beta=0.2,reserve=0.3,warranty@r3)",
+   "td(beta=0.35,reserve=0.0)",
+   "td(beta=0.35,reserve=0.0,warranty@r3)",
+   "td(beta=0.35,reserve=0.15)",
+   "td(beta=0.35,reserve=0.15,warranty@r3)",
+   "td(beta=0.35,reserve=0.3)",
+   "td(beta=0.35,reserve=0.3,warranty@r3)",
+   "td(beta=0.5,reserve=0.0)",
+   "td(beta=0.5,reserve=0.0,warranty@r3)",
+   "td(beta=0.5,reserve=0.15)",
+   "td(beta=0.5,reserve=0.15,warranty@r3)",
+   "td(beta=0.5,reserve=0.3)",
+   "td(beta=0.5,reserve=0.3,warranty@r3)",
+   "td(beta=0.75,reserve=0.0)",
+   "td(beta=0.75,reserve=0.0,warranty@r3)",
+   "td(beta=0.75,reserve=0.15)",
+   "td(beta=0.75,reserve=0.15,warranty@r3)",
+   "td(beta=0.75,reserve=0.3)",
+   "td(beta=0.75,reserve=0.3,warranty@r3)",
+   "td(beta=1.0,reserve=0.0)",
+   "td(beta=1.0,reserve=0.0,warranty@r3)",
+   "td(beta=1.0,reserve=0.15)",
+   "td(beta=1.0,reserve=0.15,warranty@r3)",
+   "td(beta=1.0,reserve=0.3)",
+   "td(beta=1.0,reserve=0.3,warranty@r3)",
+   "td(beta=1.5,reserve=0.0)",
+   "td(beta=1.5,reserve=0.0,warranty@r3)",
+   "td(beta=1.5,reserve=0.15)",
+   "td(beta=1.5,reserve=0.15,warranty@r3)",
+   "td(beta=1.5,reserve=0.3)",
+   "td(beta=1.5,reserve=0.3,warranty@r3)",
+   "td(beta=2.5,reserve=0.0)",
+   "td(beta=2.5,reserve=0.0,warranty@r3)",
+   "td(beta=2.5,reserve=0.15)",
+   "td(beta=2.5,reserve=0.15,warranty@r3)",
+   "td(beta=2.5,reserve=0.3)",
+   "td(beta=2.5,reserve=0.3,warranty@r3)",
+   "td(beta=4.0,reserve=0.0)",
+   "td(beta=4.0,reserve=0.0,warranty@r3)",
+   "td(beta=4.0,reserve=0.15)",
+   "td(beta=4.0,reserve=0.15,warranty@r3)",
+   "td(beta=4.0,reserve=0.3)",
+   "td(beta=4.0,reserve=0.3,warranty@r3)",
+   "split_difference",
+   "tit_for_tat"
+  ],
+  "contexts": {
+   "pooled": {
+    "best_arm": "td(beta=0.75,reserve=0.0)",
+    "best_mean_profit": 6383.8,
+    "pulls": 300000
+   }
+  }
+ }
+}
