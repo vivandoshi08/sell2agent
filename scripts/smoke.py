@@ -9,13 +9,13 @@ import argparse
 import json
 from pathlib import Path
 
-from sales_agent import llm
-from sales_agent.agents import BuyerAgent, SellerAgent, render_transcript, Turn
-from sales_agent.metrics import summarize
-from sales_agent.negotiation import run_negotiation
-from sales_agent.personas import make_personas
-from sales_agent.policy import Offer, PolicyEngine
-from sales_agent.runlog import RunLog
+from sell2agent import llm
+from sell2agent.agents import BuyerAgent, SellerAgent, render_transcript, Turn
+from sell2agent.metrics import summarize
+from sell2agent.negotiation import run_negotiation
+from sell2agent.personas import make_personas
+from sell2agent.policy import Offer, PolicyEngine
+from sell2agent.runlog import RunLog
 
 
 def main() -> None:

@@ -1,4 +1,4 @@
-# Sales Agent — read this first
+# sell2agent — read this first
 
 **What we're building (YC "Make Something Agents Want" hackathon, demo Sun 10am):**
 A seller-side agent for e-commerce. When a buyer agent is choosing between products, each product's

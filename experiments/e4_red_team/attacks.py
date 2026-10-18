@@ -17,10 +17,10 @@ from __future__ import annotations
 
 from dataclasses import replace
 
-from sales_agent import llm
-from sales_agent.agents import BuyerAgent
-from sales_agent.catalog import ADDONS, PRODUCTS, describe, floor_total
-from sales_agent.personas import BuyerPersona
+from sell2agent import llm
+from sell2agent.agents import BuyerAgent
+from sell2agent.catalog import ADDONS, PRODUCTS, describe, floor_total
+from sell2agent.personas import BuyerPersona
 
 
 def _r(x: float, step: int = 100) -> int:

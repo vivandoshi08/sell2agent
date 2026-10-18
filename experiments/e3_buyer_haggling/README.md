@@ -222,7 +222,7 @@ A negotiable Opus-vs-Opus session averaged $0.11, and a fixed one $0.03–0.04.
 ## Files
 
 - `common.py`: conditions, catalog notes, `BudgetOnlyBuyer` (B8), the session runner, behavior metrics, and the leak judge.
-- `run.py`: `grid | models | leak | b8` (resumable; `--dry` lists jobs). Run: `SALES_AGENT_MAX_CONCURRENCY=3 uv run python experiments/e3_buyer_haggling/run.py grid`
+- `run.py`: `grid | models | leak | b8` (resumable; `--dry` lists jobs). Run: `SELL2AGENT_MAX_CONCURRENCY=3 uv run python experiments/e3_buyer_haggling/run.py grid`
 - `analyze.py`: writes `results.json` and `results.md` (all tables, including per-cell rows not shown here).
 - `show.py`: prints transcripts, e.g. `uv run python experiments/e3_buyer_haggling/show.py grid fixed best_deal`
 - `runs/grid.jsonl`, `runs/models.jsonl`, `runs/leak.jsonl`, `runs/b8.jsonl`: every session with its full transcript. `runs/leak_judgments_v2.jsonl` holds the judge verdicts.

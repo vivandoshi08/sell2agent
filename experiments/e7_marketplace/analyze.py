@@ -17,9 +17,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from market import HERE, KIND, SELLERS, SPECS, my_list_total, numbers_in, strip_prefix  # noqa: E402
 
-from sales_agent.catalog import cost_total  # noqa: E402
-from sales_agent.metrics import summarize  # noqa: E402
-from sales_agent.runlog import load  # noqa: E402
+from sell2agent.catalog import cost_total  # noqa: E402
+from sell2agent.metrics import summarize  # noqa: E402
+from sell2agent.runlog import load  # noqa: E402
 
 RUNS = HERE / "runs"
 IDS = [s.id for s in SELLERS]

@@ -22,14 +22,14 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
-from llm_seller import safe_run  # noqa: E402  (sets SALES_AGENT_MAX_CONCURRENCY first)
-from sales_agent import llm  # noqa: E402
-from sales_agent.agents import SellerAgent, render_transcript, Turn  # noqa: E402
-from sales_agent.catalog import describe  # noqa: E402
-from sales_agent.metrics import summarize  # noqa: E402
-from sales_agent.personas import make_personas  # noqa: E402
-from sales_agent.policy import Offer  # noqa: E402
-from sales_agent.runlog import RunLog, load, run_many  # noqa: E402
+from llm_seller import safe_run  # noqa: E402  (sets SELL2AGENT_MAX_CONCURRENCY first)
+from sell2agent import llm  # noqa: E402
+from sell2agent.agents import SellerAgent, render_transcript, Turn  # noqa: E402
+from sell2agent.catalog import describe  # noqa: E402
+from sell2agent.metrics import summarize  # noqa: E402
+from sell2agent.personas import make_personas  # noqa: E402
+from sell2agent.policy import Offer  # noqa: E402
+from sell2agent.runlog import RunLog, load, run_many  # noqa: E402
 
 RUNS = HERE / "runs"
 PLAYBOOKS = HERE / "playbooks.json"

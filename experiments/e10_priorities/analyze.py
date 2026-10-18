@@ -16,8 +16,8 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from statistics import mean
 
-from sales_agent import metrics
-from sales_agent.runlog import load
+from sell2agent import metrics
+from sell2agent.runlog import load
 
 import catalog_ext as cx
 from buyers import TYPES

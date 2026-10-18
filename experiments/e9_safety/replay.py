@@ -29,8 +29,8 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(ROOT))
 
 from guardrails import InputGuard, OutputGuard, TurnContext, money_figures  # noqa: E402
-from sales_agent.catalog import floor_total  # noqa: E402
-from sales_agent.policy import Offer  # noqa: E402
+from sell2agent.catalog import floor_total  # noqa: E402
+from sell2agent.policy import Offer  # noqa: E402
 
 SOURCES = {
     "e5_main": ROOT / "experiments/e5_strategies/runs/main.jsonl",

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import os
 
-os.environ.setdefault("SALES_AGENT_MAX_CONCURRENCY", "3")
+os.environ.setdefault("SELL2AGENT_MAX_CONCURRENCY", "3")
 
 import dataclasses
 import json
@@ -17,13 +17,13 @@ import re
 import traceback
 from pathlib import Path
 
-from sales_agent import llm
-from sales_agent.agents import ADDONS, BuyerAgent, SellerAgent, ACTION_HELP, REPLY_FORMAT
-from sales_agent.catalog import list_total, public_catalog
-from sales_agent.negotiation import Outcome, run_negotiation
-from sales_agent.personas import BRIEFS, BuyerPersona
-from sales_agent.policy import PolicyEngine
-from sales_agent.runlog import load
+from sell2agent import llm
+from sell2agent.agents import ADDONS, BuyerAgent, SellerAgent, ACTION_HELP, REPLY_FORMAT
+from sell2agent.catalog import list_total, public_catalog
+from sell2agent.negotiation import Outcome, run_negotiation
+from sell2agent.personas import BRIEFS, BuyerPersona
+from sell2agent.policy import PolicyEngine
+from sell2agent.runlog import load
 
 HERE = Path(__file__).resolve().parent
 RUNS = HERE / "runs"

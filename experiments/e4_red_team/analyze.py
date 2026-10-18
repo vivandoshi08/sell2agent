@@ -18,9 +18,9 @@ sys.path.insert(0, str(HERE))
 
 from attacks import ATTACKS  # noqa: E402
 
-from sales_agent.catalog import floor_total  # noqa: E402
-from sales_agent.metrics import compare, summarize  # noqa: E402
-from sales_agent.runlog import load  # noqa: E402
+from sell2agent.catalog import floor_total  # noqa: E402
+from sell2agent.metrics import compare, summarize  # noqa: E402
+from sell2agent.runlog import load  # noqa: E402
 
 SETUPS = ["opus_prompt", "opus_engine", "haiku_prompt", "haiku_engine"]
 

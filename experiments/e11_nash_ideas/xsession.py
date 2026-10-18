@@ -2,7 +2,7 @@
 
 Every guardrail in E9 works inside one negotiation. A buyer can restart and
 learn the floor across sessions. This module is the seller-side state that
-spans sessions, written so it can move into `sales_agent/` for the build:
+spans sessions, written so it can move into `sell2agent/` for the build:
 
     DefenseConfig   which defenses are on.
     MemoryStore     per-buyer records keyed by every identifier we see
@@ -42,7 +42,7 @@ import math
 import random
 from dataclasses import asdict, dataclass, field
 
-from sales_agent.catalog import floor_total, list_total
+from sell2agent.catalog import floor_total, list_total
 
 ROUND_TO = 100
 
@@ -353,7 +353,7 @@ class XSessionStrategy:
         self.session = session
 
     def decide(self, state):
-        from sales_agent.agents import StrategyMove  # local import: keeps this module harness-light
+        from sell2agent.agents import StrategyMove  # local import: keeps this module harness-light
 
         s = self.session
         bid = None

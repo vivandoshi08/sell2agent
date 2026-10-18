@@ -47,10 +47,10 @@ from learn import load_qdict, train_q  # noqa: E402
 from strategies import QPolicy  # noqa: E402  (E6's strategies module)
 
 from guardrails import CONDITIONS, DecisionGuard, SessionPolicy, SessionState  # noqa: E402
-from sales_agent.agents import NegotiationState, StrategyMove  # noqa: E402
-from sales_agent.catalog import ADDONS, floor_total, list_total  # noqa: E402
-from sales_agent.personas import make_personas  # noqa: E402
-from sales_agent.policy import Decision, Offer, PolicyEngine  # noqa: E402
+from sell2agent.agents import NegotiationState, StrategyMove  # noqa: E402
+from sell2agent.catalog import ADDONS, floor_total, list_total  # noqa: E402
+from sell2agent.personas import make_personas  # noqa: E402
+from sell2agent.policy import Decision, Offer, PolicyEngine  # noqa: E402
 
 
 class Greedy:

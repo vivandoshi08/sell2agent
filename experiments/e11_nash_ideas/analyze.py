@@ -15,8 +15,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parents[1]))
 
-from sales_agent.metrics import summarize  # noqa: E402
-from sales_agent.runlog import load  # noqa: E402
+from sell2agent.metrics import summarize  # noqa: E402
+from sell2agent.runlog import load  # noqa: E402
 
 RUNS = HERE / "runs"
 

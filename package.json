@@ -1,5 +1,5 @@
 {
-  "name": "sales-agent",
+  "name": "sell2agent",
   "private": true,
   "packageManager": "pnpm@9.12.0",
   "scripts": {

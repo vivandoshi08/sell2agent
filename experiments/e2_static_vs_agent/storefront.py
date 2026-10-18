@@ -1,4 +1,4 @@
-"""The two non-negotiating storefronts for E2, rendered from sales_agent.catalog.
+"""The two non-negotiating storefronts for E2, rendered from sell2agent.catalog.
 
 (a) render_html(): a realistic product page (nav, product cards, spec tables,
     add-on checkboxes, cart and checkout copy). No JSON-LD, so it is a pure
@@ -19,7 +19,7 @@ import html
 import json
 from pathlib import Path
 
-from sales_agent.catalog import ADDONS, PRODUCTS, SELLER_NAME
+from sell2agent.catalog import ADDONS, PRODUCTS, SELLER_NAME
 
 STORE_URL = "https://prairie-equipment.example"
 

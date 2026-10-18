@@ -1,6 +1,6 @@
 """The layered guardrail stack for the selling agent (E9).
 
-Written so it can move into `sales_agent/` for the build. Every layer is plain
+Written so it can move into `sell2agent/` for the build. Every layer is plain
 code; the only model call in this file is the seller's own message.
 
 Layers, in the order a seller turn passes through them:
@@ -32,7 +32,7 @@ Layers, in the order a seller turn passes through them:
     SessionState    session limits: attack counter and circuit breaker,
                     escalation log, final-offer lock.
 
-`GuardedSeller` wires the layers around a `sales_agent` SellerAgent. Layers that a
+`GuardedSeller` wires the layers around a `sell2agent` SellerAgent. Layers that a
 `GuardConfig` turns off still run in shadow mode: they log what they would have
 done without acting, so one run shows which layer would catch what.
 """
@@ -48,8 +48,8 @@ import time
 import uuid
 from dataclasses import asdict, dataclass, field, replace
 
-from sales_agent import llm
-from sales_agent.agents import (
+from sell2agent import llm
+from sell2agent.agents import (
     ACTION_HELP,
     REPLY_FORMAT,
     NegotiationState,
@@ -60,7 +60,7 @@ from sales_agent.agents import (
     parse_turn,
     render_transcript,
 )
-from sales_agent.catalog import (
+from sell2agent.catalog import (
     ADDONS,
     PRODUCTS,
     SELLER_NAME,
@@ -69,7 +69,7 @@ from sales_agent.catalog import (
     floor_total,
     list_total,
 )
-from sales_agent.policy import Decision, Offer, PolicyEngine
+from sell2agent.policy import Decision, Offer, PolicyEngine
 
 # Bump when a rule changes, so run records say which guard produced them.
 # v1: pilot (Opus, G1/G2/G4). v2: phrasings the pilot's auditor caught and v1 missed ("the offer I can make today",

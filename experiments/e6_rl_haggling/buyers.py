@@ -21,7 +21,7 @@ from one of five buyer types (R10):
 It never pays more than w. It accepts an ask <= w when the ask is at or below its next planned
 offer (within tol), when the seller says "final offer" (85%), when its patience is spent, at its
 deadline, or on the last round. Turn order, the 8-round cap, and the policy engine's handling
-of rejected seller moves follow sales_agent/negotiation.py.
+of rejected seller moves follow sell2agent/negotiation.py.
 """
 
 from __future__ import annotations
@@ -29,10 +29,10 @@ from __future__ import annotations
 import random
 from dataclasses import asdict, dataclass
 
-from sales_agent.agents import NegotiationState, StrategyMove, Turn
-from sales_agent.catalog import ADDONS, cost_total, list_total
-from sales_agent.personas import BuyerPersona, make_personas
-from sales_agent.policy import Offer, PolicyEngine
+from sell2agent.agents import NegotiationState, StrategyMove, Turn
+from sell2agent.catalog import ADDONS, cost_total, list_total
+from sell2agent.personas import BuyerPersona, make_personas
+from sell2agent.policy import Offer, PolicyEngine
 
 POLICY = PolicyEngine()
 WARRANTY_LIST = ADDONS["warranty"].list_price

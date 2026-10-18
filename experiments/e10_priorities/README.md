@@ -39,7 +39,7 @@ Each tractor class gets a premium trim with an enclosed cab, upgraded hydraulics
 The add-ons (loader, 3-year extended warranty, delivery) are the harness ones at the same prices. The warranty description now reads "beyond the tractor's standard warranty".
 
 **How it plugs in without editing the harness:**
-- `catalog_ext.install()` adds the three premium `Item`s to the shared `sales_agent.catalog.PRODUCTS` dict, in this process only.
+- `catalog_ext.install()` adds the three premium `Item`s to the shared `sell2agent.catalog.PRODUCTS` dict, in this process only.
 - The harness reads that dict everywhere it prices or checks an offer: `PolicyEngine.check`, offer parsing, `Offer.label`, and the list/floor/cost totals in `run_negotiation`. So premium ids are priced and policy-checked the same way as standard ids.
 - `E10Policy` wraps `PolicyEngine` and rejects any id outside the extended catalog.
 - Buyer and seller prompts get their own catalog text with the specs, since the harness text has none.
@@ -148,8 +148,8 @@ Concession fraction by round (0 = list, 1 = floor):
 Reproduce:
 
 ```
-SALES_AGENT_MAX_CONCURRENCY=3 uv run python experiments/e10_priorities/run.py --phase main --reuse experiments/e10_priorities/runs/pilot2.jsonl
-SALES_AGENT_MAX_CONCURRENCY=3 uv run python experiments/e10_priorities/judge_runs.py --runs experiments/e10_priorities/runs/main.jsonl
+SELL2AGENT_MAX_CONCURRENCY=3 uv run python experiments/e10_priorities/run.py --phase main --reuse experiments/e10_priorities/runs/pilot2.jsonl
+SELL2AGENT_MAX_CONCURRENCY=3 uv run python experiments/e10_priorities/judge_runs.py --runs experiments/e10_priorities/runs/main.jsonl
 uv run python experiments/e10_priorities/analyze.py
 ```
 

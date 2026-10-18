@@ -23,9 +23,9 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parents[1]))
 
-from sales_agent import llm  # noqa: E402
-from sales_agent.catalog import public_catalog  # noqa: E402
-from sales_agent.runlog import load  # noqa: E402
+from sell2agent import llm  # noqa: E402
+from sell2agent.catalog import public_catalog  # noqa: E402
+from sell2agent.runlog import load  # noqa: E402
 
 RUNS = HERE / "runs"
 

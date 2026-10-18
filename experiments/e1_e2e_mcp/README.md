@@ -174,7 +174,7 @@ Total model spend for E1 ≈ **$17.4**: buyer agents $9.86 (CLI `total_cost_usd`
 5. **Free-text offers.** Let the seller issue several live offers per turn (it often quotes two options in text while the server keeps one). That would remove the only tool error we saw.
 6. **Use free-text for the seller's revenue, structured for speed?** The +$499 per deal free-text effect is worth confirming at larger n and explaining before choosing a front-door design.
 
-## Suggested harness changes (not made here; `sales_agent/` is untouched)
+## Suggested harness changes (not made here; `sell2agent/` is untouched)
 
 - `negotiation._seller_turn` is private and has no hook for rejected moves. `front_door.py` mirrors it to log each rejection with its reasons. A public version with an `on_reject` callback would help E4 too.
 - `BuyerPersona.feasible` ignores dropping add-ons. Add a `feasible_core` (any subset of wanted add-ons fits), as `analyze.py` does.
@@ -194,4 +194,4 @@ uv run python experiments/e1_e2e_mcp/run_e1.py --personas 6,7,16,17,21,22,23,24,
 uv run python experiments/e1_e2e_mcp/analyze.py --judge
 ```
 
-Raw data: `runs/buyer_runs.jsonl` (one record per buyer run, with every client-side tool call and the buyer's text), `runs/buyer/*.stream.jsonl` (full buyer streams), `runs/sessions/*.jsonl` (server-side tool calls and negotiation turns), `runs/orders.jsonl` (paid orders), `runs/judge.jsonl` (false-claim flags), `results.json` (per-group KPIs, per-run records, and Outcome-style records that `sales_agent.metrics.summarize` accepts).
+Raw data: `runs/buyer_runs.jsonl` (one record per buyer run, with every client-side tool call and the buyer's text), `runs/buyer/*.stream.jsonl` (full buyer streams), `runs/sessions/*.jsonl` (server-side tool calls and negotiation turns), `runs/orders.jsonl` (paid orders), `runs/judge.jsonl` (false-claim flags), `results.json` (per-group KPIs, per-run records, and Outcome-style records that `sell2agent.metrics.summarize` accepts).

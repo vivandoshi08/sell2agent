@@ -16,9 +16,9 @@ from collections import Counter
 from pathlib import Path
 from statistics import mean
 
-from sales_agent.catalog import list_total
-from sales_agent.metrics import compare, markdown_table, summarize
-from sales_agent.runlog import load
+from sell2agent.catalog import list_total
+from sell2agent.metrics import compare, markdown_table, summarize
+from sell2agent.runlog import load
 
 from strategies import CONDITIONS
 

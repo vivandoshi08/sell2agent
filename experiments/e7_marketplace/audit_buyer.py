@@ -4,7 +4,7 @@ The buyer often cites one seller's quote to another. We know every real quote, s
 auditor can check each citation: accurate, or a misrepresentation (a quote that never existed,
 a wrong number, a "final offer" nobody made, a written quote from a dealer that isn't there).
 
-    SALES_AGENT_MAX_CONCURRENCY=3 uv run python experiments/e7_marketplace/audit_buyer.py --tag full
+    SELL2AGENT_MAX_CONCURRENCY=3 uv run python experiments/e7_marketplace/audit_buyer.py --tag full
 """
 
 from __future__ import annotations
@@ -17,8 +17,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from market import HERE, SELLERS, SPECS, card_text, strip_prefix  # noqa: E402
 
-from sales_agent import llm  # noqa: E402
-from sales_agent.runlog import RunLog, load, run_many  # noqa: E402
+from sell2agent import llm  # noqa: E402
+from sell2agent.runlog import RunLog, load, run_many  # noqa: E402
 
 RUNS = HERE / "runs"
 

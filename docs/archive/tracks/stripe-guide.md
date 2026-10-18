@@ -3,7 +3,7 @@
 > **Archived pre-build plan (Sat Oct 17, 8:49 pm).** It planned a Python server; we shipped a TypeScript gateway. The submission write-up is [../../tracks/stripe.md](../../tracks/stripe.md). Code comments that cite `docs/tracks/stripe.md` (for example `ยง1`) mean this file.
 
 > Implementation guide, written 2026-10-17. Track brief: build an agent that can "buy products, provision services, manage business spending, or pay for the resources it needs", with "clear control over what their agents can do and spend". Prizes: Stripe credits $3k/$2k/$1k + Atlas fee waived; $500 credits for everyone.
-> Inputs: [TRACKS.md](../../TRACKS.md), [identity-and-payments.md](../../research/identity-and-payments.md), `sales_agent/policy.py`, and the mock `checkout` in `experiments/e1_e2e_mcp/front_door.py` at commit 494584c. Every Stripe fact below comes from docs.stripe.com, stripe.dev, github.com/stripe, or PyPI, read on 2026-10-17 unless another date is given.
+> Inputs: [TRACKS.md](../../TRACKS.md), [identity-and-payments.md](../../research/identity-and-payments.md), `sell2agent/policy.py`, and the mock `checkout` in `experiments/e1_e2e_mcp/front_door.py` at commit 494584c. Every Stripe fact below comes from docs.stripe.com, stripe.dev, github.com/stripe, or PyPI, read on 2026-10-17 unless another date is given.
 
 ## The short version
 
@@ -35,7 +35,7 @@ The plan holds up. Stripe documents exactly this seller flow: receive an `spt_โ€
 - Access: the docs say using SPTs means agreeing to the Agentic Commerce Seller Services **preview** terms. No sign-up step is documented. The SDK support ships in the **public** preview channel (`b` builds), not the invite-only `a` channel ([stripe-python beta changelog](https://github.com/stripe/stripe-python/blob/beta/CHANGELOG.md), 15.2.0b1 on 2026-04-23).
 
 ```python
-# sales_agent/payments.py (suggested). Amounts in cents.
+# sell2agent/payments.py (suggested). Amounts in cents.
 import os, time
 from stripe import StripeClient, StripeError, CardError
 client = StripeClient(os.environ["STRIPE_SECRET_KEY"], stripe_version="2026-09-30.preview")

@@ -28,12 +28,12 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
-from llm_seller import HintedSeller  # noqa: E402,F401  (sets SALES_AGENT_MAX_CONCURRENCY first)
+from llm_seller import HintedSeller  # noqa: E402,F401  (sets SELL2AGENT_MAX_CONCURRENCY first)
 from buyers import population, run_episode  # noqa: E402
 from core import ACTIONS  # noqa: E402
 from learn import load_qdict  # noqa: E402
-from sales_agent import judge, llm  # noqa: E402
-from sales_agent.runlog import RunLog, load, run_many  # noqa: E402
+from sell2agent import judge, llm  # noqa: E402
+from sell2agent.runlog import RunLog, load, run_many  # noqa: E402
 from strategies import QPolicy, fixed_by_name  # noqa: E402
 
 RUNS = HERE / "runs"

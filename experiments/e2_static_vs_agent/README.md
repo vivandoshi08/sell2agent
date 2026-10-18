@@ -11,7 +11,7 @@
 ## Setup
 
 - **Buyers:** `make_personas(30, seed=202)`, all with the neutral brief. Where each buyer's private walk-away falls against the floor and list totals of the bundle it wants: 13 below the floor, 15 in the haggle zone, 2 at or above list.
-- **Catalog and prices:** `sales_agent.catalog`, unchanged. All three tractors and all three add-ons, at list.
+- **Catalog and prices:** `sell2agent.catalog`, unchanged. All three tractors and all three add-ons, at list.
 - **Models:** buyer and seller are both Opus 5.5 (`claude-opus-5-5`) at low effort, through headless `claude -p`. The judge is Opus at medium effort.
 - **n:** 30 personas × 4 arms × 2 replicates = 240 sessions, 0 errors. The same personas face every arm, so all comparisons are paired.
 
@@ -30,7 +30,7 @@
 Reproduce:
 
 ```
-SALES_AGENT_MAX_CONCURRENCY=3 uv run python experiments/e2_static_vs_agent/run.py --arms a,b,c,d --reps 1,2
+SELL2AGENT_MAX_CONCURRENCY=3 uv run python experiments/e2_static_vs_agent/run.py --arms a,b,c,d --reps 1,2
 uv run python experiments/e2_static_vs_agent/analyze.py      # writes results.json and prints every table below
 ```
 

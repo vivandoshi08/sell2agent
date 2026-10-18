@@ -36,10 +36,10 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, dataclass
 
-from sales_agent import llm
-from sales_agent.agents import NegotiationState, SellerAgent, Turn, parse_turn, render_transcript
-from sales_agent.catalog import ADDONS, SELLER_NAME
-from sales_agent.policy import Offer
+from sell2agent import llm
+from sell2agent.agents import NegotiationState, SellerAgent, Turn, parse_turn, render_transcript
+from sell2agent.catalog import ADDONS, SELLER_NAME
+from sell2agent.policy import Offer
 
 import catalog_ext as cx
 

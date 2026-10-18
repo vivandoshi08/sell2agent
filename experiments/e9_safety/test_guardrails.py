@@ -34,9 +34,9 @@ from guardrails import (  # noqa: E402
     TurnContext,
     money_figures,
 )
-from sales_agent.agents import NegotiationState, StrategyMove, Turn  # noqa: E402
-from sales_agent.catalog import floor_total, list_total  # noqa: E402
-from sales_agent.policy import Offer, PolicyEngine, SellerRules  # noqa: E402
+from sell2agent.agents import NegotiationState, StrategyMove, Turn  # noqa: E402
+from sell2agent.catalog import floor_total, list_total  # noqa: E402
+from sell2agent.policy import Offer, PolicyEngine, SellerRules  # noqa: E402
 
 # T45 + loader: list 48,500, floor 41,700, cost 34,600.
 B = ("T45", ["loader"])

@@ -7,7 +7,7 @@ with a similar or slightly better margin. Every tractor has capability specs
 deterministic check.
 
 How it plugs into the harness without editing it: `install()` adds the three
-premium Items to the shared `sales_agent.catalog.PRODUCTS` dict in this
+premium Items to the shared `sell2agent.catalog.PRODUCTS` dict in this
 process only. The harness reads that dict everywhere it prices or checks an
 offer (policy engine, offer parsing, `Offer.label`, list/floor/cost totals in
 `run_negotiation`), so premium ids are priced and policy-checked like the
@@ -20,9 +20,9 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from sales_agent import catalog as base
-from sales_agent.catalog import ADDONS, SELLER_NAME, Item
-from sales_agent.policy import Decision, Offer, PolicyEngine
+from sell2agent import catalog as base
+from sell2agent.catalog import ADDONS, SELLER_NAME, Item
+from sell2agent.policy import Decision, Offer, PolicyEngine
 
 
 @dataclass(frozen=True)

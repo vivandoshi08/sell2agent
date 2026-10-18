@@ -27,12 +27,12 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from sales_agent import llm
-from sales_agent.agents import NegotiationState, SellerAgent, StrategyMove, Turn, parse_turn, render_transcript
-from sales_agent.catalog import ADDONS, PRODUCTS, SELLER_NAME, Item, cost_total, floor_total, list_total, seller_catalog
-from sales_agent.negotiation import Outcome, _seller_turn
-from sales_agent.personas import BRIEFS, BuyerPersona
-from sales_agent.policy import Offer, PolicyEngine
+from sell2agent import llm
+from sell2agent.agents import NegotiationState, SellerAgent, StrategyMove, Turn, parse_turn, render_transcript
+from sell2agent.catalog import ADDONS, PRODUCTS, SELLER_NAME, Item, cost_total, floor_total, list_total, seller_catalog
+from sell2agent.negotiation import Outcome, _seller_turn
+from sell2agent.personas import BRIEFS, BuyerPersona
+from sell2agent.policy import Offer, PolicyEngine
 
 HERE = Path(__file__).resolve().parent
 BROKER_NAME = "MarketLink"

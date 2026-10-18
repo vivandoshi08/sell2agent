@@ -6,7 +6,7 @@
 
 - The team's scaffold, contract, schema, and owners already exist on `main`.
 - Manufact's framework (mcp-use) is TypeScript-first. The deal-card widget is a React view in mcp-use TS, and the Python version has no widgets.
-- The Python experiment harness (`sales_agent/`, `experiments/`) keeps working as an outside evaluator. It talks to any MCP server over HTTP, so it can test the TypeScript seller unchanged.
+- The Python experiment harness (`sell2agent/`, `experiments/`) keeps working as an outside evaluator. It talks to any MCP server over HTTP, so it can test the TypeScript seller unchanged.
 
 ## The end goal (what the demo must do)
 

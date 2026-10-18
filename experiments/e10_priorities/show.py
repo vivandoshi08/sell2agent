@@ -10,7 +10,7 @@ import json
 import sys
 from pathlib import Path
 
-from sales_agent.runlog import load
+from sell2agent.runlog import load
 
 HERE = Path(__file__).resolve().parent
 

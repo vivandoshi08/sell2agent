@@ -2,7 +2,7 @@
 
 Two kinds:
 
-* Code strategies implement `sales_agent.agents.SellerStrategy`. Each seller turn
+* Code strategies implement `sell2agent.agents.SellerStrategy`. Each seller turn
   they read the NegotiationState and return a StrategyMove (offer a price and
   add-ons, or accept). The LLM only writes the message; the harness enforces
   the move. They are stateless: every decision is derived from the transcript,
@@ -31,9 +31,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from sales_agent.agents import NegotiationState, SellerAgent, SellerStrategy, StrategyMove
-from sales_agent.catalog import ADDONS, cost_total, floor_total, list_total
-from sales_agent.policy import Offer
+from sell2agent.agents import NegotiationState, SellerAgent, SellerStrategy, StrategyMove
+from sell2agent.catalog import ADDONS, cost_total, floor_total, list_total
+from sell2agent.policy import Offer
 
 ROUND_TO = 100  # offers are rounded to the nearest $100
 _ADDON_ORDER = list(ADDONS)
@@ -330,7 +330,7 @@ def make_seller(name: str, *, model: str | None = None, effort: str | None = Non
 
 def _demo() -> None:
     """Play each code strategy against a scripted buyer and print the offers."""
-    from sales_agent.agents import Turn
+    from sell2agent.agents import Turn
 
     def scripted_buyer(rnd: int, walk_away: int, start: int, step: int) -> Offer:
         return Offer("T45", min(walk_away, start + step * (rnd - 1)), ["loader"])

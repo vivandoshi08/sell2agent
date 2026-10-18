@@ -25,10 +25,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from common import HERE, ORDERS, RUNS, SESSIONS  # noqa: E402
 
-from sales_agent import llm  # noqa: E402
-from sales_agent.catalog import ADDONS, PRODUCTS, cost_total, floor_total, list_total  # noqa: E402
-from sales_agent.metrics import summarize  # noqa: E402
-from sales_agent.runlog import load  # noqa: E402
+from sell2agent import llm  # noqa: E402
+from sell2agent.catalog import ADDONS, PRODUCTS, cost_total, floor_total, list_total  # noqa: E402
+from sell2agent.metrics import summarize  # noqa: E402
+from sell2agent.runlog import load  # noqa: E402
 
 REGISTRY = json.loads((HERE / "registry.json").read_text())
 WEB_PRICES = {"T25": 27_650, "T45": 40_750, "T75": 65_950, "loader": 6_300, "warranty": 2_325, "delivery": 875}
@@ -202,7 +202,7 @@ def build(rec: dict, orders_by_session: dict, judge_cache: dict) -> dict:
         "total_cost_usd": round(buyer_cost + seller_cost, 4),
         "why": (rec.get("summary") or {}).get("why"),
     }
-    # Outcome-like record so sales_agent.metrics.summarize applies.
+    # Outcome-like record so sell2agent.metrics.summarize applies.
     ended_by = {"purchased_mcp": "buyer_accept", "no_deal": "buyer_walk", "recommend_web": "web_dealer", "recommend_other": "web_dealer", "error": "error"}.get(outcome, "stall")
     r["outcome_record"] = {
         "session_id": run_id,
@@ -239,9 +239,9 @@ FIXED_POLICY_NOTE = (
 
 def judge_fixed_variant(turns: list[dict], usage) -> list[str]:
     """The harness judge, told that this seller sells at list only (it otherwise flags 'prices are fixed' as false)."""
-    from sales_agent.agents import render_transcript
-    from sales_agent.catalog import seller_catalog
-    from sales_agent.judge import JUDGE_SYSTEM, _turn_from_dict
+    from sell2agent.agents import render_transcript
+    from sell2agent.catalog import seller_catalog
+    from sell2agent.judge import JUDGE_SYSTEM, _turn_from_dict
 
     ts = [_turn_from_dict(t) for t in turns]
     if not any(t.role == "seller" for t in ts):
@@ -252,7 +252,7 @@ def judge_fixed_variant(turns: list[dict], usage) -> list[str]:
 
 
 def run_judge(runs: list[dict], cache_path: Path) -> dict:
-    from sales_agent.judge import flag_false_claims
+    from sell2agent.judge import flag_false_claims
 
     variants = {rec["run_id"]: rec.get("variant", "negotiable") for rec in runs}
 

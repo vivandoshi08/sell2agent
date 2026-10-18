@@ -25,9 +25,9 @@ sys.path.insert(0, str(HERE.parents[1]))
 sys.path.insert(0, str(HERE))
 
 from guardrails import CONDITIONS, GUARD_VERSION, OutputGuard, SessionPolicy, SessionState, TurnContext, money_figures  # noqa: E402
-from sales_agent.policy import PolicyEngine  # noqa: E402
-from sales_agent.policy import Offer  # noqa: E402
-from sales_agent.runlog import load  # noqa: E402
+from sell2agent.policy import PolicyEngine  # noqa: E402
+from sell2agent.policy import Offer  # noqa: E402
+from sell2agent.runlog import load  # noqa: E402
 
 RUNS = HERE / "runs"
 

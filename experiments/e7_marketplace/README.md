@@ -283,7 +283,7 @@ Two turns. The same persona took five turns in direct mode and closed at $40,200
 
 - `market.py`: sellers, `MarketSeller`, `FixedPriceStrategy`, `DynamicStrategy`/`DynamicSeller`, registry, `MarketBuyer`, and `run_market_session` (the multi-seller loop)
 - `run_market.py`: runs the market sessions and the one-to-one baseline, and writes `registry.json`
-- `judge_runs.py`: false-claims judge over seller transcripts (a wrapper around `sales_agent.judge`)
+- `judge_runs.py`: false-claims judge over seller transcripts (a wrapper around `sell2agent.judge`)
 - `audit_buyer.py`: audits the buyer's competitor citations against the real quotes
 - `analyze.py`: writes `results.json` and prints the tables above
 - `registry.json`: the four agent cards
@@ -295,9 +295,9 @@ Two turns. The same persona took five turns in direct mode and closed at $40,200
 Reproduce:
 
 ```
-SALES_AGENT_MAX_CONCURRENCY=3 uv run python experiments/e7_marketplace/run_market.py --mode both --n 20 --tag full
-SALES_AGENT_MAX_CONCURRENCY=3 uv run python experiments/e7_marketplace/run_market.py --baseline --n 20 --tag full
-SALES_AGENT_MAX_CONCURRENCY=3 uv run python experiments/e7_marketplace/judge_runs.py --tag full
-SALES_AGENT_MAX_CONCURRENCY=3 uv run python experiments/e7_marketplace/audit_buyer.py --tag full
+SELL2AGENT_MAX_CONCURRENCY=3 uv run python experiments/e7_marketplace/run_market.py --mode both --n 20 --tag full
+SELL2AGENT_MAX_CONCURRENCY=3 uv run python experiments/e7_marketplace/run_market.py --baseline --n 20 --tag full
+SELL2AGENT_MAX_CONCURRENCY=3 uv run python experiments/e7_marketplace/judge_runs.py --tag full
+SELL2AGENT_MAX_CONCURRENCY=3 uv run python experiments/e7_marketplace/audit_buyer.py --tag full
 uv run python experiments/e7_marketplace/analyze.py --tag full
 ```

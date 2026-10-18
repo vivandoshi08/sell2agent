@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import os
 
-os.environ.setdefault("SALES_AGENT_MAX_CONCURRENCY", "3")
+os.environ.setdefault("SELL2AGENT_MAX_CONCURRENCY", "3")
 
 import argparse  # noqa: E402
 import json  # noqa: E402
@@ -39,8 +39,8 @@ from guardrails import CONDITIONS, GUARD_VERSION, GuardedSeller  # noqa: E402
 from harness9 import run_guarded_negotiation  # noqa: E402
 
 from experiments.e5_strategies.strategies import Boulware  # noqa: E402  (E5, read-only)
-from sales_agent import llm  # noqa: E402
-from sales_agent.runlog import RunLog, load, run_many  # noqa: E402
+from sell2agent import llm  # noqa: E402
+from sell2agent.runlog import RunLog, load, run_many  # noqa: E402
 
 RUNS = HERE / "runs"
 MODELS = {"opus": llm.OPUS, "haiku": llm.HAIKU}
@@ -172,7 +172,7 @@ def main() -> None:
     att_jobs = [j for j in att_jobs if job_key(*j) not in done_keys(att_log.path)]
     ctl_jobs = [j for j in ctl_jobs if job_key(*j) not in done_keys(ctl_log.path)]
     log(f"pending: {len(att_jobs)} attack jobs, {len(ctl_jobs)} control jobs; concurrency {args.concurrency}, "
-        f"model slots {os.environ.get('SALES_AGENT_MAX_CONCURRENCY')}, budget {args.budget}")
+        f"model slots {os.environ.get('SELL2AGENT_MAX_CONCURRENCY')}, budget {args.budget}")
     if args.dry_run:
         for j in att_jobs + ctl_jobs:
             print(job_key(*j))
