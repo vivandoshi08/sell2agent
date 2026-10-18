@@ -87,10 +87,10 @@ export async function runBuyer(task: LlmBuyerTask, brain: Brain, gw: Gateway, ru
           }
           o.offers_made++;
           if (o.ms_to_first_offer === null) o.ms_to_first_offer = Date.now() - t0;
-          ev("offer_made", "buyer", { product_id: a.product_id, price_cents: cents, payload: { message: a.message ?? "" } });
-          const r = await gw.offer(ctx, { product_id: String(a.product_id), negotiation_id: negs.get(a.product_id)?.id, offer_price_cents: cents, message: a.message });
+          if (!gw.sellerEventsLogged) ev("offer_made", "buyer", { product_id: a.product_id, price_cents: cents, payload: { message: a.message ?? "" } });
+          const r = await gw.offer(ctx, { product_id: String(a.product_id), negotiation_id: negs.get(a.product_id)?.id, offer_price_cents: cents, message: a.message, buyer_profile: task.profile as Record<string, number> });
           negs.set(a.product_id, { id: r.negotiation_id, last_price: r.price_cents });
-          ev(r.status === "accept" ? "offer_accepted" : r.status === "counter" ? "offer_countered" : "offer_rejected", "seller",
+          if (!gw.sellerEventsLogged) ev(r.status === "accept" ? "offer_accepted" : r.status === "counter" ? "offer_countered" : "offer_rejected", "seller",
             { product_id: a.product_id, negotiation_id: r.negotiation_id, price_cents: r.price_cents, payload: { round: r.round, final: r.final, message: r.message, lever_package: [], expires_at: null } });
           return JSON.stringify({ status: r.status, seller_price: dollars(r.price_cents), round: r.round, rounds_left: r.rounds_left, final: r.final, seller_message: r.message });
         }
@@ -112,7 +112,7 @@ export async function runBuyer(task: LlmBuyerTask, brain: Brain, gw: Gateway, ru
             o.profit_cents = r.final_price_cents - terms.unit_cost_cents;
             o.below_floor = r.final_price_cents < terms.floor_price_cents;
           } catch { /* product not in the local catalog (remote gateway) */ }
-          ev("deal_accepted", "buyer", { product_id: pid, negotiation_id: n.id, price_cents: r.final_price_cents,
+          if (!gw.sellerEventsLogged) ev("deal_accepted", "buyer", { product_id: pid, negotiation_id: n.id, price_cents: r.final_price_cents,
             payload: { deal_id: r.deal_id, lever_package: [], list_price_cents: listPrices.get(pid) ?? null } });
           return JSON.stringify({ ok: true, deal_id: r.deal_id, price: dollars(r.final_price_cents) });
         }

@@ -1,0 +1,300 @@
+{
+  "version": 1,
+  "trained_at": "2026-10-18T04:47:14.348Z",
+  "arms": [
+    "negotiating",
+    "balanced",
+    "lever_policy"
+  ],
+  "epsilon": 0.1,
+  "stats": {
+    "trust": {
+      "negotiating": {
+        "n": 190,
+        "sum": 817600,
+        "sumSq": 4857980000
+      },
+      "balanced": {
+        "n": 7,
+        "sum": 20700,
+        "sumSq": 109470000
+      },
+      "lever_policy": {
+        "n": 62,
+        "sum": 244900,
+        "sumSq": 1483030000
+      }
+    },
+    "quality": {
+      "negotiating": {
+        "n": 30,
+        "sum": 131200,
+        "sumSq": 764980000
+      },
+      "balanced": {
+        "n": 206,
+        "sum": 1057204,
+        "sumSq": 6037416228
+      },
+      "lever_policy": {
+        "n": 25,
+        "sum": 103200,
+        "sumSq": 598140000
+      }
+    },
+    "delivery": {
+      "negotiating": {
+        "n": 90,
+        "sum": 428900,
+        "sumSq": 2557550000
+      },
+      "balanced": {
+        "n": 136,
+        "sum": 650674,
+        "sumSq": 3689551138
+      },
+      "lever_policy": {
+        "n": 2,
+        "sum": 0,
+        "sumSq": 0
+      }
+    },
+    "price": {
+      "negotiating": {
+        "n": 59,
+        "sum": 260600,
+        "sumSq": 1602160000
+      },
+      "balanced": {
+        "n": 221,
+        "sum": 1087233,
+        "sumSq": 6155542891
+      },
+      "lever_policy": {
+        "n": 172,
+        "sum": 832900,
+        "sumSq": 5077290000
+      }
+    }
+  },
+  "choice": {
+    "trust": "negotiating",
+    "quality": "balanced",
+    "delivery": "balanced",
+    "price": "balanced"
+  },
+  "curve": [
+    {
+      "epoch": 1,
+      "bandit": 4095.733333333333,
+      "negotiating": 3816.6666666666665
+    },
+    {
+      "epoch": 2,
+      "bandit": 4543.333333333333,
+      "negotiating": 4446.666666666667
+    },
+    {
+      "epoch": 3,
+      "bandit": 5366.666666666667,
+      "negotiating": 4806.666666666667
+    },
+    {
+      "epoch": 4,
+      "bandit": 5526.666666666667,
+      "negotiating": 5570
+    },
+    {
+      "epoch": 5,
+      "bandit": 4356.666666666667,
+      "negotiating": 4526.666666666667
+    },
+    {
+      "epoch": 6,
+      "bandit": 5073.333333333333,
+      "negotiating": 4943.333333333333
+    },
+    {
+      "epoch": 7,
+      "bandit": 5019.566666666667,
+      "negotiating": 4890
+    },
+    {
+      "epoch": 8,
+      "bandit": 4787.733333333334,
+      "negotiating": 4393.333333333333
+    },
+    {
+      "epoch": 9,
+      "bandit": 4645.733333333334,
+      "negotiating": 4203.333333333333
+    },
+    {
+      "epoch": 10,
+      "bandit": 3842,
+      "negotiating": 3270
+    },
+    {
+      "epoch": 11,
+      "bandit": 4328.666666666667,
+      "negotiating": 3930
+    },
+    {
+      "epoch": 12,
+      "bandit": 4498.233333333334,
+      "negotiating": 3476.6666666666665
+    },
+    {
+      "epoch": 13,
+      "bandit": 5112.9,
+      "negotiating": 4550
+    },
+    {
+      "epoch": 14,
+      "bandit": 4952,
+      "negotiating": 4403.333333333333
+    },
+    {
+      "epoch": 15,
+      "bandit": 4470,
+      "negotiating": 4043.3333333333335
+    },
+    {
+      "epoch": 16,
+      "bandit": 5045.8,
+      "negotiating": 4473.333333333333
+    },
+    {
+      "epoch": 17,
+      "bandit": 4522,
+      "negotiating": 3490
+    },
+    {
+      "epoch": 18,
+      "bandit": 3730,
+      "negotiating": 3603.3333333333335
+    },
+    {
+      "epoch": 19,
+      "bandit": 4933.333333333333,
+      "negotiating": 4530
+    },
+    {
+      "epoch": 20,
+      "bandit": 4946.233333333334,
+      "negotiating": 4703.333333333333
+    },
+    {
+      "epoch": 21,
+      "bandit": 4500,
+      "negotiating": 4383.333333333333
+    },
+    {
+      "epoch": 22,
+      "bandit": 4692.9,
+      "negotiating": 4590
+    },
+    {
+      "epoch": 23,
+      "bandit": 5116.233333333334,
+      "negotiating": 4996.666666666667
+    },
+    {
+      "epoch": 24,
+      "bandit": 4650,
+      "negotiating": 4050
+    },
+    {
+      "epoch": 25,
+      "bandit": 4568.666666666667,
+      "negotiating": 4316.666666666667
+    },
+    {
+      "epoch": 26,
+      "bandit": 5553.333333333333,
+      "negotiating": 5270
+    },
+    {
+      "epoch": 27,
+      "bandit": 4770,
+      "negotiating": 4646.666666666667
+    },
+    {
+      "epoch": 28,
+      "bandit": 5046.666666666667,
+      "negotiating": 4906.666666666667
+    },
+    {
+      "epoch": 29,
+      "bandit": 5350,
+      "negotiating": 5070
+    },
+    {
+      "epoch": 30,
+      "bandit": 5250,
+      "negotiating": 5256.666666666667
+    },
+    {
+      "epoch": 31,
+      "bandit": 5000,
+      "negotiating": 5016.666666666667
+    },
+    {
+      "epoch": 32,
+      "bandit": 4416.666666666667,
+      "negotiating": 4260
+    },
+    {
+      "epoch": 33,
+      "bandit": 4378.666666666667,
+      "negotiating": 3816.6666666666665
+    },
+    {
+      "epoch": 34,
+      "bandit": 4099.566666666667,
+      "negotiating": 3850
+    },
+    {
+      "epoch": 35,
+      "bandit": 4580,
+      "negotiating": 4490
+    },
+    {
+      "epoch": 36,
+      "bandit": 4489.066666666667,
+      "negotiating": 4360
+    },
+    {
+      "epoch": 37,
+      "bandit": 4380,
+      "negotiating": 4236.666666666667
+    },
+    {
+      "epoch": 38,
+      "bandit": 4462,
+      "negotiating": 4183.333333333333
+    },
+    {
+      "epoch": 39,
+      "bandit": 4310,
+      "negotiating": 4170
+    },
+    {
+      "epoch": 40,
+      "bandit": 4426.666666666667,
+      "negotiating": 3996.6666666666665
+    }
+  ],
+  "gate": {
+    "passed": true,
+    "best_fixed_policy": "balanced",
+    "learned_minus_best_fixed_cents": -116,
+    "holdout_buyers": 900,
+    "diff_vs_negotiating_cents": 566,
+    "ci95_cents": [
+      462,
+      670
+    ],
+    "below_floor": 0
+  }
+}
