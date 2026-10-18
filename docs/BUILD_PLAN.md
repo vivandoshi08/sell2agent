@@ -23,39 +23,37 @@ Everything we've discussed is in scope for the hackathon. These stages set the o
 
 ## The learning loop (S3)
 
-E6 showed what the learning loop needs to work, so S3 builds it with those fixes in place.
+Supabase → RL → eval is the right shape, but needs two more steps, or it repeats E6's mistakes (logs of one fixed strategy can't show what other moves would have done, and training against our own buyers overfits).
 
-1. **Data:** every negotiation in `events` (offers, counters, accepts, walk-aways, final price) plus Manufact session replays. S1 and S2 produce this for free.
-2. **Simulator upgrade first:** scripted buyers that drop add-ons, change quantity, and walk away from stubborn sellers. E6 found LLM buyers do this in 36% of sessions, and the old simulator couldn't, which is why its policy didn't transfer.
-3. **Train (Python, reusing `experiments/e6_rl_haggling/`):** start with a bandit over whole strategies (static, Boulware, hold-list, warranty-first); E6's bandit matched the best fixed strategy within ~30k episodes. Then tabular Q-learning over per-round moves (hold, concede 5/15/35% of the gap, add a concession, final offer, accept). Reward: profit on a deal, 0 on a walk-away, a penalty below that for any move the guardrails would block.
-4. **Safety:** actions are masked so the policy can't pick a price below the soft floor; the code guardrails still check every move.
-5. **Ship it as a seller strategy:** export the learned policy as JSON; `seller-mcp` loads it as a third strategy, `learned`, next to `static` and `negotiating`.
-6. **Prove it:** the eval runner adds a `learned` arm on the dashboard, against at least two buyer model families. E6 showed results can flip between models.
-7. **Prompt-level learning alongside:** `seller_memory` (already a stretch in the seller brief) writes one insight per closed or lost negotiation and feeds recent ones back into the prompt. Watch for overfitting to our own buyer generator (E6 phase 3 did).
+1. **Log:** every negotiation in Supabase `events`, plus Manufact session replays and Inkbox's A2A records. Each interaction gets a score: closed?, profit, safe?, rounds, latency, and the buyer's stated reason (decision feedback).
+2. **Model the buyers:** fit a buyer simulator *from those logs*: how buyers respond to concessions, when they drop an add-on, when they walk, how fast they take a first proposal.
+3. **Train in the simulator** (Python, reusing `experiments/e6_rl_haggling/`): (a) a contextual **bandit over vetted strategies** (static, hold-list, Boulware, warranty-first), which is safe to run live because every arm is pre-tested; (b) **Q-learning** over per-round moves. Moves below the soft floor are masked.
+4. **Gate:** a new policy ships only if it beats the current one on held-out LLM buyers from **two model families** and passes the red-team suite with zero bad deals.
+5. **Deploy and explore:** `seller-mcp` loads it as the `learned` strategy (a policy JSON with a version), with a small share of randomized choices whose odds are logged, so the next round of logs can evaluate alternatives. Back to step 1.
 
-## S5: every other aspect we discussed
+Prompt-level learning runs alongside: `seller_memory` writes one lesson per closed or lost negotiation. Keep the eval buyers separate from anything the trainer saw.
 
-Nothing discussed is dropped. These were marked "out of the build", "stretch" or "roadmap" earlier; they're back, in priority order. Experiment notes say how to build each one well.
+## S5: the rest of the system (final, after judge feedback)
 
-| # | Aspect | What to build | Owner | Notes from experiments and research |
-|---|---|---|---|---|
-| 1 | **Marketplace broker mode** (Inkbox-style) | Marketplace sends one buyer request to every seller and returns their bids each round; buyer counters through it | C | E7: broker cut prices ~1 point and buyers ran bidding wars. Show it as a buyer-friendly mode next to direct |
-| 2 | **Dynamic pricing seller** | A seller strategy whose price reacts to demand, inventory, and competitor quotes it actually sees (never invented) | A | E7: lost to the plain negotiator because "beat any quote by $100" got exploited. Build it without quote-matching |
-| 3 | **Adaptive seller** (reads buyer type) | Infers price-first / quality-first / balanced and switches tactics; selectable strategy `adaptive` | A | E10: lost $707/session vs. the profit stance; misread balanced buyers. Judge by what buyers choose, not whether they haggle |
-| 4 | **Inventory-aware priority** (Nash `inventory_note`) | Per-product priority from stock: overstocked items concede more, never break needs-fit | A, C | Extends E10's priority dial |
-| 5 | **Per-buyer listing** (dynamic interface) | `get_listing` emphasizes what this buyer asked about and has been offered | A | North star point 5; B7 |
-| 6 | **A2A protocol endpoint** | An A2A agent card plus an A2A endpoint that maps tasks onto the same negotiation engine (counteroffer = `input_required`) | C, A | E8: no shopping agent reads A2A cards yet, but the whiteboard had A2A. Inkbox gives hosted A2A identities and a directory |
-| 7 | **Discovery files** | `/.well-known/ucp`, agent card, `llms.txt`, `agents.md`, MCP server card, a `nash.v1`-compatible `negotiate.json` | C | E8: UCP is the live standard. Nash insight 7 |
-| 8 | **GET-first HTTP mirror** (Nash) | Plain HTTP endpoints with a `next` link for agents that can only web-fetch | A | Nash insight 5 |
-| 9 | **OAuth on the seller** | Resource-server OAuth gating `accept_deal` / payment (mcp-use TS has OAuth providers) | A | Manufact guide §3; Claude directory wants it for listing |
-| 10 | **Full UCP / ACP checkout tools** | Accept a UCP-style payment instrument; optionally ACP's 5 checkout tools | A, B | Stripe guide §3 |
-| 11 | **Real human approval via Link wallet** | Link spend-request for a ≤$500 deposit that locks the negotiated price | B | Stripe guide §2: Link caps $500 per request |
-| 12 | **Stripe MCP as the merchant's ops view** | "List today's agent payments" through mcp.stripe.com in the demo | D | Stripe guide §5 |
-| 13 | **Merchant escalation channel** | Out-of-policy asks (financing, big discounts) go to the human merchant by email (Primitive) or text (Inkbox) instead of the agent agreeing | A | Guardrail "escalate to a human" (E9) |
-| 14 | **Async quotes by email** | Buyer can request a written quote; seller replies with a PDF quote | C | Primitive idea; B2B-style tractors / bulk orders |
-| 15 | **Human-facing chat channel** | Same seller agent in a chat widget for human shoppers | D | Nash insight 8: one agent, two channels |
-| 16 | **Armature analytics SDK** | Judged sessions on the live server, if the SDK supports mcp-use; A/B it against no SDK | A | Armature guide; telemetry field changes the tool surface |
-| 17 | **Business answers for the pitch** | Who pays, pricing model (share of uplift / per transaction / subscription), what a merchant needs to see before turning it on | D | The "Parked" list in OPEN_QUESTIONS.md |
+Narrowed on purpose: **two ways in with distinct jobs, one engine behind both.** MCP is for acting (anything that pulls a tool: listing, questions, offers, accept, pay). A2A over Inkbox is for talking and waiting: the seller's identity, messages the seller starts, follow-ups, and the agent team talking to itself. Anything binding (a priced offer, an accept, a payment) goes through the engine and policy engine, whichever channel it came in on.
+
+| # | Aspect | What to build | Owner |
+|---|---|---|---|
+| 1 | **A2A over Inkbox** | Seller's public Inkbox identity with an A2A endpoint, verified to the store's domain (DNS). Seller-initiated messages: fast first proposals in a market, "quote expires soon", merchant decisions, follow-ups after a walk-away. A2A tasks map onto the same engine (a counteroffer = "waiting on you"). | C |
+| 2 | **Seller agent team (swarm)** | Negotiator (talks to buyers), Sentinel (watches all sessions for injection and floor probing, own memory of attacks and false alarms), Liaison (escalates out-of-policy asks to the human merchant by Inkbox email or text). Each has its own Inkbox identity and isolated memory; they coordinate over A2A. | A, C |
+| 3 | **Buyer entities, memory, trust tiers** | Group sessions into a buyer entity: verified identity first (Inkbox DNS-verified, Web Bot Auth), otherwise a behavioral fingerprint. Per-entity best-offer memory (no better price for restarting, E11), and trust tiers (unknown / verified / preferred / blocked) that set pricing room and checks. | A |
+| 4 | **Decision feedback** | Optional `share_feedback` MCP tool and an A2A follow-up after walk-aways: what decided it (price, specs, delivery, trust, speed, other) + one line. Fallback: classify the reason from the transcript. Dashboard panel "why buyers bought or left"; feeds the learning loop. | A, B, D |
+| 5 | **Speed as a KPI** | Fast first response and a strong first offer, because buyer agents pick the first proposal 60–100% of the time in multi-seller markets (Magentic Marketplace). Track time-to-first-offer on the dashboard. | A, D |
+| 6 | **No manipulating buyers** | Output guard also blocks fake urgency, social proof, and authority claims; listing and tool text stay factual (buyers read descriptions as instructions). Counts toward safe conversion. | A |
+| 7 | **More seller strategies** | `adaptive` (reads buyer type; E10 says judge by what buyers choose), `dynamic` (reacts to demand and real competitor quotes, no quote-matching, E7), inventory-aware priority (Nash). All gated by the eval runner like `learned`. | A |
+| 8 | **Signposts** | `/.well-known/ucp`, the A2A agent card (doubles as Inkbox card), MCP server card, MCP Registry listing. Static files pointing at the two ways in. | C |
+| 9 | **Marketplace broker mode** (optional) | One request fanned out to every seller, bids returned per round. | C |
+| 10 | **Payments depth** | Capped payment token, Link deposit with real human approval, UCP-style instrument, Stripe MCP as the merchant's ops view, OAuth gating payment. | A, B, D |
+| 11 | **Merchant console** | The store owner sets floors, costs, concessions, priority, inventory notes; sees live negotiations, the sentinel's flags, and decision feedback. | D |
+| 12 | **Outside benchmark** (stretch) | Run our seller inside Microsoft's open-source Magentic Marketplace as an independent check. | D |
+| 13 | **Pitch answers** | Who pays, pricing model, what a merchant needs to see; Inkbox track decision. | D |
+
+**Dropped after the judges' input** (covered by the two ways in): the GET-only HTTP mirror, a human chat widget, separate email quotes via Primitive.
 
 ## Findings by app
 
@@ -113,7 +111,10 @@ Nothing discussed is dropped. These were marked "out of the build", "stretch" or
 | `accept_deal` takes an optional `payment_token` (Stripe Shared Payment Token) and returns `PaymentResult`-style `status`, `reasons`, `fix` | Stripe track: buyer's spend cap enforced by Stripe, refusals explainable | medium |
 | Event types `guardrail_blocked` with `payload.rule` (`accept_below_floor`, `price_in_text_mismatch`, `floor_disclosure`, `unpriced_concession`, `false_final`, `injection_flag`) | Dashboard guardrail log and safe-conversion scoring | small |
 | (Stretch) `review_deal` tool with an MCP App widget | Manufact track; a human approves before payment | medium |
-| `Seller.strategy` enum adds `"learned"` | S3: the learned policy ships as a selectable seller strategy | small |
+| `Seller.strategy` enum adds `"learned"`, `"adaptive"`, `"dynamic"` | S3/S5: gated strategies selectable per seller | small |
+| `BuyerContext` adds optional `buyer_identity` (verified id or null) and `buyer_entity_id` | Buyer entities, memory, trust tiers | small |
+| New tool `share_feedback` (optional) + event type `decision_feedback` | Why buyers bought or left | small |
+| Event fields `latency_ms`, `trust_tier`; event types `sentinel_flag`, `escalated_to_merchant` | Speed KPI, agent team, escalation | small |
 
 ## Sponsor integration by app
 
